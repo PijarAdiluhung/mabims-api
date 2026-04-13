@@ -10,9 +10,23 @@
       href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="favicons/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png" />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="favicons/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="favicons/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="favicons/favicon-16x16.png"
+    />
     <link rel="manifest" href="favicons/site.webmanifest" />
   </head>
   <body>
@@ -63,12 +77,6 @@
             margin-top: 20px;
           "
         >
-          <h4>🔬 API Methodology & Scope</h4>
-          <p>
-            <strong>Source Calendar:</strong> For the highest level of local
-            accuracy, this API uses the Indonesian Kemenag (Ministry of
-            Religious Affairs) calendar as its primary source reference.
-          </p>
           <p>
             <strong>Current Limitation:</strong> Due to the complexity and
             ongoing validation required for regional standards, this version is
@@ -76,6 +84,10 @@
             the years <strong>2025 and 2026</strong>. For future date ranges or
             advanced calendar features, please contact us.
           </p>
+          <strong>Important Notice:</strong> This API is currently available for
+          <strong>invite-only partners</strong>. Direct access to the endpoint
+          will only be granted from whitelisted domains. Please see our contact
+          section below to register your domain and obtain credentials.
         </div>
       </section>
 
@@ -83,8 +95,9 @@
       <section id="api-reference" class="documentation-section">
         <h2>⚙️ API Reference: The Lookup Endpoint</h2>
         <p class="description">
-          Use our single endpoint, `/lookup`, to perform all conversions. All
-          input must be date strings in the format YYYY-MM-DD.
+          Once access is granted, use our single endpoint, `/lookup`, to perform
+          all conversions. All input must be date strings in the format
+          YYYY-MM-DD.
         </p>
 
         <!-- Endpoint Code Block -->
@@ -150,15 +163,38 @@
           >
         </div>
       </section>
+
+      <!-- SECTION 3: Contact for API Access -->
+      <section
+        id="api-contact"
+        class="info-box partner-access-section"
+        style="margin-top: 50px; background-color: #eaf4ff"
+      >
+        <h2 style="color: #007bff">🤝 Partner Access & Support</h2>
+        <!-- [NEW] -->
+        <p>
+          To secure API access and integrate the Mabims standard into your
+          application, you must first register your domain for whitelisting.
+        </p>
+
+        <h4 style="margin-top: 20px">How to Apply</h4>
+        <ol style="margin-left: 20px">
+          <li>Contact us with a formal request, and state your intended use case.</li>
+          <li>We will evaluate your request.</li>
+          <li>If approved, we will add your domain to the whitelist.</li>
+        </ol>
+
+        <h4 style="margin-top: 20px">Contact Information</h4>
+        <p>
+          For technical inquiries, partnership agreements, or whitelisting
+          requests, email:
+          <a href="mailto:halo@pixostudio.id">halo@pixostudio.id</a>
+        </p>
+      </section>
     </main>
 
     <footer class="site-footer">
       <p>&copy; 2026 Mabims API. Built by PIXO Studio.</p>
-      <!-- New Contact Information -->
-      <p style="font-size: 0.9em">
-        Need more details or custom integrations? Email us at
-        <a href="mailto:halo@pixostudio.id">halo@pixostudio.id</a>
-      </p>
     </footer>
 
     <script src="script.js"></script>
