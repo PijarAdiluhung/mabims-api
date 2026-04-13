@@ -1,0 +1,12 @@
+{
+  "name": "api-calendar-lookup",
+  "version": "1.0.0",
+  "description": "API for calendar date lookups.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js" 
+  },
+  "dependencies": {
+    "express": "^4.19.2" 
+  }
+}
