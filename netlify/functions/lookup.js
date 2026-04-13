@@ -8,7 +8,7 @@ function loadCalendarData() {
   try {
     // We use `path.join(process.cwd(), ...)` to ensure we always start from the root of the project,
     // regardless of where the function is placed.
-    const filePath = path.join(process.cwd(), "data", "calendar_data.json");
+    const filePath = path.resolve(__dirname, "..", "data", "calendar_data.json");
     console.log(`[INFO] Loading data from: ${filePath}`);
     return JSON.parse(fs.readFileSync(filePath, "utf8"));
   } catch (error) {

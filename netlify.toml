@@ -1,0 +1,14 @@
+[build]
+  # The command Netlify runs to prepare everything (installing dependencies)
+  command = "npm install" 
+
+[functions]
+  # This explicitly tells Netlify where all the function logic is located
+  directory = "netlify/functions"
+  included_files = ["data/**"]
+
+[[redirects]]
+  # Optional: If you want your API to be called without the long .netlify/functions path
+  from = "/*"
+  to = "/.netlify/functions/lookup"
+  status = 200
