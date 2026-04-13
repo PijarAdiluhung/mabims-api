@@ -1,0 +1,201 @@
+/* General Resets and Typography */
+:root {
+    --primary-color: #00649e; /* Deep Blue for tech feel */
+    --secondary-color: #2ecc71; /* Green for success/CTA */
+    --text-dark: #333;
+    --bg-light: #f8f9fa;
+    --code-bg: #2d2d2d;
+    --code-text: #e6e6e6;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    line-height: 1.6;
+    color: var(--text-dark);
+    background-color: white;
+}
+
+/* --- Header and Hero Section --- */
+
+.site-header {
+    background: linear-gradient(90deg, var(--primary-color) 0%, #4a90e2 100%);
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.site-header h1 {
+    font-size: 3em;
+    margin-bottom: 5px;
+    color: white;
+}
+
+.tagline {
+    font-size: 1.2em;
+    color: #c0e0ff;
+    margin-bottom: 30px;
+}
+
+/* --- Buttons & CTAs --- */
+
+.cta-button {
+    display: inline-block;
+    padding: 15px 35px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.cta-button.primary {
+    background-color: var(--secondary-color);
+    color: white;
+    font-size: 1.1em;
+}
+
+.cta-button.primary:hover {
+    background-color: #27ae60; /* Slightly darker green on hover */
+    transform: translateY(-2px);
+}
+
+
+/* --- Layout and Containers --- */
+
+.container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+section {
+    margin-bottom: 60px;
+    padding: 30px;
+    background-color: var(--bg-light);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+h2 {
+    color: var(--primary-color);
+    border-bottom: 3px solid var(--secondary-color);
+    display: inline-block;
+    padding-bottom: 5px;
+    margin-bottom: 25px;
+}
+
+/* --- Technical Documentation Elements --- */
+
+h3 {
+    color: #333;
+    margin-top: 40px;
+    margin-bottom: 15px;
+    border-left: 4px solid var(--primary-color);
+    padding-left: 10px;
+}
+
+/* Code Blocks */
+.code-block, .api-call {
+    background-color: var(--code-bg);
+    color: var(--code-text);
+    padding: 20px;
+    border-radius: 6px;
+    margin: 20px 0;
+    overflow-x: auto; /* Handles long lines */
+}
+
+.api-endpoint code {
+    font-size: 1.1em;
+    color: #ffc107; /* Highlight the endpoint URL */
+}
+
+/* Params Table Styling */
+.params-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 25px 0;
+}
+
+.params-table th, .params-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.params-table th {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.params-table tbody tr:hover {
+    background-color: #eef;
+}
+
+
+/* Response Schema Blocks */
+.response-schema {
+    background-color: #27282c; /* Darker code block background */
+    color: var(--code-text);
+    padding: 15px;
+    border-radius: 6px;
+    font-family: 'Inconsolata', monospace;
+    white-space: pre-wrap;
+}
+
+.response-schema h4 {
+    margin-top: 0;
+    color: #fff;
+}
+
+/* Footer */
+.site-footer {
+    text-align: center;
+    padding: 20px;
+    border-top: 1px solid #ddd;
+    background-color: var(--bg-light);
+    margin-top: 40px;
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 768px) {
+    .site-header h1 {
+        font-size: 2.5em;
+    }
+    .tagline {
+        font-size: 1em;
+    }
+    /* Adjust table for smaller screens */
+    .params-table, .params-table thead, .params-table tbody, .params-table th, .params-table td, .params-table tr {
+        display: block;
+    }
+    .params-table thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    .params-table tr {
+        border: none;
+        margin-bottom: 15px;
+        display: block;
+        background-color: #eee;
+        padding: 10px;
+        border-radius: 5px;
+    }
+    .params-table td {
+        border: none;
+        position: relative;
+        /* Display labels for mobile */
+        display: sm; /* This is a pseudo-class concept, handled by CSS display block */
+        padding-left: 50%;
+        text-align: left !important;
+    }
+
+}

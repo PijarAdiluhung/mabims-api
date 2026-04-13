@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mabims Converter API | Documentation</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Optional: Include a technical/coding font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="site-header">
+        <h1>🗓️ Mabims Date Converter API</h1>
+        <p class="tagline">Seamless and Accurate Conversion Between Gregorian & Hijri Calendars.</p>
+        
+        <!-- Primary CTA: Link to the working UI -->
+        <a href="https://pijaradiluhung.github.io/labs/hijri-date/" target="_blank" class="cta-button primary">
+            🔗 Try the Live Converter Demo 🚀
+        </a>
+    </header>
+
+    <main class="container">
+        <!-- SECTION 1: Overview -->
+        <section id="overview" class="info-box">
+            <h2>📚 Understanding Mabims Conversion</h2>
+            <p>The Gregorian and Hijri calendars operate on different celestial cycles, leading to slight discrepancies in dates. The Mabims API provides a reliable serverless solution for accurate, two-way date conversion.</p>
+        </section>
+
+        <!-- SECTION 2: How the API Works (Documentation) -->
+        <section id="api-reference" class="documentation-section">
+            <h2>⚙️ API Reference: The Lookup Endpoint</h2>
+            <p class="description">Use our single endpoint, `/lookup`, to perform all conversions. All input must be date strings in the format YYYY-MM-DD.</p>
+
+            <!-- Endpoint Code Block -->
+            <div class="code-block api-endpoint">
+                <code>GET mabims-api.netlify.app/lookup</code>
+            </div>
+
+            <h3>Parameters</h3>
+            <table class="params-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Required?</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>date</code></td>
+                        <td>String (YYYY-MM-DD)</td>
+                        <td>Yes</td>
+                        <td>The date to be converted.</td>
+                    </tr>
+                    <tr>
+                        <td><code>source</code></td>
+                        <td>String (enum)</td>
+                        <td>Yes</td>
+                        <td>Specifies the input format: <code>gregorian</code> or <code>hijri</code>.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="example-block">
+                <h4>💡 Example Usage</h4>
+                <p>To convert the Gregorian date January 3rd, 2025, to Hijri:</p>
+                <!-- The actual API call example -->
+                <pre class="code-snippet api-call"><code>GET /lookup?date=2025-01-03&source=gregorian</code></pre>
+            </div>
+
+            <h3>Response Body (JSON Schema)</h3>
+            
+            <h4>✅ Success Response (HTTP 200)</h4>
+            <div class="response-schema success">
+                <code>{
+    "success": true,
+    "input_data": { "date": "YYYY-MM-DD", "type": "SOURCE_TYPE" },
+    "output_data": { "date": "Output Date String", "type": "TARGET_TYPE" },
+    "message": "Conversion successful."
+}</code>
+            </div>
+
+            <h4>❌ Error Response (HTTP 400/404)</h4>
+            <div class="response-schema error">
+                <code>{
+    "success": false,
+    "input_data": { "date": "...", "type": "..." },
+    "error": "Data not found.",
+    "message": "No calendar pair exists for the provided date and source."
+}</code>
+            </div>
+
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2024 Mabims API. Powered by Netlify Functions.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

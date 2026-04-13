@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MABIMS Date Converter</title>
+    <style>
+        /* --- Color Variables (Teal & Yellow) --- */
+        :root {
+            --color-teal: #2a9d8f;     /* Primary/Deep Teal */
+            --color-yellow: #ffc300;   /* Accent Gold/Yellow */
+            --color-light: #f4f7f6;    /* Off-White Background */
+            --color-dark: #264653;     /* Darker Text/Headers */
+            --color-error: #e76f51;    /* Soft Red for Errors */
+        }
+
+        /* --- General Styling & Layout --- */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--color-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            background: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            border-radius: 12px;
+        }
+
+        h1 {
+            color: var(--color-teal);
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        /* --- Input Module Styling --- */
+        .input-group {
+            margin-bottom: 25px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f9fdff; /* Very light background for focus area */
+            border: 1px solid var(--color-teal);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--color-dark);
+        }
+
+        /* Date Input Styling */
+        #dateInput {
+            width: calc(100% - 20px);
+            padding: 12px;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        #dateInput:focus {
+            outline: none;
+            border-color: var(--color-teal);
+            box-shadow: 0 0 5px rgba(42, 157, 143, 0.3);
+        }
+
+        /* Source Selector (Radio Buttons) */
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .radio-label {
+            cursor: pointer;
+            padding: 10px 15px;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            transition: all 0.3s;
+            user-select: none; /* Prevent text selection on click */
+        }
+
+        input[name="source"] {
+            display: none; /* Hide default radio button */
+        }
+        
+        /* Styling for the selected/active radio button */
+        input[name="source"]:checked + .radio-label {
+            background-color: var(--color-teal);
+            border-color: var(--color-teal);
+            color: white;
+            box-shadow: 0 3px 8px rgba(42, 157, 143, 0.2);
+        }
+
+        /* Action Button */
+        #convertButton {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--color-teal);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        #convertButton:hover {
+            background-color: #227a78; /* Slightly darker teal on hover */
+            transform: translateY(-1px);
+        }
+
+        /* --- Output/Result Styling --- */
+        #resultArea {
+            margin-top: 40px;
+            padding: 30px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            min-height: 150px; /* Ensure space even when empty */
+            background-color: var(--color-light);
+            transition: all 0.4s ease-in-out;
+        }
+
+        /* Styles for successful conversion display */
+        #resultArea.success {
+            border-color: var(--color-teal);
+            background-color: #e6fffb; /* Very light teal background */
+        }
+        
+        .result-card h3 {
+            color: var(--color-yellow);
+            margin-top: 0;
+            font-size: 1.5em;
+        }
+
+        .conversion-detail p strong {
+            display: inline-block;
+            min-width: 80px; /* Align labels */
+            color: var(--color-dark);
+        }
+        
+        /* Error/Message Box Styling */
+        .message-box {
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .error {
+            background-color: #ffe7e3; /* Light background for error */
+            border: 1px solid var(--color-error);
+            color: var(--color-error);
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            .radio-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .radio-label {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🕌 MABIMS Date Converter</h1>
+    <p class="subtitle">Easily convert dates between Gregorian and Hijri calendars.</p>
+
+    <!-- 1. INPUT MODULE -->
+    <div class="input-group">
+        <label for="dateInput">Enter the Date</label>
+        <input type="text" id="dateInput" placeholder="Example: YYYY-MM-DD or HH/MM/YYYY format" required>
+
+        <label style="margin-top: 20px;">Source Calendar Type:</label>
+        <div class="radio-group">
+            <!-- Radio buttons must use the same name attribute -->
+            <input type="radio" id="gregorianRadio" name="source" value="gregorian" checked>
+            <label for="gregorianRadio" class="radio-label">Gregorian Calendar</label>
+
+            <input type="radio" id="hijriRadio" name="source" value="hijri">
+            <label for="hijriRadio" class="radio-label">Hijri Calendar</label>
+        </div>
+    </div>
+
+    <!-- 2. ACTION BUTTON -->
+    <button id="convertButton">Convert Date</button>
+
+    <!-- 3. OUTPUT/RESULT MODULE -->
+    <div id="resultArea">
+        <p style="color: #999; text-align: center;">Enter a date and click 'Convert' to see the result here.</p>
+    </div>
+</div>
+
+<script>
+/** 
+ * JavaScript Logic for Conversion API Call
+ */
+
+document.addEventListener('DOMContentLoaded', () => {
+    const dateInput = document.getElementById('dateInput');
+    const sourceRadios = document.getElementsByName('source');
+    const convertButton = document.getElementById('convertButton');
+    const resultArea = document.getElementById('resultArea');
+
+    // !!! IMPORTANT: UPDATE THIS URL to your actual deployed Netlify function endpoint !!!
+    // Example format: https://your-site-name.netlify.app/.netlify/functions/index
+    const API_ENDPOINT = "https://mabims-api.netlify.app/lookup"; 
+
+
+    function displayMessage(message, isError = false) {
+        resultArea.innerHTML = `<div class="message-box ${isError ? 'error' : ''}">${message}</div>`;
+        resultArea.className = ''; // Clear any success/error styling
+        setTimeout(() => resultArea.classList.add(isError ? 'error' : 'success'), 50);
+    }
+
+    /** Clears all previous results and shows the placeholder */
+    function resetResults() {
+        if (!document.querySelector('.message-box')) {
+            resultArea.innerHTML = '<p style="color: #999; text-align: center;">Enter a date and click \'Convert\' to see the result here.</p>';
+            resultArea.className = '';
+        }
+    }
+
+    /** Handles the main conversion logic when the button is clicked */
+    async function handleConversion() {
+        const inputDate = dateInput.value.trim();
+        let selectedSource = null;
+
+        // Determine the selected source type
+        for (const radio of sourceRadios) {
+            if (radio.checked) {
+                selectedSource = radio.value;
+                break;
+            }
+        }
+
+        // 1. Basic Client-Side Validation
+        if (!inputDate || !selectedSource) {
+            displayMessage("Please enter a date and select the source calendar.", true);
+            return;
+        }
+
+        // 2. Pre-API Call Reset
+        resetResults();
+        convertButton.disabled = true;
+        convertButton.textContent = "Converting...";
+
+
+        // 3. Build API URL
+        const apiUrl = `${API_ENDPOINT}?date=${encodeURIComponent(inputDate)}&source=${selectedSource}`;
+
+        try {
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // SUCCESS HANDLING (HTTP 200)
+                displaySuccess(data);
+
+            } else if (response.status === 400 || response.status === 404) {
+                // API LOGIC ERRORS (Bad Request or Not Found)
+                const errorMessage = data.message || "Conversion failed due to invalid input.";
+                displayMessage(`⚠️ ${data.error}: ${errorMessage}`, true);
+
+            } else if (response.status >= 500) {
+                // SERVER/API FAILURE (5xx)
+                 const errorText = data.message || "Service is temporarily unavailable. Please try again later.";
+                 displayMessage(`🚨 Server Error: ${errorText}`, true);
+
+            } else {
+                 // Fallback for unexpected errors
+                displayMessage("An unknown error occurred while contacting the conversion service.", true);
+            }
+
+        } catch (e) {
+            console.error("Fetch error:", e);
+            displayMessage(`❌ Network Error: Could not reach the API endpoint. Please check your console and ensure the API URL is correct. (${e.message})`, true);
+        } finally {
+            convertButton.disabled = false;
+            convertButton.textContent = "Convert Date";
+        }
+    }
+
+    /** Updates the UI with successful conversion results */
+    function displaySuccess(data) {
+        const inputType = data.input_data.type;
+        const outputType = data.output_data.type;
+
+        let htmlContent = `
+            <div class="result-card">
+                <h3>✅ Success! Conversion Complete</h3>
+                <p><strong>Input Date (${inputType}):</strong> ${data.input_data.date}</p>
+                <p>⬇️ <strong>Converted To (${outputType}):</strong> <span style="font-size: 1.3em; color: var(--color-teal);">${data.output_data.date}</span></p>
+                <small style="display: block; margin-top: 10px;">${data.message}</small>
+            </div>
+        `;
+        resultArea.innerHTML = htmlContent;
+        resultArea.classList.add('success');
+    }
+
+    // Event Listener setup
+    convertButton.addEventListener('click', handleConversion);
+});
+</script>
+
+</body>
+</html>
