@@ -1,104 +1,162 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mabims Converter API | Documentation</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
     <!-- Optional: Include a technical/coding font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap" rel="stylesheet">
-</head>
-<body>
-
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
     <header class="site-header">
-        <h1>🗓️ Mabims Date Converter API</h1>
-        <p class="tagline">Seamless and Accurate Conversion Between Gregorian & Hijri Calendars.</p>
-        
-        <!-- Primary CTA: Link to the working UI -->
-        <a href="https://pijaradiluhung.github.io/labs/hijri-date/" target="_blank" class="cta-button primary">
-            🔗 Try the Live Converter Demo 🚀
-        </a>
+      <h1>🗓️ Mabims Date Converter API</h1>
+      <p class="tagline">
+        Seamless and Accurate Conversion Between Gregorian & Hijri Calendars.
+      </p>
+
+      <!-- Primary CTA: Link to the working UI -->
+      <a
+        href="https://pijaradiluhung.github.io/labs/hijri-date/"
+        target="_blank"
+        class="cta-button primary"
+      >
+        🔗 Try the Demo UI Version 🚀
+      </a>
     </header>
 
     <main class="container">
-        <!-- SECTION 1: Overview -->
-        <section id="overview" class="info-box">
-            <h2>📚 Understanding Mabims Conversion</h2>
-            <p>The Gregorian and Hijri calendars operate on different celestial cycles, leading to slight discrepancies in dates. The Mabims API provides a reliable serverless solution for accurate, two-way date conversion.</p>
-        </section>
+      <!-- SECTION 1: Overview -->
+      <section id="overview" class="info-box">
+        <h2>📚 What is MABIMS?</h2>
+        <p>
+          The Islamic calendar operates on a lunar cycle, while the Gregorian
+          calendar is solar-based, leading to discrepancies in dates. For
+          region-specific accuracy, the Mabims standard (an abbreviation for a
+          commonly used variant) is critical. This standard is widely adopted by
+          governing bodies in countries like Singapore, Indonesia, and Malaysia.
+        </p>
 
-        <!-- SECTION 2: How the API Works (Documentation) -->
-        <section id="api-reference" class="documentation-section">
-            <h2>⚙️ API Reference: The Lookup Endpoint</h2>
-            <p class="description">Use our single endpoint, `/lookup`, to perform all conversions. All input must be date strings in the format YYYY-MM-DD.</p>
+        <h3 style="margin-top: 25px">The Need for Specialization</h3>
+        <p>
+          While many general-purpose APIs default to using the Ummul Qura Hijri
+          calendar (used predominantly by Saudi Arabia), this standard may not
+          reflect local governmental calendars. The Mabims API was specifically
+          developed to address these regional variations, providing accurate and
+          localized conversions compliant with key Southeast Asian standards.
+        </p>
 
-            <!-- Endpoint Code Block -->
-            <div class="code-block api-endpoint">
-                <code>GET mabims-api.netlify.app/lookup</code>
-            </div>
+        <!-- New Methodology/Disclaimer Section -->
+        <div
+          class="methodology-box"
+          style="
+            background-color: #f9f7ed;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 20px;
+          "
+        >
+          <h4>🔬 API Methodology & Scope</h4>
+          <p>
+            <strong>Source Calendar:</strong> For the highest level of local
+            accuracy, this API uses the Indonesian Kemenag (Ministry of
+            Religious Affairs) calendar as its primary source reference.
+          </p>
+          <p>
+            <strong>Current Limitation:</strong> Due to the complexity and
+            ongoing validation required for regional standards, this version is
+            currently validated and guaranteed accurate only for dates within
+            the years <strong>2025 and 2026</strong>. For future date ranges or
+            advanced calendar features, please contact us.
+          </p>
+        </div>
+      </section>
 
-            <h3>Parameters</h3>
-            <table class="params-table">
-                <thead>
-                    <tr>
-                        <th>Parameter</th>
-                        <th>Type</th>
-                        <th>Required?</th>
-                        <th>Description</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><code>date</code></td>
-                        <td>String (YYYY-MM-DD)</td>
-                        <td>Yes</td>
-                        <td>The date to be converted.</td>
-                    </tr>
-                    <tr>
-                        <td><code>source</code></td>
-                        <td>String (enum)</td>
-                        <td>Yes</td>
-                        <td>Specifies the input format: <code>gregorian</code> or <code>hijri</code>.</td>
-                    </tr>
-                </tbody>
-            </table>
+      <!-- SECTION 2: How the API Works (Documentation) -->
+      <section id="api-reference" class="documentation-section">
+        <h2>⚙️ API Reference: The Lookup Endpoint</h2>
+        <p class="description">
+          Use our single endpoint, `/lookup`, to perform all conversions. All
+          input must be date strings in the format YYYY-MM-DD.
+        </p>
 
-            <div class="example-block">
-                <h4>💡 Example Usage</h4>
-                <p>To convert the Gregorian date January 3rd, 2025, to Hijri:</p>
-                <!-- The actual API call example -->
-                <pre class="code-snippet api-call"><code>GET /lookup?date=2025-01-03&source=gregorian</code></pre>
-            </div>
+        <!-- Endpoint Code Block -->
+        <div class="code-block api-endpoint">
+          <code>GET mabims-api.netlify.app/lookup</code>
+        </div>
 
-            <h3>Response Body (JSON Schema)</h3>
-            
-            <h4>✅ Success Response (HTTP 200)</h4>
-            <div class="response-schema success">
-                <code>{
-    "success": true,
-    "input_data": { "date": "YYYY-MM-DD", "type": "SOURCE_TYPE" },
-    "output_data": { "date": "Output Date String", "type": "TARGET_TYPE" },
-    "message": "Conversion successful."
-}</code>
-            </div>
+        <h3>Parameters</h3>
+        <table class="params-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Required?</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>date</code></td>
+              <td>String (YYYY-MM-DD)</td>
+              <td>Yes</td>
+              <td>The date to be converted.</td>
+            </tr>
+            <tr>
+              <td><code>source</code></td>
+              <td>String (enum)</td>
+              <td>Yes</td>
+              <td>
+                Specifies the input format: <code>gregorian</code> or
+                <code>hijri</code>.
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-            <h4>❌ Error Response (HTTP 400/404)</h4>
-            <div class="response-schema error">
-                <code>{
-    "success": false,
-    "input_data": { "date": "...", "type": "..." },
-    "error": "Data not found.",
-    "message": "No calendar pair exists for the provided date and source."
-}</code>
-            </div>
+        <div class="example-block">
+          <h4>💡 Example Usage</h4>
+          <p>To convert the Gregorian date January 3rd, 2025, to Hijri:</p>
+          <!-- The actual API call example -->
+          <pre
+            class="code-snippet api-call"
+          ><code>GET /lookup?date=2025-01-03&source=gregorian</code></pre>
+        </div>
 
-        </section>
+        <h3>Response Body (JSON Schema)</h3>
+
+        <h4>✅ Success Response (HTTP 200)</h4>
+        <div class="response-schema success">
+          <code
+            >{ "success": true, "input_data": { "date": "YYYY-MM-DD", "type":
+            "SOURCE_TYPE" }, "output_data": { "date": "Output Date String",
+            "type": "TARGET_TYPE" }, "message": "Conversion successful." }</code
+          >
+        </div>
+        <br />
+        <h4>❌ Error Response (HTTP 400/404)</h4>
+        <div class="response-schema error">
+          <code
+            >{ "success": false, "input_data": { "date": "...", "type": "..." },
+            "error": "Data not found.", "message": "No calendar pair exists for
+            the provided date and source." }</code
+          >
+        </div>
+      </section>
     </main>
 
     <footer class="site-footer">
-        <p>&copy; 2024 Mabims API. Powered by Netlify Functions.</p>
+      <p>&copy; 2026 Mabims API. Built by PIXO Studio.</p>
+      <!-- New Contact Information -->
+      <p style="font-size: 0.9em">
+        Need more details or custom integrations? Email us at
+        <a href="mailto:halo@pixostudio.id">halo@pixostudio.id</a>
+      </p>
     </footer>
 
     <script src="script.js"></script>
-</body>
+  </body>
 </html>
