@@ -1,0 +1,9 @@
+# Dependencies (The folder Node uses)
+/node_modules
+
+# Compiled code or temporary files
+*.log
+npm-debug.log
+
+# VS Code specific files (optional, but good practice)
+.vscode/
