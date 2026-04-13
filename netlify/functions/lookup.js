@@ -25,6 +25,18 @@ const calendarData = loadCalendarData();
  * @param {object} event - Contains query parameters (e.g., date, source).
  */
 exports.handler = async (event) => {
+  if (!calendarData) {
+    console.error("API FAILURE: Calendar data failed to load at startup.");
+    return {
+      statusCode: 503, // Use 503 Service Unavailable
+      body: JSON.stringify({
+        success: false,
+        error: "Service Unavailable.",
+        message:
+          "The calendar database could not be loaded. Please try again later.",
+      }),
+    };
+  }
   // Netlify passes request params through the 'queryStringParameters' property
   const params = event.queryStringParameters || {};
 
