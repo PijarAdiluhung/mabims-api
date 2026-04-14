@@ -52,10 +52,11 @@
         <h2>📚 What is MABIMS?</h2>
         <p>
           The Islamic calendar operates on a lunar cycle, while the Gregorian
-          calendar is solar-based, leading to discrepancies in dates. For
-          region-specific accuracy, the Mabims standard (an abbreviation for a
-          commonly used variant) is critical. This standard is widely adopted by
-          governing bodies in countries like Singapore, Indonesia, and Malaysia.
+          calendar is solar-based, leading to discrepancies in dates, which
+          calls for the need to convert between them. For region-specific
+          accuracy, the Mabims standard (an abbreviation for a commonly used
+          variant) is critical. This standard is widely adopted by governing
+          bodies in countries like Singapore, Indonesia, and Malaysia.
         </p>
 
         <h3 style="margin-top: 25px">The Need for Specialization</h3>
@@ -96,16 +97,19 @@
         <h2>⚙️ API Reference: The Lookup Endpoint</h2>
         <p class="description">
           Once access is granted, use our single endpoint, `/lookup`, to perform
-          all conversions. All input must be date strings in the format
-          YYYY-MM-DD.
+          all date conversions. Inputs can be provided in two ways: 1)
+          Explicitly providing the date and source (YYYY-MM-DD). 2) Using the
+          simplified method by calling the endpoint with
+          <code class="highlight">?source=today</code>, which automatically
+          defaults to converting today's Gregorian date to Hijri.
         </p>
 
         <!-- Endpoint Code Block -->
         <div class="code-block api-endpoint">
-          <code>GET mabims-api.netlify.app/lookup</code>
+          <code class="netlify-url">GET mabims-api.netlify.app/lookup</code>
         </div>
 
-        <h3>Parameters</h3>
+        <h3 style="margin-top: 20px">Parameters</h3>
         <table class="params-table">
           <thead>
             <tr>
@@ -116,36 +120,70 @@
             </tr>
           </thead>
           <tbody>
+            <!-- Date Parameter -->
             <tr>
-              <td><code>date</code></td>
+              <td><code class="parameter-name">date</code></td>
               <td>String (YYYY-MM-DD)</td>
-              <td>Yes</td>
-              <td>The date to be converted.</td>
+              <td>No (Optional)</td>
+              <td>
+                The specific date to be converted. Required only if you are not
+                using the 'today' shortcut.
+              </td>
             </tr>
+            <!-- Source Parameter -->
             <tr>
-              <td><code>source</code></td>
+              <td><code class="parameter-name">source</code></td>
               <td>String (enum)</td>
               <td>Yes</td>
               <td>
-                Specifies the input format: <code>gregorian</code> or
-                <code>hijri</code>.
+                Specifies the input format:
+                <code class="source-gregorian">gregorian</code>,
+                <code class="source-hijri">hijri</code>, or
+                <code class="source-today highlight">today</code>.
               </td>
             </tr>
           </tbody>
         </table>
 
-        <div class="example-block">
-          <h4>💡 Example Usage</h4>
+        <!-- NOTE ADDED TO GUIDE USER -->
+        <p
+          class="note-box"
+          style="
+            background-color: #e6f7ff;
+            padding: 10px;
+            border-left: 3px solid #0984e3;
+          "
+        >
+          <strong>✨ Pro Tip:</strong> For a quick conversion of the current
+          date, simply use <code class="highlight">?source=today</code>. This
+          automatically sets the date to today's Gregorian calendar date and
+          returns the corresponding Hijri date.
+        </p>
+
+        <div class="example-block" style="margin-top: 30px">
+          <h4 style="color: #0984e3">💡 Example Usage</h4>
+
+          <!-- Example 1 (Manual) -->
+          <p><strong>Scenario A: Manual Lookup</strong></p>
           <p>To convert the Gregorian date January 3rd, 2025, to Hijri:</p>
           <!-- The actual API call example -->
           <pre
             class="code-snippet api-call"
           ><code>GET /lookup?date=2025-01-03&source=gregorian</code></pre>
+
+          <!-- Example 2 (Today) -->
+          <hr style="border: none; border-top: 1px dashed #ccc" />
+          <p><strong>Scenario B: Today's Date Lookup</strong></p>
+          <p>To get today's Hijri date based on the current Gregorian date:</p>
+          <!-- The actual API call example -->
+          <pre
+            class="code-snippet api-call"
+          ><code>GET /lookup?source=today</code></pre>
         </div>
 
-        <h3>Response Body (JSON Schema)</h3>
+        <h3 style="margin-top: 30px">Response Body (JSON Schema)</h3>
 
-        <h4>✅ Success Response (HTTP 200)</h4>
+        <h4 style="color: green">✅ Success Response (HTTP 200)</h4>
         <div class="response-schema success">
           <code
             >{ "success": true, "input_data": { "date": "YYYY-MM-DD", "type":
@@ -154,12 +192,13 @@
           >
         </div>
         <br />
-        <h4>❌ Error Response (HTTP 400/404)</h4>
+
+        <h4 style="color: red">❌ Error Response (HTTP 400/404)</h4>
         <div class="response-schema error">
           <code
             >{ "success": false, "input_data": { "date": "...", "type": "..." },
-            "error": "Data not found.", "message": "No calendar pair exists for
-            the provided date and source." }</code
+            "error": "Data not found or Invalid Parameters.", "message": "Review
+            the required parameters and source type." }</code
           >
         </div>
       </section>
@@ -179,7 +218,9 @@
 
         <h4 style="margin-top: 20px">How to Apply</h4>
         <ol style="margin-left: 20px">
-          <li>Contact us with a formal request, and state your intended use case.</li>
+          <li>
+            Contact us with a formal request, and state your intended use case.
+          </li>
           <li>We will evaluate your request.</li>
           <li>If approved, we will add your domain to the whitelist.</li>
         </ol>
