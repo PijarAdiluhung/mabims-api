@@ -8,7 +8,6 @@ const path = require("path");
 const ALLOWED_DOMAINS = new Set([
   "https://malangmengaji.com",
   "https://peta-malangmengaji.web.app",
-  "https://mabims-api.netlify.app", // Allowing the API's own domain
 ]);
 
 
