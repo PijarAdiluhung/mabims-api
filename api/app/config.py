@@ -10,7 +10,9 @@ DEFAULT_ORIGIN_SUFFIXES = ["malangmengaji.com"]
 
 
 def _csv_env(name: str, default: str) -> list[str]:
-    raw = os.environ.get(name, default)
+    raw = os.environ.get(name)
+    if raw is None or not raw.strip():
+        raw = default
     return [item.strip() for item in raw.split(",") if item.strip()]
 
 
