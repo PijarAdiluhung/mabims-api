@@ -24,6 +24,7 @@ export default defineConfig({
       ],
       sidebar: [
         { label: 'Quickstart', link: '/quickstart' },
+        { label: 'Access & Rate Limits', link: '/access' },
         {
           label: 'API Reference',
           items: [

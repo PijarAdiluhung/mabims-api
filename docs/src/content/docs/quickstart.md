@@ -51,8 +51,9 @@ Treat `warnings` as user-facing notices when non-empty.
 
 ## Browser access
 
-Requests from browsers must come from an allowlisted origin. Server-side calls are unrestricted.
-See [Data Coverage](/data-coverage) for how the API behaves at the edge of the table.
+The API is public and CORS-permissive — client-side apps on any domain can call it directly.
+Server-side calls are equally unrestricted. See [Access & Rate Limits](/access) for the
+full policy and abuse protection details.
 
 ## Next steps
 

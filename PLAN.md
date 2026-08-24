@@ -11,7 +11,7 @@ Rewrite of the Netlify-function date converter into a single self-hosted stack: 
 | Hero endpoint | `/api/v1/today` — main consumer use case |
 | Timezone | `tz` query param everywhere; **default `Asia/Jakarta` (UTC+7)** when unspecified |
 | Scaling | Bunny CDN pull zone → Dokploy/Traefik → VPS; dynamic edge TTL via origin headers, origin sees ~0 traffic |
-| Access | Public reads + CORS allowlist (`malangmengaji.com` + subdomains); rate limit only as origin abuse guard |
+| Access | Public reads (CORS `*`), rate limit as origin abuse guard; optional allowlist via env if ever needed |
 | Hosting | Single VPS, **Dokploy** manages deploy/TLS/domains (Traefik built in) |
 | Deployment | One `docker-compose.yml`, two services |
 | Data pipeline (2027+) | Deferred |

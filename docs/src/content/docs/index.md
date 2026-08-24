@@ -36,6 +36,5 @@ religious authorities — and clearly marks any fallback data with its source.
 - [Data Coverage](/data-coverage) — what date range the table covers and how fallback works
 
 :::note[Access]
-Reads are public. Browser apps must run on an allowlisted origin — contact
-[halo@pixostudio.id](mailto:halo@pixostudio.id) for access.
+Reads are fully public — no keys needed. See [Access & Rate Limits](/access) for details.
 :::

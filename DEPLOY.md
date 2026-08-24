@@ -7,13 +7,13 @@ Everything code-side is committed; this is the click-path to go live. Two domain
 
 | Variable | Where | Example |
 |---|---|---|
-| `ALLOWED_ORIGINS` | api service | `https://malangmengaji.com,https://peta-malangmengaji.web.app` |
+| `ALLOWED_ORIGINS` | api service | `*` (default, public) or comma-separated origins to restrict |
 | `RATE_LIMIT` | api service | `240/minute` |
 | `MABIMS_FALLBACK_DIR` | api service | already `/data` in compose — leave it |
 | `PUBLIC_API_BASE` | **build arg** for docs | `https://api.example.com` |
 
-Apex/subdomains of `malangmengaji.com` are always allowed via suffix rule; add other exact
-origins through `ALLOWED_ORIGINS`.
+Reads are public by default (`ALLOWED_ORIGINS=*`). If you ever need to restrict browser
+access, set exact origins there; apex/subdomain rules use `ALLOWED_ORIGIN_SUFFIXES`.
 
 ## 2. Dokploy
 
@@ -45,8 +45,7 @@ One pull zone per domain (or one zone with two origins — your call):
 curl -s https://api.example.com/healthz
 curl -sI https://api.example.com/api/v1/today          # expect s-maxage=<seconds to midnight>
 curl -s "https://api.example.com/api/v1/convert?date=2025-01-03&calendar=gregorian"
-curl -si -H "Origin: https://evil.example" https://api.example.com/api/v1/today | head -1   # 403
-curl -si -H "Origin: https://malangmengaji.com" https://api.example.com/api/v1/today | head -1  # 200
+curl -si -H "Origin: https://any.site" https://api.example.com/api/v1/today | head -1   # 200, CORS echoed
 ```
 
 **Cache verification**: hit `/today` twice from a browser devtools "disable cache OFF"

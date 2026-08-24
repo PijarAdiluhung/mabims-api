@@ -74,7 +74,7 @@ def _host_of(origin: str) -> str:
 
 
 def _origin_allowed(origin: str, settings: Settings) -> bool:
-    if origin in settings.allowed_origins:
+    if "*" in settings.allowed_origins or origin in settings.allowed_origins:
         return True
     host = _host_of(origin)
     for suffix in settings.origin_suffixes:

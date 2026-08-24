@@ -36,7 +36,7 @@ def real_data():
 
 @pytest.fixture()
 def client(real_data):
-    app = create_app(settings=make_settings(enable_fallback=False))
+    app = create_app(settings=make_settings(enable_fallback=False, allowed_origins=["*"]))
     return TestClient(app)
 
 
@@ -175,17 +175,22 @@ def test_range_out_of_coverage_without_fallback(client, real_data):
     assert response.json()["error"]["code"] == "out_of_coverage"
 
 
-def test_origin_allowlist(client):
-    ok = client.get("/api/v1/today", headers={"Origin": "https://partner.example"})
-    subdomain = client.get("/api/v1/today", headers={"Origin": "https://app.malangmengaji.com"})
-    bad = client.get("/api/v1/today", headers={"Origin": "https://evil.example"})
+def test_origin_public_by_default(client):
+    any_origin = client.get("/api/v1/today", headers={"Origin": "https://random-site.example"})
     none = client.get("/api/v1/today")
-    assert ok.status_code == 200
-    assert ok.headers["access-control-allow-origin"] == "https://partner.example"
-    assert subdomain.status_code == 200
-    assert bad.status_code == 403
-    assert bad.json()["error"]["code"] == "forbidden_origin"
+    assert any_origin.status_code == 200
+    assert any_origin.headers["access-control-allow-origin"] == "https://random-site.example"
     assert none.status_code == 200
+
+
+def test_origin_allowlist_still_available_when_configured(real_data):
+    restrictive = make_settings(allowed_origins=["https://partner.example"], origin_suffixes=[])
+    app = create_app(settings=restrictive)
+    client = TestClient(app)
+    ok = client.get("/api/v1/today", headers={"Origin": "https://partner.example"})
+    bad = client.get("/api/v1/today", headers={"Origin": "https://evil.example"})
+    assert ok.status_code == 200
+    assert bad.status_code == 403
 
 
 def test_preflight_options(client):
