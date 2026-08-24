@@ -1,31 +1,75 @@
 # MABIMS Date Converter API
 
-Gregorian ⇄ Hijri date conversion API following the **MABIMS** standard (Singapore, Indonesia, Malaysia). Rebuild of the original Netlify-function prototype as a self-hosted FastAPI service with an Astro/Starlight docs site.
+Gregorian ⇄ Hijri date conversion API following the **MABIMS** standard — the moon-sighting
+criteria adopted across **Singapore, Indonesia and Malaysia**. Serves curated lookup tables
+(not astronomical guesses), with a clearly-marked Umm al-Qura fallback beyond table coverage.
 
-## Status
+## Endpoints
 
-🚧 **Rewrite in progress** — see [PLAN.md](PLAN.md) for the full plan and milestone tracker.
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/v1/today?tz=` | Hero endpoint — today's Hijri date, timezone-aware (default `Asia/Jakarta`) |
+| `GET /api/v1/today/{date}` | Immutable variant, CDN-cacheable forever |
+| `GET /api/v1/convert?date=&calendar=` | Single date, either direction |
+| `GET /api/v1/range?start=&end=&calendar=` | Bulk conversion (≤400 days) |
+| `GET /api/v1/month?year=&month=&calendar=` | Calendar-grid sugar over `/range` |
+| `GET /api/v1/meta` | Coverage, data version, fallback status |
+| `GET /healthz` | Liveness probe |
+
+Every response carries `source` (`mabims` vs `fallback:aladhan-ummalqura`) and `warnings[]`.
+Reads are public; see the docs' *Access & Rate Limits* page.
+
+## Stack
 
 | Layer | Tech |
 |---|---|
-| API | FastAPI + Pydantic v2 |
-| Docs | Astro + Starlight |
-| Hosting | Single VPS via Dokploy, Bunny CDN in front |
+| API | FastAPI + Pydantic v2, slowapi rate limit |
+| Docs | Astro + Starlight with live playground |
+| Data | Precomputed MABIMS tables (`api/data/`) |
+| Hosting | Docker Compose on VPS via Dokploy, Bunny CDN in front |
 
-## Data
+## Repository layout
 
-`api/data/calendar_data.json` — precomputed MABIMS lookup table (moon-sighting criteria, not astronomical calculation). Currently covers **2025-01-01 → 2026-12-31**; a Umm al-Qura fallback bridge covers any gap while marked as approximate.
-
-## Development (after M1)
-
-```bash
-cd api
-python -m venv .venv
-.venv\Scripts\pip install -e ".[dev]"
-.venv\Scripts\pytest
-.venv\Scripts\uvicorn app.main:app --reload --port 8000
 ```
+api/       FastAPI app, calendar data, tests (pytest)
+docs/      Astro/Starlight documentation site
+docker-compose.yml        production services (internal-only ports)
+docker-compose.dev.yml    local override publishing ports 8000/8080
+DEPLOY.md                 Dokploy + Bunny CDN runbook
+TODO.md                   open work items
+```
+
+## Local development
+
+```powershell
+# full stack in containers
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+# API  → http://localhost:8000/docs   (Swagger UI)
+# Docs → http://localhost:8080
+
+# or hot-reload
+cd api; .venv\Scripts\uvicorn app.main:app --reload --port 8000
+cd docs; npm run dev
+```
+
+Tests:
+
+```powershell
+cd api; .venv\Scripts\pytest
+```
+
+## Deployment
+
+Follow [DEPLOY.md](DEPLOY.md): Dokploy compose service, two domains, Bunny pull zones with
+*respect origin headers* (this powers the dynamic midnight-TTL caching on `/today`).
+
+## Data & fallback
+
+`api/data/calendar_data.json` is the authoritative MABIMS table (currently **2025 → 2026**).
+Dates outside coverage are served from Umm al-Qura (via Aladhan) on a lazily-fetched,
+per-month basis and are always marked in `source`/`warnings`. `/meta` exposes
+`fallback_active` so clients can surface notices.
 
 ---
 
-Built by [PIXO Studio](https://pixostudio.id).
+Built by [PIXO Studio](https://pixostudio.id) · contact: halo@pixostudio.id
