@@ -106,6 +106,8 @@ Principle: every response is keyed by its inputs, so identical requests are pure
 
 ## Milestones
 
+**Status:** M0–M2 ✅ · M3 artifacts ✅ (images build & smoke-tested; Dokploy/Bunny click-path → [DEPLOY.md](DEPLOY.md)) · M4 ✅ · M5 ⏳ cutover pending
+
 | # | Milestone | Scope | Done when |
 |---|---|---|---|
 | **M0** | **Scrap & clean slate** | Delete `netlify/`, `netlify.toml`, `index_local.js`, `index.html`, `converter.html`, `script.js`, `style.css`, `test_data_path.js`, `package.json`, `package-lock.json`, `node_modules/`. Update `.gitignore` (Python + `.env`). Keep only `data/`, `favicons/`, `PLAN.md`; README rewritten | Repo contains nothing outside the new architecture |

@@ -1,0 +1,26 @@
+services:
+  api:
+    build: ./api
+    image: mabims-api:latest
+    restart: unless-stopped
+    environment:
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      RATE_LIMIT: ${RATE_LIMIT:-240/minute}
+      MABIMS_FALLBACK_DIR: /data
+    volumes:
+      - fallback_data:/data
+    expose:
+      - "8000"
+
+  docs:
+    build:
+      context: ./docs
+      args:
+        PUBLIC_API_BASE: ${PUBLIC_API_BASE:-https://api.example.com}
+    image: mabims-docs:latest
+    restart: unless-stopped
+    expose:
+      - "80"
+
+volumes:
+  fallback_data:

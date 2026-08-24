@@ -1,0 +1,136 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+
+const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'http://localhost:8000';
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'Playground',
+    description: 'Convert real dates against the live MABIMS API.',
+  }}
+>
+  <div class="pg-status" id="status" role="status">Checking API status…</div>
+
+  <form id="conv-form" class="pg-form">
+    <label>
+      Date
+      <input type="date" id="date" required />
+    </label>
+    <label>
+      Calendar
+      <select id="calendar">
+        <option value="gregorian">Gregorian → Hijri</option>
+        <option value="hijri">Hijri → Gregorian</option>
+      </select>
+    </label>
+    <button type="submit" class="pg-btn">Convert</button>
+  </form>
+
+  <pre class="pg-result" id="result" hidden></pre>
+
+  <script define:vars={{ apiBase }}>
+    const statusEl = document.getElementById('status');
+    const form = document.getElementById('conv-form');
+    const dateEl = document.getElementById('date');
+    const calEl = document.getElementById('calendar');
+    const resultEl = document.getElementById('result');
+
+    async function loadStatus() {
+      try {
+        const res = await fetch(`${apiBase}/api/v1/meta`);
+        if (!res.ok) throw new Error(res.status);
+        const meta = await res.json();
+        if (meta.fallback_active) {
+          statusEl.className = 'pg-status pg-warn';
+          statusEl.innerHTML =
+            `⚠️ <strong>Fallback active</strong> — table covers ${meta.coverage.first} to ` +
+            `${meta.coverage.last}; some results come from Umm al-Qura and may drift ±1 day.`;
+        } else {
+          statusEl.className = 'pg-status pg-ok';
+          statusEl.textContent =
+            `✅ Authoritative MABIMS data · coverage ${meta.coverage.first} → ${meta.coverage.last}`;
+        }
+      } catch {
+        statusEl.className = 'pg-status pg-warn';
+        statusEl.textContent = 'API unreachable from here — it may not be deployed yet.';
+      }
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      resultEl.hidden = false;
+      resultEl.textContent = 'Converting…';
+      const params = new URLSearchParams({ date: dateEl.value, calendar: calEl.value });
+      try {
+        const res = await fetch(`${apiBase}/api/v1/convert?${params}`);
+        const body = await res.json();
+        if (!res.ok) {
+          resultEl.textContent = `${res.status} ${body?.error?.code ?? ''}: ${body?.error?.message ?? res.statusText}`;
+        } else {
+          resultEl.textContent = JSON.stringify(body, null, 2);
+          resultEl.classList.toggle('pg-fallback', body.source !== 'mabims');
+        }
+      } catch (error) {
+        resultEl.textContent = String(error);
+      }
+    });
+
+    loadStatus();
+  </script>
+
+  <style>
+    .pg-status {
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--sl-color-gray-5);
+    }
+    .pg-ok {
+      background: color-mix(in srgb, var(--sl-color-green-high) 15%, transparent);
+    }
+    .pg-warn {
+      background: color-mix(in srgb, var(--sl-color-orange-high) 18%, transparent);
+    }
+    .pg-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: end;
+      margin-bottom: 1.5rem;
+    }
+    .pg-form label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    .pg-form input,
+    .pg-form select {
+      padding: 0.45rem 0.6rem;
+      border-radius: 0.375rem;
+      border: 1px solid var(--sl-color-gray-4);
+      background: var(--sl-color-bg);
+      color: var(--sl-color-text);
+    }
+    .pg-btn {
+      padding: 0.5rem 1.25rem;
+      border-radius: 0.375rem;
+      border: none;
+      background: var(--sl-color-accent);
+      color: var(--sl-color-black);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .pg-result {
+      padding: 1rem;
+      border-radius: 0.5rem;
+      background: var(--sl-color-bg-code);
+      overflow-x: auto;
+    }
+    .pg-result.pg-fallback {
+      outline: 2px solid var(--sl-color-orange-high);
+    }
+  </style>
+</StarlightPage>

@@ -91,7 +91,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None) -> Fast
     store: FallbackStore | None = None
     if settings.enable_fallback:
         provider = fallback_provider or AladhanProvider(settings.aladhan_base_url)
-        store = FallbackStore(settings.data_dir, provider)
+        store = FallbackStore(settings.fallback_dir or settings.data_dir, provider)
         store.load_existing()
     service = CalendarService(settings.data_dir / "calendar_data.json", store)
     data_version = hashlib.sha256(

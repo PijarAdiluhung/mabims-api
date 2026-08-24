@@ -24,4 +24,6 @@ class Settings:
     )
     rate_limit: str = os.environ.get("RATE_LIMIT", "240/minute")
     enable_fallback: bool = os.environ.get("MABIMS_DISABLE_FALLBACK", "") != "1"
+    _fallback_env = os.environ.get("MABIMS_FALLBACK_DIR")
+    fallback_dir: Path | None = Path(_fallback_env) if _fallback_env else None
     aladhan_base_url: str = os.environ.get("ALADHAN_BASE_URL", "https://api.aladhan.com/v1")
