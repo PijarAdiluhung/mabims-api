@@ -142,7 +142,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None) -> Fast
     def _warnings_for(source: str) -> list[str]:
         return [FALLBACK_WARNING] if source == FALLBACK_SOURCE else []
 
-    @app.get("/healthz", response_model=None)
+    @app.api_route("/healthz", response_model=None, methods=["GET", "HEAD"])
     @limiter.exempt
     def healthz(request: Request):
         return JSONResponse(
@@ -150,7 +150,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None) -> Fast
             headers=NO_STORE_HEADERS,
         )
 
-    @app.get("/api/v1/meta", response_model=None)
+    @app.api_route("/api/v1/meta", response_model=None, methods=["GET", "HEAD"])
     @limiter.exempt
     def meta(request: Request):
         fallback_active, fallback_months = service.fallback_summary()
@@ -164,7 +164,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None) -> Fast
         )
         return JSONResponse(content=payload.model_dump(), headers=SHORT_CACHE_HEADERS)
 
-    @app.get("/api/v1/convert", response_model=None)
+    @app.api_route("/api/v1/convert", response_model=None, methods=["GET", "HEAD"])
     def convert(
         request: Request,
         date_: str | None = Query(default=None, alias="date"),
@@ -184,7 +184,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None) -> Fast
         )
         return JSONResponse(content=payload.model_dump(), headers=IMMUTABLE_CACHE_HEADERS)
 
-    @app.get("/api/v1/today", response_model=None)
+    @app.api_route("/api/v1/today", response_model=None, methods=["GET", "HEAD"])
     def today(request: Request, tz: str | None = Query(default=None)):
         try:
             tzo = resolve_tz(tz)
@@ -200,7 +200,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None) -> Fast
         )
         return JSONResponse(content=payload.model_dump(), headers=dynamic_cache_headers(tzo))
 
-    @app.get("/api/v1/today/{target_date}", response_model=None)
+    @app.api_route("/api/v1/today/{target_date}", response_model=None, methods=["GET", "HEAD"])
     def today_on(request: Request, target_date: str):
         target = _parse_iso_date(target_date)
         value, source = _resolve_pair(target.isoformat(), "gregorian")
@@ -235,7 +235,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None) -> Fast
             cursor = date.fromordinal(cursor.toordinal() + 1)
         return items
 
-    @app.get("/api/v1/range", response_model=None)
+    @app.api_route("/api/v1/range", response_model=None, methods=["GET", "HEAD"])
     def range_(
         request: Request,
         start: str = Query(...),
@@ -265,7 +265,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None) -> Fast
         )
         return JSONResponse(content=payload.model_dump(), headers=IMMUTABLE_CACHE_HEADERS)
 
-    @app.get("/api/v1/month", response_model=None)
+    @app.api_route("/api/v1/month", response_model=None, methods=["GET", "HEAD"])
     def month(
         request: Request,
         year: int = Query(...),

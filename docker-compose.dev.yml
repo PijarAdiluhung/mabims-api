@@ -1,0 +1,13 @@
+services:
+  api:
+    ports:
+      - "8000:8000"
+    environment:
+      ALLOWED_ORIGINS: "http://localhost:8080,http://127.0.0.1:8080"
+
+  docs:
+    ports:
+      - "8080:80"
+    build:
+      args:
+        PUBLIC_API_BASE: "http://localhost:8000"
