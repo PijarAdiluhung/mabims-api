@@ -27,6 +27,123 @@ starlight-theme-select {
   display: none !important;
 }
 
+/* ── MABIMS vs Umm al-Qura divergence marquee ───────────────────── */
+
+.marquee {
+  overflow: hidden;
+  padding-block: 0.5rem;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 70s linear infinite;
+}
+
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    overflow-x: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+    scrollbar-width: thin;
+  }
+  .marquee-track {
+    animation: none;
+  }
+}
+
+.marquee-group {
+  display: flex;
+  margin: 0;
+}
+
+.diverge-card {
+  display: flex;
+  flex-direction: column;
+  width: 240px;
+  margin: 0 1rem 0 0;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.015) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  transition: border-color 0.2s;
+}
+
+.diverge-card:hover {
+  border-color: rgba(254, 207, 70, 0.35);
+}
+
+.diverge-date {
+  font-size: var(--sl-text-xs);
+  color: #999;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.diverge-label {
+  font-size: var(--sl-text-xs);
+  color: #777;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.diverge-hijri {
+  font-size: var(--sl-text-sm);
+  font-weight: 600;
+  color: #e8e8ee;
+  margin-bottom: 0.6rem;
+}
+
+.diverge-hijri:last-of-type {
+  margin-bottom: 0;
+}
+
+.diverge-hijri--mabims {
+  color: var(--sl-color-accent);
+}
+
+.diverge-tag {
+  margin-top: 0.75rem;
+  font-size: var(--sl-text-xs);
+  color: #b9b9c4;
+}
+
+.marquee-caption {
+  text-align: center;
+  color: #999;
+  font-size: var(--sl-text-sm);
+  max-width: 42rem;
+  margin: 1.25rem auto 0;
+}
+
+@media (min-width: 50rem) {
+  /* Desktop: caption hugs the marquee, then a full section-gap before the next h2
+     (mirrors the 6rem rhythm used by .feature-grid) */
+  .marquee-caption {
+    margin-bottom: 6rem;
+  }
+}
+
+@media (max-width: 49.9375rem) {
+  .marquee-caption {
+    margin-bottom: 3rem;
+  }
+}
+
 /* Feature cards grid — staggered like Starlight demo */
 .feature-grid {
   display: grid;
