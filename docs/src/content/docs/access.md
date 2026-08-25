@@ -1,40 +1,32 @@
 ---
-title: Access & Rate Limits
-description: Who can call the API, browser origin rules, and abuse protection.
+title: Akses & Batas Rate
+description: Siapa yang dapat memanggil API, aturan origin browser, dan perlindungan penyalahgunaan.
 ---
 
-## Reads are public
+## Semua pembacaan bersifat publik
 
-Every endpoint under `/api/v1/*` is **public** — no keys, no registration. Calendar dates
-aren't secrets, and gating them would only push integrators to worse data sources.
+Setiap endpoint di `/api/v1/*` bersifat **publik** — tidak perlu kunci, tidak perlu registrasi. Tanggal kalender bukanlah rahasia, dan membatasinya hanya akan mendorong integrator ke sumber data yang lebih buruk.
 
-## Browser vs server access
+## Akses browser vs server
 
-| Client | Behaviour |
+| Klien | Perilaku |
 |---|---|
-| Server-side (curl, backend, cron) | Always allowed — CORS doesn't apply |
-| Browser | Allowed from any origin |
+| Server-side (curl, backend, cron) | Selalu diizinkan — CORS tidak berlaku |
+| Browser | Diizinkan dari origin mana pun |
 
-Responses are served with permissive CORS headers, so client-side apps on any domain can
-call the API directly.
+Respons dilayani dengan header CORS yang fleksibel, sehingga aplikasi client-side di domain mana pun dapat memanggil API secara langsung.
 
-:::note[Deploying your own restrictions?]
-Self-hosters can re-enable an origin allowlist via the `ALLOWED_ORIGINS` environment
-variable (comma-separated exact origins, or `*` for public — the default). A suffix-based
-rule (`ALLOWED_ORIGIN_SUFFIXES`) also allows apex + all subdomains of a domain.
+:::note[Men_deploy batasan sendiri?]
+Self-hoster dapat mengaktifkan kembali daftar origin yang diizinkan melalui variabel environment `ALLOWED_ORIGINS` (origin persis yang dipisah koma, atau `*` untuk publik — default). Aturan berbasis suffix (`ALLOWED_ORIGIN_SUFFIXES`) juga memungkinkan apex + semua subdomain dari sebuah domain.
 :::
 
-## Rate limits & caching
+## Batas rate & caching
 
-- The **origin** applies a per-IP rate limit (default 240/min, `429` when exceeded) purely
-  as abuse protection.
-- In production the API sits behind a CDN: identical requests are answered at the edge and
-  never reach the origin. At millions of requests/day the origin sees roughly one request
-  per edge location per cached resource per day.
-- [`/today`](/endpoints/today) responses carry a TTL that expires exactly at local midnight,
-  so cached answers are never stale past date rollover.
+- **Origin** menerapkan batas rate per-IP (default 240/menit, `429` ketika dilebihi) murni sebagai perlindungan penyalahgunaan.
+- Di produksi API berada di belakang CDN: permintaan yang identik dilayani di edge dan tidak pernah mencapai origin. Dengan jutaan permintaan/hari, origin hanya melihat sekitar satu permintaan per lokasi edge per sumber daya yang di-cache per hari.
+- Respons [`/today`](/endpoints/today) membawa TTL yang kedaluwarsa tepat pada tengah malam waktu lokal, sehingga jawaban yang di-cache tidak pernah basi setelah pergantian hari.
 
-## Higher limits / commercial use
+## Batas lebih tinggi / penggunaan komersial
 
-Need a guaranteed rate, SLA, or want to support the project?
-Contact [halo@pixostudio.id](mailto:halo@pixostudio.id).
+Membutuhkan rate yang dijamin, SLA, atau ingin mendukung proyek ini?
+Hubungi [halo@pixostudio.id](mailto:halo@pixostudio.id).

@@ -1,9 +1,9 @@
 # TODO
 
 ## Branding & domain
-- [ ] Pick domain + `api.` hostname (candidates: `hariini.app`, `tanggalan.id`, `mabims.dev`, `hijridate.dev`)
-- [ ] Settle site title / tagline (current: "MABIMS Date Converter API")
-- [ ] Logo + favicon refresh (current favicons inherited from old project) + OG/social preview image
+- [x] Pick domain + `api.` hostname (candidates: `hariini.app`, `tanggalan.id`, `mabims.dev`, `hijridate.dev`) choice: mabims.dev, during testing: mabims.pixostudio.id
+- [x] Settle site title / tagline (current: "MABIMS Date Converter API") choice: mabims.dev - Integrasikan sistem kalender hijriah MABIMS dalam aplikasi / website Anda
+- [x] Logo + favicon refresh (current favicons inherited from old project) + OG/social preview image — mabims.png in navbar + hero, Poppins font (#fecf46 yellow)
 - [ ] Replace all placeholders once domain is live: `api.example.com` (docs content, `PUBLIC_API_BASE` default, playground fallback), `mabims.pixostudio.id` (`astro.config.mjs` site, `/meta` docs_url)
 
 ## Ship

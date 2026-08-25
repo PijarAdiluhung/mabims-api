@@ -1,0 +1,69 @@
+---
+title: Saatnya Ganti Ke MABIMS
+description: Integrasikan sistem kalender hijriah MABIMS ke dalam aplikasi atau website Anda.
+template: splash
+hero:
+  tagline: Integrasikan sistem kalender hijriah MABIMS ke dalam aplikasi atau website Anda
+  image:
+    file: ../../assets/terminal.svg
+    alt: Terminal menampilkan respons API MABIMS
+  actions:
+    - text: Memulai
+      link: /quickstart/
+      icon: right-arrow
+    - text: Referensi API
+      link: /endpoints/convert/
+      icon: external
+      variant: minimal
+---
+
+<div class="hero-badges">
+
+`GET /api/v1/today` · `GET /api/v1/convert` · `GET /api/v1/range`
+
+</div>
+
+## Mengapa MABIMS?
+
+API Hijriah umum (berbasis Umm al-Qura) bisa berbeda hingga ±1 hari dari tanggal yang
+diamati secara lokal di sekitar batas bulan. Ketika aplikasi Anda menampilkan jadwal sholat
+atau acara Islam untuk pengguna Asia Tenggara, satu hari tersebut sangat berarti. API ini
+menggunakan tabel yang digunakan oleh otoritas agama regional — dan menandai dengan jelas
+setiap data fallback beserta sumbernya.
+
+<div class="feature-grid">
+  <article class="feature-card">
+    <div class="feature-card-header">
+      <span class="feature-badge">⚡</span>
+      <h3>Mudah Digunakan</h3>
+    </div>
+    <p>Cukup satu endpoint untuk konversi tanggal. Tidak perlu autentikasi.</p>
+  </article>
+  <article class="feature-card feature-card--offset">
+    <div class="feature-card-header">
+      <span class="feature-badge">🕌</span>
+      <h3>Data Resmi MABIMS</h3>
+    </div>
+    <p>Menggunakan tabel dari otoritas agama regional, bukan sekadar Umm al-Qura.</p>
+  </article>
+  <article class="feature-card">
+    <div class="feature-card-header">
+      <span class="feature-badge">📅</span>
+      <h3>Cakupan Luas</h3>
+    </div>
+    <p>Mendukung konversi tanggal, rentang hari, dan jadwal hari ini.</p>
+  </article>
+  <article class="feature-card feature-card--offset">
+    <div class="feature-card-header">
+      <span class="feature-badge">💻</span>
+      <h3>Open Source</h3>
+    </div>
+    <p>Kode sumber terbuka di GitHub. Kontribusi selalu diterima.</p>
+  </article>
+</div>
+
+## Mulai sekarang
+
+- [Memulai](/quickstart) — buat permintaan pertama Anda dalam waktu kurang dari satu menit
+- [Referensi API](/endpoints/convert) — setiap endpoint, parameter, dan struktur respons
+- [Cakupan Data](/data-coverage) — rentang tanggal yang dicakup tabel dan cara kerja fallback

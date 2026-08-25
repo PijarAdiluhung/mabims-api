@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 320" fill="none">
+  <!-- Terminal window -->
+  <rect x="0" y="0" width="500" height="320" rx="12" fill="#1a1a2e"/>
+  <rect x="0" y="0" width="500" height="320" rx="12" stroke="#fecf46" stroke-width="2" opacity="0.3"/>
+  <!-- Title bar -->
+  <rect x="0" y="0" width="500" height="36" rx="12" fill="#2a2a3e"/>
+  <rect x="0" y="24" width="500" height="12" fill="#2a2a3e"/>
+  <!-- Traffic lights -->
+  <circle cx="20" cy="18" r="5" fill="#ff5f57"/>
+  <circle cx="38" cy="18" r="5" fill="#febc2e"/>
+  <circle cx="56" cy="18" r="5" fill="#28c840"/>
+  <!-- Title text -->
+  <text x="250" y="22" text-anchor="middle" font-family="monospace" font-size="11" fill="#888">mabims.dev — terminal</text>
+  <!-- Terminal content -->
+  <text x="24" y="68" font-family="monospace" font-size="22" fill="#fecf46">$</text>
+  <text x="44" y="68" font-family="monospace" font-size="22" fill="#e0e0e0">curl api.mabims.dev/api/v1/today</text>
+  <text x="24" y="102" font-family="monospace" font-size="22" fill="#666">{</text>
+  <text x="44" y="130" font-family="monospace" font-size="22" fill="#7ec8e3">"hijri"</text>
+  <text x="132" y="130" font-family="monospace" font-size="22" fill="#e0e0e0">:</text>
+  <text x="148" y="130" font-family="monospace" font-size="22" fill="#a8db8f">"1447-02-20"</text>
+  <text x="44" y="158" font-family="monospace" font-size="22" fill="#7ec8e3">"gregorian"</text>
+  <text x="176" y="158" font-family="monospace" font-size="22" fill="#e0e0e0">:</text>
+  <text x="192" y="158" font-family="monospace" font-size="22" fill="#a8db8f">"2026-08-25"</text>
+  <text x="44" y="186" font-family="monospace" font-size="22" fill="#7ec8e3">"source"</text>
+  <text x="140" y="186" font-family="monospace" font-size="22" fill="#e0e0e0">:</text>
+  <text x="156" y="186" font-family="monospace" font-size="22" fill="#a8db8f">"mabims"</text>
+  <text x="24" y="218" font-family="monospace" font-size="22" fill="#666">}</text>
+  <!-- Cursor blink -->
+  <rect x="24" y="238" width="12" height="20" fill="#fecf46" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0;0.8" dur="1.2s" repeatCount="indefinite"/>
+  </rect>
+</svg>

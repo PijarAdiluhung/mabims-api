@@ -1,0 +1,68 @@
+---
+title: It's Time to Switch to MABIMS
+description: Integrate the MABIMS Hijri calendar system into your application or website.
+template: splash
+hero:
+  tagline: Integrate the MABIMS Hijri calendar system into your application or website
+  image:
+    file: ../../../assets/terminal.svg
+    alt: Terminal showing MABIMS API response
+  actions:
+    - text: Quickstart
+      link: /quickstart/
+      icon: right-arrow
+    - text: API Reference
+      link: /endpoints/convert/
+      icon: external
+      variant: minimal
+---
+
+<div class="hero-badges">
+
+`GET /api/v1/today` · `GET /api/v1/convert` · `GET /api/v1/range`
+
+</div>
+
+## Why MABIMS?
+
+Generic Hijri APIs (e.g. Umm al-Qura based) can differ from locally observed dates by ±1 day
+around month boundaries. When your app displays prayer schedules or Islamic events for
+Southeast Asian users, that one day matters. This API serves the table used by regional
+religious authorities — and clearly marks any fallback data with its source.
+
+<div class="feature-grid">
+  <article class="feature-card">
+    <div class="feature-card-header">
+      <span class="feature-badge">⚡</span>
+      <h3>Easy to Use</h3>
+    </div>
+    <p>Just one endpoint to convert dates. No authentication needed.</p>
+  </article>
+  <article class="feature-card feature-card--offset">
+    <div class="feature-card-header">
+      <span class="feature-badge">🕌</span>
+      <h3>Official MABIMS Data</h3>
+    </div>
+    <p>Uses tables from regional religious authorities, not just Umm al-Qura.</p>
+  </article>
+  <article class="feature-card">
+    <div class="feature-card-header">
+      <span class="feature-badge">📅</span>
+      <h3>Wide Coverage</h3>
+    </div>
+    <p>Supports date conversion, day ranges, and today's schedule.</p>
+  </article>
+  <article class="feature-card feature-card--offset">
+    <div class="feature-card-header">
+      <span class="feature-badge">💻</span>
+      <h3>Open Source</h3>
+    </div>
+    <p>Source code is open on GitHub. Contributions are always welcome.</p>
+  </article>
+</div>
+
+## Get started
+
+- [Quickstart](/quickstart) — make your first request in under a minute
+- [API Reference](/endpoints/convert) — every endpoint, parameter and response shape
+- [Data Coverage](/data-coverage) — what date range the table covers and how fallback works

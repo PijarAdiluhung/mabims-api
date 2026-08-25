@@ -1,1 +1,143 @@
-/* Site-wide tweaks layered on top of Starlight's defaults. */
+:root {
+  --sl-font: 'Poppins', sans-serif;
+  --sl-color-accent: #fecf46;
+  --sl-color-accent-high: #e6b830;
+  --sl-color-accent-low: #fef0c8;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Hero title: yellow */
+[data-page-title] {
+  color: #fecf46;
+}
+
+/* Sidebar: active page keeps dark bg */
+nav.sidebar [aria-current='page'],
+nav.sidebar [aria-current='page']:hover,
+nav.sidebar [aria-current='page']:focus {
+  color: #1a1a2e !important;
+  background-color: var(--sl-color-accent);
+}
+
+/* Hide theme switcher */
+starlight-theme-select {
+  display: none !important;
+}
+
+/* Feature cards grid — staggered like Starlight demo */
+.feature-grid {
+  display: grid;
+  grid-template-columns: 100%;
+  gap: 1rem;
+  margin: 6rem auto 8rem;
+}
+
+.feature-card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: clamp(1rem, 0.125rem + 3vw, 2.5rem);
+  transition: border-color 0.2s;
+}
+
+.feature-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.feature-card--offset {
+  margin-top: 0;
+}
+
+.feature-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.feature-card-header h3 {
+  margin: 0;
+}
+
+.feature-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.feature-badge--yellow { background: rgba(254, 207, 70, 0.15); }
+.feature-badge--purple { background: rgba(168, 85, 247, 0.15); }
+.feature-badge--green { background: rgba(34, 197, 94, 0.15); }
+.feature-badge--pink { background: rgba(236, 72, 153, 0.15); }
+
+.feature-card h3 {
+  margin: 0;
+  font-size: var(--sl-text-h4);
+  color: #e8e8ee;
+}
+
+.feature-card p {
+  margin: 0;
+  color: #999;
+  font-size: clamp(var(--sl-text-sm), 0.5rem + 1vw, var(--sl-text-body));
+  line-height: 1.7;
+}
+
+/* Splash page spacing: generous gaps between sections */
+[data-template='splash'] .sl-container > h2 {
+  margin-top: 8rem;
+}
+
+[data-template='splash'] .sl-container > section {
+  margin-top: 6rem;
+}
+
+[data-template='splash'] .sl-container > h2:first-of-type {
+  margin-top: 0;
+}
+
+/* Section spacing on splash pages */
+[data-template='splash'] .sl-container {
+  gap: 6rem;
+}
+
+/* Hero section breathing room */
+[data-template='splash'] .hero {
+  margin-bottom: 4rem !important;
+  padding-block: 4rem !important;
+}
+
+/* "Mulai sekarang" section spacing */
+[data-template='splash'] .sl-container > section:last-child {
+  margin-top: 4rem;
+  margin-bottom: 4rem;
+}
+
+@media (min-width: 50rem) {
+  .feature-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    --stagger-height: 5rem;
+    padding-bottom: var(--stagger-height);
+  }
+
+  .feature-grid > .feature-card--offset {
+    transform: translateY(var(--stagger-height));
+  }
+}
+
+@media (max-width: 640px) {
+  .feature-grid {
+    margin-top: 5rem;
+  }
+}

@@ -1,20 +1,20 @@
 ---
 title: GET /range & /month
-description: Bulk conversion for date ranges and calendar grids.
+description: Konversi massal untuk rentang tanggal dan grid kalender.
 ---
 
 ## GET /range
 
-Converts every day in an inclusive range.
+Mengkonversi setiap hari dalam rentang yang inklusif.
 
 ```
 GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
 ```
 
-| Parameter | Type | Required | Description |
+| Parameter | Tipe | Wajib | Deskripsi |
 |---|---|---|---|
-| `start` / `end` | string | yes | ISO dates; `start ≤ end`; max span 400 days |
-| `calendar` | string | no (default `gregorian`) | Calendar of the input bounds |
+| `start` / `end` | string | ya | Tanggal ISO; `start ≤ end`; rentang maks 400 hari |
+| `calendar` | string | tidak (default `gregorian`) | Kalender dari batas input |
 
 ```json
 {
@@ -29,21 +29,19 @@ GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
 }
 ```
 
-Each item carries its own `source` — ranges crossing the table boundary can mix
-authoritative and fallback data.
+Setiap item membawa `source` masing-masing — rentang yang melewati batas tabel dapat mencampur data otoritatif dan fallback.
 
 ## GET /month
 
-Convenience wrapper that resolves a whole month grid.
+Wrapper praktis yang menyelesaikan grid bulan penuh.
 
 ```
 GET /api/v1/month?year={Y}&month={M}&calendar={gregorian|hijri}
 ```
 
-For `calendar=hijri` the response contains every Gregorian date onto which that Hijri month
-maps — exactly what a Hijri month-view needs (29–30 items). Same item shape as `/range`.
+Untuk `calendar=hijri`, respons berisi setiap tanggal Gregorian yang menjadi acuan dari bulan Hijriah tersebut — tepat seperti yang dibutuhkan oleh tampilan bulan Hijriah (29–30 item). Bentuk item sama dengan `/range`.
 
-## Errors
+## Kesalahan
 
-`invalid_step` · `range_too_large` (>400 days) · `out_of_coverage` · `invalid_month`
-· `invalid_year` — all return `400` with the standard error envelope.
+`invalid_step` · `range_too_large` (>400 hari) · `out_of_coverage` · `invalid_month`
+· `invalid_year` — semua mengembalikan `400` dengan amplop kesalahan standar.

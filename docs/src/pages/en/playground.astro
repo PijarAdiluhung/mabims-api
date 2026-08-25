@@ -7,24 +7,24 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'http://localhost:8000';
 <StarlightPage
   frontmatter={{
     title: 'Playground',
-    description: 'Konversi tanggal langsung terhadap API MABIMS secara real time.',
+    description: 'Convert real dates against the live MABIMS API.',
   }}
 >
-  <div class="pg-status" id="status" role="status">Memeriksa status API…</div>
+  <div class="pg-status" id="status" role="status">Checking API status…</div>
 
   <form id="conv-form" class="pg-form">
     <label>
-      Tanggal
+      Date
       <input type="date" id="date" required />
     </label>
     <label>
-      Kalender
+      Calendar
       <select id="calendar">
         <option value="gregorian">Gregorian → Hijri</option>
         <option value="hijri">Hijri → Gregorian</option>
       </select>
     </label>
-    <button type="submit" class="pg-btn">Konversi</button>
+    <button type="submit" class="pg-btn">Convert</button>
   </form>
 
   <pre class="pg-result" id="result" hidden></pre>
@@ -44,23 +44,23 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'http://localhost:8000';
         if (meta.fallback_active) {
           statusEl.className = 'pg-status pg-warn';
           statusEl.innerHTML =
-            `⚠️ <strong>Fallback aktif</strong> — tabel mencakup ${meta.coverage.first} hingga ` +
-            `${meta.coverage.last}; beberapa hasil berasal dari Umm al-Qura dan bisa bergeser ±1 hari.`;
+            `⚠️ <strong>Fallback active</strong> — table covers ${meta.coverage.first} to ` +
+            `${meta.coverage.last}; some results come from Umm al-Qura and may drift ±1 day.`;
         } else {
           statusEl.className = 'pg-status pg-ok';
           statusEl.textContent =
-            `✅ Data MABIMS otoritatif · cakupan ${meta.coverage.first} → ${meta.coverage.last}`;
+            `✅ Authoritative MABIMS data · coverage ${meta.coverage.first} → ${meta.coverage.last}`;
         }
       } catch {
         statusEl.className = 'pg-status pg-warn';
-        statusEl.textContent = 'API tidak dapat diakses dari sini — mungkin belum di-deploy.';
+        statusEl.textContent = 'API unreachable from here — it may not be deployed yet.';
       }
     }
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       resultEl.hidden = false;
-      resultEl.textContent = 'Mengkonversi…';
+      resultEl.textContent = 'Converting…';
       const params = new URLSearchParams({ date: dateEl.value, calendar: calEl.value });
       try {
         const res = await fetch(`${apiBase}/api/v1/convert?${params}`);

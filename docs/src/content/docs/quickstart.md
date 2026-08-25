@@ -1,6 +1,6 @@
 ---
-title: Quickstart
-description: Make your first MABIMS conversion request in under a minute.
+title: Memulai
+description: Buat permintaan konversi MABIMS pertama Anda dalam waktu kurang dari satu menit.
 ---
 
 Base URL:
@@ -9,9 +9,9 @@ Base URL:
 https://api.example.com/api/v1
 ```
 
-## Today's Hijri date
+## Tanggal Hijriah hari ini
 
-The most common use case — what Hijri date is it right now?
+Kasus penggunaan yang paling umum — tanggal Hijriah hari ini?
 
 ```bash
 curl "https://api.example.com/api/v1/today"
@@ -26,36 +26,35 @@ curl "https://api.example.com/api/v1/today"
 }
 ```
 
-`today` defaults to **Asia/Jakarta (UTC+7)**. Override with any IANA zone or UTC offset:
+`today` secara default menggunakan **Asia/Jakarta (UTC+7)**. Override dengan zona IANA atau UTC offset apa pun:
 
 ```bash
 curl "https://api.example.com/api/v1/today?tz=Asia/Kuala_Lumpur"
 curl "https://api.example.com/api/v1/today?tz=UTC+8"
 ```
 
-## Convert a specific date
+## Konversi tanggal tertentu
 
 ```bash
 curl "https://api.example.com/api/v1/convert?date=2025-01-03&calendar=gregorian"
 curl "https://api.example.com/api/v1/convert?date=1446-07-03&calendar=hijri"
 ```
 
-## Always check `source`
+## Selalu periksa `source`
 
-Every response carries a `source` field:
+Setiap respons membawa field `source`:
 
-- `mabims` — authoritative, from the curated table
-- `fallback:aladhan-ummalqura` — approximate; may differ ±1 day from local observation
+- `mabims` — otoritatif, dari tabel yang dikelola
+- `fallback:aladhan-ummalqura` — perkiraan; bisa berbeda ±1 hari dari pengamatan lokal
 
-Treat `warnings` as user-facing notices when non-empty.
+Perlakukan `warnings` sebagai pemberitahuan kepada pengguna ketika tidak kosong.
 
-## Browser access
+## Akses melalui browser
 
-The API is public and CORS-permissive — client-side apps on any domain can call it directly.
-Server-side calls are equally unrestricted. See [Access & Rate Limits](/access) for the
-full policy and abuse protection details.
+API ini bersifat publik dan CORS-nya fleksibel — aplikasi client-side di domain mana pun dapat memanggilnya secara langsung.
+Panggilan server-side juga tidak dibatasi. Lihat [Akses & Batas Rate](/access) untuk kebijakan lengkap dan detail perlindungan penyalahgunaan.
 
-## Next steps
+## Langkah selanjutnya
 
-- Full parameter reference: [API Reference](/endpoints/convert)
-- Try it live: [Playground](/playground)
+- Referensi parameter lengkap: [Referensi API](/endpoints/convert)
+- Coba langsung: [Playground](/playground)

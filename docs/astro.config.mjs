@@ -3,15 +3,27 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
 export default defineConfig({
-  site: 'https://mabims.pixostudio.id',
+  site: 'https://mabims.dev',
   integrations: [
     starlight({
-      title: 'MABIMS Date Converter API',
+      title: 'Saatnya Ganti Ke MABIMS',
       description:
-        'Gregorian ⇄ Hijri date conversion following the MABIMS standard used in Singapore, Indonesia and Malaysia.',
+        'Integrasikan sistem kalender hijriah MABIMS ke dalam aplikasi atau website Anda.',
       favicon: '/favicons/favicon.ico',
-      social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/pixostudio' }],
+      logo: {
+        src: './public/mabims-long.png',
+        alt: 'mabims.dev',
+        replacesTitle: true,
+      },
+      social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/PijarAdiluhung/mabims-api' }],
       customCss: ['./src/custom.css'],
+      components: {
+        Footer: './src/components/CustomFooter.astro',
+      },
+      locales: {
+        root: { label: 'Bahasa Indonesia', lang: 'id' },
+        en: { label: 'English', lang: 'en' },
+      },
       head: [
         {
           tag: 'link',
@@ -21,12 +33,39 @@ export default defineConfig({
           tag: 'link',
           attrs: { rel: 'manifest', href: '/favicons/site.webmanifest' },
         },
+        {
+          tag: 'link',
+          attrs: {
+            rel: 'preconnect',
+            href: 'https://fonts.googleapis.com',
+          },
+        },
+        {
+          tag: 'link',
+          attrs: {
+            rel: 'preconnect',
+            href: 'https://fonts.gstatic.com',
+            crossorigin: '',
+          },
+        },
+        {
+          tag: 'link',
+          attrs: {
+            rel: 'stylesheet',
+            href: 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap',
+          },
+        },
+        {
+          tag: 'meta',
+          attrs: { name: 'theme-color', content: '#fecf46' },
+        },
       ],
       sidebar: [
-        { label: 'Quickstart', link: '/quickstart' },
-        { label: 'Access & Rate Limits', link: '/access' },
+        { label: 'Quickstart', link: '/quickstart', translations: { en: 'Quickstart' } },
+        { label: 'Access & Rate Limits', link: '/access', translations: { en: 'Access & Rate Limits' } },
         {
           label: 'API Reference',
+          translations: { en: 'API Reference' },
           items: [
             { label: 'GET /convert', link: '/endpoints/convert' },
             { label: 'GET /today', link: '/endpoints/today' },
@@ -34,8 +73,8 @@ export default defineConfig({
             { label: 'GET /meta', link: '/endpoints/meta' },
           ],
         },
-        { label: 'Playground', link: '/playground' },
-        { label: 'Data Coverage', link: '/data-coverage' },
+        { label: 'Playground', link: '/playground', translations: { en: 'Playground' } },
+        { label: 'Data Coverage', link: '/data-coverage', translations: { en: 'Data Coverage' } },
       ],
     }),
   ],

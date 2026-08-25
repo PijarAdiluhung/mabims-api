@@ -1,22 +1,22 @@
 ---
 title: GET /convert
-description: Convert a single date between Gregorian and Hijri calendars.
+description: Konversi satu tanggal antara kalender Gregorian dan Hijriah.
 ---
 
-Converts one date in the direction implied by `calendar`.
+Mengkonversi satu tanggal ke arah yang ditentukan oleh `calendar`.
 
 ```
 GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
 ```
 
-## Parameters
+## Parameter
 
-| Parameter | Type | Required | Description |
+| Parameter | Tipe | Wajib | Deskripsi |
 |---|---|---|---|
-| `date` | string | yes | ISO date (`YYYY-MM-DD`) |
-| `calendar` | string | no (default `gregorian`) | Calendar of the input date |
+| `date` | string | ya | Tanggal ISO (`YYYY-MM-DD`) |
+| `calendar` | string | tidak (default `gregorian`) | Kalender dari tanggal input |
 
-## Responses
+## Respons
 
 **200 OK**
 
@@ -29,15 +29,13 @@ GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
 }
 ```
 
-**400** — invalid date format or unknown calendar (`invalid_date`, `invalid_calendar`, `missing_parameter`)
-**404** — `date_not_found`: no pair exists for that date; check [/meta](/endpoints/meta)
+**400** — format tanggal tidak valid atau kalender tidak dikenal (`invalid_date`, `invalid_calendar`, `missing_parameter`)
+**404** — `date_not_found`: tidak ada pasangan untuk tanggal tersebut; periksa [/meta](/endpoints/meta)
 
 ## Caching
 
-Responses are immutable per input and sent with `Cache-Control: max-age=86400` — safe to cache
-at any layer for a full day.
+Respons bersifat immutable per input dan dikirim dengan `Cache-Control: max-age=86400` — aman di-cache di layer mana pun selama satu hari penuh.
 
 :::note
-`/convert` is timezone-independent by design. Only [`/today`](/endpoints/today) takes a `tz`
-parameter, because "today" depends on where you ask from.
+`/convert` tidak bergantung pada zona waktu berdasarkan desain. Hanya [`/today`](/endpoints/today) yang menerima parameter `tz`, karena "hari ini" tergantung dari mana Anda bertanya.
 :::

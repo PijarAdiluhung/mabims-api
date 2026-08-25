@@ -1,25 +1,23 @@
 ---
-title: Data Coverage
-description: How far the MABIMS table reaches, and what happens beyond it.
+title: Cakupan Data
+description: Seberapa jauh tabel MABIMS mencakup, dan apa yang terjadi di luar cakupan tersebut.
 ---
 
-## Authoritative coverage
+## Cakupan otoritatif
 
-The curated MABIMS lookup table currently covers:
+Tabel pencarian MABIMS yang dikelola saat ini mencakup:
 
 ```{=html}
 2025-01-01 → 2026-12-31
 ```
 
-MABIMS month starts are set by local moon-sighting criteria, so the table is produced per
-year by regional religious authorities. It does **not** extrapolate astronomically.
+Awal bulan MABIMS ditetapkan berdasarkan kriteria pengamatan bulan lokal, sehingga tabel diproduksi per tahun oleh otoritas agama regional. Tabel ini **tidak** diekstrapolasi secara astronomis.
 
-## Beyond the table: marked fallback
+## Di luar tabel: fallback yang ditandai
 
-Requests outside coverage are still answered — from an **Umm al-Qura** source (Aladhan),
-fetched lazily per Hijri/Gregorian month and cached at the origin.
+Permintaan di luar cakupan tetap dijawab — dari sumber **Umm al-Qura** (Aladhan), diambil secara lazy per bulan Hijriah/Gregorian dan di-cache di origin.
 
-These responses are never silent about it:
+Respons ini tidak pernah diam tentang asal-usulnya:
 
 ```json
 {
@@ -30,12 +28,10 @@ These responses are never silent about it:
 }
 ```
 
-:::caution[±1 day drift]
-Umm al-Qura and MABIMS can disagree on month starts. For religious-critical dates during a
-fallback period, verify against local announcements.
+:::caution[Selisih ±1 hari]
+Umm al-Qura dan MABIMS bisa berbeda pendapat tentang awal bulan. Untuk tanggal-tanggal penting keagamaan selama periode fallback, verifikasi pengumuman lokal setempat.
 :::
 
 ## Monitoring
 
-[`GET /meta`](/endpoints/meta) exposes `fallback_active` and `fallback_months`. The
-[live status](/playground) panel on the Playground page reads it in real time.
+[`GET /meta`](/endpoints/meta) menampilkan `fallback_active` dan `fallback_months`. Panel [status langsung](/playground) di halaman Playground membacanya secara real time.

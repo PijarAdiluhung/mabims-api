@@ -1,9 +1,9 @@
 ---
 title: GET /meta
-description: Table coverage, data version and fallback status.
+description: Cakupan tabel, versi data, dan status fallback.
 ---
 
-Machine-readable truth about the dataset backing every other endpoint.
+Kebenaran yang dapat dibaca mesin tentang dataset yang mendukung semua endpoint lainnya.
 
 ```
 GET /api/v1/meta
@@ -20,22 +20,19 @@ GET /api/v1/meta
 }
 ```
 
-| Field | Description |
+| Field | Deskripsi |
 |---|---|
-| `data_version` | Short hash of the MABIMS table — changes when the table is updated |
-| `coverage` | Gregorian range covered by the authoritative table |
-| `fallback_active` | `true` once any request has been served from Umm al-Qura fallback |
-| `fallback_months` | Which months were fetched into the fallback layer |
+| `data_version` | Hash pendek dari tabel MABIMS — berubah ketika tabel diperbarui |
+| `coverage` | Rentang Gregorian yang dicakup oleh tabel otoritatif |
+| `fallback_active` | `true` setelah ada permintaan yang dilayani dari fallback Umm al-Qura |
+| `fallback_months` | Bulan-bulan mana yang diambil ke layer fallback |
 
-## Recommended client behaviour
+## Perilaku klien yang direkomendasikan
 
-1. Poll `/meta` daily (it is cheap and cacheable for 5 minutes).
-2. If `fallback_active` is true, show a subtle notice in your UI — dates may drift ±1 day
-   from local mosque announcements.
-3. Alert on `fallback_active` staying true for more than a few days: the yearly table needs
-   updating upstream.
+1. Poll `/meta` secara harian (murah dan dapat di-cache selama 5 menit).
+2. Jika `fallback_active` bernilai true, tampilkan pemberitahuan halus di UI Anda — tanggal bisa bergeser ±1 hari dari pengumuman masjid lokal.
+3. Beri peringatan jika `fallback_active` tetap true selama lebih dari beberapa hari: tabel tahunan perlu diperbarui di upstream.
 
 ## GET /healthz
 
-Liveness probe for uptime monitors. Returns `{"status": "ok", "version": "..."}` with
-`Cache-Control: no-store`.
+Probe liveness untuk monitor uptime. Mengembalikan `{"status": "ok", "version": "..."}` dengan `Cache-Control: no-store`.
