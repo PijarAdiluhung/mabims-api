@@ -19,7 +19,7 @@ GET /api/v1/meta
   "computed_active": false,
   "computed_months": [],
   "method": "neo-mabims-sabang",
-  "docs_url": "https://mabims.pixostudio.id"
+  "docs_url": "https://mabims.dev"
 }
 ```
 

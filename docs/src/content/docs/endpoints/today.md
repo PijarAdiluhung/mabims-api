@@ -37,7 +37,7 @@ GET /api/v1/today/{YYYY-MM-DD}
 Konversi yang sama untuk tanggal Gregorian tertentu. Berguna sebagai resource yang stabil dan dapat di-cache selamanya, serta untuk memutar ulang hari-hari historis:
 
 ```bash
-curl "https://api.pixostudio.id/api/v1/today/2025-01-03"
+curl "https://api.mabims.dev/api/v1/today/2025-01-03"
 ```
 
 ## Perilaku caching

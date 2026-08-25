@@ -6,7 +6,7 @@ description: Make your first MABIMS conversion request in under a minute.
 Base URL:
 
 ```
-https://api.pixostudio.id/api/v1
+https://api.mabims.dev/api/v1
 ```
 
 ## Today's Hijri date
@@ -14,7 +14,7 @@ https://api.pixostudio.id/api/v1
 The most common use case — what Hijri date is it right now?
 
 ```bash
-curl "https://api.pixostudio.id/api/v1/today"
+curl "https://api.mabims.dev/api/v1/today"
 ```
 
 ```json
@@ -29,15 +29,15 @@ curl "https://api.pixostudio.id/api/v1/today"
 `today` defaults to **Asia/Jakarta (UTC+7)**. Override with any IANA zone or UTC offset:
 
 ```bash
-curl "https://api.pixostudio.id/api/v1/today?tz=Asia/Kuala_Lumpur"
-curl "https://api.pixostudio.id/api/v1/today?tz=UTC+8"
+curl "https://api.mabims.dev/api/v1/today?tz=Asia/Kuala_Lumpur"
+curl "https://api.mabims.dev/api/v1/today?tz=UTC+8"
 ```
 
 ## Convert a specific date
 
 ```bash
-curl "https://api.pixostudio.id/api/v1/convert?date=2025-01-03&calendar=gregorian"
-curl "https://api.pixostudio.id/api/v1/convert?date=1446-07-03&calendar=hijri"
+curl "https://api.mabims.dev/api/v1/convert?date=2025-01-03&calendar=gregorian"
+curl "https://api.mabims.dev/api/v1/convert?date=1446-07-03&calendar=hijri"
 ```
 
 ## Always check `source`

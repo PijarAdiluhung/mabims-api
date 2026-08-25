@@ -5,7 +5,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --no-fund --no-audit
 
 COPY . .
-ARG PUBLIC_API_BASE=https://api.pixostudio.id
+ARG PUBLIC_API_BASE=https://api.mabims.dev
 ENV PUBLIC_API_BASE=$PUBLIC_API_BASE
 RUN npm run build
 

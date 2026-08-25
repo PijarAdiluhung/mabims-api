@@ -16,7 +16,7 @@ services:
     build:
       context: ./docs
       args:
-        PUBLIC_API_BASE: ${PUBLIC_API_BASE:-https://api.pixostudio.id}
+        PUBLIC_API_BASE: ${PUBLIC_API_BASE:-https://api.mabims.dev}
     image: mabims-docs:latest
     restart: unless-stopped
     expose:
