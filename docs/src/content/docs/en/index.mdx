@@ -28,7 +28,9 @@ hero:
 Generic Hijri APIs (e.g. Umm al-Qura based) can differ from locally observed dates by ±1 day
 around month boundaries. When your app displays prayer schedules or Islamic events for
 Southeast Asian users, that one day matters. This API serves the table used by regional
-religious authorities — and clearly marks any fallback data with its source.
+religious authorities — and beyond the table it stays consistent, computing dates live
+with the Neo MABIMS criteria (hilal altitude ≥ 3°, elongation ≥ 6.4° at sunset),
+not guessing.
 
 <div class="feature-grid">
   <article class="feature-card">
@@ -65,4 +67,4 @@ religious authorities — and clearly marks any fallback data with its source.
 
 - [Quickstart](/quickstart) — make your first request in under a minute
 - [API Reference](/endpoints/convert) — every endpoint, parameter and response shape
-- [Data Coverage](/data-coverage) — what date range the table covers and how fallback works
+- [Data Coverage](/data-coverage) — what date range the table covers and how the computed tiers work beyond it

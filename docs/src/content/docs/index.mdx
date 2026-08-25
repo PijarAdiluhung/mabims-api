@@ -29,8 +29,9 @@ Hampir semua API Hijriah yang tersedia saat ini, mayoritas berbasis metode Umm a
 Hasilnya? Tanggal di website/aplikasi Anda bisa berbeda hingga ±1 hari dari tanggal resmi
 yang dipakai oleh Kemenag Indonesia. Ketika aplikasi Anda menampilkan jadwal sholat
 atau acara Islam untuk pengguna, satu hari tersebut sangat berdampak. API ini
-menggunakan kalender resmi yang digunakan oleh Kemenag, disertai dengan fallback ke Umm al-Qura
-di luar cakupan pengumuman resmi.
+menggunakan kalender resmi yang digunakan oleh Kemenag — dan di luar cakupan tabel,
+tanggal tetap konsisten karena dihitung langsung dengan kriteria Neo MABIMS
+(tinggi hilal ≥ 3°, elongasi ≥ 6,4° saat matahari terbenam), bukan tebakan.
 
 <div class="feature-grid">
   <article class="feature-card">
@@ -67,4 +68,4 @@ di luar cakupan pengumuman resmi.
 
 - [Quickstart](/quickstart) — buat permintaan pertama Anda dalam waktu kurang dari satu menit
 - [Referensi API](/endpoints/convert) — ketahui setiap endpoint, parameter, dan struktur respons
-- [Cakupan Data](/data-coverage) — rentang tanggal yang dicakup tabel dan cara kerja fallback
+- [Cakupan Data](/data-coverage) — rentang tanggal yang dicakup tabel dan cara kerja lapisan perhitungan di luarnya

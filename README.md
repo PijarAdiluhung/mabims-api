@@ -2,7 +2,8 @@
 
 Gregorian ⇄ Hijri date conversion API following the **MABIMS** standard — the moon-sighting
 criteria adopted across **Singapore, Indonesia and Malaysia**. Serves curated lookup tables
-(not astronomical guesses), with a clearly-marked Umm al-Qura fallback beyond table coverage.
+(not astronomical guesses), and beyond table coverage it stays on-method by computing
+dates live with the Neo MABIMS criteria.
 
 ## Endpoints
 
@@ -16,7 +17,7 @@ criteria adopted across **Singapore, Indonesia and Malaysia**. Serves curated lo
 | `GET /api/v1/meta` | Coverage, data version, fallback status |
 | `GET /healthz` | Liveness probe |
 
-Every response carries `source` (`mabims` vs `fallback:aladhan-ummalqura`) and `warnings[]`.
+Every response carries `source` (`mabims` vs `mabims-computed`) and `warnings[]`.
 Reads are public; see the docs' *Access & Rate Limits* page.
 
 ## Stack
@@ -72,20 +73,14 @@ cd api; .venv\Scripts\pytest
 Follow [DEPLOY.md](DEPLOY.md): Dokploy compose service, two domains, Bunny pull zones with
 *respect origin headers* (this powers the dynamic midnight-TTL caching on `/today`).
 
-## Data & fallback
+## Data & coverage
 
 `api/data/calendar_data.json` is the authoritative MABIMS table (currently **2024 → 2026**).
-Dates outside coverage fall through two tiers, both always marked in `source`/`warnings`:
-
-1. **`mabims-computed`** — the Neo MABIMS criteria computed live at Sabang
-   (hilal altitude ≥ 3°, elongation ≥ 6.4° at sunset on day 29); validated to reproduce
-   every month boundary in the curated table. Borderline months (margin < 0.25°) carry a warning.
-2. **`fallback:aladhan-ummalqura`** — Umm al-Qura via Aladhan as last resort,
-   lazily fetched per month and persisted on disk.
-
-`/meta` exposes `method`, `computed_active`, `computed_months`, `fallback_active` and
-`fallback_months`. Tiers can be disabled with `MABIMS_DISABLE_COMPUTED=1` /
-`MABIMS_DISABLE_ALADHAN=1`; the de421 ephemeris is baked into the Docker image.
+Dates outside coverage are computed live with the Neo MABIMS criteria at Sabang
+(`source: "mabims-computed"`) — the same rule that generates the curated table, validated to
+reproduce every boundary in it, with borderline months (margin < 0.25°) flagged via warnings.
+A Umm al-Qura tier remains wired as an emergency last resort; `/meta` exposes `method`,
+`computed_active`, `computed_months`, `fallback_active` and `fallback_months`.
 
 ---
 

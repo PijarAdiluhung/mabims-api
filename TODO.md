@@ -7,9 +7,9 @@
 - [x] Replace all placeholders once domain is live (bought mabims.dev): docs content + `PUBLIC_API_BASE` → `api.mabims.dev`; astro site + `/meta` docs_url → `https://mabims.dev`
 
 ## Ship
-- [ ] VPS: Dokploy compose service + domains → DEPLOY.md §2
-- [ ] Bunny pull zones, *respect origin headers*, query strings in cache key → DEPLOY.md §3
-- [ ] Smoke checklist incl. cache-hit verification (second request must not reach origin) → DEPLOY.md §4
+- [x] VPS: Dokploy compose service + domains → DEPLOY.md §2
+- [x] Bunny pull zones, *respect origin headers*, query strings in cache key → DEPLOY.md §3
+- [x] Smoke checklist incl. cache-hit verification (second request must not reach origin) → DEPLOY.md §4
 - [ ] Uptime monitor on `/healthz` + alert if `fallback_active` stays true > a few days (healthchecks.io or similar)
 
 ## Data — hard deadline 2027-01-01
