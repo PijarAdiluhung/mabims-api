@@ -23,6 +23,7 @@ def make_settings(data_dir: Path | None = None, **overrides) -> Settings:
         "data_dir": data_dir or DATA_PATH.parent,
         "allowed_origins": ALLOWED,
         "rate_limit": "10000/minute",
+        "enable_computed": False,
         **overrides,
     }
     return Settings(**kwargs)

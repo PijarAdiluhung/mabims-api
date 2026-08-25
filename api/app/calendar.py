@@ -42,7 +42,7 @@ class LookupResult(NamedTuple):
 
 
 class CalendarService:
-    def __init__(self, data_path: Path, fallback_store=None):
+    def __init__(self, data_path: Path, fallback_store=None, stores: list | None = None):
         try:
             raw = json.loads(data_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
@@ -53,6 +53,9 @@ class CalendarService:
         self.coverage_last_g = max(self.g2h)
         self.coverage_first_h = min(self.h2g)
         self.coverage_last_h = max(self.h2g)
+        if stores is None:
+            stores = [fallback_store] if fallback_store is not None else []
+        self.stores: list = stores
         self.fallback_store = fallback_store
         self._lock = threading.Lock()
 
@@ -68,31 +71,36 @@ class CalendarService:
         hit = source_map.get(date_iso)
         if hit is not None:
             return LookupResult(value=hit, source=SOURCE_MABIMS)
-        if self.fallback_store is not None:
-            hit = self.fallback_store.lookup(date_iso, calendar)
+        for store in self.stores:
+            hit = store.lookup(date_iso, calendar)
             if hit is not None:
-                return LookupResult(value=hit, source=self.fallback_store.source_name)
+                return LookupResult(value=hit, source=store.source_name)
         return LookupResult(value=None, source="not_found")
 
     def resolve(self, date_iso: str, calendar: str) -> LookupResult:
         result = self.lookup(date_iso, calendar)
         if result.value is not None:
             return result
-        if self.fallback_store is None or self.covers(date_iso, calendar):
+        if not self.stores or self.covers(date_iso, calendar):
             return result
+        key = month_key_for(date_iso, calendar)
         with self._lock:
-            key = month_key_for(date_iso, calendar)
-            self.fallback_store.ensure_month(key)
-        return self.lookup(date_iso, calendar)
+            for store in self.stores:
+                store.ensure_month(key)
+                result = self.lookup(date_iso, calendar)
+                if result.value is not None:
+                    return result
+        return result
 
     def ensure_hijri_month(self, year: int, month: int) -> None:
-        if self.fallback_store is None:
+        if not self.stores:
             return
         with self._lock:
-            self.fallback_store.ensure_month(MonthKey(kind="H", year=year, month=month))
+            for store in self.stores:
+                store.ensure_month(MonthKey(kind="H", year=year, month=month))
 
     def ensure_range(self, start: str, end: str, calendar: str) -> None:
-        if self.fallback_store is None:
+        if not self.stores:
             return
         keys: dict[str, MonthKey] = {}
         cursor = date.fromisoformat(start).replace(day=1)
@@ -105,9 +113,21 @@ class CalendarService:
             cursor = (cursor + timedelta(days=32)).replace(day=1)
         with self._lock:
             for key in keys.values():
-                self.fallback_store.ensure_month(key)
+                probe = f"{key.year:04d}-{key.month:02d}-{'15' if key.kind == 'G' else '01'}"
+                probe_calendar = "gregorian" if key.kind == "G" else "hijri"
+                for store in self.stores:
+                    store.ensure_month(key)
+                    if store.lookup(probe, probe_calendar) is not None:
+                        break
 
     def fallback_summary(self) -> tuple[bool, list[str]]:
-        if self.fallback_store is None:
-            return False, []
-        return self.fallback_store.summary()
+        labels: list[str] = []
+        active = False
+        for store in self.stores:
+            store_active, store_labels = store.summary()
+            active = active or store_active
+            labels.extend(store_labels)
+        return active, sorted(labels)
+
+    def store_summaries(self) -> dict[str, tuple[bool, list[str]]]:
+        return {store.source_name: store.summary() for store in self.stores}

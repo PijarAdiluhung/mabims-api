@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import calendar as pycalendar
 import hashlib
+import json
 from datetime import date, datetime
 
 from fastapi import FastAPI, Query, Request
@@ -13,7 +14,8 @@ from slowapi.util import get_remote_address
 
 from .calendar import SOURCE_MABIMS, CalendarService, MonthKey
 from .config import APP_VERSION, Settings
-from .fallback import FALLBACK_SOURCE, AladhanProvider, FallbackStore
+from .fallback import FALLBACK_SOURCE, AladhanProvider, FallbackStore, MemoryFallbackStore
+from .mabims_computed import COMPUTED_SOURCE, MabimsCalcProvider
 from .schemas import (
     ConvertResponse,
     ConversionInput,
@@ -37,6 +39,15 @@ FALLBACK_WARNING = (
     "Date is outside MABIMS table coverage; served from the Umm al-Qura fallback "
     "and may differ from MABIMS by around one day."
 )
+COMPUTED_WARNING = (
+    "Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria "
+    "(hilal altitude >= 3 deg and elongation >= 6.4 deg at Sabang sunset)."
+)
+BORDERLINE_WARNING_TEMPLATE = (
+    "Hijri month {ym} is close to the Neo MABIMS visibility threshold; the officially "
+    "announced date may shift by one day."
+)
+COMPUTED_METHOD = "neo-mabims-sabang"
 MAX_RANGE_DAYS = 400
 
 
@@ -84,19 +95,36 @@ def _origin_allowed(origin: str, settings: Settings) -> bool:
     return False
 
 
-def create_app(settings: Settings | None = None, fallback_provider=None) -> FastAPI:
+def create_app(settings: Settings | None = None, fallback_provider=None, computed_provider=None) -> FastAPI:
     settings = settings or Settings()
     app = FastAPI(title="MABIMS Date Converter API", version=APP_VERSION)
 
-    store: FallbackStore | None = None
-    if settings.enable_fallback:
+    data_path = settings.data_dir / "calendar_data.json"
+    raw_bytes = data_path.read_bytes()
+    data_version = hashlib.sha256(raw_bytes).hexdigest()[:12]
+
+    stores: list = []
+    computed_store: MemoryFallbackStore | None = None
+    aladhan_store: FallbackStore | None = None
+    active_computed: MabimsCalcProvider | None = computed_provider
+
+    if settings.enable_fallback and settings.enable_computed:
+        anchor_raw = json.loads(raw_bytes)
+        first_h = min(anchor_raw["hijri_to_gregorian"])
+        anchor_hijri = (int(first_h[0:4]), int(first_h[5:7]))
+        anchor_gregorian = date.fromisoformat(anchor_raw["hijri_to_gregorian"][first_h])
+        if active_computed is None:
+            active_computed = MabimsCalcProvider(anchor_hijri, anchor_gregorian)
+        computed_store = MemoryFallbackStore(settings.fallback_dir or settings.data_dir, active_computed)
+        stores.append(computed_store)
+
+    if settings.enable_fallback and settings.enable_aladhan:
         provider = fallback_provider or AladhanProvider(settings.aladhan_base_url)
-        store = FallbackStore(settings.fallback_dir or settings.data_dir, provider)
-        store.load_existing()
-    service = CalendarService(settings.data_dir / "calendar_data.json", store)
-    data_version = hashlib.sha256(
-        (settings.data_dir / "calendar_data.json").read_bytes()
-    ).hexdigest()[:12]
+        aladhan_store = FallbackStore(settings.fallback_dir or settings.data_dir, provider)
+        aladhan_store.load_existing()
+        stores.append(aladhan_store)
+
+    service = CalendarService(data_path, stores=stores)
 
     limiter = Limiter(key_func=get_remote_address, default_limits=[settings.rate_limit])
     app.state.limiter = limiter
@@ -139,8 +167,34 @@ def create_app(settings: Settings | None = None, fallback_provider=None) -> Fast
             )
         return result.value, result.source
 
-    def _warnings_for(source: str) -> list[str]:
-        return [FALLBACK_WARNING] if source == FALLBACK_SOURCE else []
+    def _warnings_for(source: str, hijri_value: str | None = None) -> list[str]:
+        warnings: list[str] = []
+        if source == COMPUTED_SOURCE:
+            warnings.append(COMPUTED_WARNING)
+            if hijri_value and active_computed is not None:
+                ym = hijri_value[0:7]
+                if ym in set(active_computed.borderline_months()):
+                    warnings.append(BORDERLINE_WARNING_TEMPLATE.format(ym=ym))
+        elif source == FALLBACK_SOURCE:
+            warnings.append(FALLBACK_WARNING)
+        return warnings
+
+    def _aggregate(items: list) -> tuple[str, list[str]]:
+        sources = {item.source for item in items}
+        if FALLBACK_SOURCE in sources:
+            aggregate = FALLBACK_SOURCE
+        elif COMPUTED_SOURCE in sources:
+            aggregate = COMPUTED_SOURCE
+        else:
+            aggregate = SOURCE_MABIMS
+        warnings: list[str] = []
+        seen: set[str] = set()
+        for item in items:
+            for warning in _warnings_for(item.source, item.hijri):
+                if warning not in seen:
+                    seen.add(warning)
+                    warnings.append(warning)
+        return aggregate, warnings
 
     @app.api_route("/healthz", response_model=None, methods=["GET", "HEAD"])
     @limiter.exempt
@@ -153,13 +207,17 @@ def create_app(settings: Settings | None = None, fallback_provider=None) -> Fast
     @app.api_route("/api/v1/meta", response_model=None, methods=["GET", "HEAD"])
     @limiter.exempt
     def meta(request: Request):
-        fallback_active, fallback_months = service.fallback_summary()
+        fallback_active, fallback_months = aladhan_store.summary() if aladhan_store else (False, [])
+        computed_active, computed_months = computed_store.summary() if computed_store else (False, [])
         payload = MetaResponse(
             version=APP_VERSION,
             data_version=data_version,
             coverage=Coverage(first=service.coverage_first_g, last=service.coverage_last_g),
             fallback_active=fallback_active,
             fallback_months=fallback_months,
+            computed_active=computed_active,
+            computed_months=computed_months,
+            method=COMPUTED_METHOD if active_computed is not None else None,
             docs_url=settings.docs_url,
         )
         return JSONResponse(content=payload.model_dump(), headers=SHORT_CACHE_HEADERS)
@@ -176,11 +234,12 @@ def create_app(settings: Settings | None = None, fallback_provider=None) -> Fast
         target = _parse_iso_date(date_)
         value, source = _resolve_pair(target.isoformat(), cal)
         opposite = "hijri" if cal == "gregorian" else "gregorian"
+        hijri_value = value if cal == "gregorian" else target.isoformat()
         payload = ConvertResponse(
             input=ConversionInput(date=target.isoformat(), calendar=cal),
             output=ConversionOutput(date=value, calendar=opposite),
             source=source,
-            warnings=_warnings_for(source),
+            warnings=_warnings_for(source, hijri_value),
         )
         return JSONResponse(content=payload.model_dump(), headers=IMMUTABLE_CACHE_HEADERS)
 
@@ -196,7 +255,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None) -> Fast
             input=ConversionInput(date=today_iso, calendar="gregorian", tz=tz_label(tzo)),
             output=ConversionOutput(date=value, calendar="hijri"),
             source=source,
-            warnings=_warnings_for(source),
+            warnings=_warnings_for(source, value),
         )
         return JSONResponse(content=payload.model_dump(), headers=dynamic_cache_headers(tzo))
 
@@ -208,7 +267,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None) -> Fast
             input=ConversionInput(date=target.isoformat(), calendar="gregorian"),
             output=ConversionOutput(date=value, calendar="hijri"),
             source=source,
-            warnings=_warnings_for(source),
+            warnings=_warnings_for(source, value),
         )
         return JSONResponse(content=payload.model_dump(), headers=IMMUTABLE_CACHE_HEADERS)
 
@@ -254,14 +313,12 @@ def create_app(settings: Settings | None = None, fallback_provider=None) -> Fast
         if span > MAX_RANGE_DAYS:
             raise ApiError("range_too_large", f"Range is limited to {MAX_RANGE_DAYS} days.")
         items = _collect_items(start_d, end_d, cal)
-        aggregate_source = SOURCE_MABIMS
-        if any(item.source != SOURCE_MABIMS for item in items):
-            aggregate_source = FALLBACK_SOURCE
+        aggregate_source, warnings = _aggregate(items)
         payload = RangeResponse(
             input={"start": start_d.isoformat(), "end": end_d.isoformat(), "calendar": cal},
             count=len(items),
             items=items,
-            warnings=[FALLBACK_WARNING] if aggregate_source == FALLBACK_SOURCE else [],
+            warnings=warnings,
         )
         return JSONResponse(content=payload.model_dump(), headers=IMMUTABLE_CACHE_HEADERS)
 
@@ -306,12 +363,12 @@ def create_app(settings: Settings | None = None, fallback_provider=None) -> Fast
             start_d = date.fromisoformat(pairs[0][0])
             end_d = date.fromisoformat(pairs[-1][0])
 
-        aggregate_source = FALLBACK_SOURCE if any(i.source != SOURCE_MABIMS for i in items) else SOURCE_MABIMS
+        aggregate_source, warnings = _aggregate(items)
         payload = RangeResponse(
             input={"year": year, "month": month, "calendar": cal},
             count=len(items),
             items=items,
-            warnings=[FALLBACK_WARNING] if aggregate_source == FALLBACK_SOURCE else [],
+            warnings=warnings,
         )
         return JSONResponse(content=payload.model_dump(), headers=IMMUTABLE_CACHE_HEADERS)
 

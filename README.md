@@ -74,10 +74,18 @@ Follow [DEPLOY.md](DEPLOY.md): Dokploy compose service, two domains, Bunny pull 
 
 ## Data & fallback
 
-`api/data/calendar_data.json` is the authoritative MABIMS table (currently **2025 → 2026**).
-Dates outside coverage are served from Umm al-Qura (via Aladhan) on a lazily-fetched,
-per-month basis and are always marked in `source`/`warnings`. `/meta` exposes
-`fallback_active` so clients can surface notices.
+`api/data/calendar_data.json` is the authoritative MABIMS table (currently **2024 → 2026**).
+Dates outside coverage fall through two tiers, both always marked in `source`/`warnings`:
+
+1. **`mabims-computed`** — the Neo MABIMS criteria computed live at Sabang
+   (hilal altitude ≥ 3°, elongation ≥ 6.4° at sunset on day 29); validated to reproduce
+   every month boundary in the curated table. Borderline months (margin < 0.25°) carry a warning.
+2. **`fallback:aladhan-ummalqura`** — Umm al-Qura via Aladhan as last resort,
+   lazily fetched per month and persisted on disk.
+
+`/meta` exposes `method`, `computed_active`, `computed_months`, `fallback_active` and
+`fallback_months`. Tiers can be disabled with `MABIMS_DISABLE_COMPUTED=1` /
+`MABIMS_DISABLE_ALADHAN=1`; the de421 ephemeris is baked into the Docker image.
 
 ---
 

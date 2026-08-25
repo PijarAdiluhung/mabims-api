@@ -8,34 +8,42 @@ description: How far the MABIMS table reaches, and what happens beyond it.
 The curated MABIMS lookup table currently covers:
 
 ```{=html}
-2025-01-01 → 2026-12-31
+2024-01-13 → 2026-12-31
 ```
 
 MABIMS month starts are set by local moon-sighting criteria, so the table is produced per
 year by regional religious authorities. It does **not** extrapolate astronomically.
 
-## Beyond the table: marked fallback
+## Beyond the table: two computed tiers
 
-Requests outside coverage are still answered — from an **Umm al-Qura** source (Aladhan),
-fetched lazily per Hijri/Gregorian month and cached at the origin.
+Requests outside coverage are still answered, in this order:
+
+1. **`mabims-computed`** — the Neo MABIMS criteria evaluated live at Sabang
+   (hilal altitude ≥ 3° and elongation ≥ 6.4° at sunset on day 29). This is the same
+   rule the curated table follows, so it stays on-method indefinitely into the future.
+   Months decided by a margin under 0.25° carry a borderline warning.
+2. **`fallback:aladhan-ummalqura`** — Umm al-Qura via Aladhan as a last resort,
+   fetched lazily per month and cached at the origin.
 
 These responses are never silent about it:
 
 ```json
 {
-  "source": "fallback:aladhan-ummalqura",
+  "source": "mabims-computed",
   "warnings": [
-    "Date is outside MABIMS table coverage; served from the Umm al-Qura fallback and may differ from MABIMS by around one day."
+    "Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (hilal altitude >= 3 deg and elongation >= 6.4 deg at Sabang sunset)."
   ]
 }
 ```
 
 :::caution[±1 day drift]
-Umm al-Qura and MABIMS can disagree on month starts. For religious-critical dates during a
-fallback period, verify against local announcements.
+Computed months near the visibility threshold can still shift once official
+announcements land. For religious-critical dates outside table coverage, verify against
+local announcements.
 :::
 
 ## Monitoring
 
-[`GET /meta`](/endpoints/meta) exposes `fallback_active` and `fallback_months`. The
-[live status](/playground) panel on the Playground page reads it in real time.
+[`GET /meta`](/endpoints/meta) exposes `computed_active`, `computed_months`,
+`fallback_active` and `fallback_months`. The [live status](/playground) panel on the
+Playground page reads it in real time.

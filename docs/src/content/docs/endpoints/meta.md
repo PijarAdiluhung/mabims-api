@@ -13,9 +13,12 @@ GET /api/v1/meta
 {
   "version": "1.0.0",
   "data_version": "9f2c41aa7b03",
-  "coverage": { "first": "2025-01-01", "last": "2026-12-31" },
+  "coverage": { "first": "2024-01-13", "last": "2026-12-31" },
   "fallback_active": false,
   "fallback_months": [],
+  "computed_active": false,
+  "computed_months": [],
+  "method": "neo-mabims-sabang",
   "docs_url": "https://mabims.pixostudio.id"
 }
 ```
@@ -24,13 +27,16 @@ GET /api/v1/meta
 |---|---|
 | `data_version` | Hash pendek dari tabel MABIMS — berubah ketika tabel diperbarui |
 | `coverage` | Rentang Gregorian yang dicakup oleh tabel otoritatif |
-| `fallback_active` | `true` setelah ada permintaan yang dilayani dari fallback Umm al-Qura |
-| `fallback_months` | Bulan-bulan mana yang diambil ke layer fallback |
+| `fallback_active` | `true` setelah ada permintaan yang dilayani dari fallback Umm al-Qura (lapis terakhir) |
+| `fallback_months` | Bulan-bulan mana yang diambil ke layer fallback Umm al-Qura |
+| `computed_active` | `true` setelah ada permintaan yang dilayani dari kalendar terhitung Neo MABIMS |
+| `computed_months` | Bulan-bulan mana yang sudah dihitung via kriteria Neo MABIMS |
+| `method` | Metode perhitungan di luar tabel (`neo-mabims-sabang`) |
 
 ## Perilaku klien yang direkomendasikan
 
 1. Poll `/meta` secara harian (murah dan dapat di-cache selama 5 menit).
-2. Jika `fallback_active` bernilai true, tampilkan pemberitahuan halus di UI Anda — tanggal bisa bergeser ±1 hari dari pengumuman masjid lokal.
+2. Jika `computed_active` atau `fallback_active` bernilai true, tampilkan pemberitahuan halus di UI Anda — tanggal bisa bergeser ±1 hari dari pengumuman resmi.
 3. Beri peringatan jika `fallback_active` tetap true selama lebih dari beberapa hari: tabel tahunan perlu diperbarui di upstream.
 
 ## GET /healthz

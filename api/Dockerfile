@@ -2,7 +2,8 @@ FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
+    PIP_NO_CACHE_DIR=1 \
+    MABIMS_EPHEMERIS_DIR=/app/data/ephemeris
 
 WORKDIR /app
 
@@ -11,7 +12,9 @@ COPY app ./app
 RUN pip install .
 
 COPY data /app/data
-RUN mkdir -p /data && chown -R nobody:nogroup /data
+RUN python -c "from skyfield.api import Loader; Loader('/app/data/ephemeris')('de421.bsp')" \
+    && mkdir -p /data \
+    && chown -R nobody:nogroup /data /app/data/ephemeris
 
 USER nobody
 

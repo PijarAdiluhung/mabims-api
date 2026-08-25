@@ -49,6 +49,9 @@ class MetaResponse(BaseModel):
     coverage: Coverage
     fallback_active: bool
     fallback_months: list[str] = Field(default_factory=list)
+    computed_active: bool = False
+    computed_months: list[str] = Field(default_factory=list)
+    method: str | None = None
     docs_url: str
 
 

@@ -173,3 +173,12 @@ class FallbackStore:
                 self.preload_year_file(path)
             except (OSError, json.JSONDecodeError, KeyError, ValueError):
                 continue
+
+
+class MemoryFallbackStore(FallbackStore):
+    def __init__(self, data_dir: Path, provider: FallbackProvider):
+        super().__init__(data_dir, provider)
+        self.source_name = getattr(provider, "source_name", FALLBACK_SOURCE)
+
+    def _persist(self, data: dict) -> None:
+        pass
