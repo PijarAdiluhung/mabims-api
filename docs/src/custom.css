@@ -94,31 +94,39 @@ starlight-theme-select {
 }
 
 /* Splash page spacing: generous gaps between sections */
-[data-template='splash'] .sl-container > h2 {
+[data-has-hero] .sl-container > h2 {
   margin-top: 8rem;
 }
 
-[data-template='splash'] .sl-container > section {
+[data-has-hero] .sl-container > section {
   margin-top: 6rem;
 }
 
-[data-template='splash'] .sl-container > h2:first-of-type {
+[data-has-hero] .sl-container > h2:first-of-type {
   margin-top: 0;
 }
 
 /* Section spacing on splash pages */
-[data-template='splash'] .sl-container {
+[data-has-hero] .sl-container {
   gap: 6rem;
 }
 
-/* Hero section breathing room */
-[data-template='splash'] .hero {
+/* Hero section: full screen without vh overflow on large screens */
+[data-has-hero] .hero {
+  min-height: calc(100dvh - var(--sl-nav-height) - 2rem);
   margin-bottom: 4rem !important;
   padding-block: 4rem !important;
 }
 
+@media (min-width: 1200px) {
+  [data-has-hero] .hero {
+    min-height: auto;
+    padding-block: clamp(6rem, 10vmin, 10rem) !important;
+  }
+}
+
 /* "Mulai sekarang" section spacing */
-[data-template='splash'] .sl-container > section:last-child {
+[data-has-hero] .sl-container > section:last-child {
   margin-top: 4rem;
   margin-bottom: 4rem;
 }
