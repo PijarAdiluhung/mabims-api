@@ -17,6 +17,11 @@
 - [ ] `/events` endpoint — curated Islamic observance dates (Ramadan start, Eid al-Fitr/Adha, 1 Muharram, Maulid) layered on the table; the differentiator vs Umm al-Qura APIs
 - [ ] Decide long-term data format for yearly tables (versioned files + `/meta.data_version` bump)
 
+## Computed tier (precomputed_table)
+- [ ] Yearly regeneration of `api/data/computed_table.json` → run `api/scripts/build_computed_table.py` from CI/cron each January and commit the diff (in-container schedulers don't survive restarts)
+- [x] Seed `MabimsCalcProvider` blocks from the precomputed file at startup so out-of-range lazy walks start from the file edge instead of the 2024 anchor
+- [ ] Revisit borderline warning noise: ~52% of computed months sit within the 0.25° margin band, making the warning fire on half of responses — consider raising the band, or only warning when `visible` is true
+
 ## Product polish
 - [ ] Homepage v2: hero with live "today in Hijri" widget, copy-paste quickstart, partner/social proof
 - [x] i18n docs (Bahasa Indonesia) — Starlight supports it natively

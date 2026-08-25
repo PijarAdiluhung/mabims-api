@@ -143,6 +143,39 @@ class MabimsCalcProvider:
             if b.margin < BORDERLINE_MARGIN_DEG
         )
 
+    def snapshot(self) -> tuple[dict[str, str], dict[str, str]]:
+        return dict(self._g2h), dict(self._h2g)
+
+    def seed_from_pairs(self, h2g: dict[str, str]) -> None:
+        with self._lock:
+            if self._blocks:
+                return
+            months: dict[tuple[int, int], list[str]] = {}
+            for h_iso, g_iso in h2g.items():
+                months.setdefault((int(h_iso[0:4]), int(h_iso[5:7])), []).append(g_iso)
+
+            blocks: list[_Block] = []
+            for (hy, hm), g_dates in sorted(months.items()):
+                g_dates.sort()
+                blocks.append(
+                    _Block(
+                        hijri=(hy, hm),
+                        start=date.fromisoformat(g_dates[0]),
+                        length=len(g_dates),
+                        margin=float("inf"),
+                    )
+                )
+            for prev, curr in zip(blocks, blocks[1:]):
+                expected = prev.start + timedelta(days=prev.length)
+                if curr.start != expected:
+                    raise ValueError(
+                        f"non-contiguous seed data: {prev.hijri} ends {expected}, "
+                        f"{curr.hijri} starts {curr.start}"
+                    )
+            self._blocks = blocks
+            for block in blocks:
+                self._fill(block)
+
     def margin_for(self, hijri_year: int, hijri_month: int) -> float | None:
         for b in self._blocks:
             if b.hijri == (hijri_year, hijri_month):

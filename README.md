@@ -76,9 +76,11 @@ Follow [DEPLOY.md](DEPLOY.md): Dokploy compose service, two domains, Bunny pull 
 ## Data & coverage
 
 `api/data/calendar_data.json` is the authoritative MABIMS table (currently **2024 → 2026**).
-Dates outside coverage are computed live with the Neo MABIMS criteria at Sabang
-(`source: "mabims-computed"`) — the same rule that generates the curated table, validated to
-reproduce every boundary in it, with borderline months (margin < 0.25°) flagged via warnings.
+`api/data/computed_table.json` extends fast lookups to **1970 → current year + 5** using the same
+Neo MABIMS criteria — regenerate it yearly with `api/scripts/build_computed_table.py`, which
+verifies the curated-table overlap byte-for-byte before writing (automation: see TODO.md).
+Dates outside that span are still computed lazily on request. Both computed tiers flag
+borderline months (margin < 0.25°) via warnings.
 A Umm al-Qura tier remains wired as an emergency last resort; `/meta` exposes `method`,
 `computed_active`, `computed_months`, `fallback_active` and `fallback_months`.
 

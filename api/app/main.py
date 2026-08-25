@@ -16,6 +16,7 @@ from .calendar import SOURCE_MABIMS, CalendarService, MonthKey
 from .config import APP_VERSION, Settings
 from .fallback import FALLBACK_SOURCE, AladhanProvider, FallbackStore, MemoryFallbackStore
 from .mabims_computed import COMPUTED_SOURCE, MabimsCalcProvider
+from .precomputed import PRECOMPUTED_FILENAME, PrecomputedDataError, PrecomputedStore
 from .schemas import (
     ConvertResponse,
     ConversionInput,
@@ -49,6 +50,11 @@ BORDERLINE_WARNING_TEMPLATE = (
 )
 COMPUTED_METHOD = "neo-mabims-sabang"
 MAX_RANGE_DAYS = 400
+MIN_SUPPORTED_GREGORIAN = "1945-01-01"
+SUPPORTED_FORWARD_YEARS = 30
+EPHEMERIS_LAST_SUPPORTED_DAY = date(2053, 8, 1)
+
+_HIJRI_YEARS_PER_GREGORIAN = 365.2425 / 354.36792
 
 
 class ApiError(Exception):
@@ -79,6 +85,11 @@ def _validate_calendar(value: str | None) -> str:
     return normalized
 
 
+def _hijri_bound_year(anchor_hijri: tuple[int, int], anchor_gregorian: date, gregorian_year: int) -> int:
+    offset_years = gregorian_year - anchor_gregorian.year
+    return anchor_hijri[0] + round(offset_years * _HIJRI_YEARS_PER_GREGORIAN)
+
+
 def _host_of(origin: str) -> str:
     host = origin.split("://", 1)[-1]
     return host.split("/", 1)[0].lower()
@@ -97,7 +108,6 @@ def _origin_allowed(origin: str, settings: Settings) -> bool:
 
 def create_app(settings: Settings | None = None, fallback_provider=None, computed_provider=None) -> FastAPI:
     settings = settings or Settings()
-    app = FastAPI(title="MABIMS Date Converter API", version=APP_VERSION)
 
     data_path = settings.data_dir / "calendar_data.json"
     raw_bytes = data_path.read_bytes()
@@ -106,6 +116,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
     stores: list = []
     computed_store: MemoryFallbackStore | None = None
     aladhan_store: FallbackStore | None = None
+    precomputed_store: PrecomputedStore | None = None
     active_computed: MabimsCalcProvider | None = computed_provider
 
     if settings.enable_fallback and settings.enable_computed:
@@ -117,6 +128,18 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             active_computed = MabimsCalcProvider(anchor_hijri, anchor_gregorian)
         computed_store = MemoryFallbackStore(settings.fallback_dir or settings.data_dir, active_computed)
         stores.append(computed_store)
+        try:
+            precomputed_store = PrecomputedStore(settings.data_dir / PRECOMPUTED_FILENAME)
+        except (PrecomputedDataError, OSError, ValueError):
+            precomputed_store = None
+        if precomputed_store is not None:
+            stores.insert(0, precomputed_store)
+            seed = getattr(active_computed, "seed_from_pairs", None)
+            if seed is not None:
+                try:
+                    seed(precomputed_store.h2g)
+                except ValueError:
+                    pass
 
     if settings.enable_fallback and settings.enable_aladhan:
         provider = fallback_provider or AladhanProvider(settings.aladhan_base_url)
@@ -125,6 +148,8 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         stores.append(aladhan_store)
 
     service = CalendarService(data_path, stores=stores)
+
+    app = FastAPI(title="MABIMS Date Converter API", version=APP_VERSION)
 
     limiter = Limiter(key_func=get_remote_address, default_limits=[settings.rate_limit])
     app.state.limiter = limiter
@@ -158,22 +183,72 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         return response
 
     def _resolve_pair(date_iso: str, calendar: str) -> tuple[str, str]:
-        result = service.resolve(date_iso, calendar)
+        _check_supported(date_iso, calendar)
+        try:
+            result = service.resolve(date_iso, calendar)
+        except ApiError:
+            raise
+        except Exception as exc:
+            raise ApiError(
+                "computation_unavailable",
+                f"Could not compute the date {date_iso}: {exc.__class__.__name__}",
+                503,
+            ) from exc
         if result.value is None:
             raise ApiError(
                 "date_not_found",
                 f"No calendar pair exists for {date_iso} ({calendar}). See /api/v1/meta for coverage.",
                 404,
             )
+        if calendar == "hijri":
+            resolved_gregorian = result.value
+            if (
+                resolved_gregorian < MIN_SUPPORTED_GREGORIAN
+                or resolved_gregorian > _max_supported_gregorian().isoformat()
+            ):
+                raise ApiError("date_out_of_supported_range", _supported_range_message())
         return result.value, result.source
+
+    def _max_supported_gregorian() -> date:
+        today = date.today()
+        try:
+            forward_cap = today.replace(year=today.year + SUPPORTED_FORWARD_YEARS)
+        except ValueError:
+            forward_cap = today.replace(year=today.year + SUPPORTED_FORWARD_YEARS, day=28)
+        return min(forward_cap, EPHEMERIS_LAST_SUPPORTED_DAY)
+
+    def _supported_range_message() -> str:
+        return (
+            f"Supported range is {MIN_SUPPORTED_GREGORIAN} through "
+            f"{_max_supported_gregorian().isoformat()} (gregorian)."
+        )
+
+    def _check_supported(date_iso: str, calendar: str) -> None:
+        max_g = _max_supported_gregorian().isoformat()
+        if calendar == "gregorian":
+            if date_iso < MIN_SUPPORTED_GREGORIAN or date_iso > max_g:
+                raise ApiError("date_out_of_supported_range", _supported_range_message())
+            return
+        if active_computed is None:
+            return
+        anchor_h = active_computed.anchor_hijri
+        anchor_g = active_computed.anchor_gregorian
+        low_year = _hijri_bound_year(anchor_h, anchor_g, 1945) - 2
+        high_year = _hijri_bound_year(anchor_h, anchor_g, _max_supported_gregorian().year) + 2
+        year = int(date_iso[0:4])
+        if year < low_year or year > high_year:
+            raise ApiError("date_out_of_supported_range", _supported_range_message())
 
     def _warnings_for(source: str, hijri_value: str | None = None) -> list[str]:
         warnings: list[str] = []
         if source == COMPUTED_SOURCE:
             warnings.append(COMPUTED_WARNING)
-            if hijri_value and active_computed is not None:
+            if hijri_value:
                 ym = hijri_value[0:7]
-                if ym in set(active_computed.borderline_months()):
+                borderline = set(active_computed.borderline_months()) if active_computed else set()
+                if precomputed_store is not None:
+                    borderline |= precomputed_store.borderline
+                if ym in borderline:
                     warnings.append(BORDERLINE_WARNING_TEMPLATE.format(ym=ym))
         elif source == FALLBACK_SOURCE:
             warnings.append(FALLBACK_WARNING)
@@ -209,6 +284,10 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
     def meta(request: Request):
         fallback_active, fallback_months = aladhan_store.summary() if aladhan_store else (False, [])
         computed_active, computed_months = computed_store.summary() if computed_store else (False, [])
+        if precomputed_store is not None:
+            pre_active, pre_labels = precomputed_store.summary()
+            computed_active = computed_active or pre_active
+            computed_months = sorted(set(computed_months) | set(pre_labels))
         payload = MetaResponse(
             version=APP_VERSION,
             data_version=data_version,
@@ -312,6 +391,8 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         span = (end_d - start_d).days + 1
         if span > MAX_RANGE_DAYS:
             raise ApiError("range_too_large", f"Range is limited to {MAX_RANGE_DAYS} days.")
+        _check_supported(start_d.isoformat(), cal)
+        _check_supported(end_d.isoformat(), cal)
         items = _collect_items(start_d, end_d, cal)
         aggregate_source, warnings = _aggregate(items)
         payload = RangeResponse(
@@ -339,9 +420,12 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             days_in_month = pycalendar.monthrange(year, month)[1]
             start_d = date(year, month, 1)
             end_d = date(year, month, days_in_month)
+            _check_supported(start_d.isoformat(), cal)
+            _check_supported(end_d.isoformat(), cal)
             items = _collect_items(start_d, end_d, cal)
         else:
             prefix = f"{year:04d}-{month:02d}-"
+            _check_supported(f"{prefix}01", cal)
             has_main_data = any(key.startswith(prefix) for key in service.h2g)
             if not has_main_data:
                 service.ensure_hijri_month(year, month)
@@ -362,6 +446,11 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             ]
             start_d = date.fromisoformat(pairs[0][0])
             end_d = date.fromisoformat(pairs[-1][0])
+            if (
+                start_d.isoformat() < MIN_SUPPORTED_GREGORIAN
+                or end_d.isoformat() > _max_supported_gregorian().isoformat()
+            ):
+                raise ApiError("date_out_of_supported_range", _supported_range_message())
 
         aggregate_source, warnings = _aggregate(items)
         payload = RangeResponse(
