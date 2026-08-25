@@ -5,7 +5,7 @@ description: Konversi massal untuk rentang tanggal dan grid kalender.
 
 ## GET /range
 
-Mengkonversi setiap hari dalam rentang yang inklusif.
+Mengkonversi setiap hari dalam rentang yang diminta.
 
 ```
 GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
@@ -29,7 +29,7 @@ GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
 }
 ```
 
-Setiap item membawa `source` masing-masing — rentang yang melewati batas tabel dapat mencampur data otoritatif dan fallback.
+Setiap item membawa `source` masing-masing, karena rentang yang melewati batasan data MABIMS dapat mencampur data otoritatif dan fallback.
 
 ## GET /month
 

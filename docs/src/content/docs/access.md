@@ -1,11 +1,11 @@
 ---
 title: Akses & Batas Rate
-description: Siapa yang dapat memanggil API, aturan origin browser, dan perlindungan penyalahgunaan.
+description: Siapa saja yang dapat memanggil API, aturan origin browser, dan perlindungan penyalahgunaan.
 ---
 
 ## Semua pembacaan bersifat publik
 
-Setiap endpoint di `/api/v1/*` bersifat **publik** — tidak perlu kunci, tidak perlu registrasi. Tanggal kalender bukanlah rahasia, dan membatasinya hanya akan mendorong integrator ke sumber data yang lebih buruk.
+Setiap endpoint di `/api/v1/*` bersifat **publik** — tidak perlu API key dan tidak perlu registrasi. Tanggal kalender bukanlah rahasia, dan membatasinya hanya akan mendorong integrator ke sumber data yang lebih buruk.
 
 ## Akses browser vs server
 
@@ -16,7 +16,7 @@ Setiap endpoint di `/api/v1/*` bersifat **publik** — tidak perlu kunci, tidak 
 
 Respons dilayani dengan header CORS yang fleksibel, sehingga aplikasi client-side di domain mana pun dapat memanggil API secara langsung.
 
-:::note[Men_deploy batasan sendiri?]
+:::note[Men_deploy sendiri?]
 Self-hoster dapat mengaktifkan kembali daftar origin yang diizinkan melalui variabel environment `ALLOWED_ORIGINS` (origin persis yang dipisah koma, atau `*` untuk publik — default). Aturan berbasis suffix (`ALLOWED_ORIGIN_SUFFIXES`) juga memungkinkan apex + semua subdomain dari sebuah domain.
 :::
 

@@ -1,5 +1,5 @@
 ---
-title: Memulai
+title: Quickstart
 description: Buat permintaan konversi MABIMS pertama Anda dalam waktu kurang dari satu menit.
 ---
 
@@ -11,7 +11,7 @@ https://api.example.com/api/v1
 
 ## Tanggal Hijriah hari ini
 
-Kasus penggunaan yang paling umum — tanggal Hijriah hari ini?
+Kasus penggunaan yang paling umum: berapa tanggal Hijriah hari ini?
 
 ```bash
 curl "https://api.example.com/api/v1/today"
@@ -26,7 +26,7 @@ curl "https://api.example.com/api/v1/today"
 }
 ```
 
-`today` secara default menggunakan **Asia/Jakarta (UTC+7)**. Override dengan zona IANA atau UTC offset apa pun:
+`today` secara default menggunakan **Asia/Jakarta (UTC+7)**. Anda bisa override dengan zona IANA atau UTC offset apa pun:
 
 ```bash
 curl "https://api.example.com/api/v1/today?tz=Asia/Kuala_Lumpur"
@@ -44,10 +44,10 @@ curl "https://api.example.com/api/v1/convert?date=1446-07-03&calendar=hijri"
 
 Setiap respons membawa field `source`:
 
-- `mabims` — otoritatif, dari tabel yang dikelola
+- `mabims` — otoritatif, dari sumber resmi Kemenag
 - `fallback:aladhan-ummalqura` — perkiraan; bisa berbeda ±1 hari dari pengamatan lokal
 
-Perlakukan `warnings` sebagai pemberitahuan kepada pengguna ketika tidak kosong.
+Perlakukan `warnings` sebagai pemberitahuan kepada pengguna apabila ia mengandung payload (tidak kosong).
 
 ## Akses melalui browser
 

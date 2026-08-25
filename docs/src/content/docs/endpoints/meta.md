@@ -3,7 +3,7 @@ title: GET /meta
 description: Cakupan tabel, versi data, dan status fallback.
 ---
 
-Kebenaran yang dapat dibaca mesin tentang dataset yang mendukung semua endpoint lainnya.
+Kebenaran tentang dataset yang machine-readable.
 
 ```
 GET /api/v1/meta

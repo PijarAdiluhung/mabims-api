@@ -3,7 +3,7 @@ title: GET /today
 description: Endpoint utama — tanggal Hijriah hari ini, memperhatikan zona waktu.
 ---
 
-Mengembalikan tanggal Hijriah untuk "sekarang" di zona waktu yang diminta. Ini adalah endpoint yang paling sering di-poll oleh aplikasi consumer, dan telah dioptimalkan untuk itu: respons membawa **TTL edge-cache dinamis** sehingga CDN melayani hampir semua lalu lintas.
+Mengembalikan tanggal Hijriah untuk "sekarang" di zona waktu yang diminta. Ini adalah endpoint yang paling sering di-poll oleh aplikasi consumer, dan telah dioptimalkan untuk itu: respons membawa **TTL edge-cache dinamis** sehingga CDN melayani hampir semua traffic.
 
 ```
 GET /api/v1/today?tz={timezone}
@@ -26,7 +26,7 @@ GET /api/v1/today?tz={timezone}
 }
 ```
 
-Field `input.tz` menampilkan zona waktu yang *sudah diselesaikan* sehingga klien dapat memastikan zona yang digunakan.
+Field `input.tz` menampilkan zona waktu yang *terdeteksi sistem* sehingga klien dapat memastikan zona yang digunakan.
 
 ## Varian immutable
 
@@ -34,7 +34,7 @@ Field `input.tz` menampilkan zona waktu yang *sudah diselesaikan* sehingga klien
 GET /api/v1/today/{YYYY-MM-DD}
 ```
 
-Konversi yang sama untuk tanggal Gregorian tertentu — berguna sebagai resource yang stabil dan dapat di-cache selamanya, serta untuk memutar ulang hari-hari historis:
+Konversi yang sama untuk tanggal Gregorian tertentu. Berguna sebagai resource yang stabil dan dapat di-cache selamanya, serta untuk memutar ulang hari-hari historis:
 
 ```bash
 curl "https://api.example.com/api/v1/today/2025-01-03"

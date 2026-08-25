@@ -19,7 +19,7 @@
 
 ## Product polish
 - [ ] Homepage v2: hero with live "today in Hijri" widget, copy-paste quickstart, partner/social proof
-- [ ] i18n docs (Bahasa Indonesia first, then Malay) — Starlight supports it natively
+- [x] i18n docs (Bahasa Indonesia) — Starlight supports it natively
 - [ ] Playground: shareable permalinks (`?date=…&calendar=…`), copy-as-curl button
 - [ ] Response examples per endpoint auto-checked in CI against the live schema (docs drift guard)
 

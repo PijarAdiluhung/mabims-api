@@ -1,6 +1,6 @@
 ---
 title: Cakupan Data
-description: Seberapa jauh tabel MABIMS mencakup, dan apa yang terjadi di luar cakupan tersebut.
+description: Seberapa jauh cakupan data MABIMS, dan apa yang terjadi di luar cakupan tersebut.
 ---
 
 ## Cakupan otoritatif
@@ -11,13 +11,13 @@ Tabel pencarian MABIMS yang dikelola saat ini mencakup:
 2025-01-01 → 2026-12-31
 ```
 
-Awal bulan MABIMS ditetapkan berdasarkan kriteria pengamatan bulan lokal, sehingga tabel diproduksi per tahun oleh otoritas agama regional. Tabel ini **tidak** diekstrapolasi secara astronomis.
+Awal bulan MABIMS ditetapkan berdasarkan kriteria pengamatan bulan lokal, sehingga tabel diproduksi per tahun oleh otoritas Kemenag. Tabel ini **tidak** diekstrapolasi secara astronomis.
 
 ## Di luar tabel: fallback yang ditandai
 
-Permintaan di luar cakupan tetap dijawab — dari sumber **Umm al-Qura** (Aladhan), diambil secara lazy per bulan Hijriah/Gregorian dan di-cache di origin.
+Permintaan di luar cakupan tetap dijawab, yaitu menggunakan sumber **Umm al-Qura** (Aladhan), diambil secara lazy per bulan Hijriah/Gregorian dan di-cache di origin.
 
-Respons ini tidak pernah diam tentang asal-usulnya:
+Respons ini akan menjelaskan secara gamblang asal-usulnya:
 
 ```json
 {

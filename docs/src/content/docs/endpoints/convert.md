@@ -3,7 +3,7 @@ title: GET /convert
 description: Konversi satu tanggal antara kalender Gregorian dan Hijriah.
 ---
 
-Mengkonversi satu tanggal ke arah yang ditentukan oleh `calendar`.
+Mengkonversi satu tanggal dari satu sistem ke sistem yang lain, dengan arah yang ditentukan secara implisit oleh `calendar`.
 
 ```
 GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}

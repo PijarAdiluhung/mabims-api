@@ -28,6 +28,15 @@ Reads are public; see the docs' *Access & Rate Limits* page.
 | Data | Precomputed MABIMS tables (`api/data/`) |
 | Hosting | Docker Compose on VPS via Dokploy, Bunny CDN in front |
 
+## Documentation site
+
+The docs at [mabims.dev](https://mabims.dev) are built with Astro + Starlight:
+
+- **Bilingual** — Indonesian (default) and English, toggled from the navbar
+- **Splash landing page** — hero with terminal demo, feature cards, and quick-start links
+- **Live playground** — try API calls directly from the browser
+- **Sections** — Quickstart, Access & Rate Limits, API Reference (convert / today / range / meta), Playground, Data Coverage
+
 ## Repository layout
 
 ```
