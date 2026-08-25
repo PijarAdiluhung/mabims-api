@@ -3,7 +3,7 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
 export default defineConfig({
-  site: 'https://mabims.dev',
+  site: 'https://mabims.pixostudio.id',
   integrations: [
     starlight({
       title: 'Saatnya Ganti Ke MABIMS',

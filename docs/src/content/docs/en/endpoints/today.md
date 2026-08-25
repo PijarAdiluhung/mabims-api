@@ -40,7 +40,7 @@ Same conversion for any given Gregorian date — useful as a stable, cache-forev
 for replaying historical days:
 
 ```bash
-curl "https://api.example.com/api/v1/today/2025-01-03"
+curl "https://api.pixostudio.id/api/v1/today/2025-01-03"
 ```
 
 ## Caching behaviour

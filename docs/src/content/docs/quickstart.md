@@ -6,7 +6,7 @@ description: Buat permintaan konversi MABIMS pertama Anda dalam waktu kurang dar
 Base URL:
 
 ```
-https://api.example.com/api/v1
+https://api.pixostudio.id/api/v1
 ```
 
 ## Tanggal Hijriah hari ini
@@ -14,7 +14,7 @@ https://api.example.com/api/v1
 Kasus penggunaan yang paling umum: berapa tanggal Hijriah hari ini?
 
 ```bash
-curl "https://api.example.com/api/v1/today"
+curl "https://api.pixostudio.id/api/v1/today"
 ```
 
 ```json
@@ -29,15 +29,15 @@ curl "https://api.example.com/api/v1/today"
 `today` secara default menggunakan **Asia/Jakarta (UTC+7)**. Anda bisa override dengan zona IANA atau UTC offset apa pun:
 
 ```bash
-curl "https://api.example.com/api/v1/today?tz=Asia/Kuala_Lumpur"
-curl "https://api.example.com/api/v1/today?tz=UTC+8"
+curl "https://api.pixostudio.id/api/v1/today?tz=Asia/Kuala_Lumpur"
+curl "https://api.pixostudio.id/api/v1/today?tz=UTC+8"
 ```
 
 ## Konversi tanggal tertentu
 
 ```bash
-curl "https://api.example.com/api/v1/convert?date=2025-01-03&calendar=gregorian"
-curl "https://api.example.com/api/v1/convert?date=1446-07-03&calendar=hijri"
+curl "https://api.pixostudio.id/api/v1/convert?date=2025-01-03&calendar=gregorian"
+curl "https://api.pixostudio.id/api/v1/convert?date=1446-07-03&calendar=hijri"
 ```
 
 ## Selalu periksa `source`
