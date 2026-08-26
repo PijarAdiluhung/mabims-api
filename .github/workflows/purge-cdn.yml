@@ -1,0 +1,21 @@
+name: Purge Bunny CDN
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Purge API zone
+        run: |
+          curl -s -X POST \
+            "https://api.bunnycdn.com/pullzone/${{ secrets.BUNNY_API_ZONE_API }}/purgeCache" \
+            -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
+
+      - name: Purge Docs zone
+        run: |
+          curl -s -X POST \
+            "https://api.bunnycdn.com/pullzone/${{ secrets.BUNNY_API_ZONE_DOCS }}/purgeCache" \
+            -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
