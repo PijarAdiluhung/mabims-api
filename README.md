@@ -29,6 +29,7 @@ Reads are public; see the docs' *Access & Rate Limits* page.
 | Docs | Astro + Starlight with live playground |
 | Data | Precomputed MABIMS tables (`api/data/`) |
 | Hosting | Docker Compose on VPS via Dokploy, Bunny CDN in front |
+| CI | GitHub Actions — pytest, ruff, mypy, table-vs-criteria validation, yearly computed-table regen PR |
 
 ## Documentation site
 
@@ -37,7 +38,7 @@ The docs at [mabims.dev](https://mabims.dev) are built with Astro + Starlight:
 - **Bilingual** — Indonesian (default) and English, toggled from the navbar
 - **Splash landing page** — hero with terminal demo, feature cards, and quick-start links
 - **Live playground** — try API calls directly from the browser
-- **Sections** — Quickstart, Access & Rate Limits, API Reference (convert / today / range / meta), Playground, Data Coverage
+- **Sections** — Quickstart, Access & Rate Limits, API Reference (convert / today / range / month / events / meta), Playground, Data Coverage
 
 ## Repository layout
 
@@ -63,10 +64,13 @@ cd api; .venv\Scripts\uvicorn app.main:app --reload --port 8000
 cd docs; npm run dev
 ```
 
-Tests:
+Tests, lint and type checks (same gates as CI):
 
 ```powershell
-cd api; .venv\Scripts\pytest
+cd api
+.venv\Scripts\pytest
+.venv\Scripts\ruff check .
+.venv\Scripts\mypy
 ```
 
 ## Deployment
@@ -79,7 +83,9 @@ Follow [DEPLOY.md](DEPLOY.md): Dokploy compose service, two domains, Bunny pull 
 `api/data/calendar_data.json` is the authoritative MABIMS table (currently **2024 → 2026**).
 `api/data/computed_table.json` extends fast lookups to **1970 → current year + 5** using the same
 Neo MABIMS criteria — regenerate it yearly with `api/scripts/build_computed_table.py`, which
-verifies the curated-table overlap byte-for-byte before writing (automation: see TODO.md).
+verifies the curated-table overlap byte-for-byte before writing. Automation lives in
+`.github/workflows/regen-computed-table.yml`: every January it runs the build and opens a PR
+with the diff.
 Dates outside that span are still computed lazily on request. Both computed tiers flag
 borderline months (margin < 0.25°) via warnings.
 A Umm al-Qura tier remains wired as an emergency last resort; `/meta` exposes `method`,

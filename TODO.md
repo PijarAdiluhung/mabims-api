@@ -18,7 +18,7 @@
 - [ ] Decide long-term data format for yearly tables (versioned files + `/meta.data_version` bump)
 
 ## Computed tier (precomputed_table)
-- [ ] Yearly regeneration of `api/data/computed_table.json` → run `api/scripts/build_computed_table.py` from CI/cron each January and commit the diff (in-container schedulers don't survive restarts)
+- [x] Yearly regeneration of `api/data/computed_table.json` → `.github/workflows/regen-computed-table.yml` runs the build each Jan 15 and opens a PR with the diff. Note: GitHub auto-disables scheduled workflows after ~60 days of repo inactivity — any push resets the timer, or trigger manually via *Run workflow*
 - [x] Seed `MabimsCalcProvider` blocks from the precomputed file at startup so out-of-range lazy walks start from the file edge instead of the 2024 anchor
 - [ ] Revisit borderline warning noise: ~52% of computed months sit within the 0.25° margin band, making the warning fire on half of responses — consider raising the band, or only warning when `visible` is true
 
@@ -26,7 +26,8 @@
 - [ ] Homepage v2: hero with live "today in Hijri" widget, copy-paste quickstart, partner/social proof
 - [x] i18n docs (Bahasa Indonesia) — Starlight supports it natively
 - [ ] Playground: shareable permalinks (`?date=…&calendar=…`), copy-as-curl button
-- [ ] Response examples per endpoint auto-checked in CI against the live schema (docs drift guard)
+- [x] Response examples per endpoint auto-checked in CI against the live schema — `api/tests/test_contract.py` parses every real response into its Pydantic model and asserts documented paths exist in `/openapi.json`
+- [ ] Docs-site example JSON blocks: verify the payloads printed in `docs/src/content/docs/endpoints/*.md` still match live responses (contract tests cover schema shapes, not the markdown snippets)
 
 ## Cutover (M5)
 - [ ] Repoint malangmengaji.com integrations to new hostnames
