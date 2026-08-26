@@ -18,6 +18,9 @@ node_modules/
 .astro/
 dist/
 
+# Tests
+api/tests/
+
 # Misc
 *.log
 .vscode/

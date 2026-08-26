@@ -21,12 +21,18 @@ MONTH_NAMES_ID = {
     12: "Dzulhijjah",
 }
 
-MIN_HIJRI_YEAR = 1400
-MAX_HIJRI_YEAR = 1500
+MIN_HIJRI_YEAR = 1446
+MAX_HIJRI_YEAR = 1486
 
 
 class MonthNotResolvable(ValueError):
     pass
+
+
+def _hijri_date(service, year: int, month: int, day: int) -> str | None:
+    """Lookup via the full store chain (curated → computed), not just curated h2g."""
+    iso = f"{year:04d}-{month:02d}-{day:02d}"
+    return service.lookup(iso, "hijri").value
 
 
 @dataclass(frozen=True)
@@ -61,13 +67,13 @@ def resolve_sighting_evening(service, year: int, month: int) -> SightingEvening:
     service.ensure_hijri_month(prev_year, prev_month)
 
     prev_prefix = f"{prev_year:04d}-{prev_month:02d}-"
-    d29 = service.h2g.get(prev_prefix + "29")
+    d29 = _hijri_date(service, prev_year, prev_month, 29)
     if d29 is None:
         raise MonthNotResolvable(
             f"Bulan {MONTH_NAMES_ID[prev_month]} {prev_year} H di luar cakupan data."
         )
-    d30 = service.h2g.get(prev_prefix + "30")
-    start = service.h2g.get(f"{year:04d}-{month:02d}-01")
+    d30 = _hijri_date(service, prev_year, prev_month, 30)
+    start = _hijri_date(service, year, month, 1)
     if start is None:
         raise MonthNotResolvable(
             f"Bulan {MONTH_NAMES_ID[month]} {year} H di luar cakupan data."

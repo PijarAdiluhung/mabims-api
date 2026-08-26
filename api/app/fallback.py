@@ -74,7 +74,9 @@ class AladhanProvider:
         return self._fetch_pairs(f"/gToHCalendar/{month}/{year}")
 
     def fetch_by_hijri(self, hijri_year: int, hijri_month: int) -> dict[str, str]:
-        return self._fetch_pairs(f"/hToGCalendar/{hijri_month}/{hijri_year}")
+        # ``_fetch_pairs`` keys by gregorian ISO; the store convention expects
+        # hijri-keyed output (matching MabimsCalcProvider.fetch_by_hijri).
+        return _invert(self._fetch_pairs(f"/hToGCalendar/{hijri_month}/{hijri_year}"))
 
 
 def _invert(pairs: dict[str, str]) -> dict[str, str]:

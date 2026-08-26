@@ -74,6 +74,8 @@ matahari), pil verdict (`TERLIHAT` / `TIDAK TERLIHAT` / `DI BAWAH HORIZON`), dan
 kriteria `PARAMETER · MIN. MABIMS · STATUS`. Saat kriteria gagal, bulan sengaja tidak
 digambar — langit menampilkan kenyataan. Output deterministik per parameter.
 
+![Contoh grafik visibilitas hilal — 29 Sya'ban 1447 H, Jakarta](/viz.png)
+
 ## Perilaku caching
 
 - `Cache-Control: private, max-age=86400` — hasil deterministik per parameter, namun

@@ -39,7 +39,8 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'http://localhost:8000';
         flatpickr(el, {
           dateFormat: 'Y-m-d',
           defaultDate: 'today',
-          maxDate: 'today',
+          minDate: '2024-01-01',
+          maxDate: '2052-12-31',
           disableMobile: true,
         });
       }

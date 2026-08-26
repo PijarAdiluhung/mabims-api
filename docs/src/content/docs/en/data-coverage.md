@@ -14,33 +14,29 @@ The curated MABIMS lookup table currently covers:
 MABIMS month starts are set by local moon-sighting criteria, so the table is produced per
 year by regional religious authorities. It does **not** extrapolate astronomically.
 
-## Beyond the table: two computed tiers
+## Beyond the table: forward computation only
 
-Requests outside coverage are still answered, in this order:
+Requests after the table end are answered by forward computation:
 
 1. **`mabims-computed`** — the Neo MABIMS criteria evaluated live at Sabang
    (hilal altitude ≥ 3° and elongation ≥ 6.4° at sunset on day 29). This is the same
-   rule the curated table follows, so it stays on-method indefinitely into the future.
+   rule the curated table follows, so it stays on-method into the future.
    Months decided by a margin under 0.25° carry a borderline warning.
 2. **`fallback:aladhan-ummalqura`** — Umm al-Qura via Aladhan as a last resort,
    fetched lazily per month and cached at the origin.
 
-These responses are never silent about it:
-
-```json
-{
-  "source": "mabims-computed",
-  "warnings": [
-    "Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (hilal altitude >= 3 deg and elongation >= 6.4 deg at Sabang sunset)."
-  ]
-}
-```
-
-:::caution[±1 day drift]
-Computed months near the visibility threshold can still shift once official
-announcements land. For religious-critical dates outside table coverage, verify against
-local announcements.
+:::caution[No backward walk]
+The system **cannot** convert dates before 2024-01-13. The backward-walking algorithm is not available.
 :::
+
+## Hard limits
+
+| Direction | Limit | Note |
+|-----------|-------|------|
+| Backward | 2024-01-13 | No conversion before this date |
+| Forward | 2053-08-01 | No conversion after this date |
+
+Dates outside these bounds are rejected with a `date_out_of_supported_range` error.
 
 ## Monitoring
 

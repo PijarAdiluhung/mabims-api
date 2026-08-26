@@ -21,7 +21,6 @@ from .hilal.chart import build_chart_data, chart_png_bytes
 from .hilal.locations import get_location
 from .hilal.service import MonthNotResolvable, resolve_sighting_evening
 from .mabims_computed import COMPUTED_SOURCE, MabimsCalcProvider
-from .precomputed import PRECOMPUTED_FILENAME, PrecomputedDataError, PrecomputedStore
 from .schemas import (
     ConversionInput,
     ConversionOutput,
@@ -60,9 +59,8 @@ BORDERLINE_WARNING_TEMPLATE = (
 )
 COMPUTED_METHOD = "neo-mabims-sabang"
 MAX_RANGE_DAYS = 400
-MIN_SUPPORTED_GREGORIAN = "1945-01-01"
-SUPPORTED_FORWARD_YEARS = 30
-EPHEMERIS_LAST_SUPPORTED_DAY = date(2053, 8, 1)
+MIN_SUPPORTED_GREGORIAN = "2024-01-13"
+MAX_SUPPORTED_GREGORIAN = date(2053, 8, 1)
 HILAL_PRIVATE_CACHE = {"Cache-Control": "private, max-age=86400"}
 HILAL_ALT_MIN_DEG = 3.0
 HILAL_ELONG_MIN_DEG = 6.4
@@ -129,7 +127,6 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
     stores: list = []
     computed_store: MemoryFallbackStore | None = None
     aladhan_store: FallbackStore | None = None
-    precomputed_store: PrecomputedStore | None = None
     active_computed: MabimsCalcProvider | None = computed_provider
 
     if settings.enable_fallback and settings.enable_computed:
@@ -139,20 +136,15 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         anchor_gregorian = date.fromisoformat(anchor_raw["hijri_to_gregorian"][first_h])
         if active_computed is None:
             active_computed = MabimsCalcProvider(anchor_hijri, anchor_gregorian)
+        seed_path = settings.data_dir / "computed_seed.json"
+        if seed_path.exists():
+            try:
+                seed_raw = json.loads(seed_path.read_text(encoding="utf-8"))
+                active_computed.seed_from_pairs(seed_raw["hijri_to_gregorian"])
+            except (json.JSONDecodeError, KeyError, ValueError):
+                pass
         computed_store = MemoryFallbackStore(settings.fallback_dir or settings.data_dir, active_computed)
         stores.append(computed_store)
-        try:
-            precomputed_store = PrecomputedStore(settings.data_dir / PRECOMPUTED_FILENAME)
-        except (PrecomputedDataError, OSError, ValueError):
-            precomputed_store = None
-        if precomputed_store is not None:
-            stores.insert(0, precomputed_store)
-            seed = getattr(active_computed, "seed_from_pairs", None)
-            if seed is not None:
-                try:
-                    seed(precomputed_store.h2g)
-                except ValueError:
-                    pass
 
     if settings.enable_fallback and settings.enable_aladhan:
         provider = fallback_provider or AladhanProvider(settings.aladhan_base_url)
@@ -223,12 +215,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         return result.value, result.source
 
     def _max_supported_gregorian() -> date:
-        today = date.today()
-        try:
-            forward_cap = today.replace(year=today.year + SUPPORTED_FORWARD_YEARS)
-        except ValueError:
-            forward_cap = today.replace(year=today.year + SUPPORTED_FORWARD_YEARS, day=28)
-        return min(forward_cap, EPHEMERIS_LAST_SUPPORTED_DAY)
+        return MAX_SUPPORTED_GREGORIAN
 
     def _supported_range_message() -> str:
         return (
@@ -246,7 +233,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             return
         anchor_h = active_computed.anchor_hijri
         anchor_g = active_computed.anchor_gregorian
-        low_year = _hijri_bound_year(anchor_h, anchor_g, 1945) - 2
+        low_year = _hijri_bound_year(anchor_h, anchor_g, int(MIN_SUPPORTED_GREGORIAN[:4])) - 2
         high_year = _hijri_bound_year(anchor_h, anchor_g, _max_supported_gregorian().year) + 2
         year = int(date_iso[0:4])
         if year < low_year or year > high_year:
@@ -259,8 +246,6 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             if hijri_value:
                 ym = hijri_value[0:7]
                 borderline = set(active_computed.borderline_months()) if active_computed else set()
-                if precomputed_store is not None:
-                    borderline |= precomputed_store.borderline
                 if ym in borderline:
                     warnings.append(BORDERLINE_WARNING_TEMPLATE.format(ym=ym))
         elif source == FALLBACK_SOURCE:
@@ -297,10 +282,6 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
     def meta(request: Request):
         fallback_active, fallback_months = aladhan_store.summary() if aladhan_store else (False, [])
         computed_active, computed_months = computed_store.summary() if computed_store else (False, [])
-        if precomputed_store is not None:
-            pre_active, pre_labels = precomputed_store.summary()
-            computed_active = computed_active or pre_active
-            computed_months = sorted(set(computed_months) | set(pre_labels))
         payload = MetaResponse(
             version=APP_VERSION,
             data_version=data_version,
@@ -516,6 +497,9 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             res = resolve_sighting_evening(service, year, month)
         except MonthNotResolvable as exc:
             raise ApiError("out_of_coverage", str(exc), 400) from None
+        evening_g = res.evening_date.isoformat()
+        if evening_g < MIN_SUPPORTED_GREGORIAN or evening_g > MAX_SUPPORTED_GREGORIAN.isoformat():
+            raise ApiError("date_out_of_supported_range", _supported_range_message())
         try:
             obs = observe_at_sunset(res.evening_date, loc.tz, loc.lat, loc.lon)
         except Exception as exc:

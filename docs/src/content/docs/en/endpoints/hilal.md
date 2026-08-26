@@ -74,6 +74,8 @@ verdict pill (`TERLIHAT` / `TIDAK TERLIHAT` / `DI BAWAH HORIZON`) and a
 `PARAMETER · MABIMS MIN · STATUS` criteria table. When the criteria fail the moon is
 deliberately not drawn — the sky tells the truth. Output is deterministic per parameter.
 
+![Sample hilal visibility chart — 29 Sya'ban 1447 H, Jakarta](/viz.png)
+
 ## Caching
 
 - `Cache-Control: private, max-age=86400` — deterministic per parameter but not

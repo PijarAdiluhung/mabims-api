@@ -44,8 +44,8 @@ curl "https://api.mabims.dev/api/v1/convert?date=1446-07-03&calendar=hijri"
 
 Setiap respons membawa field `source`:
 
-- `mabims` — otoritatif, dari sumber resmi Kemenag
-- `fallback:aladhan-ummalqura` — perkiraan; bisa berbeda ±1 hari dari pengamatan lokal
+- `mabims` — otoritatif, dari sumber resmi Kemenag (2024-01-13 s/d 2026-12-31)
+- `mabims-computed` — dihitung dengan kriteria Neo MABIMS (setelah 2026-12-31, sampai 2053)
 
 Perlakukan `warnings` sebagai pemberitahuan kepada pengguna apabila ia mengandung payload (tidak kosong).
 

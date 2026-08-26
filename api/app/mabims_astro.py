@@ -79,9 +79,8 @@ def eph_ts_from_utc(dt_utc: datetime):
     return _eph().ts.from_datetime(dt_utc.astimezone(UTC))
 
 
-def criteria_on_day29(month_start: date) -> CriteriaResult:
-    day29 = month_start + timedelta(days=28)
-    sunset = _sunset_utc(day29)
+def criteria_on_sunset(d: date) -> CriteriaResult:
+    sunset = _sunset_utc(d)
     t = eph_ts_from_utc(sunset)
 
     eph = _eph()
@@ -100,7 +99,27 @@ def criteria_on_day29(month_start: date) -> CriteriaResult:
     alt_geo = math.degrees(math.asin(max(-1.0, min(1.0, sin_alt))))
     alt_refracted = alt_geo + _refraction_deg(alt_geo)
 
-    return CriteriaResult(evaluated_on=day29, alt_deg=alt_refracted, elong_deg=elong)
+    return CriteriaResult(evaluated_on=d, alt_deg=alt_refracted, elong_deg=elong)
+
+
+def criteria_on_day29(month_start: date) -> CriteriaResult:
+    return criteria_on_sunset(month_start + timedelta(days=28))
+
+
+def new_moon_utc_before(day: date) -> datetime | None:
+    """UTC instant of the last new-moon conjunction strictly before ``day`` (WIB)."""
+    from skyfield.almanac import find_discrete, moon_phases
+
+    eph = _eph()
+    upper = datetime.combine(day + timedelta(days=1), time.min, tzinfo=WIB)
+    t_upper = eph.ts.from_datetime(upper)
+    t_lower = eph.ts.tt_jd(t_upper.tt - 40.0)
+    times, phases = find_discrete(t_lower, t_upper, moon_phases(eph.eph))
+    result = None
+    for t, phase in zip(times, phases, strict=True):
+        if phase == 0:
+            result = t.utc_datetime()
+    return result
 
 
 def month_length(month_start: date) -> int:

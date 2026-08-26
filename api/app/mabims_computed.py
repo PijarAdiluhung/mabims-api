@@ -10,13 +10,12 @@ from .mabims_astro import ALT_MIN_DEG, ELONG_MIN_DEG, criteria_on_day29
 COMPUTED_SOURCE = "mabims-computed"
 BORDERLINE_MARGIN_DEG = 0.25
 
+HARD_CAP_START = date(2024, 1, 13)
+HARD_CAP_END = date(2053, 8, 1)
+
 
 def next_hijri_month(year: int, month: int) -> tuple[int, int]:
     return (year + 1, 1) if month == 12 else (year, month + 1)
-
-
-def prev_hijri_month(year: int, month: int) -> tuple[int, int]:
-    return (year - 1, 12) if month == 1 else (year, month - 1)
 
 
 def is_leap(year: int) -> bool:
@@ -42,10 +41,6 @@ class MabimsCalcProvider:
         self._h2g: dict[str, str] = {}
 
     @property
-    def _first_start(self) -> date | None:
-        return self._blocks[0].start if self._blocks else None
-
-    @property
     def _last_end(self) -> date | None:
         if not self._blocks:
             return None
@@ -69,6 +64,10 @@ class MabimsCalcProvider:
             cursor += timedelta(days=1)
 
     def _extend_forward_to(self, target: date) -> None:
+        if target > HARD_CAP_END:
+            raise FallbackError(
+                f"computed table cannot extend past {HARD_CAP_END.isoformat()}"
+            )
         while self._last_end is None or self._last_end < target:
             if not self._blocks:
                 block = self._decide(self.anchor_hijri, self.anchor_gregorian)
@@ -80,22 +79,6 @@ class MabimsCalcProvider:
                 )
             self._fill(block)
             self._blocks.append(block)
-
-    def _extend_backward_to(self, target: date) -> None:
-        while self._first_start is None or self._first_start > target:
-            if not self._blocks:
-                raise FallbackError("cannot extend backward without anchor block")
-            first = self._blocks[0]
-            candidate = first.start - timedelta(days=29)
-            result = criteria_on_day29(candidate)
-            if result.visible:
-                block = _Block(prev_hijri_month(*first.hijri), candidate, 29,
-                               min(result.alt_deg - ALT_MIN_DEG, result.elong_deg - ELONG_MIN_DEG))
-            else:
-                block = _Block(prev_hijri_month(*first.hijri), first.start - timedelta(days=30), 30,
-                               min(result.alt_deg - ALT_MIN_DEG, result.elong_deg - ELONG_MIN_DEG))
-            self._fill(block)
-            self._blocks.insert(0, block)
 
     def _gregorian_month_end(self, year: int, month: int) -> date:
         if not 1 <= month <= 12:
@@ -110,23 +93,24 @@ class MabimsCalcProvider:
             month_start = date(year, month, 1)
         except ValueError as exc:
             raise FallbackError(f"invalid gregorian month {year}-{month:02d}") from exc
+        if month_start < HARD_CAP_START:
+            raise FallbackError(
+                f"date {month_start.isoformat()} is before the curated table start ({HARD_CAP_START.isoformat()})"
+            )
         month_end = self._gregorian_month_end(year, month)
+        if month_end > HARD_CAP_END:
+            raise FallbackError(
+                f"date {month_end.isoformat()} is beyond the computed table limit ({HARD_CAP_END.isoformat()})"
+            )
         with self._lock:
             if self._last_end is None or self._last_end < month_end:
                 self._extend_forward_to(month_end)
-            first_start = self._first_start
-            if self._blocks and first_start is not None and first_start > month_start:
-                self._extend_backward_to(month_start)
             prefix = f"{year:04d}-{month:02d}-"
             return {k: v for k, v in sorted(self._g2h.items()) if k.startswith(prefix)}
 
     def fetch_by_hijri(self, hijri_year: int, hijri_month: int) -> dict[str, str]:
         target = (hijri_year, hijri_month)
         with self._lock:
-            while self._blocks and self._blocks[0].hijri > target:
-                self._extend_backward_to(
-                    self._blocks[0].start - timedelta(days=60)
-                )
             while not self._blocks or self._blocks[-1].hijri < target:
                 anchor_point = (
                     self._blocks[-1].start + timedelta(days=self._blocks[-1].length + 5)

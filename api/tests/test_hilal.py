@@ -167,3 +167,15 @@ def test_resolve_invalid_month(service):
 def test_resolve_out_of_coverage(service):
     with pytest.raises(MonthNotResolvable):
         resolve_sighting_evening(service, 1500, 9)
+
+
+def test_resolve_beyond_curated_via_computed():
+    """Months past the curated table resolve through the computed tier."""
+    from app.precomputed import PrecomputedStore
+
+    store = PrecomputedStore(DATA_PATH.parent / "computed_table.json")
+    svc = CalendarService(DATA_PATH, stores=[store])
+    res = resolve_sighting_evening(svc, 1449, 6)
+    assert res.evening_day == 29
+    assert res.evening_label == "29 Jumadil Akhir 1449 H"
+    assert res.target_start > res.evening_date

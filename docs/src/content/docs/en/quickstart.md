@@ -44,8 +44,8 @@ curl "https://api.mabims.dev/api/v1/convert?date=1446-07-03&calendar=hijri"
 
 Every response carries a `source` field:
 
-- `mabims` — authoritative, from the curated table
-- `fallback:aladhan-ummalqura` — approximate; may differ ±1 day from local observation
+- `mabims` — authoritative, from the curated table (2024-01-13 to 2026-12-31)
+- `mabims-computed` — computed with Neo MABIMS criteria (after 2026-12-31, up to 2053)
 
 Treat `warnings` as user-facing notices when non-empty.
 
