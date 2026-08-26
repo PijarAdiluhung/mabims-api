@@ -70,6 +70,7 @@ export default defineConfig({
             { label: 'GET /convert', link: '/endpoints/convert' },
             { label: 'GET /today', link: '/endpoints/today' },
             { label: 'GET /range & /month', link: '/endpoints/range-month' },
+            { label: 'GET /events', link: '/endpoints/events' },
             { label: 'GET /meta', link: '/endpoints/meta' },
           ],
         },
