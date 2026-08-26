@@ -256,8 +256,8 @@ def _criteria_table(img: Image.Image, data: dict, box: tuple, pal: dict) -> None
     d.line([x0, y0 + 40, x1, y0 + 40], fill=pal["border"], width=1)
 
     crit = [
-        ("ALT. BULAN", f"{data['moon_alt']:+.1f}\u00b0", "\u2265 3.0\u00b0", data["alt_ok"]),
-        ("ELONGASI", f"{data['elong']:.1f}\u00b0", "\u2265 6.4\u00b0", data["elong_ok"]),
+        ("ALT. BULAN", f"{data['moon_alt']:+.1f}\u00b0", ">= 3.0\u00b0", data["alt_ok"]),
+        ("ELONGASI", f"{data['elong']:.1f}\u00b0", ">= 6.4\u00b0", data["elong_ok"]),
     ]
     chips = Image.new("RGBA", img.size, (0, 0, 0, 0))
     cd = ImageDraw.Draw(chips)
