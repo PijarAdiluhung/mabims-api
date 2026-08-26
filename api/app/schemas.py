@@ -27,6 +27,21 @@ class RangeItem(BaseModel):
     source: str
 
 
+class EventItem(BaseModel):
+    event: str
+    name: str
+    hijri: str
+    gregorian: str
+    source: str
+
+
+class EventsResponse(BaseModel):
+    input: dict
+    count: int
+    events: list[EventItem]
+    warnings: list[str] = Field(default_factory=list)
+
+
 class RangeResponse(BaseModel):
     input: dict
     count: int

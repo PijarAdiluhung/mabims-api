@@ -14,6 +14,7 @@ dates live with the Neo MABIMS criteria.
 | `GET /api/v1/convert?date=&calendar=` | Single date, either direction |
 | `GET /api/v1/range?start=&end=&calendar=` | Bulk conversion (≤400 days) |
 | `GET /api/v1/month?year=&month=&calendar=` | Calendar-grid sugar over `/range` |
+| `GET /api/v1/events?year=&calendar=` | Curated Islamic observances: 1 Muharram, Maulid, Ramadan start, Eid al-Fitr/Adha |
 | `GET /api/v1/meta` | Coverage, data version, fallback status |
 | `GET /healthz` | Liveness probe |
 

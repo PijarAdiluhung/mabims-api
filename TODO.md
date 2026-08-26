@@ -14,7 +14,7 @@
 
 ## Data — hard deadline 2027-01-01
 - [ ] 2027 MABIMS table: build the yearly ingest script (source: regional authority announcements), extend `api/data/`
-- [ ] `/events` endpoint — curated Islamic observance dates (Ramadan start, Eid al-Fitr/Adha, 1 Muharram, Maulid) layered on the table; the differentiator vs Umm al-Qura APIs
+- [x] `/events` endpoint — curated Islamic observance dates (Ramadan start, Eid al-Fitr/Adha, 1 Muharram, Maulid) layered on the table; the differentiator vs Umm al-Qura APIs
 - [ ] Decide long-term data format for yearly tables (versioned files + `/meta.data_version` bump)
 
 ## Computed tier (precomputed_table)

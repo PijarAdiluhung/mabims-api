@@ -21,6 +21,7 @@ from app.main import create_app
 from app.schemas import (
     ConvertResponse,
     ErrorResponse,
+    EventsResponse,
     HealthResponse,
     MetaResponse,
     RangeResponse,
@@ -37,6 +38,7 @@ DOCUMENTED_ENDPOINTS = [
     "/api/v1/convert",
     "/api/v1/range",
     "/api/v1/month",
+    "/api/v1/events",
 ]
 
 
@@ -120,6 +122,13 @@ def test_month_matches_schema(client, real_data):
     month_end = date(year, month, pycalendar.monthrange(year, month)[1])
     expected_end = min(month_end, g_last)
     assert body.count == (expected_end - month_start).days + 1
+
+
+def test_events_matches_schema(client, real_data):
+    h_iso = max(real_data["hijri_to_gregorian"])
+    response = client.get(f"/api/v1/events?year={int(h_iso[0:4])}&calendar=hijri")
+    assert response.status_code == 200
+    _parse(response.json(), EventsResponse)
 
 
 def test_error_shape_matches_schema(client):

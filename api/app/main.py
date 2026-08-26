@@ -14,6 +14,7 @@ from slowapi.util import get_remote_address
 
 from .calendar import SOURCE_MABIMS, CalendarService
 from .config import APP_VERSION, Settings
+from .events import find_events
 from .fallback import FALLBACK_SOURCE, AladhanProvider, FallbackStore, MemoryFallbackStore
 from .mabims_computed import COMPUTED_SOURCE, MabimsCalcProvider
 from .precomputed import PRECOMPUTED_FILENAME, PrecomputedDataError, PrecomputedStore
@@ -22,6 +23,8 @@ from .schemas import (
     ConversionOutput,
     ConvertResponse,
     Coverage,
+    EventItem,
+    EventsResponse,
     MetaResponse,
     RangeItem,
     RangeResponse,
@@ -398,6 +401,34 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             input={"start": start_d.isoformat(), "end": end_d.isoformat(), "calendar": cal},
             count=len(items),
             items=items,
+            warnings=warnings,
+        )
+        return JSONResponse(content=payload.model_dump(), headers=IMMUTABLE_CACHE_HEADERS)
+
+    @app.api_route("/api/v1/events", response_model=None, methods=["GET", "HEAD"])
+    def events(
+        request: Request,
+        year: int = Query(...),
+        calendar: str = Query(default="gregorian"),
+    ):
+        cal = _validate_calendar(calendar)
+        if not 1000 <= year <= 3000:
+            raise ApiError("invalid_year", "'year' is out of supported bounds.")
+        items = [
+            EventItem(
+                event=definition.slug,
+                name=definition.name,
+                gregorian=g_iso,
+                hijri=h_iso,
+                source=service.lookup(h_iso, "hijri").source,
+            )
+            for definition, g_iso, h_iso in find_events(service.h2g, year, cal)
+        ]
+        aggregate_source, warnings = _aggregate(items)
+        payload = EventsResponse(
+            input={"year": year, "calendar": cal},
+            count=len(items),
+            events=items,
             warnings=warnings,
         )
         return JSONResponse(content=payload.model_dump(), headers=IMMUTABLE_CACHE_HEADERS)
