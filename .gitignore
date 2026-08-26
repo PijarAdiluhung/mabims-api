@@ -21,6 +21,11 @@ dist/
 # Tests
 api/tests/
 
+# Debug / throwaway scripts
+api/scripts/debug_store.py
+api/scripts/test_hilal_info.py
+api/scripts/test_month_lengths.py
+
 # Misc
 *.log
 .vscode/

@@ -27,6 +27,27 @@ class CriteriaResult:
         return bool(self.alt_deg >= ALT_MIN_DEG and self.elong_deg >= ELONG_MIN_DEG)
 
 
+@dataclass(frozen=True)
+class EveningObservation:
+    """Full geocentric hisab of a sunset instant (MABIMS reference frame).
+
+    All angles follow the Indonesian geocentric convention used by the curated
+    table and the computed tier — deliberately NOT topocentric, so the verdict
+    always agrees with ``month_length``.
+    """
+
+    evaluated_on: date
+    moon_alt_deg: float  # geocentric, refraction-corrected
+    moon_az_deg: float  # geocentric, degrees from north, clockwise
+    sun_alt_deg: float  # geocentric geometric
+    sun_az_deg: float
+    elongation_deg: float
+
+    @property
+    def visible(self) -> bool:
+        return bool(self.moon_alt_deg >= ALT_MIN_DEG and self.elongation_deg >= ELONG_MIN_DEG)
+
+
 class _Ephemeris:
     def __init__(self) -> None:
         from skyfield import almanac
@@ -79,7 +100,26 @@ def eph_ts_from_utc(dt_utc: datetime):
     return _eph().ts.from_datetime(dt_utc.astimezone(UTC))
 
 
-def criteria_on_sunset(d: date) -> CriteriaResult:
+def _geo_altaz(t, ra_hours: float, dec_deg: float) -> tuple[float, float]:
+    """Geocentric (geometric altitude, azimuth from north clockwise) at Sabang."""
+    lat = math.radians(SABANG_LAT_DEG)
+    dec_r = math.radians(dec_deg)
+    lst_deg = (t.gast * 15.0 + SABANG_LON_DEG) % 360.0
+    ha_deg = ((lst_deg - ra_hours * 15.0 + 180.0) % 360.0) - 180.0
+    ha = math.radians(ha_deg)
+    sin_alt = math.sin(dec_r) * math.sin(lat) + math.cos(dec_r) * math.cos(lat) * math.cos(ha)
+    alt_geo = math.degrees(math.asin(max(-1.0, min(1.0, sin_alt))))
+    az_denom = math.cos(ha) * math.sin(lat) - math.tan(dec_r) * math.cos(lat)
+    az_north = (math.degrees(math.atan2(math.sin(ha), az_denom)) + 180.0) % 360.0
+    return alt_geo, az_north
+
+
+def observation_on_sunset(d: date) -> EveningObservation:
+    """Single source of truth for the hisab of sunset on ``d``.
+
+    Used both by the month-length engine (via :func:`criteria_on_sunset`) and
+    by the /hilal endpoints, so a verdict can never contradict the tables.
+    """
     sunset = _sunset_utc(d)
     t = eph_ts_from_utc(sunset)
 
@@ -87,19 +127,25 @@ def criteria_on_sunset(d: date) -> CriteriaResult:
     geo = eph._earth.at(t)
     moon_apparent = geo.observe(eph._moon).apparent()
     sun_apparent = geo.observe(eph._sun).apparent()
-    elong = moon_apparent.separation_from(sun_apparent).degrees
 
-    ra, dec, _dist = moon_apparent.radec(epoch=t)
-    lat = math.radians(SABANG_LAT_DEG)
-    dec_r = math.radians(dec.degrees)
-    lst_deg = (t.gast * 15.0 + SABANG_LON_DEG) % 360.0
-    ha_deg = ((lst_deg - ra.hours * 15.0 + 180.0) % 360.0) - 180.0
-    ha = math.radians(ha_deg)
-    sin_alt = math.sin(dec_r) * math.sin(lat) + math.cos(dec_r) * math.cos(lat) * math.cos(ha)
-    alt_geo = math.degrees(math.asin(max(-1.0, min(1.0, sin_alt))))
-    alt_refracted = alt_geo + _refraction_deg(alt_geo)
+    moon_ra, moon_dec, _dist = moon_apparent.radec(epoch=t)
+    sun_ra, sun_dec, _dist_sun = sun_apparent.radec(epoch=t)
+    moon_alt, moon_az = _geo_altaz(t, moon_ra.hours, moon_dec.degrees)
+    sun_alt, sun_az = _geo_altaz(t, sun_ra.hours, sun_dec.degrees)
 
-    return CriteriaResult(evaluated_on=d, alt_deg=alt_refracted, elong_deg=elong)
+    return EveningObservation(
+        evaluated_on=d,
+        moon_alt_deg=moon_alt + _refraction_deg(moon_alt),
+        moon_az_deg=moon_az,
+        sun_alt_deg=sun_alt,
+        sun_az_deg=sun_az,
+        elongation_deg=moon_apparent.separation_from(sun_apparent).degrees,
+    )
+
+
+def criteria_on_sunset(d: date) -> CriteriaResult:
+    obs = observation_on_sunset(d)
+    return CriteriaResult(evaluated_on=d, alt_deg=obs.moon_alt_deg, elong_deg=obs.elongation_deg)
 
 
 def criteria_on_day29(month_start: date) -> CriteriaResult:

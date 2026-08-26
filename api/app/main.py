@@ -3,6 +3,7 @@ from __future__ import annotations
 import calendar as pycalendar
 import hashlib
 import json
+import math
 from datetime import date, datetime
 
 from fastapi import FastAPI, Query, Request
@@ -16,10 +17,16 @@ from .calendar import SOURCE_MABIMS, CalendarService
 from .config import APP_VERSION, Settings
 from .events import find_events
 from .fallback import FALLBACK_SOURCE, AladhanProvider, FallbackStore, MemoryFallbackStore
-from .hilal.astro import observe_at_sunset
+from .hilal.astro import lunar_age_hours, moonset_local, phase_angle_deg, sunset_utc
 from .hilal.chart import build_chart_data, chart_png_bytes
-from .hilal.locations import get_location
 from .hilal.service import MonthNotResolvable, resolve_sighting_evening
+from .mabims_astro import (
+    SABANG_LAT_DEG,
+    SABANG_LON_DEG,
+    WIB,
+    EveningObservation,
+    observation_on_sunset,
+)
 from .mabims_computed import COMPUTED_SOURCE, MabimsCalcProvider
 from .schemas import (
     ConversionInput,
@@ -66,6 +73,48 @@ HILAL_ALT_MIN_DEG = 3.0
 HILAL_ELONG_MIN_DEG = 6.4
 
 _HIJRI_YEARS_PER_GREGORIAN = 365.2425 / 354.36792
+
+SABANG_TZ = "Asia/Jakarta"
+SABANG_DISPLAY = "Sabang \u00b7 Indonesia"
+
+
+class SightingObservation:
+    """Geocentric MABIMS criteria plus observer-clock facts for one evening."""
+
+    __slots__ = ("criteria", "sunset_local", "moonset_local", "illumination_pct", "age_hours")
+
+    def __init__(
+        self,
+        criteria: EveningObservation,
+        sunset_local: str,
+        moonset_local: str,
+        illumination_pct: float,
+        age_hours: float,
+    ) -> None:
+        self.criteria = criteria
+        self.sunset_local = sunset_local
+        self.moonset_local = moonset_local
+        self.illumination_pct = illumination_pct
+        self.age_hours = age_hours
+
+
+def observe_sighting_evening(evening_date: date) -> SightingObservation:
+    """Compose the full hilal payload for a sighting evening at Sabang.
+
+    Criteria values (alt/elong/azimuth) come from the geocentric hisab in
+    ``mabims_astro`` — the same function that drives month lengths. Sunset,
+    moonset, illumination and age are observer-clock facts.
+    """
+    criteria = observation_on_sunset(evening_date)
+    sunset_dt = sunset_utc(evening_date, SABANG_TZ, SABANG_LAT_DEG, SABANG_LON_DEG)
+    phase = phase_angle_deg(sunset_dt)
+    return SightingObservation(
+        criteria=criteria,
+        sunset_local=sunset_dt.astimezone(WIB).strftime("%H:%M"),
+        moonset_local=moonset_local(evening_date, SABANG_TZ, SABANG_LAT_DEG, SABANG_LON_DEG),
+        illumination_pct=(1.0 - math.cos(math.radians(phase))) / 2.0 * 100.0,
+        age_hours=lunar_age_hours(sunset_dt),
+    )
 
 
 class ApiError(Exception):
@@ -483,16 +532,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         )
         return JSONResponse(content=payload.model_dump(), headers=IMMUTABLE_CACHE_HEADERS)
 
-    def _hilal_context(month: int, year: int, location_slug: str | None):
-        try:
-            loc = get_location(location_slug)
-        except KeyError:
-            known = "jakarta, malang, sabang, makkah, hawaii"
-            raise ApiError(
-                "invalid_location",
-                f"Unknown location '{location_slug}'. Known locations: {known}.",
-                400,
-            ) from None
+    def _hilal_context(month: int, year: int):
         try:
             res = resolve_sighting_evening(service, year, month)
         except MonthNotResolvable as exc:
@@ -501,20 +541,21 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         if evening_g < MIN_SUPPORTED_GREGORIAN or evening_g > MAX_SUPPORTED_GREGORIAN.isoformat():
             raise ApiError("date_out_of_supported_range", _supported_range_message())
         try:
-            obs = observe_at_sunset(res.evening_date, loc.tz, loc.lat, loc.lon)
+            sighting = observe_sighting_evening(res.evening_date)
         except Exception as exc:
             raise ApiError(
                 "computation_unavailable",
                 f"Could not compute hilal data: {exc.__class__.__name__}",
                 503,
             ) from exc
-        alt_ok = obs.moon_alt >= HILAL_ALT_MIN_DEG
-        elong_ok = obs.elongation >= HILAL_ELONG_MIN_DEG
-        source = service.lookup(res.evening_date.isoformat(), "gregorian").source
+        crit = sighting.criteria
+        alt_ok = crit.moon_alt_deg >= HILAL_ALT_MIN_DEG
+        elong_ok = crit.elongation_deg >= HILAL_ELONG_MIN_DEG
+        source = service.lookup(evening_g, "gregorian").source
         warnings = _warnings_for(
             source, f"{res.prev_year:04d}-{res.prev_month:02d}-15"
         )
-        return loc, res, obs, alt_ok, elong_ok, source, warnings
+        return res, sighting, alt_ok, elong_ok, source, warnings
 
     @app.api_route("/api/v1/hilal/info", response_model=None, methods=["GET", "HEAD"])
     @limiter.limit("60/hour")
@@ -522,13 +563,11 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         request: Request,
         month: int = Query(...),
         year: int = Query(...),
-        location: str | None = Query(default=None),
     ):
-        loc, res, obs, alt_ok, elong_ok, source, warnings = _hilal_context(
-            month, year, location
-        )
+        res, sighting, alt_ok, elong_ok, source, warnings = _hilal_context(month, year)
+        crit = sighting.criteria
         payload = HilalInfoResponse(
-            input={"month": month, "year": year, "location": loc.slug},
+            input={"month": month, "year": year},
             month=HilalMonth(
                 name=res.target_name,
                 number=res.target_month,
@@ -545,14 +584,14 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                 hijri_date=res.evening_label,
                 hijri_day=res.evening_day,
                 gregorian_date=res.evening_date.isoformat(),
-                sunset=obs.sunset_local,
-                moonset=obs.moonset_local,
-                moon_alt_deg=round(obs.moon_alt, 2),
-                moon_az_deg=round(obs.moon_az, 2),
-                sun_alt_deg=round(obs.sun_alt, 2),
-                elongation_deg=round(obs.elongation, 2),
-                illumination_pct=round(obs.illumination * 100, 2),
-                age_hours=round(obs.age_hours, 1),
+                sunset=sighting.sunset_local,
+                moonset=sighting.moonset_local,
+                moon_alt_deg=round(crit.moon_alt_deg, 2),
+                moon_az_deg=round(crit.moon_az_deg, 2),
+                sun_alt_deg=round(crit.sun_alt_deg, 2),
+                elongation_deg=round(crit.elongation_deg, 2),
+                illumination_pct=round(sighting.illumination_pct, 2),
+                age_hours=round(sighting.age_hours, 1),
                 alt_ok=alt_ok,
                 elong_ok=elong_ok,
                 visible=alt_ok and elong_ok,
@@ -568,26 +607,24 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         request: Request,
         month: int = Query(...),
         year: int = Query(...),
-        location: str | None = Query(default=None),
     ):
-        loc, res, obs, alt_ok, elong_ok, _source, _warnings = _hilal_context(
-            month, year, location
-        )
+        res, sighting, alt_ok, elong_ok, _source, _warnings = _hilal_context(month, year)
+        crit = sighting.criteria
         data = build_chart_data(
             hijri_label=res.evening_label,
             evening_date=res.evening_date,
-            location_display=loc.display,
+            location_display=SABANG_DISPLAY,
             visibility_label=(
                 f"VISIBILITAS 1 {res.target_name} {res.target_year} H".upper()
             ),
-            sunset=obs.sunset_local,
-            moonset=obs.moonset_local,
-            moon_alt=obs.moon_alt,
-            moon_az=obs.moon_az,
-            sun_alt=obs.sun_alt,
-            sun_az=obs.sun_az,
-            elong=obs.elongation,
-            illum=obs.illumination,
+            sunset=sighting.sunset_local,
+            moonset=sighting.moonset_local,
+            moon_alt=crit.moon_alt_deg,
+            moon_az=crit.moon_az_deg,
+            sun_alt=crit.sun_alt_deg,
+            sun_az=crit.sun_az_deg,
+            elong=crit.elongation_deg,
+            illum=sighting.illumination_pct / 100.0,
             alt_ok=alt_ok,
             elong_ok=elong_ok,
         )

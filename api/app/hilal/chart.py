@@ -47,9 +47,14 @@ def font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.Im
 # ── visibility model ──
 
 def visibility_factor(data: dict) -> float:
-    """1.0 = comfortably visible, 0.0 = at/below MABIMS threshold (invisible)."""
+    """1.0 = comfortably visible, 0.0 = at/below MABIMS threshold (invisible).
+
+    Linear ramp then cube-root curve so borderline sightings are more visible
+    while below-threshold stays at 0.
+    """
     f = min((data["moon_alt"] - 3.0) / 4.0, (data["elong"] - 6.4) / 5.0)
-    return max(0.0, min(1.0, f))
+    f = max(0.0, min(1.0, f))
+    return f ** (1.0 / 3.0)
 
 
 def verdict_label(data: dict) -> str:

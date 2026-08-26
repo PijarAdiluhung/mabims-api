@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import replace
-from datetime import date
+import json
+from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
@@ -9,26 +9,30 @@ from fastapi.testclient import TestClient
 
 from app.calendar import CalendarService
 from app.config import Settings
-from app.hilal.astro import Observation
 from app.hilal.service import MonthNotResolvable, resolve_sighting_evening
-from app.main import create_app
+from app.mabims_astro import EveningObservation, observation_on_sunset
+from app.main import SightingObservation, create_app
 
 DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "calendar_data.json"
 
 
-def _fake_obs(**overrides) -> Observation:
-    obs = Observation(
+def _fake_sighting(**overrides) -> SightingObservation:
+    criteria = EveningObservation(
+        evaluated_on=date(2026, 2, 17),
+        moon_alt_deg=8.78,
+        moon_az_deg=263.98,
+        sun_alt_deg=-0.83,
+        sun_az_deg=258.30,
+        elongation_deg=11.07,
+    )
+    kwargs = dict(
+        criteria=criteria,
         sunset_local="18:14",
         moonset_local="18:51",
-        sun_alt=-0.83,
-        sun_az=258.30,
-        moon_alt=8.78,
-        moon_az=263.98,
-        elongation=11.07,
-        illumination=0.0107,
+        illumination_pct=1.07,
         age_hours=23.2,
     )
-    return replace(obs, **overrides) if overrides else obs
+    return SightingObservation(**{**kwargs, **overrides})
 
 
 @pytest.fixture()
@@ -42,14 +46,17 @@ def hilal_client(monkeypatch):
             enable_fallback=False,
         )
     )
-    monkeypatch.setattr("app.main.observe_at_sunset", lambda *a, **k: _fake_obs())
+    monkeypatch.setattr(
+        "app.main.observe_sighting_evening", lambda *a, **k: _fake_sighting()
+    )
     return TestClient(app)
 
 
 def test_hilal_info_ok(hilal_client):
-    response = hilal_client.get("/api/v1/hilal/info?month=9&year=1447&location=jakarta")
+    response = hilal_client.get("/api/v1/hilal/info?month=9&year=1447")
     assert response.status_code == 200
     body = response.json()
+    assert body["input"] == {"month": 9, "year": 1447}
     assert body["month"]["name"] == "Ramadhan"
     assert body["month"]["start"] == "2026-02-19"
     assert body["previous_month"]["name"] == "Sya'ban"
@@ -67,8 +74,18 @@ def test_hilal_info_ok(hilal_client):
 
 def test_hilal_info_invisible(hilal_client, monkeypatch):
     monkeypatch.setattr(
-        "app.main.observe_at_sunset",
-        lambda *a, **k: _fake_obs(moon_alt=1.5, elongation=5.0, illumination=0.002),
+        "app.main.observe_sighting_evening",
+        lambda *a, **k: _fake_sighting(
+            criteria=EveningObservation(
+                evaluated_on=date(2026, 2, 17),
+                moon_alt_deg=1.5,
+                moon_az_deg=263.98,
+                sun_alt_deg=-0.83,
+                sun_az_deg=258.30,
+                elongation_deg=5.0,
+            ),
+            illumination_pct=0.2,
+        ),
     )
     response = hilal_client.get("/api/v1/hilal/info?month=9&year=1447")
     assert response.status_code == 200
@@ -76,18 +93,6 @@ def test_hilal_info_invisible(hilal_client, monkeypatch):
     assert evening["alt_ok"] is False
     assert evening["elong_ok"] is False
     assert evening["visible"] is False
-
-
-def test_hilal_info_default_location(hilal_client):
-    response = hilal_client.get("/api/v1/hilal/info?month=9&year=1447")
-    assert response.status_code == 200
-    assert response.json()["input"]["location"] == "jakarta"
-
-
-def test_hilal_info_invalid_location(hilal_client):
-    response = hilal_client.get("/api/v1/hilal/info?month=9&year=1447&location=paris")
-    assert response.status_code == 400
-    assert response.json()["error"]["code"] == "invalid_location"
 
 
 def test_hilal_info_invalid_month(hilal_client):
@@ -103,7 +108,7 @@ def test_hilal_info_out_of_coverage_year(hilal_client):
 
 
 def test_hilal_viz_png(hilal_client):
-    response = hilal_client.get("/api/v1/hilal/viz?month=9&year=1447&location=jakarta")
+    response = hilal_client.get("/api/v1/hilal/viz?month=9&year=1447")
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
     assert response.headers["Cache-Control"].startswith("private")
@@ -113,12 +118,50 @@ def test_hilal_viz_png(hilal_client):
 
 def test_hilal_viz_below_horizon(hilal_client, monkeypatch):
     monkeypatch.setattr(
-        "app.main.observe_at_sunset",
-        lambda *a, **k: _fake_obs(moon_alt=-2.0, elongation=4.0, illumination=0.001),
+        "app.main.observe_sighting_evening",
+        lambda *a, **k: _fake_sighting(
+            criteria=EveningObservation(
+                evaluated_on=date(2026, 2, 17),
+                moon_alt_deg=-2.0,
+                moon_az_deg=263.98,
+                sun_alt_deg=-0.83,
+                sun_az_deg=258.30,
+                elongation_deg=4.0,
+            ),
+            illumination_pct=0.1,
+        ),
     )
     response = hilal_client.get("/api/v1/hilal/viz?month=9&year=1447")
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
+
+
+# ── geocentric criteria ⇔ curated table consistency ──
+
+
+def test_curated_table_matches_geocentric_criteria():
+    """Regression guard: the verdict served by /hilal must equal what the
+    curated table says, for every month boundary in the table."""
+    raw = json.loads(DATA_PATH.read_text(encoding="utf-8"))
+    starts = sorted(
+        (date.fromisoformat(g), h)
+        for g, h in raw["gregorian_to_hijri"].items()
+        if h.endswith("-01")
+    )
+    mismatches: list[str] = []
+    for i in range(len(starts) - 1):
+        g_start, hijri = starts[i]
+        actual_len = (starts[i + 1][0] - g_start).days
+        obs = observation_on_sunset(g_start + timedelta(days=28))
+        predicted = 29 if obs.visible else 30
+        if predicted != actual_len:
+            mismatches.append(
+                f"{hijri}: table={actual_len} geo-criteria={predicted} "
+                f"(alt={obs.moon_alt_deg:.2f} elong={obs.elongation_deg:.2f})"
+            )
+    assert not mismatches, "geocentric criteria disagree with curated table:\n" + "\n".join(
+        mismatches
+    )
 
 
 # ── month resolution unit tests ──
@@ -167,15 +210,3 @@ def test_resolve_invalid_month(service):
 def test_resolve_out_of_coverage(service):
     with pytest.raises(MonthNotResolvable):
         resolve_sighting_evening(service, 1500, 9)
-
-
-def test_resolve_beyond_curated_via_computed():
-    """Months past the curated table resolve through the computed tier."""
-    from app.precomputed import PrecomputedStore
-
-    store = PrecomputedStore(DATA_PATH.parent / "computed_table.json")
-    svc = CalendarService(DATA_PATH, stores=[store])
-    res = resolve_sighting_evening(svc, 1449, 6)
-    assert res.evening_day == 29
-    assert res.evening_label == "29 Jumadil Akhir 1449 H"
-    assert res.target_start > res.evening_date

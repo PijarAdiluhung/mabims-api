@@ -66,7 +66,6 @@ def resolve_sighting_evening(service, year: int, month: int) -> SightingEvening:
     service.ensure_hijri_month(year, month)
     service.ensure_hijri_month(prev_year, prev_month)
 
-    prev_prefix = f"{prev_year:04d}-{prev_month:02d}-"
     d29 = _hijri_date(service, prev_year, prev_month, 29)
     if d29 is None:
         raise MonthNotResolvable(

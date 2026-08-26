@@ -3,20 +3,17 @@ title: GET /hilal
 description: Visibilitas hilal — data kriteria dan grafik langit untuk malam penentuan awal bulan Hijriah.
 ---
 
-Dua endpoint untuk **visibilitas hilal**: malam penentuan adalah selalu **malam tanggal 29**
-bulan berjalan — malam orang-orang keluar melihat hilal. Bila hilal tidak terlihat, bulan
+Dua endpoint untuk **visibilitas hilal**: malam penentuan selalu **malam tanggal 29**, malam orang-orang keluar melihat hilal. Bila hilal tidak terlihat, bulan
 lengkap 30 hari dan awal bulan bergeser sehari. Batas bulan diambil dari **tabel MABIMS
-otoritatif** (bukan Umm al-Qura), sedangkan data astronomis dihitung **toposentris untuk
-lokasi pemantau** — matahari terbenam aktual, posisi bulan, elongasi, iluminasi, usia
-bulan, dan waktu terbenamnya bulan.
+otoritatif**, dan data astronomis dihitung dengan **perhitungan geosentris
+Sabang**, sebagai lokasi paling barat di Indonesia.
 
 ```
-GET /api/v1/hilal/info?month={bulan}&year={tahun}&location={lokasi}   → JSON
-GET /api/v1/hilal/viz?month={bulan}&year={tahun}&location={lokasi}    → PNG 720×1280
+GET /api/v1/hilal/info?month={bulan}&year={tahun}   → JSON
+GET /api/v1/hilal/viz?month={bulan}&year={tahun}    → PNG 720×1280
 ```
 
-`info` berisi angka + verdict; `viz` merender grafik langit "ke mana melihat" dengan
-tabel kriteria yang sama. Keduanya publik namun dibatasi rate limit ketat
+`info` berisi angka + verdict (terlihat atau tidak); `viz` merender grafik langit "ke mana melihat". Keduanya publik namun dibatasi rate limit ketat
 (`info` 60/jam, `viz` 30/jam per IP).
 
 ## Parameter
@@ -25,17 +22,19 @@ tabel kriteria yang sama. Keduanya publik namun dibatasi rate limit ketat
 |---|---|---|---|
 | `month` | int 1–12 | ya | Bulan Hijriah **target** (grafik menampilkan malam penentuannya) |
 | `year` | int | ya | Tahun Hijriah target |
-| `location` | string | tidak (default `jakarta`) | `jakarta` · `malang` · `sabang` · `makkah` · `hawaii` |
+
+Titik hisab tunggal: **Sabang, Indonesia** (5°53′N 95°19′E, WIB). Endpoint ini untuk memperkirakan
+*apa yang mungkin diumumkan pemerintah Indonesia*.
 
 ## Contoh
 
 ```bash
-curl "https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447&location=jakarta"
+curl "https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447"
 ```
 
 ```json
 {
-  "input": { "month": 9, "year": 1447, "location": "jakarta" },
+  "input": { "month": 9, "year": 1447 },
   "month": { "name": "Ramadhan", "number": 9, "year": 1447, "start": "2026-02-19" },
   "previous_month": { "name": "Sya'ban", "number": 8, "year": 1447, "length": 30 },
   "evening": {
@@ -63,9 +62,9 @@ curl "https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447&location=jakart
 
 `visible = alt_ok && elong_ok` mengikuti **kriteria Neo MABIMS** yang sama dengan
 tabel computed: ketinggian bulan (terkoreksi refraksi) ≥ **3,0°** dan elongasi ≥ **6,4°**
-pada saat matahari terbenam di lokasi yang diminta. Perlu dicatat: penetapan awal bulan
-pada tabel tetap merujuk titik Sabang — data astronomis per lokasi menjelaskan
-*bagaimana langit terlihat dari kota Anda* pada malam yang sama.
+pada saat matahari terbenam di Sabang. Nilai altitud/elongasi/azimut bersifat **geosentris**
+(konvensi hisab Indonesia); waktu matahari/bulan terbenam tetap dihitung toposentris untuk
+Sabang karena itu fenomena pengamat.
 
 ## Grafik (`/hilal/viz`)
 
@@ -74,20 +73,19 @@ matahari), pil verdict (`TERLIHAT` / `TIDAK TERLIHAT` / `DI BAWAH HORIZON`), dan
 kriteria `PARAMETER · MIN. MABIMS · STATUS`. Saat kriteria gagal, bulan sengaja tidak
 digambar — langit menampilkan kenyataan. Output deterministik per parameter.
 
-![Contoh grafik visibilitas hilal — 29 Sya'ban 1447 H, Jakarta](/viz.png)
+![Contoh grafik visibilitas hilal — 29 Sya'ban 1447 H, Sabang](/viz.png)
 
 ## Perilaku caching
 
 - `Cache-Control: private, max-age=86400` — hasil deterministik per parameter, namun
   tidak di-cache publik di CDN.
-- Render adalah operasi CPU: gunakan `location` dan parameter minimal yang Anda butuhkan,
+- Render adalah operasi CPU: gunakan parameter minimal yang Anda butuhkan,
   dan hormati rate limit.
 
 ## Error
 
 | Kode | HTTP | Penyebab |
 |---|---|---|
-| `invalid_location` | 400 | Lokasi tidak dikenal |
 | `out_of_coverage` | 400 | Bulan/tahun di luar cakupan tabel (lihat `/meta`) |
 | `computation_unavailable` | 503 | Gagal menghitung astronomi |
 | `render_failed` | 500 | Gagal merender PNG |

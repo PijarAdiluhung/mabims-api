@@ -1,34 +1,21 @@
-"""Topocentric hilal astronomy for arbitrary observers (Skyfield, de421.bsp).
+"""Observer-clock astronomy for the Sabang sighting evening.
 
-Generalizes the Sabang-fixed ephemeris in ``app.mabims_astro`` to any lat/lon:
-sunset via the almanac, moon/sun alt-az at that instant, elongation,
-illumination, lunar age and moonset.
+Deliberately narrow: sunset/moonset instants (inherently topocentric — a
+geocentric moonset does not exist), lunar illumination and age. The
+*criteria* values (altitude, elongation, azimuth) are NOT computed here;
+they come from the geocentric hisab in ``app.mabims_astro`` so that hilal
+endpoints always agree with the month-length tables.
 """
 
 from __future__ import annotations
 
-import math
 import os
 import tempfile
 import threading
-from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 from functools import lru_cache
 from pathlib import Path
 from zoneinfo import ZoneInfo
-
-
-@dataclass(frozen=True)
-class Observation:
-    sunset_local: str  # "HH:MM"
-    moonset_local: str  # "HH:MM"
-    sun_alt: float
-    sun_az: float
-    moon_alt: float  # refraction-corrected
-    moon_az: float
-    elongation: float
-    illumination: float  # 0..1
-    age_hours: float  # hours since last new moon; negative = conjunction ahead
 
 
 class _Ephemeris:
@@ -69,12 +56,6 @@ def _topos(lat: float, lon: float):
     return _eph().topos(lat, lon)
 
 
-def _refraction_deg(alt_deg: float) -> float:
-    h = max(alt_deg, -1.0)
-    arcmin = 1.02 / math.tan(math.radians(h + 10.3 / (h + 5.11)))
-    return arcmin / 60.0
-
-
 def sunset_utc(d: date, tz_name: str, lat: float, lon: float) -> datetime:
     """UTC instant of sunset on local date ``d`` for the observer."""
     from skyfield.almanac import find_discrete, sunrise_sunset
@@ -92,7 +73,8 @@ def sunset_utc(d: date, tz_name: str, lat: float, lon: float) -> datetime:
     raise ValueError(f"no sunset found for {d} at ({lat}, {lon})")
 
 
-def _moon_phase_angle_deg(dt_utc: datetime) -> float:
+def phase_angle_deg(dt_utc: datetime) -> float:
+    """Moon phase angle in degrees at ``dt_utc`` (0 = new moon)."""
     from skyfield.almanac import moon_phase
 
     eph = _eph()
@@ -100,7 +82,8 @@ def _moon_phase_angle_deg(dt_utc: datetime) -> float:
     return float(moon_phase(eph.eph, t).degrees)
 
 
-def _lunar_age_hours(dt_utc: datetime) -> float:
+def lunar_age_hours(dt_utc: datetime) -> float:
+    """Hours since last new moon; negative = conjunction ahead."""
     from skyfield.almanac import find_discrete, moon_phases
 
     eph = _eph()
@@ -145,41 +128,3 @@ def moonset_local(d: date, tz_name: str, lat: float, lon: float) -> str:
         prev_alt = alt
         prev_t = t
     return "N/A"
-
-
-def observe_at_sunset(d: date, tz_name: str, lat: float, lon: float) -> Observation:
-    """Full hilal observation for the sunset ending local date ``d``."""
-    eph = _eph()
-    sunset = sunset_utc(d, tz_name, lat, lon)
-    t = eph.ts.from_datetime(sunset)
-    topo = _observer(lat, lon)
-
-    moon = topo.at(t).observe(eph.eph["moon"]).apparent()
-    sun = topo.at(t).observe(eph.eph["sun"]).apparent()
-
-    moon_alt, moon_az, _ = moon.altaz()
-    sun_alt, sun_az, _ = sun.altaz()
-    moon_alt_deg = float(moon_alt.degrees) + _refraction_deg(float(moon_alt.degrees))
-    sun_alt_deg = float(sun_alt.degrees)
-    moon_az_deg = float(moon_az.degrees) % 360.0
-    sun_az_deg = float(sun_az.degrees) % 360.0
-
-    elong = float(moon.separation_from(sun).degrees)
-    phase_angle = _moon_phase_angle_deg(sunset)
-    illumination = (1.0 - math.cos(math.radians(phase_angle))) / 2.0
-    age_hours = _lunar_age_hours(sunset)
-
-    sunset_local = sunset.astimezone(ZoneInfo(tz_name)).strftime("%H:%M")
-    moonset = moonset_local(d, tz_name, lat, lon)
-
-    return Observation(
-        sunset_local=sunset_local,
-        moonset_local=moonset,
-        sun_alt=sun_alt_deg,
-        sun_az=sun_az_deg,
-        moon_alt=moon_alt_deg,
-        moon_az=moon_az_deg,
-        elongation=elong,
-        illumination=illumination,
-        age_hours=age_hours,
-    )

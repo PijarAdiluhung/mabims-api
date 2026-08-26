@@ -96,17 +96,29 @@ class FallbackStore:
         if calendar == "gregorian":
             year = int(date_iso[0:4])
             data = self.years.get(year)
-            if data is None:
-                return None
-            return data["gregorian_to_hijri"].get(date_iso)
+            if data is not None:
+                hit = data["gregorian_to_hijri"].get(date_iso)
+                if hit is not None:
+                    return hit
+            for other in self.years.values():
+                hit = other["gregorian_to_hijri"].get(date_iso)
+                if hit is not None:
+                    return hit
+            return None
         match = _HIJRI_MONTH_RE.match(date_iso)
         if not match:
             return None
         year = int(match.group(1))
         data = self.years.get(year)
-        if data is None:
-            return None
-        return data["hijri_to_gregorian"].get(date_iso)
+        if data is not None:
+            hit = data["hijri_to_gregorian"].get(date_iso)
+            if hit is not None:
+                return hit
+        for other in self.years.values():
+            hit = other["hijri_to_gregorian"].get(date_iso)
+            if hit is not None:
+                return hit
+        return None
 
     def ensure_month(self, key: MonthKey) -> None:
         with self._lock:

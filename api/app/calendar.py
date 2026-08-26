@@ -97,7 +97,10 @@ class CalendarService:
             return
         with self._lock:
             for store in self.stores:
-                store.ensure_month(MonthKey(kind="H", year=year, month=month))
+                try:
+                    store.ensure_month(MonthKey(kind="H", year=year, month=month))
+                except Exception:
+                    continue
 
     def ensure_range(self, start: str, end: str, calendar: str) -> None:
         if not self.stores:

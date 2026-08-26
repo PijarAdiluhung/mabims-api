@@ -6,13 +6,13 @@ description: Hilal visibility — criteria data and sky chart for the evening th
 Two endpoints for **hilal visibility**: the deciding evening is always the **29th** of the
 current month — the night people actually go looking for the crescent. If it is not seen,
 the month completes 30 days and the start shifts a day. Month boundaries come from the
-**authoritative MABIMS tables** (not Umm al-Qura), while the astronomy is computed
-**topocentrically for the observer's location** — actual sunset, moon position,
-elongation, illumination, moon age and moonset.
+**authoritative MABIMS tables** (not Umm al-Qura), and the astronomy uses the **Sabang
+geocentric hisab** — the same reference frame as the tables themselves, so the verdict
+always agrees with month lengths in `/convert`.
 
 ```
-GET /api/v1/hilal/info?month={month}&year={year}&location={location}   → JSON
-GET /api/v1/hilal/viz?month={month}&year={year}&location={location}    → PNG 720×1280
+GET /api/v1/hilal/info?month={month}&year={year}   → JSON
+GET /api/v1/hilal/viz?month={month}&year={year}    → PNG 720×1280
 ```
 
 `info` carries the numbers + verdict; `viz` renders a "where to look" sky chart with the
@@ -25,17 +25,19 @@ same criteria table. Both are public but tightly rate limited
 |---|---|---|---|
 | `month` | int 1–12 | yes | **Target** Hijri month (the chart shows its deciding evening) |
 | `year` | int | yes | Target Hijri year |
-| `location` | string | no (default `jakarta`) | `jakarta` · `malang` · `sabang` · `makkah` · `hawaii` |
+
+Single reckoning point: **Sabang, Indonesia** (5°53′N 95°19′E, WIB). These endpoints model
+*what the Indonesian government might announce*, not per-city astronomical sight.
 
 ## Example
 
 ```bash
-curl "https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447&location=jakarta"
+curl "https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447"
 ```
 
 ```json
 {
-  "input": { "month": 9, "year": 1447, "location": "jakarta" },
+  "input": { "month": 9, "year": 1447 },
   "month": { "name": "Ramadhan", "number": 9, "year": 1447, "start": "2026-02-19" },
   "previous_month": { "name": "Sya'ban", "number": 8, "year": 1447, "length": 30 },
   "evening": {
@@ -63,9 +65,9 @@ curl "https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447&location=jakart
 
 `visible = alt_ok && elong_ok` follows the same **Neo MABIMS criteria** as the computed
 table: moon altitude (refraction-corrected) ≥ **3.0°** and elongation ≥ **6.4°** at
-sunset for the requested location. Note that the table's month boundaries remain tied to
-Sabang — the per-location astronomy describes *how the sky looks from your city* on the
-same evening.
+Sabang sunset. Altitude/elongation/azimuth values are **geocentric** (the Indonesian
+hisab convention); sunset and moonset times remain topocentric for Sabang since those are
+observer phenomena.
 
 ## Chart (`/hilal/viz`)
 
@@ -74,7 +76,7 @@ verdict pill (`TERLIHAT` / `TIDAK TERLIHAT` / `DI BAWAH HORIZON`) and a
 `PARAMETER · MABIMS MIN · STATUS` criteria table. When the criteria fail the moon is
 deliberately not drawn — the sky tells the truth. Output is deterministic per parameter.
 
-![Sample hilal visibility chart — 29 Sya'ban 1447 H, Jakarta](/viz.png)
+![Sample hilal visibility chart — 29 Sya'ban 1447 H, Sabang](/viz.png)
 
 ## Caching
 
@@ -86,7 +88,6 @@ deliberately not drawn — the sky tells the truth. Output is deterministic per 
 
 | Code | HTTP | Cause |
 |---|---|---|
-| `invalid_location` | 400 | Unknown location |
 | `out_of_coverage` | 400 | Month/year outside table coverage (see `/meta`) |
 | `computation_unavailable` | 503 | Astronomy computation failed |
 | `render_failed` | 500 | PNG rendering failed |

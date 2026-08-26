@@ -63,14 +63,24 @@ Crescent geometry: disc minus same-size punch circle offset by
 `dx = 2r · eff` → limb width ≈ dx. Tilt = `180° − atan2(sun − moon)`.
 Moon size fixed 170px.
 
-Visibility factor: `f = clamp(min((alt − 3)/4, (elong − 6.4)/5), 0.0, 1.0)`
+Visibility factor: linear ramp then cube-root curve for borderline boost:
+`raw = clamp(min((alt − 3)/4, (elong − 6.4)/5), 0.0, 1.0)` → `f = raw^(1/3)`
 
-| Effect | Formula | PASS (f≈0.93) | at/below threshold (f=0) |
+| raw | f (cbrt) | opacity | blur |
 |---|---|---|---|
-| limb width | `eff = (0.02 + 0.98·illum) · (0.5 + 0.5·f)` | ~0.97× | not drawn |
-| opacity | `alpha = 255·f` | ~94% | **0 — invisible** |
-| blur | `(1 − f) · 3px` | ~0.2px | n/a |
-| moon glow | `60·f` alpha | ~56 | 0 |
+| 0.0 | 0.0 | 0 — invisible | n/a |
+| 0.1 | 0.46 | 118 | 1.6px |
+| 0.25 | 0.63 | 161 | 1.1px |
+| 0.5 | 0.79 | 202 | 0.6px |
+| 0.75 | 0.91 | 232 | 0.3px |
+| 1.0 | 1.0 | 255 | 0px |
+
+| Effect | Formula | PASS (f≈0.97) | at/below threshold (f=0) |
+|---|---|---|---|
+| limb width | `eff = (0.02 + 0.98·illum) · (0.5 + 0.5·f)` | ~0.99× | not drawn |
+| opacity | `alpha = 255·f` | ~97% | **0 — invisible** |
+| blur | `(1 − f) · 3px` | ~0.1px | n/a |
+| moon glow | `60·f` alpha | ~58 | 0 |
 
 Pill states: `TERLIHAT` (alt ≥ 3 & elong ≥ 6.4) · `TIDAK TERLIHAT` (above horizon,
 below a threshold) · `DI BAWAH HORIZON` (alt < 0). Pill floats beside the moon,

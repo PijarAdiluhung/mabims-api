@@ -93,12 +93,12 @@ class HilalEvening(BaseModel):
     hijri_date: str  # e.g. "30 Sya'ban 1447 H"
     hijri_day: int
     gregorian_date: str  # ISO
-    sunset: str  # "HH:MM" local
+    sunset: str  # "HH:MM" local (Sabang, WIB)
     moonset: str  # "HH:MM" local or "N/A"
-    moon_alt_deg: float
-    moon_az_deg: float
-    sun_alt_deg: float
-    elongation_deg: float
+    moon_alt_deg: float  # geocentric hisab, refraction-corrected (MABIMS frame)
+    moon_az_deg: float  # geocentric, degrees from north clockwise
+    sun_alt_deg: float  # geocentric geometric
+    elongation_deg: float  # geocentric
     illumination_pct: float
     age_hours: float
     alt_ok: bool

@@ -7,10 +7,6 @@ const months = [
   [5, 'Jumadil Awal'], [6, 'Jumadil Akhir'], [7, 'Rajab'], [8, "Sya'ban"],
   [9, 'Ramadhan'], [10, 'Syawal'], [11, "Dzulqa'dah"], [12, 'Dzulhijjah'],
 ];
-const locations = [
-  ['jakarta', 'Jakarta'], ['malang', 'Malang'], ['sabang', 'Sabang'],
-  ['makkah', 'Makkah'], ['hawaii', 'Hawaii'],
-];
 ---
 
 <StarlightPage
@@ -31,12 +27,6 @@ const locations = [
     <label>
       Tahun Hijriah
       <input type="number" id="tahun" value="1447" min="1446" max="1486" required />
-    </label>
-    <label>
-      Lokasi
-      <select id="lokasi">
-        {locations.map(([value, name]) => <option value={value}>{name}</option>)}
-      </select>
     </label>
     <button type="submit" class="pg-btn">Render Grafik</button>
   </form>
@@ -66,7 +56,6 @@ const locations = [
     const form = document.getElementById('hilal-form');
     const bulanEl = document.getElementById('bulan');
     const tahunEl = document.getElementById('tahun');
-    const lokasiEl = document.getElementById('lokasi');
     const figureEl = document.getElementById('figure');
     const chartEl = document.getElementById('chart');
     const skeletonEl = document.getElementById('skeleton');
@@ -130,7 +119,6 @@ const locations = [
       const params = new URLSearchParams({
         month: bulanEl.value,
         year: tahunEl.value,
-        location: lokasiEl.value,
       });
       const vizUrl = `${apiBase}/api/v1/hilal/viz?${params}`;
 
