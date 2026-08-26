@@ -3,7 +3,7 @@ title: Akses & Batas Rate
 description: Siapa saja yang dapat memanggil API, aturan origin browser, dan perlindungan penyalahgunaan.
 ---
 
-## Semua pembacaan bersifat publik
+## Semua reads bersifat publik
 
 Setiap endpoint di `/api/v1/*` bersifat **publik** — tidak perlu API key dan tidak perlu registrasi. Tanggal kalender bukanlah rahasia, dan membatasinya hanya akan mendorong integrator ke sumber data yang lebih buruk.
 
