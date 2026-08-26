@@ -16,6 +16,10 @@ from .calendar import SOURCE_MABIMS, CalendarService
 from .config import APP_VERSION, Settings
 from .events import find_events
 from .fallback import FALLBACK_SOURCE, AladhanProvider, FallbackStore, MemoryFallbackStore
+from .hilal.astro import observe_at_sunset
+from .hilal.chart import build_chart_data, chart_png_bytes
+from .hilal.locations import get_location
+from .hilal.service import MonthNotResolvable, resolve_sighting_evening
 from .mabims_computed import COMPUTED_SOURCE, MabimsCalcProvider
 from .precomputed import PRECOMPUTED_FILENAME, PrecomputedDataError, PrecomputedStore
 from .schemas import (
@@ -25,6 +29,10 @@ from .schemas import (
     Coverage,
     EventItem,
     EventsResponse,
+    HilalEvening,
+    HilalInfoResponse,
+    HilalMonth,
+    HilalPrevMonth,
     MetaResponse,
     RangeItem,
     RangeResponse,
@@ -55,6 +63,9 @@ MAX_RANGE_DAYS = 400
 MIN_SUPPORTED_GREGORIAN = "1945-01-01"
 SUPPORTED_FORWARD_YEARS = 30
 EPHEMERIS_LAST_SUPPORTED_DAY = date(2053, 8, 1)
+HILAL_PRIVATE_CACHE = {"Cache-Control": "private, max-age=86400"}
+HILAL_ALT_MIN_DEG = 3.0
+HILAL_ELONG_MIN_DEG = 6.4
 
 _HIJRI_YEARS_PER_GREGORIAN = 365.2425 / 354.36792
 
@@ -490,6 +501,121 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             warnings=warnings,
         )
         return JSONResponse(content=payload.model_dump(), headers=IMMUTABLE_CACHE_HEADERS)
+
+    def _hilal_context(month: int, year: int, location_slug: str | None):
+        try:
+            loc = get_location(location_slug)
+        except KeyError:
+            known = "jakarta, malang, sabang, makkah, hawaii"
+            raise ApiError(
+                "invalid_location",
+                f"Unknown location '{location_slug}'. Known locations: {known}.",
+                400,
+            ) from None
+        try:
+            res = resolve_sighting_evening(service, year, month)
+        except MonthNotResolvable as exc:
+            raise ApiError("out_of_coverage", str(exc), 400) from None
+        try:
+            obs = observe_at_sunset(res.evening_date, loc.tz, loc.lat, loc.lon)
+        except Exception as exc:
+            raise ApiError(
+                "computation_unavailable",
+                f"Could not compute hilal data: {exc.__class__.__name__}",
+                503,
+            ) from exc
+        alt_ok = obs.moon_alt >= HILAL_ALT_MIN_DEG
+        elong_ok = obs.elongation >= HILAL_ELONG_MIN_DEG
+        source = service.lookup(res.evening_date.isoformat(), "gregorian").source
+        warnings = _warnings_for(
+            source, f"{res.prev_year:04d}-{res.prev_month:02d}-15"
+        )
+        return loc, res, obs, alt_ok, elong_ok, source, warnings
+
+    @app.api_route("/api/v1/hilal/info", response_model=None, methods=["GET", "HEAD"])
+    @limiter.limit("60/hour")
+    def hilal_info(
+        request: Request,
+        month: int = Query(...),
+        year: int = Query(...),
+        location: str | None = Query(default=None),
+    ):
+        loc, res, obs, alt_ok, elong_ok, source, warnings = _hilal_context(
+            month, year, location
+        )
+        payload = HilalInfoResponse(
+            input={"month": month, "year": year, "location": loc.slug},
+            month=HilalMonth(
+                name=res.target_name,
+                number=res.target_month,
+                year=res.target_year,
+                start=res.target_start.isoformat(),
+            ),
+            previous_month=HilalPrevMonth(
+                name=res.prev_name,
+                number=res.prev_month,
+                year=res.prev_year,
+                length=res.prev_length,
+            ),
+            evening=HilalEvening(
+                hijri_date=res.evening_label,
+                hijri_day=res.evening_day,
+                gregorian_date=res.evening_date.isoformat(),
+                sunset=obs.sunset_local,
+                moonset=obs.moonset_local,
+                moon_alt_deg=round(obs.moon_alt, 2),
+                moon_az_deg=round(obs.moon_az, 2),
+                sun_alt_deg=round(obs.sun_alt, 2),
+                elongation_deg=round(obs.elongation, 2),
+                illumination_pct=round(obs.illumination * 100, 2),
+                age_hours=round(obs.age_hours, 1),
+                alt_ok=alt_ok,
+                elong_ok=elong_ok,
+                visible=alt_ok and elong_ok,
+            ),
+            source=source,
+            warnings=warnings,
+        )
+        return JSONResponse(content=payload.model_dump(), headers=HILAL_PRIVATE_CACHE)
+
+    @app.api_route("/api/v1/hilal/viz", response_model=None, methods=["GET", "HEAD"])
+    @limiter.limit("30/hour")
+    def hilal_viz(
+        request: Request,
+        month: int = Query(...),
+        year: int = Query(...),
+        location: str | None = Query(default=None),
+    ):
+        loc, res, obs, alt_ok, elong_ok, _source, _warnings = _hilal_context(
+            month, year, location
+        )
+        data = build_chart_data(
+            hijri_label=res.evening_label,
+            evening_date=res.evening_date,
+            location_display=loc.display,
+            visibility_label=(
+                f"VISIBILITAS 1 {res.target_name} {res.target_year} H".upper()
+            ),
+            sunset=obs.sunset_local,
+            moonset=obs.moonset_local,
+            moon_alt=obs.moon_alt,
+            moon_az=obs.moon_az,
+            sun_alt=obs.sun_alt,
+            sun_az=obs.sun_az,
+            elong=obs.elongation,
+            illum=obs.illumination,
+            alt_ok=alt_ok,
+            elong_ok=elong_ok,
+        )
+        try:
+            png = chart_png_bytes(data)
+        except Exception as exc:
+            raise ApiError(
+                "render_failed",
+                f"Could not render chart: {exc.__class__.__name__}",
+                500,
+            ) from exc
+        return Response(content=png, media_type="image/png", headers=HILAL_PRIVATE_CACHE)
 
     return app
 

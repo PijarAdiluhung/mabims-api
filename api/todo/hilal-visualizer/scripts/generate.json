@@ -1,0 +1,14 @@
+[
+  {
+    "tool_name": "execute_shell_command",
+    "arguments": {
+      "command": "cd /app/working/workspaces/default/hilal-visualizer && python3 scripts/resolve_hilal.py --location '${args.location}' --month '${args.month}' --year '${args.year}' 2>/dev/null"
+    }
+  },
+  {
+    "tool_name": "execute_shell_command",
+    "arguments": {
+      "command": "cd /app/working/workspaces/default/hilal-visualizer && find output -name '*.png' -exec send2trash {} \\; 2>/dev/null; python3 main.py --location '${args.location}' --month '${args.month}' --year '${args.year}' 2>&1"
+    }
+  }
+]

@@ -1,0 +1,343 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+
+const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'http://localhost:8000';
+const months = [
+  [1, 'Muharram'], [2, 'Safar'], [3, 'Rabi al-Awwal'], [4, 'Rabi al-Thani'],
+  [5, 'Jumada al-Ula'], [6, 'Jumada al-Akhirah'], [7, 'Rajab'], [8, "Sha'ban"],
+  [9, 'Ramadhan'], [10, 'Shawwal'], [11, "Dhu al-Qi'dah"], [12, 'Dhu al-Hijjah'],
+];
+const locations = [
+  ['jakarta', 'Jakarta'], ['malang', 'Malang'], ['sabang', 'Sabang'],
+  ['makkah', 'Makkah'], ['hawaii', 'Hawaii'],
+];
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'Hilal Playground',
+    description: 'Generate hilal visibility sky charts for the evening that decides a Hijri month start.',
+  }}
+>
+  <div class="pg-status" id="status" role="status">Checking API status…</div>
+
+  <form id="hilal-form" class="pg-form">
+    <label>
+      Hijri month
+      <select id="bulan">
+        {months.map(([value, name]) => <option value={value}>{name}</option>)}
+      </select>
+    </label>
+    <label>
+      Hijri year
+      <input type="number" id="tahun" value="1447" min="1400" max="1500" required />
+    </label>
+    <label>
+      Location
+      <select id="lokasi">
+        {locations.map(([value, name]) => <option value={value}>{name}</option>)}
+      </select>
+    </label>
+    <button type="submit" class="pg-btn">Render chart</button>
+  </form>
+
+  <div class="hilal-grid">
+    <figure class="hilal-figure" id="figure" hidden>
+      <div class="hilal-skeleton" id="skeleton">
+        <div class="hilal-spinner" role="status" aria-label="Loading"></div>
+      </div>
+      <img id="chart" alt="Hilal visibility chart" width="360" height="640" hidden />
+      <figcaption id="figcap"></figcaption>
+    </figure>
+    <div class="hilal-data" id="data" hidden>
+      <div class="hilal-verdict" id="verdict"></div>
+      <dl class="hilal-facts" id="facts"></dl>
+      <details>
+        <summary>Full JSON response</summary>
+        <pre class="pg-result" id="raw"></pre>
+      </details>
+    </div>
+  </div>
+
+  <p class="hilal-note" id="error" hidden></p>
+
+  <script define:vars={{ apiBase }}>
+    const statusEl = document.getElementById('status');
+    const form = document.getElementById('hilal-form');
+    const bulanEl = document.getElementById('bulan');
+    const tahunEl = document.getElementById('tahun');
+    const lokasiEl = document.getElementById('lokasi');
+    const figureEl = document.getElementById('figure');
+    const chartEl = document.getElementById('chart');
+    const skeletonEl = document.getElementById('skeleton');
+    const figcapEl = document.getElementById('figcap');
+    const dataEl = document.getElementById('data');
+    const verdictEl = document.getElementById('verdict');
+    const factsEl = document.getElementById('facts');
+    const rawEl = document.getElementById('raw');
+    const errorEl = document.getElementById('error');
+
+    async function loadStatus() {
+      try {
+        const res = await fetch(`${apiBase}/api/v1/meta`);
+        if (!res.ok) throw new Error(res.status);
+        const meta = await res.json();
+        statusEl.className = 'pg-status pg-ok';
+        statusEl.textContent =
+          `✅ Authoritative MABIMS data · coverage ${meta.coverage.first} → ${meta.coverage.last}` +
+          (meta.fallback_active
+            ? ' · fallback tier available only for dates outside the curated table'
+            : '');
+      } catch {
+        statusEl.className = 'pg-status pg-warn';
+        statusEl.textContent = 'API unreachable from here — it may not be deployed yet.';
+      }
+    }
+
+    async function loadDefaults() {
+      try {
+        const res = await fetch(`${apiBase}/api/v1/today`);
+        if (!res.ok) return;
+        const body = await res.json();
+        const hijri = body?.output?.date;
+        if (!hijri) return;
+        let year = parseInt(hijri.slice(0, 4), 10);
+        let month = parseInt(hijri.slice(5, 7), 10) + 1;
+        if (month > 12) {
+          month = 1;
+          year += 1;
+        }
+        bulanEl.value = String(month);
+        tahunEl.value = String(year);
+      } catch {
+        /* keep static defaults */
+      }
+    }
+    }
+
+    function fact(label, value) {
+      return `<div><dt>${label}</dt><dd>${value}</dd></div>`;
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      errorEl.hidden = true;
+      dataEl.hidden = true;
+      figureEl.hidden = false;
+      skeletonEl.hidden = false;
+      chartEl.hidden = true;
+      figcapEl.textContent = 'Rendering chart…';
+
+      const params = new URLSearchParams({
+        month: bulanEl.value,
+        year: tahunEl.value,
+        location: lokasiEl.value,
+      });
+      const vizUrl = `${apiBase}/api/v1/hilal/viz?${params}`;
+
+      try {
+        const res = await fetch(`${apiBase}/api/v1/hilal/info?${params}`);
+        const body = await res.json();
+        if (!res.ok) {
+          figureEl.hidden = true;
+          errorEl.hidden = false;
+          errorEl.textContent =
+            `${res.status} ${body?.error?.code ?? ''}: ${body?.error?.message ?? res.statusText}`;
+          return;
+        }
+        const ev = body.evening;
+        chartEl.onload = () => {
+          skeletonEl.hidden = true;
+          chartEl.hidden = false;
+          figcapEl.textContent = `${ev.hijri_date} · ${ev.gregorian_date}`;
+        };
+        chartEl.onerror = () => {
+          skeletonEl.hidden = true;
+          figcapEl.textContent = 'Failed to load image.';
+        };
+        chartEl.src = vizUrl;
+
+        const visible = ev.visible;
+        verdictEl.textContent = visible
+          ? `🌙 VISIBLE — evening of 1 ${body.month.name} ${body.month.year} AH`
+          : `⛔ NOT VISIBLE — 1 ${body.month.name} ${body.month.year} AH likely shifts a day`;
+        verdictEl.className = `hilal-verdict ${visible ? 'is-ok' : 'is-bad'}`;
+
+        factsEl.innerHTML = [
+          fact('Sighting evening', `${ev.hijri_date} (${ev.gregorian_date})`),
+          fact('Sunset', ev.sunset),
+          fact('Moonset', ev.moonset),
+          fact('Moon altitude', `${ev.moon_alt_deg.toFixed(1)}° (min 3.0°) — ${ev.alt_ok ? 'pass' : 'fail'}`),
+          fact('Elongation', `${ev.elongation_deg.toFixed(1)}° (min 6.4°) — ${ev.elong_ok ? 'pass' : 'fail'}`),
+          fact('Illumination', `${ev.illumination_pct.toFixed(1)}%`),
+          fact('Moon age', `${ev.age_hours.toFixed(0)} h`),
+          fact('Source', body.source),
+        ].join('');
+        rawEl.textContent = JSON.stringify(body, null, 2);
+        dataEl.hidden = false;
+      } catch (error) {
+        figureEl.hidden = true;
+        errorEl.hidden = false;
+        errorEl.textContent = String(error);
+      }
+    });
+
+    loadStatus();
+    loadDefaults();
+  </script>
+
+  <style>
+    .pg-status {
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--sl-color-gray-5);
+    }
+    .pg-ok {
+      background: color-mix(in srgb, var(--sl-color-green-high) 15%, transparent);
+    }
+    .pg-warn {
+      background: color-mix(in srgb, var(--sl-color-orange-high) 18%, transparent);
+    }
+    .pg-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: end;
+      margin-bottom: 1.5rem;
+    }
+    .pg-form label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    .pg-form input,
+    .pg-form select {
+      padding: 0.45rem 0.6rem;
+      border-radius: 0.375rem;
+      border: 1px solid var(--sl-color-gray-4);
+      background: var(--sl-color-bg);
+      color: var(--sl-color-text);
+    }
+    .pg-btn {
+      padding: 0.5rem 1.25rem;
+      border-radius: 0.375rem;
+      border: none;
+      background: var(--sl-color-accent);
+      color: var(--sl-color-black);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .hilal-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 42rem) {
+      .hilal-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .hilal-figure {
+      margin: 0;
+    }
+    .hilal-skeleton {
+      aspect-ratio: 9 / 16;
+      display: grid;
+      place-items: center;
+      border-radius: 0.75rem;
+      border: 1px solid var(--sl-color-gray-5);
+      background: linear-gradient(
+        110deg,
+        var(--sl-color-gray-6) 30%,
+        var(--sl-color-gray-5) 45%,
+        var(--sl-color-gray-6) 60%
+      );
+      background-size: 200% 100%;
+      animation: hilal-shimmer 1.4s ease-in-out infinite;
+    }
+    .hilal-spinner {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 4px solid var(--sl-color-gray-5);
+      border-top-color: var(--sl-color-accent);
+      animation: hilal-spin 0.9s linear infinite;
+    }
+    @keyframes hilal-shimmer {
+      to {
+        background-position: -200% 0;
+      }
+    }
+    @keyframes hilal-spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    .hilal-skeleton[hidden],
+    .hilal-figure img[hidden] {
+      display: none;
+    }
+    .hilal-figure img {
+      width: 100%;
+      height: auto;
+      border-radius: 0.75rem;
+      border: 1px solid var(--sl-color-gray-5);
+      background: #1f1235;
+    }
+    .hilal-figure figcaption {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--sl-color-gray-3);
+    }
+    .hilal-verdict {
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .hilal-verdict.is-ok {
+      background: color-mix(in srgb, var(--sl-color-green-high) 18%, transparent);
+    }
+    .hilal-verdict.is-bad {
+      background: color-mix(in srgb, var(--sl-color-red-high) 16%, transparent);
+    }
+    .hilal-facts {
+      display: grid;
+      gap: 0.6rem;
+      margin: 0 0 1rem;
+    }
+    .hilal-facts div {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid var(--sl-color-gray-6);
+      padding-bottom: 0.4rem;
+    }
+    .hilal-facts dt {
+      color: var(--sl-color-gray-3);
+    }
+    .hilal-facts dd {
+      margin: 0;
+      font-weight: 600;
+      text-align: right;
+    }
+    .hilal-note {
+      color: var(--sl-color-red-high);
+      font-weight: 600;
+    }
+    .pg-result {
+      padding: 1rem;
+      border-radius: 0.5rem;
+      background: var(--sl-color-bg-code);
+      overflow-x: auto;
+    }
+    details summary {
+      cursor: pointer;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</StarlightPage>

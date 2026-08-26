@@ -15,6 +15,8 @@ dates live with the Neo MABIMS criteria.
 | `GET /api/v1/range?start=&end=&calendar=` | Bulk conversion (≤400 days) |
 | `GET /api/v1/month?year=&month=&calendar=` | Calendar-grid sugar over `/range` |
 | `GET /api/v1/events?year=&calendar=` | Curated Islamic observances: 1 Muharram, Maulid, Ramadan start, Eid al-Fitr/Adha |
+| `GET /api/v1/hilal/info?month=&year=&location=` | Hilal visibility data for the evening deciding a month start (5 locations) |
+| `GET /api/v1/hilal/viz?month=&year=&location=` | Hilal sky chart PNG (720×1280) with MABIMS criteria table |
 | `GET /api/v1/meta` | Coverage, data version, fallback status |
 | `GET /healthz` | Liveness probe |
 

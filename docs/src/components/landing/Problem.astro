@@ -1,4 +1,5 @@
 ---
+import { XCircle, CheckCircle } from '@lucide/astro';
 ---
 
 <section class="problem-section">
@@ -13,7 +14,7 @@
 
   <div class="comparison-visual">
     <div class="comparison-card comparison-card--wrong">
-      <div class="comparison-badge">❌ Umm al-Qura</div>
+      <div class="comparison-badge"><XCircle size={14} /> Umm al-Qura</div>
       <div class="comparison-date">1 Ramadhan 1447 H</div>
       <div class="comparison-gregorian">18 Februari 2026</div>
       <div class="comparison-note">Yang ditampilkan aplikasi Anda</div>
@@ -24,7 +25,7 @@
     </div>
 
     <div class="comparison-card comparison-card--right">
-      <div class="comparison-badge">✅ MABIMS</div>
+      <div class="comparison-badge"><CheckCircle size={14} /> MABIMS</div>
       <div class="comparison-date">30 Sya'ban 1447 H</div>
       <div class="comparison-gregorian">18 Februari 2026</div>
       <div class="comparison-note">Yang dilihat di langit Indonesia</div>
@@ -96,6 +97,9 @@
   }
 
   .comparison-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     font-size: var(--sl-text-xs);
     font-weight: 600;
     text-transform: uppercase;

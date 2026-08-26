@@ -75,6 +75,46 @@ class HealthResponse(BaseModel):
     version: str
 
 
+class HilalMonth(BaseModel):
+    name: str
+    number: int
+    year: int
+    start: str  # gregorian ISO of day 1
+
+
+class HilalPrevMonth(BaseModel):
+    name: str
+    number: int
+    year: int
+    length: int  # 29 or 30
+
+
+class HilalEvening(BaseModel):
+    hijri_date: str  # e.g. "30 Sya'ban 1447 H"
+    hijri_day: int
+    gregorian_date: str  # ISO
+    sunset: str  # "HH:MM" local
+    moonset: str  # "HH:MM" local or "N/A"
+    moon_alt_deg: float
+    moon_az_deg: float
+    sun_alt_deg: float
+    elongation_deg: float
+    illumination_pct: float
+    age_hours: float
+    alt_ok: bool
+    elong_ok: bool
+    visible: bool
+
+
+class HilalInfoResponse(BaseModel):
+    input: dict
+    month: HilalMonth
+    previous_month: HilalPrevMonth
+    evening: HilalEvening
+    source: str
+    warnings: list[str] = Field(default_factory=list)
+
+
 class ErrorBody(BaseModel):
     code: str
     message: str

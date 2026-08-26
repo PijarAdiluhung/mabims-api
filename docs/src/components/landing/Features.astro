@@ -1,37 +1,39 @@
 ---
+import { Mosque, Zap, CalendarDays, Code, Globe, RefreshCcw } from '@lucide/astro';
+
 const features = [
   {
-    icon: '🕌',
+    icon: Mosque,
     title: 'Data Resmi Kemenag',
     description: 'Menggunakan tabel kalender resmi dari Kementerian Agama RI, bukan mengikuti otoritas Saudi.',
     color: 'yellow',
   },
   {
-    icon: '⚡',
+    icon: Zap,
     title: 'Tanpa Autentikasi',
     description: 'Cukup panggil endpoint. Tidak perlu API key, tidak perlu registrasi.',
     color: 'green',
   },
   {
-    icon: '📅',
+    icon: CalendarDays,
     title: 'Cakupan Luas',
     description: 'Data tabel 2024–2026, perhitungan komputasi 1970–2031+. Di luar cakupan, tetap akurat.',
     color: 'purple',
   },
   {
-    icon: '💻',
+    icon: Code,
     title: 'Open Source',
     description: 'Kode terbuka di GitHub. Transparan, bisa diverifikasi, kontribusi selalu diterima.',
     color: 'pink',
   },
   {
-    icon: '🌍',
+    icon: Globe,
     title: 'Timezone-Aware',
     description: 'Mendukung semua zona waktu IANA. Default Asia/Jakarta, bisa di-override.',
     color: 'blue',
   },
   {
-    icon: '🔄',
+    icon: RefreshCcw,
     title: 'Fallback Cerdas',
     description: 'Di luar cakupan tabel, menghitung dengan kriteria Neo MABIMS (hilal ≥ 3°, elongasi ≥ 6.4°).',
     color: 'orange',
@@ -48,7 +50,7 @@ const features = [
   <div class="features-grid">
     {features.map((feature) => (
       <article class={`feature-card feature-card--${feature.color}`}>
-        <div class="feature-icon">{feature.icon}</div>
+        <div class="feature-icon"><feature.icon size={20} /></div>
         <h3>{feature.title}</h3>
         <p>{feature.description}</p>
       </article>
@@ -120,7 +122,6 @@ const features = [
     align-items: center;
     justify-content: center;
     border-radius: 10px;
-    font-size: 1.25rem;
     margin-bottom: 1.25rem;
   }
 

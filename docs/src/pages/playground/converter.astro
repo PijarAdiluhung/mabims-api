@@ -7,27 +7,46 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'http://localhost:8000';
 <StarlightPage
   frontmatter={{
     title: 'Playground',
-    description: 'Convert real dates against the live MABIMS API.',
+    description: 'Konversi tanggal langsung terhadap API MABIMS secara real time.',
   }}
 >
-  <div class="pg-status" id="status" role="status">Checking API status…</div>
+  <div class="pg-status" id="status" role="status">Memeriksa status API…</div>
 
   <form id="conv-form" class="pg-form">
     <label>
-      Date
+      Tanggal
       <input type="date" id="date" required />
     </label>
     <label>
-      Calendar
+      Kalender
       <select id="calendar">
         <option value="gregorian">Gregorian → Hijri</option>
         <option value="hijri">Hijri → Gregorian</option>
       </select>
     </label>
-    <button type="submit" class="pg-btn">Convert</button>
+    <button type="submit" class="pg-btn">Konversi</button>
   </form>
 
   <pre class="pg-result" id="result" hidden></pre>
+
+  <script>
+    import flatpickr from 'flatpickr';
+    import 'flatpickr/dist/flatpickr.min.css';
+
+    function initPicker() {
+      const el = document.querySelector<HTMLInputElement>('#date');
+      if (el && !el.dataset.flatpickr) {
+        flatpickr(el, {
+          dateFormat: 'Y-m-d',
+          defaultDate: 'today',
+          maxDate: 'today',
+          disableMobile: true,
+        });
+      }
+    }
+    initPicker();
+    document.addEventListener('astro:page-load', initPicker);
+  </script>
 
   <script define:vars={{ apiBase }}>
     const statusEl = document.getElementById('status');
@@ -41,26 +60,22 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'http://localhost:8000';
         const res = await fetch(`${apiBase}/api/v1/meta`);
         if (!res.ok) throw new Error(res.status);
         const meta = await res.json();
-        if (meta.fallback_active) {
-          statusEl.className = 'pg-status pg-warn';
-          statusEl.innerHTML =
-            `⚠️ <strong>Fallback active</strong> — table covers ${meta.coverage.first} to ` +
-            `${meta.coverage.last}; some results come from Umm al-Qura and may drift ±1 day.`;
-        } else {
-          statusEl.className = 'pg-status pg-ok';
-          statusEl.textContent =
-            `✅ Authoritative MABIMS data · coverage ${meta.coverage.first} → ${meta.coverage.last}`;
-        }
+        statusEl.className = 'pg-status pg-ok';
+        statusEl.textContent =
+          `✅ Data MABIMS otoritatif · cakupan ${meta.coverage.first} → ${meta.coverage.last}` +
+          (meta.fallback_active
+            ? ' · tier cadangan tersedia hanya untuk tanggal di luar cakupan kurasi'
+            : '');
       } catch {
         statusEl.className = 'pg-status pg-warn';
-        statusEl.textContent = 'API unreachable from here — it may not be deployed yet.';
+        statusEl.textContent = 'API tidak dapat diakses dari sini — mungkin belum di-deploy.';
       }
     }
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       resultEl.hidden = false;
-      resultEl.textContent = 'Converting…';
+      resultEl.textContent = 'Mengkonversi…';
       const params = new URLSearchParams({ date: dateEl.value, calendar: calEl.value });
       try {
         const res = await fetch(`${apiBase}/api/v1/convert?${params}`);

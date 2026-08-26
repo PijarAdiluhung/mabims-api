@@ -15,6 +15,7 @@ dependencies = [
   "slowapi>=0.1.9",
   "skyfield>=1.49",
   "tzdata>=2024.1",
+  "pillow>=10.1",
 ]
 
 [project.optional-dependencies]
@@ -30,6 +31,7 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 110
 target-version = "py312"
+extend-exclude = ["todo"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B"]
