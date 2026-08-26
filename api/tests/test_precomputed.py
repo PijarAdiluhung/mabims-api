@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 import json
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
 from app.config import Settings
-from app.main import create_app
 from app.mabims_computed import MabimsCalcProvider
+from app.main import create_app
 from app.precomputed import PrecomputedStore
 
 API_DIR = Path(__file__).resolve().parent.parent
@@ -24,7 +24,7 @@ def fake_hijri(gregorian: date) -> str:
     return f"{index // 12:04d}-{index % 12 + 1:02d}-{day:02d}"
 
 
-def write_table(path: Path, back: date, forward: date, borderline: list[str]) -> str:
+def write_table(path: Path, back: date, forward: date, borderline: list[str]) -> Path:
     g2h: dict[str, str] = {}
     h2g: dict[str, str] = {}
     cursor = back
@@ -76,7 +76,7 @@ class TestPrecomputedStore:
         from app.calendar import MonthKey
 
         store = PrecomputedStore(table_path)
-        assert store.ensure_month(MonthKey("G", 1999, 1)) is None
+        store.ensure_month(MonthKey("G", 1999, 1))
 
     def test_summary_reports_span(self, table_path):
         store = PrecomputedStore(table_path)
@@ -95,7 +95,7 @@ def computed_client(tmp_path: Path):
     data_dir.mkdir()
 
     raw = json.loads(DATA_PATH.read_text(encoding="utf-8"))
-    shrunk = {"gregorian_to_hijri": {}, "hijri_to_gregorian": {}}
+    shrunk: dict[str, dict[str, str]] = {"gregorian_to_hijri": {}, "hijri_to_gregorian": {}}
     for key, value in list(raw["gregorian_to_hijri"].items())[:90]:
         shrunk["gregorian_to_hijri"][key] = value
         shrunk["hijri_to_gregorian"][value] = key

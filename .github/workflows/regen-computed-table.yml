@@ -1,0 +1,53 @@
+name: Regenerate computed table
+
+on:
+  schedule:
+    # Every year on Jan 15 at 02:00 UTC (cron is best-effort; can be delayed)
+    - cron: "0 2 15 1 *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+defaults:
+  run:
+    working-directory: api
+
+jobs:
+  regen:
+    runs-on: ubuntu-latest
+    env:
+      MABIMS_EPHEMERIS_DIR: ${{ github.workspace }}/api/.ephem
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install package
+        run: python -m pip install -e .
+
+      - name: Cache JPL ephemeris (de421.bsp)
+        uses: actions/cache@v4
+        with:
+          path: api/.ephem
+          key: de421.bsp-v1
+
+      - name: Build computed table (verifies curated overlap before writing)
+        run: python scripts/build_computed_table.py
+
+      - name: Create pull request with the diff
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/regen-computed-table
+          title: "chore(data): regenerate computed_table.json"
+          commit-message: "chore(data): regenerate computed_table.json"
+          body: |
+            Automated yearly regeneration via `scripts/build_computed_table.py`.
+
+            The script verified the overlap with the curated MABIMS table
+            byte-for-byte before writing. Review the diff, then merge.
+          labels: |
+            data

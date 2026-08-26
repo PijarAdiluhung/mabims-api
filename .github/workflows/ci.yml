@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+defaults:
+  run:
+    working-directory: api
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    env:
+      MABIMS_EPHEMERIS_DIR: ${{ github.workspace }}/api/.ephem
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: api/pyproject.toml
+
+      - name: Install package + dev tools
+        run: python -m pip install -e ".[dev]"
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Type check (mypy)
+        run: mypy
+
+      - name: Test (pytest)
+        run: pytest -q
+
+      - name: Cache JPL ephemeris (de421.bsp)
+        uses: actions/cache@v4
+        with:
+          path: api/.ephem
+          key: de421.bsp-v1
+
+      - name: Validate curated table vs Neo MABIMS criteria
+        run: python scripts/validate_mabims.py

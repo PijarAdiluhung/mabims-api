@@ -4,7 +4,8 @@ import json
 import math
 import os
 import sys
-from datetime import date, datetime, time, timedelta, timezone
+import tempfile
+from datetime import UTC, date, datetime, time, timedelta, timezone
 from pathlib import Path
 
 from skyfield import almanac
@@ -19,7 +20,8 @@ ALT_MIN = 3.0
 ELONG_MIN = 6.4
 WIB = timezone(timedelta(hours=7))
 
-EPHEM_DIR = Path(r"C:\Users\PIJARA~1\AppData\Local\Temp\opencode\skyfield")
+DEFAULT_EPHEM_DIR = Path(tempfile.gettempdir()) / "mabims-ephemeris"
+EPHEM_DIR = Path(os.environ.get("MABIMS_EPHEMERIS_DIR") or DEFAULT_EPHEM_DIR)
 EPHEM_DIR.mkdir(parents=True, exist_ok=True)
 
 _loader = Loader(str(EPHEM_DIR))
@@ -48,7 +50,7 @@ def sunset_on(d: date) -> datetime:
     end = start + timedelta(days=1)
     f = almanac.sunrise_sunset(eph, sabang_pos)
     times, events = almanac.find_discrete(ts.from_datetime(start), ts.from_datetime(end), f)
-    for t, ev in zip(times, events):
+    for t, ev in zip(times, events, strict=True):
         dt = t.utc_datetime()
         if not ev:
             return dt
@@ -56,7 +58,7 @@ def sunset_on(d: date) -> datetime:
 
 
 def metrics_at(dt: datetime) -> dict[str, float]:
-    t = ts.from_datetime(dt.replace(tzinfo=timezone.utc))
+    t = ts.from_datetime(dt.replace(tzinfo=UTC))
     geo = earth.at(t)
     m = geo.observe(moon).apparent()
     s = geo.observe(sun).apparent()
@@ -100,7 +102,10 @@ def main() -> int:
         site = f"{LAT_DEG:.4f}N {LON_DEG:.4f}E"
     starts = load_month_starts()
     print(f"table: {DATA_PATH}")
-    print(f"anchor: {starts[0][1][0]}-{starts[0][1][1]:02d}-01 = {starts[0][0]}  ({len(starts)} month starts)")
+    print(
+        f"anchor: {starts[0][1][0]}-{starts[0][1][1]:02d}-01 = {starts[0][0]}"
+        f"  ({len(starts)} month starts)"
+    )
     print(f"site: {site} | thresholds: alt>={ALT_MIN} elong>={ELONG_MIN} (sunset, day 29)")
     print()
     hdr = (

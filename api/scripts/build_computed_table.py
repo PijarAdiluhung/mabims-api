@@ -4,15 +4,15 @@ import argparse
 import json
 import sys
 import tempfile
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 API_DIR = Path(__file__).resolve().parents[1]
 if str(API_DIR) not in sys.path:
     sys.path.insert(0, str(API_DIR))
 
-from app.mabims_computed import MabimsCalcProvider  # noqa: E402
 from app.mabims_astro import ALT_MIN_DEG, ELONG_MIN_DEG  # noqa: E402
+from app.mabims_computed import MabimsCalcProvider  # noqa: E402
 from app.precomputed import PRECOMPUTED_FILENAME  # noqa: E402
 
 DATA_PATH = API_DIR / "data" / "calendar_data.json"
@@ -72,10 +72,10 @@ def main() -> int:
     back_year = args.back_year
     forward_end_year = args.forward_end_year or (date.today().year + DEFAULT_FORWARD_YEARS)
 
-    started = datetime.now(timezone.utc)
+    started = datetime.now(UTC)
     print(f"computing {back_year}-01-01 .. {forward_end_year}-12-31 ...")
     g2h, h2g, borderline = build(back_year, forward_end_year)
-    elapsed = (datetime.now(timezone.utc) - started).total_seconds()
+    elapsed = (datetime.now(UTC) - started).total_seconds()
 
     back_iso = min(g2h)
     forward_iso = max(g2h)

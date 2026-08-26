@@ -114,7 +114,8 @@ class MabimsCalcProvider:
         with self._lock:
             if self._last_end is None or self._last_end < month_end:
                 self._extend_forward_to(month_end)
-            if self._blocks and self._first_start > month_start:
+            first_start = self._first_start
+            if self._blocks and first_start is not None and first_start > month_start:
                 self._extend_backward_to(month_start)
             prefix = f"{year:04d}-{month:02d}-"
             return {k: v for k, v in sorted(self._g2h.items()) if k.startswith(prefix)}
@@ -165,7 +166,7 @@ class MabimsCalcProvider:
                         margin=float("inf"),
                     )
                 )
-            for prev, curr in zip(blocks, blocks[1:]):
+            for prev, curr in zip(blocks, blocks[1:], strict=False):
                 expected = prev.start + timedelta(days=prev.length)
                 if curr.start != expected:
                     raise ValueError(

@@ -104,7 +104,10 @@ def main() -> int:
             assert new_h == h, f"regression: {g} was {h}, now {new_h}"
         print(f"preserved {len(old['gregorian_to_hijri'])} existing entries")
 
-    payload = {"gregorian_to_hijri": dict(sorted(g2h.items())), "hijri_to_gregorian": dict(sorted(h2g.items()))}
+    payload = {
+        "gregorian_to_hijri": dict(sorted(g2h.items())),
+        "hijri_to_gregorian": dict(sorted(h2g.items())),
+    }
     tmp = DATA_PATH.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     tmp.replace(DATA_PATH)

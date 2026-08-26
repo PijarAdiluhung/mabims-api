@@ -12,17 +12,16 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
-from .calendar import SOURCE_MABIMS, CalendarService, MonthKey
+from .calendar import SOURCE_MABIMS, CalendarService
 from .config import APP_VERSION, Settings
 from .fallback import FALLBACK_SOURCE, AladhanProvider, FallbackStore, MemoryFallbackStore
 from .mabims_computed import COMPUTED_SOURCE, MabimsCalcProvider
 from .precomputed import PRECOMPUTED_FILENAME, PrecomputedDataError, PrecomputedStore
 from .schemas import (
-    ConvertResponse,
     ConversionInput,
     ConversionOutput,
+    ConvertResponse,
     Coverage,
-    HealthResponse,
     MetaResponse,
     RangeItem,
     RangeResponse,
@@ -75,7 +74,7 @@ def _parse_iso_date(value: str) -> date:
     try:
         return date.fromisoformat(value)
     except (TypeError, ValueError):
-        raise ApiError("invalid_date", f"'{value}' is not a valid ISO date (YYYY-MM-DD).")
+        raise ApiError("invalid_date", f"'{value}' is not a valid ISO date (YYYY-MM-DD).") from None
 
 
 def _validate_calendar(value: str | None) -> str:
@@ -154,7 +153,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
     limiter = Limiter(key_func=get_remote_address, default_limits=[settings.rate_limit])
     app.state.limiter = limiter
     app.add_middleware(SlowAPIMiddleware)
-    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
 
     @app.exception_handler(ApiError)
     async def handle_api_error(request: Request, exc: ApiError):
@@ -327,7 +326,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         try:
             tzo = resolve_tz(tz)
         except ValueError as exc:
-            raise ApiError("invalid_timezone", str(exc))
+            raise ApiError("invalid_timezone", str(exc)) from exc
         today_iso = datetime.now(tzo).date().isoformat()
         value, source = _resolve_pair(today_iso, "gregorian")
         payload = ConvertResponse(

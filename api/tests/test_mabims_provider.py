@@ -7,6 +7,8 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from app.config import Settings
+from app.mabims_astro import criteria_on_day29
 from app.mabims_computed import (
     BORDERLINE_MARGIN_DEG,
     COMPUTED_SOURCE,
@@ -14,8 +16,6 @@ from app.mabims_computed import (
     next_hijri_month,
     prev_hijri_month,
 )
-from app.mabims_astro import criteria_on_day29
-from app.config import Settings
 from app.main import create_app
 
 API_DIR = Path(__file__).resolve().parent.parent
@@ -83,7 +83,7 @@ def computed_client(tmp_path):
     data_dir.mkdir()
 
     raw = json.loads(DATA_PATH.read_text(encoding="utf-8"))
-    shrunk = {"gregorian_to_hijri": {}, "hijri_to_gregorian": {}}
+    shrunk: dict[str, dict[str, str]] = {"gregorian_to_hijri": {}, "hijri_to_gregorian": {}}
     for key, value in list(raw["gregorian_to_hijri"].items())[:90]:
         shrunk["gregorian_to_hijri"][key] = value
         shrunk["hijri_to_gregorian"][value] = key

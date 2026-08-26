@@ -5,7 +5,7 @@ import os
 import tempfile
 import threading
 from dataclasses import dataclass
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import UTC, date, datetime, time, timedelta, timezone
 from functools import lru_cache
 from pathlib import Path
 
@@ -63,7 +63,7 @@ def _sunset_utc(d: date) -> datetime:
     times, events = eph._almanac.find_discrete(
         eph.ts.from_datetime(start_local), eph.ts.from_datetime(end_local), f
     )
-    for t, ev in zip(times, events):
+    for t, ev in zip(times, events, strict=True):
         if not ev:
             return t.utc_datetime()
     raise ValueError(f"no sunset found for {d}")
@@ -76,7 +76,7 @@ def _refraction_deg(alt_deg: float) -> float:
 
 
 def eph_ts_from_utc(dt_utc: datetime):
-    return _eph().ts.from_datetime(dt_utc.astimezone(timezone.utc))
+    return _eph().ts.from_datetime(dt_utc.astimezone(UTC))
 
 
 def criteria_on_day29(month_start: date) -> CriteriaResult:

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import calendar as pycalendar
 import json
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -105,7 +105,7 @@ def test_today_matches_table_and_dynamic_ttl(client, real_data):
 
 def test_today_tz_offset_default_is_jakarta(client):
     jakarta_now = datetime.now(ZoneInfo("Asia/Jakarta")).date().isoformat()
-    utc_now = datetime.now(timezone.utc).date().isoformat()
+    utc_now = datetime.now(UTC).date().isoformat()
     default_body = client.get("/api/v1/today").json()
     offset_body = client.get("/api/v1/today", params={"tz": "UTC+7"}).json()
     assert default_body["input"]["tz"] == "Asia/Jakarta"
@@ -209,7 +209,7 @@ class TestFallbackBridge:
         data_dir = tmp_path / "data"
         data_dir.mkdir()
 
-        shrunk = {"gregorian_to_hijri": {}, "hijri_to_gregorian": {}}
+        shrunk: dict[str, dict[str, str]] = {"gregorian_to_hijri": {}, "hijri_to_gregorian": {}}
         for key, value in list(real_data["gregorian_to_hijri"].items())[:90]:
             shrunk["gregorian_to_hijri"][key] = value
             shrunk["hijri_to_gregorian"][value] = key

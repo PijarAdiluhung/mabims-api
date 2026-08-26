@@ -5,7 +5,7 @@ import os
 import re
 import tempfile
 import threading
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Protocol
 
@@ -121,7 +121,7 @@ class FallbackStore:
                 h2g = self.provider.fetch_by_hijri(key.year, key.month)
                 g2h = _invert(h2g)
             data["months"][key.label] = {
-                "fetched_at": datetime.now(timezone.utc).isoformat(),
+                "fetched_at": datetime.now(UTC).isoformat(),
                 "gregorian_to_hijri": g2h,
                 "hijri_to_gregorian": h2g,
             }
