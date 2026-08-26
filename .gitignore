@@ -18,13 +18,15 @@ node_modules/
 .astro/
 dist/
 
-# Tests
-api/tests/
-
 # Debug / throwaway scripts
 api/scripts/debug_store.py
 api/scripts/test_hilal_info.py
 api/scripts/test_month_lengths.py
+
+# Superseded hilal prototype (kept locally for reference)
+api/todo/hilal-visualizer/
+api/todo/mock_v2.py
+api/todo/offline_test.py
 
 # Misc
 *.log
