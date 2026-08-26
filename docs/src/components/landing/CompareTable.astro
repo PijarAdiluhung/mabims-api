@@ -1,0 +1,163 @@
+---
+---
+
+<section class="compare-section">
+  <div class="compare-header">
+    <h2>Perbandingan</h2>
+    <p>Kenapa MABIMS lebih cocok untuk pengguna Indonesia.</p>
+  </div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th class="highlight">MABIMS</th>
+          <th>Umm al-Qura</th>
+          <th>Aladhan</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="row-label">Sumber</td>
+          <td class="highlight">Kemenag RI</td>
+          <td>Pemerintah Saudi</td>
+          <td>Komunitas open source</td>
+        </tr>
+        <tr>
+          <td class="row-label">Metode</td>
+          <td class="highlight">Tabular + Neo MABIMS</td>
+          <td>Tabular</td>
+          <td>Astronomi murni</td>
+        </tr>
+        <tr>
+          <td class="row-label">Akurasi untuk Indonesia</td>
+          <td class="highlight">
+            <span class="badge badge--green">✓ Resmi</span>
+          </td>
+          <td>
+            <span class="badge badge--yellow">±1 hari</span>
+          </td>
+          <td>
+            <span class="badge badge--yellow">±1 hari</span>
+          </td>
+        </tr>
+        <tr>
+          <td class="row-label">Cakupan Regional</td>
+          <td class="highlight">ID, MY, SG</td>
+          <td>Saudi Arabia</td>
+          <td>Global</td>
+        </tr>
+        <tr>
+          <td class="row-label">Di Luar Cakupan Tabel</td>
+          <td class="highlight">Neo MABIMS computation</td>
+          <td>Tidak ada</td>
+          <td>Perhitungan astronomi</td>
+        </tr>
+        <tr>
+          <td class="row-label">Autentikasi</td>
+          <td class="highlight">Tidak perlu</td>
+          <td>Tergantung provider</td>
+          <td>Tergantung provider</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<style>
+  .compare-section {
+    padding: clamp(3rem, 6vw, 6rem) 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .compare-header {
+    text-align: center;
+    max-width: 36rem;
+    margin: 0 auto 2.5rem;
+  }
+
+  .compare-header h2 {
+    font-size: clamp(1.75rem, 1rem + 3vw, 2.5rem);
+    font-weight: 700;
+    color: var(--sl-color-white);
+    margin: 0 0 1rem;
+  }
+
+  .compare-header p {
+    font-size: clamp(1rem, 0.5rem + 1vw, 1.125rem);
+    color: var(--sl-color-gray-2);
+    margin: 0;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+  }
+
+  table {
+    width: 100%;
+    min-width: 36rem;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  th, td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  th {
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    color: var(--sl-color-gray-3);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  th.highlight {
+    color: var(--sl-color-accent);
+  }
+
+  td {
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-2);
+  }
+
+  td.highlight {
+    background: rgba(254, 207, 70, 0.06);
+    color: var(--sl-color-white);
+    font-weight: 500;
+    border-left: 2px solid var(--sl-color-accent);
+  }
+
+  .row-label {
+    color: var(--sl-color-gray-3);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    font-size: var(--sl-text-xs);
+    font-weight: 600;
+  }
+
+  .badge--green {
+    background: rgba(254, 207, 70, 0.12);
+    color: var(--sl-color-accent);
+  }
+
+  .badge--yellow {
+    background: rgba(254, 207, 70, 0.12);
+    color: var(--sl-color-accent);
+  }
+</style>

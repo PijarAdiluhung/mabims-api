@@ -1,0 +1,246 @@
+---
+---
+
+<section class="hero-section">
+  <div class="hero-content">
+    <h1 class="hero-title">
+      Kalender <span class="accent">MABIMS</span> API untuk Indonesia
+    </h1>
+    <p class="hero-tagline">
+      API konversi tanggal Hijriah resmi untuk Indonesia.
+      Satu endpoint, tanpa autentikasi, data Kemenag.
+    </p>
+    <div class="hero-actions">
+      <a href="/quickstart/" class="btn btn-primary">
+        Mulai Sekarang
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+      <a href="/endpoints/convert/" class="btn btn-secondary">
+        Lihat Dokumentasi
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-terminal">
+    <div class="terminal-header">
+      <span class="terminal-dot"></span>
+      <span class="terminal-dot"></span>
+      <span class="terminal-dot"></span>
+      <span class="terminal-title">terminal</span>
+    </div>
+    <div class="terminal-body">
+      <div class="terminal-line">
+        <span class="terminal-prompt">{'$'}</span>
+        <span class="terminal-command">curl "https://api.mabims.dev/api/v1/today"</span>
+      </div>
+      <div class="terminal-output">
+        <pre>{`{
+  "input": { "date": "2026-08-26", "tz": "Asia/Jakarta" },
+  "output": { "date": "1448-03-11", "calendar": "hijri" },
+  "source": "mabims",
+  "warnings": []
+}`}</pre>
+      </div>
+      <div class="terminal-line">
+        <span class="terminal-prompt">{'$'}</span>
+        <span class="terminal-cursor">█</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero-section {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    padding: clamp(3rem, 10vmin, 8rem) 0;
+    min-height: clamp(500px, 80svh, 900px);
+    align-content: center;
+  }
+
+  @media (min-width: 64rem) {
+    .hero-section {
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      padding: clamp(4rem, 10vmin, 8rem) 0;
+      min-height: clamp(600px, 80svh, 900px);
+    }
+  }
+
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1.5rem;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 0.4rem 1rem;
+    background: rgba(254, 207, 70, 0.1);
+    border: 1px solid rgba(254, 207, 70, 0.3);
+    border-radius: 100px;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-accent);
+    font-weight: 500;
+  }
+
+  .hero-title {
+    font-size: clamp(2rem, 1rem + 4vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--sl-color-white);
+    margin: 0;
+  }
+
+  .hero-title .accent {
+    color: var(--sl-color-accent);
+  }
+
+  .hero-tagline {
+    font-size: clamp(1rem, 0.5rem + 1.5vw, 1.25rem);
+    color: var(--sl-color-gray-2);
+    line-height: 1.7;
+    max-width: 32rem;
+    margin: 0;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: var(--sl-text-sm);
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .btn-primary {
+    background: var(--sl-color-accent) !important;
+    color: #1a1a2e !important;
+    font-weight: 700;
+  }
+
+  .btn-primary:hover {
+    background: var(--sl-color-accent-high) !important;
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--sl-color-white);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--sl-color-white);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .hero-terminal {
+    background: #161b22;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    align-self: center;
+  }
+
+  .terminal-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .terminal-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .terminal-dot:nth-child(1) { background: #ff5f57; }
+  .terminal-dot:nth-child(2) { background: #ffbd2e; }
+  .terminal-dot:nth-child(3) { background: #28ca41; }
+
+  .terminal-title {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.3);
+  }
+
+  .terminal-body {
+    padding: 1.25rem;
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+
+  .terminal-line {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .terminal-prompt {
+    color: var(--sl-color-accent);
+    user-select: none;
+  }
+
+  .terminal-command {
+    color: var(--sl-color-gray-2);
+    word-break: break-all;
+    white-space: normal;
+  }
+
+  .terminal-output {
+    margin: 0.75rem 0 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .terminal-output pre {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--sl-color-gray-3);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .terminal-cursor {
+    color: var(--sl-color-accent);
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+
+  @media (max-width: 63.9375rem) {
+    .hero-section {
+      padding-top: clamp(2rem, 8vmin, 4rem);
+    }
+
+    .hero-terminal {
+      max-width: 100%;
+    }
+  }
+</style>

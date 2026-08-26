@@ -6,9 +6,9 @@ export default defineConfig({
   site: 'https://mabims.dev',
   integrations: [
     starlight({
-      title: 'Saatnya Ganti Ke MABIMS',
+      title: 'API Kalender MABIMS',
       description:
-        'Integrasikan sistem kalender hijriah MABIMS ke dalam aplikasi atau website Anda.',
+        'API konversi tanggal Hijriah resmi MABIMS untuk Indonesia. Data Kemenag, bukan Umm al-Qura.',
       favicon: '/favicons/favicon.ico',
       logo: {
         src: './public/mabims-long.png',

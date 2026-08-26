@@ -1,0 +1,156 @@
+---
+---
+
+<section class="solution-section">
+  <div class="solution-content">
+    <h2>Kalender Hijriah yang <span class="accent">Benar</span></h2>
+    <p>
+      MABIMS API menyajikan data kalender resmi yang digunakan oleh
+      Kemenag Indonesia, Singapura, dan Malaysia. Di luar cakupan tabel,
+      tanggal tetap konsisten karena dihitung langsung dengan kriteria
+      Neo MABIMS — bukan tebakan astronomi.
+    </p>
+  </div>
+
+  <div class="solution-demo">
+    <div class="demo-header">
+      <span class="demo-label">Coba sekarang</span>
+    </div>
+    <div class="demo-block">
+      <div class="demo-row">
+        <span class="demo-method">GET</span>
+        <code class="demo-url">/api/v1/today</code>
+      </div>
+      <pre class="demo-response">{`{
+  "input": { "date": "2026-08-26", "tz": "Asia/Jakarta" },
+  "output": { "date": "1448-03-11", "calendar": "hijri" },
+  "source": "mabims",
+  "warnings": []
+}`}</pre>
+    </div>
+    <div class="demo-note">
+      <code>source: "mabims"</code> — data dari tabel resmi Kemenag, bukan perhitungan
+    </div>
+  </div>
+</section>
+
+<style>
+  .solution-section {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    padding: clamp(3rem, 6vw, 6rem) 0;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  @media (min-width: 64rem) {
+    .solution-section {
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+    }
+  }
+
+  .solution-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .solution-content h2 {
+    font-size: clamp(1.75rem, 1rem + 3vw, 2.75rem);
+    font-weight: 700;
+    color: var(--sl-color-white);
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .solution-content h2 .accent {
+    color: var(--sl-color-accent);
+  }
+
+  .solution-content p {
+    font-size: clamp(1rem, 0.5rem + 1vw, 1.125rem);
+    color: var(--sl-color-gray-2);
+    line-height: 1.8;
+    margin: 0;
+  }
+
+  .solution-demo {
+    background: #161b22;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .demo-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .demo-label {
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-accent);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+
+  .demo-block {
+    padding: 1.25rem;
+  }
+
+  .demo-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+  }
+
+  .demo-method {
+    padding: 0.2rem 0.6rem;
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: monospace;
+  }
+
+  .demo-url {
+    font-size: 0.875rem;
+    color: var(--sl-color-gray-2);
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+
+  .demo-response {
+    margin: 0;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.8rem;
+    color: var(--sl-color-gray-3);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .demo-note {
+    margin-top: 1rem;
+    padding: 0 1.25rem 1.25rem;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+  }
+
+  .demo-note code {
+    color: var(--sl-color-accent);
+    background: rgba(254, 207, 70, 0.1);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+  }
+</style>

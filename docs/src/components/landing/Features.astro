@@ -1,0 +1,147 @@
+---
+const features = [
+  {
+    icon: '🕌',
+    title: 'Data Resmi Kemenag',
+    description: 'Menggunakan tabel kalender resmi dari Kementerian Agama RI, bukan mengikuti otoritas Saudi.',
+    color: 'yellow',
+  },
+  {
+    icon: '⚡',
+    title: 'Tanpa Autentikasi',
+    description: 'Cukup panggil endpoint. Tidak perlu API key, tidak perlu registrasi.',
+    color: 'green',
+  },
+  {
+    icon: '📅',
+    title: 'Cakupan Luas',
+    description: 'Data tabel 2024–2026, perhitungan komputasi 1970–2031+. Di luar cakupan, tetap akurat.',
+    color: 'purple',
+  },
+  {
+    icon: '💻',
+    title: 'Open Source',
+    description: 'Kode terbuka di GitHub. Transparan, bisa diverifikasi, kontribusi selalu diterima.',
+    color: 'pink',
+  },
+  {
+    icon: '🌍',
+    title: 'Timezone-Aware',
+    description: 'Mendukung semua zona waktu IANA. Default Asia/Jakarta, bisa di-override.',
+    color: 'blue',
+  },
+  {
+    icon: '🔄',
+    title: 'Fallback Cerdas',
+    description: 'Di luar cakupan tabel, menghitung dengan kriteria Neo MABIMS (hilal ≥ 3°, elongasi ≥ 6.4°).',
+    color: 'orange',
+  },
+];
+---
+
+<section class="features-section">
+  <div class="features-header">
+    <h2>Fitur yang Anda Butuhkan</h2>
+    <p>Dirancang untuk developer Indonesia yang butuh data Hijriah akurat.</p>
+  </div>
+
+  <div class="features-grid">
+    {features.map((feature) => (
+      <article class={`feature-card feature-card--${feature.color}`}>
+        <div class="feature-icon">{feature.icon}</div>
+        <h3>{feature.title}</h3>
+        <p>{feature.description}</p>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style>
+  .features-section {
+    padding: clamp(3rem, 6vw, 6rem) 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .features-header {
+    text-align: center;
+    max-width: 36rem;
+    margin: 0 auto 4rem;
+  }
+
+  .features-header h2 {
+    font-size: clamp(1.75rem, 1rem + 3vw, 2.5rem);
+    font-weight: 700;
+    color: var(--sl-color-white);
+    margin: 0 0 1rem;
+  }
+
+  .features-header p {
+    font-size: clamp(1rem, 0.5rem + 1vw, 1.125rem);
+    color: var(--sl-color-gray-2);
+    margin: 0;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  @media (min-width: 40rem) {
+    .features-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .features-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+  }
+
+  .feature-card {
+    padding: 1.75rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .feature-card:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+    transform: translateY(-2px);
+  }
+
+  .feature-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .feature-card--yellow .feature-icon { background: rgba(254, 207, 70, 0.12); }
+  .feature-card--green .feature-icon { background: rgba(34, 197, 94, 0.12); }
+  .feature-card--purple .feature-icon { background: rgba(168, 85, 247, 0.12); }
+  .feature-card--pink .feature-icon { background: rgba(236, 72, 153, 0.12); }
+  .feature-card--blue .feature-icon { background: rgba(59, 130, 246, 0.12); }
+  .feature-card--orange .feature-icon { background: rgba(249, 115, 22, 0.12); }
+
+  .feature-card h3 {
+    font-size: var(--sl-text-h4);
+    font-weight: 600;
+    color: var(--sl-color-white);
+    margin: 0 0 0.75rem;
+  }
+
+  .feature-card p {
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+    line-height: 1.7;
+    margin: 0;
+  }
+</style>
