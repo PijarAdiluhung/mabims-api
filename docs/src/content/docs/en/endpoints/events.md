@@ -27,7 +27,7 @@ GET /api/v1/events?year={Y}&calendar={gregorian|hijri}
   "count": 5,
   "events": [
     { "event": "1_muharram",   "name": "Tahun Baru Islam",         "hijri": "1446-01-01", "gregorian": "2024-07-07", "source": "mabims" },
-    { "event": "maulid_nabi",  "name": "Maulid Nabi Muhammad SAW", "hijri": "1446-03-12", "gregorian": "2024-09-16", "source": "mabims" },
+    { "event": "maulid_nabi",  "name": "Maulid Nabi Muhammad Shallallahu Alaihi Wasallam", "hijri": "1446-03-12", "gregorian": "2024-09-16", "source": "mabims" },
     { "event": "awal_ramadan", "name": "Awal Ramadan",             "hijri": "1446-09-01", "gregorian": "2025-03-01", "source": "mabims" },
     { "event": "idul_fitri",   "name": "Idul Fitri",               "hijri": "1446-10-01", "gregorian": "2025-03-31", "source": "mabims" },
     { "event": "idul_adha",    "name": "Idul Adha",                "hijri": "1446-12-10", "gregorian": "2025-06-06", "source": "mabims" }

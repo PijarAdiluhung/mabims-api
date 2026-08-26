@@ -13,7 +13,12 @@ class EventDefinition:
 
 EVENT_DEFINITIONS: tuple[EventDefinition, ...] = (
     EventDefinition(slug="1_muharram", name="Tahun Baru Islam", month=1, day=1),
-    EventDefinition(slug="maulid_nabi", name="Maulid Nabi Muhammad SAW", month=3, day=12),
+    EventDefinition(
+        slug="maulid_nabi",
+        name="Maulid Nabi Muhammad Shallallahu Alaihi Wasallam",
+        month=3,
+        day=12,
+    ),
     EventDefinition(slug="awal_ramadan", name="Awal Ramadan", month=9, day=1),
     EventDefinition(slug="idul_fitri", name="Idul Fitri", month=10, day=1),
     EventDefinition(slug="idul_adha", name="Idul Adha", month=12, day=10),
