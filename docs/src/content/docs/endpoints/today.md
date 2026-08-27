@@ -3,7 +3,7 @@ title: GET /today
 description: Endpoint utama — tanggal Hijriah hari ini, memperhatikan zona waktu.
 ---
 
-Mengembalikan tanggal Hijriah untuk "sekarang" di zona waktu yang diminta. Ini adalah endpoint yang paling sering di-poll oleh aplikasi consumer, dan telah dioptimalkan untuk itu: respons membawa **TTL edge-cache dinamis** sehingga CDN melayani hampir semua traffic.
+Mengembalikan tanggal Hijriah untuk "sekarang" di zona waktu yang diminta. Ini adalah endpoint yang paling sering di-poll oleh aplikasi consumer, maka telah dioptimalkan. Respons memiliki **TTL edge-cache dinamis** sehingga CDN melayani hampir semua traffic.
 
 ```
 GET /api/v1/today?tz={timezone}

@@ -1,6 +1,6 @@
 ---
 title: Quickstart
-description: Buat permintaan konversi MABIMS pertama Anda dalam waktu kurang dari satu menit.
+description: Buat request pertama Anda dalam waktu kurang dari satu menit.
 ---
 
 Base URL:
@@ -44,14 +44,14 @@ curl "https://api.mabims.dev/api/v1/convert?date=1446-07-03&calendar=hijri"
 
 Setiap respons membawa field `source`:
 
-- `mabims` — otoritatif, dari sumber resmi Kemenag (2024-01-13 s/d 2026-12-31)
-- `mabims-computed` — dihitung dengan kriteria Neo MABIMS (setelah 2026-12-31, sampai 2053)
+- `mabims` — dari sumber resmi Kemenag 
+- `mabims-computed` — dihitung dengan kriteria Neo MABIMS
 
 Perlakukan `warnings` sebagai pemberitahuan kepada pengguna apabila ia mengandung payload (tidak kosong).
 
 ## Akses melalui browser
 
-API ini bersifat publik dan CORS-nya fleksibel — aplikasi client-side di domain mana pun dapat memanggilnya secara langsung.
+API ini bersifat publik dan CORS-nya fleksibel, aplikasi client-side di domain mana pun dapat memanggilnya secara langsung.
 Panggilan server-side juga tidak dibatasi. Lihat [Akses & Batas Rate](/access) untuk kebijakan lengkap dan detail perlindungan penyalahgunaan.
 
 ## Langkah selanjutnya

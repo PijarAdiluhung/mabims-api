@@ -3,10 +3,7 @@ title: GET /events
 description: Tanggal hari besar Islam (1 Muharram, Maulid, Awal Ramadan, Idul Fitri, Idul Adha) dari tabel MABIMS resmi.
 ---
 
-Mengembalikan tanggal **hari besar Islam** untuk satu tahun kalender — bukan hasil hitungan
-astronomis, melainkan langsung dari tabel kurasi MABIMS yang sama dengan `/convert`. Inilah
-yang membedakan API ini dari API kalender Umm al-Qura: tanggal yang cocok dengan pengumuman
-resmi pemerintah Indonesia, Malaysia dan Singapura.
+Mengembalikan tanggal **hari besar Islam** untuk satu tahun kalender, langsung dari kalender resmi Kemenag kriteria Neo MABIMS yang sama dengan `/convert`.
 
 ```
 GET /api/v1/events?year={Y}&calendar={gregorian|hijri}
@@ -38,7 +35,7 @@ GET /api/v1/events?year={Y}&calendar={gregorian|hijri}
 
 Item diurutkan berdasarkan tanggal Gregorian.
 
-## Acara yang tersedia
+## Events yang tersedia
 
 | `event` | Nama | Bulan Hijriah | Tanggal |
 |---|---|---|---|
@@ -50,9 +47,8 @@ Item diurutkan berdasarkan tanggal Gregorian.
 
 ## Catatan
 
-- Data hanya dari **tabel kurasi MABIMS** (`source` selalu `mabims`) — tidak ada peringkat
-  komputasi pada endpoint ini.
+- Data hanya dari **tabel resmi Kemenag MABIMS** (`source` selalu `mabims`), endpoint ini tidak menggunakan komputasi.
 - Di luar cakupan tabel, respons tetap `200` dengan `"count": 0` dan daftar kosong. Cek
   [/meta](/endpoints/meta) untuk rentang cakupan saat ini.
-- Seperti `/convert`, respons di-cache di CDN secara immutable — tanggal hari besar tidak
+- Seperti `/convert`, respons di-cache di CDN secara immutable, sehingga tanggal hari besar tidak
   pernah berubah setelah dipublikasikan.

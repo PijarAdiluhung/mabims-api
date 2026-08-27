@@ -3,10 +3,8 @@ title: GET /hilal
 description: Visibilitas hilal — data kriteria dan grafik langit untuk malam penentuan awal bulan Hijriah.
 ---
 
-Dua endpoint untuk **visibilitas hilal**: malam penentuan selalu **malam tanggal 29**, malam orang-orang keluar melihat hilal. Bila hilal tidak terlihat, bulan
-lengkap 30 hari dan awal bulan bergeser sehari. Batas bulan diambil dari **tabel MABIMS
-otoritatif**, dan data astronomis dihitung dengan **perhitungan geosentris
-Sabang**, sebagai lokasi paling barat di Indonesia.
+Ada dua endpoint untuk **visibilitas hilal**, dan malam penentuan selalu **malam tanggal 29**, malam rukyatul hilal. Bila hilal tidak terlihat, bulan
+lengkap 30 hari dan awal bulan bergeser sehari. Batas bulan diambil dari **penanggalan Kemenag kriteria MABIMS**, dan data astronomis dihitung dengan **perhitungan geosentris di Sabang**, sebagai lokasi paling barat di Indonesia.
 
 ```
 GET /api/v1/hilal/info?month={bulan}&year={tahun}   → JSON
@@ -70,8 +68,7 @@ Sabang karena itu fenomena pengamat.
 
 PNG vertikal 720×1280 berisi: langit senja dengan bulan sabit (arah cahaya menghadap
 matahari), pil verdict (`TERLIHAT` / `TIDAK TERLIHAT` / `DI BAWAH HORIZON`), dan tabel
-kriteria `PARAMETER · MIN. MABIMS · STATUS`. Saat kriteria gagal, bulan sengaja tidak
-digambar — langit menampilkan kenyataan. Output deterministik per parameter.
+kriteria `PARAMETER · MIN. MABIMS · STATUS`. Output deterministik per parameter.
 
 ![Contoh grafik visibilitas hilal — 29 Sya'ban 1447 H, Sabang](/viz.png)
 

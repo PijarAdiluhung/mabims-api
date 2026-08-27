@@ -29,19 +29,19 @@ GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
 }
 ```
 
-Setiap item membawa `source` masing-masing, karena rentang yang melewati batasan data MABIMS dapat mencampur data otoritatif dan fallback.
+Setiap item membawa `source` masing-masing, karena rentang yang melewati batasan data MABIMS dapat mencampur data resmi dan fallback.
 
 ## GET /month
 
-Wrapper praktis yang menyelesaikan grid bulan penuh.
+Wrapper praktis untuk mendapatkan 1 bulan penuh.
 
 ```
 GET /api/v1/month?year={Y}&month={M}&calendar={gregorian|hijri}
 ```
 
-Untuk `calendar=hijri`, respons berisi setiap tanggal Gregorian yang menjadi acuan dari bulan Hijriah tersebut — tepat seperti yang dibutuhkan oleh tampilan bulan Hijriah (29–30 item). Bentuk item sama dengan `/range`.
+Untuk `calendar=hijri`, respons berisi setiap tanggal Gregorian yang menjadi acuan dari bulan Hijriah tersebut (29–30 item). Bentuk item sama dengan `/range`.
 
 ## Kesalahan
 
 `invalid_step` · `range_too_large` (>400 hari) · `out_of_coverage` · `invalid_month`
-· `invalid_year` — semua mengembalikan `400` dengan amplop kesalahan standar.
+· `invalid_year` — semua mengembalikan kode `400` dengan notifikasi kesalahan yang standar.

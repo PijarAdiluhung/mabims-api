@@ -1,0 +1,50 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+
+const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'https://api.mabims.dev';
+
+let first = '2024-01-13';
+let last = '2026-12-31';
+try {
+  const res = await fetch(`${apiBase}/api/v1/meta`);
+  if (res.ok) {
+    const meta = await res.json();
+    first = meta.coverage.first;
+    last = meta.coverage.last;
+  }
+} catch {}
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'Cakupan Data',
+    description: 'Seberapa jauh cakupan data MABIMS, dan apa yang terjadi di luar cakupan tersebut.',
+  }}
+>
+  <h2>Cakupan resmi</h2>
+  <p>Tabel pencarian MABIMS yang dikelola saat ini mencakup:</p>
+  <pre><code>{first} → {last}</code></pre>
+  <p>Awal bulan MABIMS ditetapkan berdasarkan kriteria pengamatan bulan lokal, dan setiap tahun (biasanya rilis Oktober) Kemenag mengeluarkan kalender untuk 1 tahun ke depan. Cakupan ini <strong>tidak</strong> diekstrapolasi secara astronomis.</p>
+
+  <h2>Di luar cakupan</h2>
+  <p>Permintaan setelah akhir tabel dijawab dengan perhitungan maju (forward-only):</p>
+  <ol>
+    <li><strong><code>mabims-computed</code></strong> — kriteria Neo MABIMS dihitung langsung di Sabang (tinggi hilal ≥ 3° dan elongasi ≥ 6,4° saat matahari terbenam pada hari ke-29). Aturan sama dengan tabel kurasi, sehingga tetap <em>on-method</em>. Bulan dengan margin keputusan di bawah 0,25° mendapat peringatan borderline.</li>
+    <li><strong><code>fallback:aladhan-ummalqura</code></strong> — Umm al-Qura via Aladhan sebagai upaya terakhir, diambil lazy per bulan dan di-cache di origin.</li>
+  </ol>
+
+  <h2>Batas keras</h2>
+  <table>
+    <thead>
+      <tr><th>Arah</th><th>Batas</th><th>Keterangan</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Mundur</td><td>{first}</td><td>Tidak ada konversi sebelum tanggal ini</td></tr>
+      <tr><td>Maju</td><td>2053-08-01</td><td>Tidak ada konversi setelah tanggal ini</td></tr>
+    </tbody>
+  </table>
+  <p>Tanggal di luar batas ini akan ditolak dengan error <code>date_out_of_supported_range</code>.</p>
+
+  <h2>Monitoring</h2>
+  <p><a href="/endpoints/meta/"><code>GET /meta</code></a> menampilkan <code>computed_active</code>, <code>computed_months</code>, <code>fallback_active</code>, dan <code>fallback_months</code>. Panel <a href="/playground/">status langsung</a> di halaman Playground membacanya secara real time.</p>
+</StarlightPage>

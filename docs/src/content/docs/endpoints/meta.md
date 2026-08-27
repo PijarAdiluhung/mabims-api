@@ -3,7 +3,7 @@ title: GET /meta
 description: Cakupan tabel, versi data, dan status fallback.
 ---
 
-Kebenaran tentang dataset yang machine-readable.
+Info tentang dataset yang machine-readable.
 
 ```
 GET /api/v1/meta
@@ -25,11 +25,11 @@ GET /api/v1/meta
 
 | Field | Deskripsi |
 |---|---|
-| `data_version` | Hash pendek dari tabel MABIMS — berubah ketika tabel diperbarui |
+| `data_version` | Hash pendek dari tabel MABIMS yang berubah ketika tabel diperbarui |
 | `coverage` | Rentang Gregorian yang dicakup oleh tabel otoritatif |
 | `fallback_active` | `true` setelah ada permintaan yang dilayani dari fallback Umm al-Qura (lapis terakhir) |
 | `fallback_months` | Bulan-bulan mana yang diambil ke layer fallback Umm al-Qura |
-| `computed_active` | `true` setelah ada permintaan yang dilayani dari kalendar terhitung Neo MABIMS |
+| `computed_active` | `true` setelah ada permintaan yang dilayani dari kalendar hitungan Neo MABIMS |
 | `computed_months` | Bulan-bulan mana yang sudah dihitung via kriteria Neo MABIMS |
 | `method` | Metode perhitungan di luar tabel (`neo-mabims-sabang`) |
 
