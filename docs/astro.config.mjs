@@ -84,6 +84,7 @@ export default defineConfig({
           ],
         },
         { label: 'Data Coverage', link: '/data-coverage', translations: { en: 'Data Coverage' } },
+        { label: 'FAQ', link: '/faq', translations: { en: 'FAQ' } },
       ],
     }),
   ],
