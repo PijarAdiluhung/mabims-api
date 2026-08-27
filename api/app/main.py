@@ -461,7 +461,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                 hijri=h_iso,
                 source=service.lookup(h_iso, "hijri").source,
             )
-            for definition, g_iso, h_iso in find_events(service.h2g, year, cal)
+            for definition, g_iso, h_iso in find_events(service, year, cal)
         ]
         aggregate_source, warnings = _aggregate(items)
         payload = EventsResponse(

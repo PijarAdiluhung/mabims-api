@@ -1,9 +1,13 @@
 ---
 title: GET /events
-description: Tanggal hari besar Islam (1 Muharram, Maulid, Awal Ramadan, Idul Fitri, Idul Adha) dari tabel MABIMS resmi.
+description: Tanggal hari besar Islam (1 Muharram, Maulid, Awal Ramadan, Idul Fitri, Idul Adha) dari tabel MABIMS, diperluas dengan data komputasi di luar cakupan tabel.
 ---
 
-Mengembalikan tanggal **hari besar Islam** untuk satu tahun kalender, langsung dari kalender resmi Kemenag kriteria Neo MABIMS yang sama dengan `/convert`.
+Mengembalikan tanggal **hari besar Islam** untuk satu tahun kalender. Di dalam cakupan
+tabel MABIMS, tanggal langsung dari tabel resmi Kemenag — tabel yang sama dengan
+`/convert`. Di luar cakupan tabel, tanggal dikomputasi secara langsung menggunakan kriteria
+Neo MABIMS (ketinggian hilal ≥ 3° dan elonagasi ≥ 6.4° saat matahari terbenam di Sabang),
+sehingga Anda bisa mendapatkan tanggal hari besar bertahun-tahun ke depan.
 
 ```
 GET /api/v1/events?year={Y}&calendar={gregorian|hijri}
@@ -47,8 +51,11 @@ Item diurutkan berdasarkan tanggal Gregorian.
 
 ## Catatan
 
-- Data hanya dari **tabel resmi Kemenag MABIMS** (`source` selalu `mabims`), endpoint ini tidak menggunakan komputasi.
-- Di luar cakupan tabel, respons tetap `200` dengan `"count": 0` dan daftar kosong. Cek
-  [/meta](/endpoints/meta) untuk rentang cakupan saat ini.
-- Seperti `/convert`, respons di-cache di CDN secara immutable, sehingga tanggal hari besar tidak
-  pernah berubah setelah dipublikasikan.
+- Di dalam cakupan tabel, `source` adalah `mabims`. Di luar cakupan, `source` adalah
+  `mabims-computed` (kriteria Neo MABIMS) atau `fallback:aladhan-ummalqura` (cadangan
+  terakhir).
+- Peringatan disertakan saat data komputasi atau fallback digunakan — periksa array
+  `warnings[]` di respons.
+- Untuk `calendar=gregorian`, endpoint memperkirakan tahun hijriah yang tumpang tindih
+  dengan tahun gregorian yang diminta dan menyelesaikan setiap event di tahun-tahun tersebut.
+- Seperti `/convert`, respons di dalam cakupan tabel di-cache di CDN secara immutable.

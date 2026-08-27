@@ -24,20 +24,40 @@ EVENT_DEFINITIONS: tuple[EventDefinition, ...] = (
     EventDefinition(slug="idul_adha", name="Idul Adha", month=12, day=10),
 )
 
-_BY_MONTH_DAY: dict[tuple[int, int], EventDefinition] = {
-    (definition.month, definition.day): definition for definition in EVENT_DEFINITIONS
-}
-
-
-def find_events(h2g: dict[str, str], year: int, calendar: str) -> list[tuple[EventDefinition, str, str]]:
-    prefix = f"{year:04d}-"
+def find_events(service, year: int, calendar: str) -> list[tuple[EventDefinition, str, str]]:
     found: list[tuple[EventDefinition, str, str]] = []
-    for h_iso, g_iso in h2g.items():
-        probe = h_iso if calendar == "hijri" else g_iso
-        if not probe.startswith(prefix):
+    months_needed: set[tuple[int, int]] = set()
+
+    if calendar == "hijri":
+        for definition in EVENT_DEFINITIONS:
+            months_needed.add((year, definition.month))
+    else:
+        for hijri_year in range(year - 579, year - 576):
+            for definition in EVENT_DEFINITIONS:
+                months_needed.add((hijri_year, definition.month))
+
+    for hy, hm in months_needed:
+        probe = f"{hy:04d}-{hm:02d}-01"
+        if service.covers(probe, "hijri"):
             continue
-        definition = _BY_MONTH_DAY.get((int(h_iso[5:7]), int(h_iso[8:10])))
-        if definition is not None:
-            found.append((definition, g_iso, h_iso))
+        try:
+            service.ensure_hijri_month(hy, hm)
+        except Exception:
+            continue
+
+    if calendar == "hijri":
+        for definition in EVENT_DEFINITIONS:
+            h_iso = f"{year:04d}-{definition.month:02d}-{definition.day:02d}"
+            result = service.lookup(h_iso, "hijri")
+            if result.value is not None:
+                found.append((definition, result.value, h_iso))
+    else:
+        for hijri_year in range(year - 579, year - 576):
+            for definition in EVENT_DEFINITIONS:
+                h_iso = f"{hijri_year:04d}-{definition.month:02d}-{definition.day:02d}"
+                result = service.lookup(h_iso, "hijri")
+                if result.value is not None and result.value.startswith(f"{year:04d}-"):
+                    found.append((definition, result.value, h_iso))
+
     found.sort(key=lambda row: row[1])
     return found

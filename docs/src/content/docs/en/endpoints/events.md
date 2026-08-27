@@ -1,12 +1,13 @@
 ---
 title: GET /events
-description: Islamic observance dates (1 Muharram, Maulid, Ramadan start, Eid al-Fitr, Eid al-Adha) straight from the official MABIMS table.
+description: Islamic observance dates (1 Muharram, Maulid, Ramadan start, Eid al-Fitr, Eid al-Fadha) from the MABIMS table, extended with computed dates beyond table coverage.
 ---
 
-Returns the **Islamic observance dates** for one calendar year — not astronomical guesses,
-but the same curated MABIMS table that powers `/convert`. This is what sets this API apart
-from Umm al-Qura calendars: dates that match the official announcements used across
-Indonesia, Malaysia and Singapore.
+Returns the **Islamic observance dates** for one calendar year. Within the curated MABIMS
+table, dates come straight from the official Kemenag table — the same one that powers
+`/convert`. Beyond table coverage, dates are computed live using the Neo MABIMS criteria
+(hilal altitude ≥ 3° and elongation ≥ 6.4° at Sabang sunset), giving you observance dates
+years into the future.
 
 ```
 GET /api/v1/events?year={Y}&calendar={gregorian|hijri}
@@ -50,9 +51,10 @@ Items are sorted by Gregorian date.
 
 ## Notes
 
-- Data comes **only from the curated MABIMS table** (`source` is always `mabims`) — no
-  computed-tier warnings on this endpoint.
-- Outside table coverage the response is still `200` with `"count": 0` and an empty list.
-  Check [/meta](/endpoints/meta) for the current coverage span.
-- Like `/convert`, responses are cached immutably at the CDN — observance dates never
-  change once published.
+- Within table coverage, `source` is `mabims`. Beyond it, `source` is `mabims-computed`
+  (Neo MABIMS criteria) or `fallback:aladhan-ummalqura` (emergency last resort).
+- Warnings are included when computed or fallback data is used — check the `warnings[]`
+  array in the response.
+- For `calendar=gregorian`, the endpoint estimates which hijri years overlap the requested
+  gregorian year and resolves each event across those years.
+- Like `/convert`, responses within table coverage are cached immutably at the CDN.
