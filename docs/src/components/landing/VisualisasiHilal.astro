@@ -35,6 +35,9 @@
   .viz-section {
     display: grid;
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "content"
+      "preview";
     gap: 3rem;
     padding: clamp(3rem, 6vw, 6rem) 0;
     align-items: center;
@@ -44,11 +47,13 @@
   @media (min-width: 64rem) {
     .viz-section {
       grid-template-columns: 280px 1fr;
+      grid-template-areas: "preview content";
       gap: 4rem;
     }
   }
 
   .viz-content {
+    grid-area: content;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
@@ -110,6 +115,7 @@
   }
 
   .viz-preview {
+    grid-area: preview;
     display: flex;
     justify-content: center;
   }
