@@ -228,12 +228,10 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                 )
             response = await call_next(request)
         if origin:
-            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Origin"] = "*"
             response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
             response.headers["Access-Control-Allow-Headers"] = "Content-Type"
             response.headers["Access-Control-Max-Age"] = "600"
-            existing_vary = response.headers.get("Vary")
-            response.headers["Vary"] = f"{existing_vary}, Origin" if existing_vary else "Origin"
         return response
 
     def _resolve_pair(date_iso: str, calendar: str) -> tuple[str, str]:
