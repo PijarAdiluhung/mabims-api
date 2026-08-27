@@ -16,7 +16,7 @@ dates live with the Neo MABIMS criteria.
 | `GET /api/v1/month?year=&month=&calendar=` | Calendar-grid sugar over `/range` |
 | `GET /api/v1/events?year=&calendar=` | Curated Islamic observances: 1 Muharram, Maulid, Ramadan start, Eid al-Fitr/Adha |
 | `GET /api/v1/hilal/info?month=&year=` | Hilal visibility data for the evening deciding a month start (geocentric hisab, Sabang) |
-| `GET /api/v1/hilal/viz?month=&year=&location=` | Hilal sky chart PNG (720×1280) with MABIMS criteria table |
+| `GET /api/v1/hilal/viz?month=&year=` | Hilal sky chart PNG (720×1280) with MABIMS criteria table |
 | `GET /api/v1/meta` | Coverage, data version, fallback status |
 | `GET /healthz` | Liveness probe |
 
@@ -40,7 +40,7 @@ The docs at [mabims.dev](https://mabims.dev) are built with Astro + Starlight:
 - **Bilingual** — Indonesian (default) and English, toggled from the navbar
 - **Splash landing page** — hero with terminal demo, feature cards, and quick-start links
 - **Live playground** — try API calls directly from the browser
-- **Sections** — Quickstart, Access & Rate Limits, API Reference (convert / today / range / month / events / meta), Playground, Data Coverage
+- **Sections** — Quickstart, Access & Rate Limits, API Reference (convert / today / range / month / events / hilal / meta), Playground (converter + hilal), Data Coverage
 
 ## Repository layout
 
@@ -82,14 +82,16 @@ Follow [DEPLOY.md](DEPLOY.md): Dokploy compose service, two domains, Bunny pull 
 
 ## Data & coverage
 
-`api/data/calendar_data.json` is the authoritative MABIMS table (currently **2024 → 2026**).
-`api/data/computed_table.json` extends fast lookups to **1970 → current year + 5** using the same
-Neo MABIMS criteria — regenerate it yearly with `api/scripts/build_computed_table.py`, which
-verifies the curated-table overlap byte-for-byte before writing. Automation lives in
-`.github/workflows/regen-computed-table.yml`: every January it runs the build and opens a PR
-with the diff.
-Dates outside that span are still computed lazily on request. Both computed tiers flag
-borderline months (margin < 0.25°) via warnings.
+`api/data/calendar_data.json` is the authoritative MABIMS table (currently **Hijri 1445–1448**,
+gregorian 2024 → 2026). Beyond it, `api/data/computed_seed.json` carries the same Neo MABIMS
+criteria forward (**through Hijri 1473**, gregorian ~mid-2050), and dates past the seed are
+still computed lazily on request. Both computed tiers flag borderline months (margin < 0.25°)
+via warnings.
+
+Regenerate the seed yearly with `api/scripts/generate_seed.py` (verifies curated-table overlap
+before writing); `.github/workflows/regen-computed-table.yml` automates it every January and
+opens a PR with the diff.
+
 A Umm al-Qura tier remains wired as an emergency last resort; `/meta` exposes `method`,
 `computed_active`, `computed_months`, `fallback_active` and `fallback_months`.
 

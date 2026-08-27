@@ -69,7 +69,7 @@ def test_hilal_info_ok(hilal_client):
     assert evening["moonset"] == "18:51"
     assert evening["visible"] is True
     assert body["source"] == "mabims"
-    assert response.headers["Cache-Control"].startswith("private")
+    assert response.headers["Cache-Control"].startswith("public")
 
 
 def test_hilal_info_invisible(hilal_client, monkeypatch):
@@ -111,7 +111,7 @@ def test_hilal_viz_png(hilal_client):
     response = hilal_client.get("/api/v1/hilal/viz?month=9&year=1447")
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
-    assert response.headers["Cache-Control"].startswith("private")
+    assert response.headers["Cache-Control"].startswith("public")
     assert response.content[:8] == b"\x89PNG\r\n\x1a\n"
     assert len(response.content) > 20_000
 

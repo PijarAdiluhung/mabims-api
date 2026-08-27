@@ -8,14 +8,14 @@ from __future__ import annotations
 import json
 import sys
 import tempfile
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
 
 API_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(API_DIR))
 
-from app.mabims_astro import ALT_MIN_DEG, ELONG_MIN_DEG
-from app.mabims_computed import MabimsCalcProvider
+from app.mabims_astro import ALT_MIN_DEG, ELONG_MIN_DEG  # noqa: E402
+from app.mabims_computed import MabimsCalcProvider  # noqa: E402
 
 DATA_PATH = API_DIR / "data" / "calendar_data.json"
 OUTPUT_PATH = API_DIR / "data" / "computed_seed.json"

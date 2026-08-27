@@ -95,12 +95,14 @@ class MabimsCalcProvider:
             raise FallbackError(f"invalid gregorian month {year}-{month:02d}") from exc
         if month_start < HARD_CAP_START:
             raise FallbackError(
-                f"date {month_start.isoformat()} is before the curated table start ({HARD_CAP_START.isoformat()})"
+                f"date {month_start.isoformat()} is before the curated table start "
+                f"({HARD_CAP_START.isoformat()})"
             )
         month_end = self._gregorian_month_end(year, month)
         if month_end > HARD_CAP_END:
             raise FallbackError(
-                f"date {month_end.isoformat()} is beyond the computed table limit ({HARD_CAP_END.isoformat()})"
+                f"date {month_end.isoformat()} is beyond the computed table limit "
+                f"({HARD_CAP_END.isoformat()})"
             )
         with self._lock:
             if self._last_end is None or self._last_end < month_end:

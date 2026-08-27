@@ -28,6 +28,10 @@
 - [ ] Playground: shareable permalinks (`?date=…&calendar=…`), copy-as-curl button
 - [x] Response examples per endpoint auto-checked in CI against the live schema — `api/tests/test_contract.py` parses every real response into its Pydantic model and asserts documented paths exist in `/openapi.json`
 - [ ] Docs-site example JSON blocks: verify the payloads printed in `docs/src/content/docs/endpoints/*.md` still match live responses (contract tests cover schema shapes, not the markdown snippets)
+## Hilal endpoints
+- [x] `/hilal/info` + `/hilal/viz` shipped, Sabang-only geocentric hisab (design tokens in `app/hilal/chart.py`, spec in git history `api/todo/DESIGN.md`)
+- [x] No API keys (dropped M2) — outputs are deterministic per `(month, year)`; CDN caches them via `Cache-Control: public, max-age=86400`, purge-on-push keeps edge fresh
+- [ ] viz precompute 1446–1466 (252 PNGs, build script + immutable cache) only if origin render traffic ever matters
 
 ## Cutover (M5)
 - [x] Repoint malangmengaji.com integrations to new hostnames

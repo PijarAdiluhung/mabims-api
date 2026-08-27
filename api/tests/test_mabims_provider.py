@@ -14,7 +14,6 @@ from app.mabims_computed import (
     COMPUTED_SOURCE,
     MabimsCalcProvider,
     next_hijri_month,
-    prev_hijri_month,
 )
 from app.main import create_app
 
@@ -23,6 +22,10 @@ DATA_PATH = API_DIR / "data" / "calendar_data.json"
 
 ANCHOR_HIJRI = (1445, 7)
 ANCHOR_GREGORIAN = date(2024, 1, 13)
+
+
+def prev_hijri_month(year: int, month: int) -> tuple[int, int]:
+    return (year - 1, 12) if month == 1 else (year, month - 1)
 
 
 @pytest.fixture(scope="module")
@@ -51,12 +54,9 @@ class TestMabimsCalcProvider:
         assert pairs["1447-09-01"] == "2026-02-19"
         assert len(pairs) == 30
 
-    def test_backward_extension_from_anchor(self, provider):
-        pairs = provider.fetch_by_hijri(1445, 6)
-        assert "1445-06-01" in pairs
-        values = sorted(pairs.values())
-        assert values[-1] == "2024-01-12"
-        assert len(pairs) in (29, 30)
+    def test_months_before_anchor_are_not_computed(self, provider):
+        # Pre-anchor months come from the curated table; the provider only walks forward.
+        assert provider.fetch_by_hijri(1445, 6) == {}
 
     def test_roundtrip_g2h_h2g_consistency(self, provider):
         g_pairs = provider.fetch_by_gregorian(2027, 1)
