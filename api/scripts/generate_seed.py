@@ -36,6 +36,15 @@ def main() -> int:
     provider.fetch_by_gregorian(TARGET_END.year, TARGET_END.month)
 
     g2h, h2g = provider.snapshot()
+
+    curated = raw["hijri_to_gregorian"]
+    mismatches = [(h, g, curated[h]) for h, g in h2g.items() if h in curated and curated[h] != g]
+    if mismatches:
+        for h, computed_g, official_g in mismatches[:10]:
+            print(f"MISMATCH {h}: computed={computed_g} official={official_g}")
+        print(f"total mismatches vs curated table: {len(mismatches)}")
+        return 1
+    print(f"curated overlap verified: {len(curated)} months agree byte-for-byte")
     borderline = provider.borderline_months()
 
     first_g = min(g2h)
