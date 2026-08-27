@@ -1,10 +1,16 @@
 import { defineCollection } from 'astro:content';
-import { docsLoader } from '@astrojs/starlight/loaders';
-import { docsSchema } from '@astrojs/starlight/schema';
+import { docsLoader, i18nLoader } from '@astrojs/starlight/loaders';
+import { docsSchema, i18nSchema } from '@astrojs/starlight/schema';
+import { blogSchema } from 'starlight-blog/schema';
 
 const docs = defineCollection({
   loader: docsLoader(),
-  schema: docsSchema(),
+  schema: docsSchema({ extend: (context) => blogSchema(context) }),
 });
 
-export const collections = { docs };
+const i18n = defineCollection({
+  loader: i18nLoader(),
+  schema: i18nSchema(),
+});
+
+export const collections = { docs, i18n };

@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import starlightBlog from 'starlight-blog';
 
 export default defineConfig({
   site: 'https://mabims.dev',
@@ -59,6 +60,20 @@ export default defineConfig({
           tag: 'meta',
           attrs: { name: 'theme-color', content: '#23262f' },
         },
+      ],
+      plugins: [
+        starlightBlog({
+          title: 'Blog',
+          navigation: 'none',
+          recentPostCount: 5,
+          authors: {
+            pijar: {
+              name: 'Pijar Adiluhung',
+              title: 'Developer',
+              picture: '/favicons/android-chrome-512x512.png',
+            },
+          },
+        }),
       ],
       sidebar: [
         { label: 'Quickstart', link: '/quickstart', translations: { en: 'Quickstart' } },

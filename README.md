@@ -3,7 +3,7 @@
 Gregorian ⇄ Hijri date conversion, Islamic events, and hilal visibility data, powered by the
 official **MABIMS** moon-sighting tables from **Religious Ministry (Kemenag) of Indonesia**. Serves curated lookup data, and beyond table coverage it computes dates live with the Neo MABIMS criteria.
 
-**Full docs, playground, and API reference → [mabims.dev](https://mabims.dev)**
+**Full docs, playground, API reference, FAQ, and blog → [mabims.dev](https://mabims.dev)**
 
 ## Quick start
 
@@ -175,7 +175,7 @@ The full OpenAPI 3.1 spec is available at `https://api.mabims.dev/openapi.json`.
 | Layer | Tech |
 |---|---|
 | API | [FastAPI](https://fastapi.tiangolo.com/) + [Pydantic v2](https://docs.pydantic.dev/), [slowapi](https://github.com/laurentS/slowapi) rate limit |
-| Docs | [Astro](https://astro.build/) + [Starlight](https://starlight.astro.build/) with live playground |
+| Docs | [Astro](https://astro.build/) + [Starlight](https://starlight.astro.build/) with live playground, blog, and FAQ |
 | Data | Precomputed MABIMS tables (`api/data/`) |
 | Hosting | Docker Compose on VPS via Dokploy, Bunny CDN in front |
 | CI | GitHub Actions — pytest, ruff, mypy, table-vs-criteria validation, yearly computed-table regen PR |
@@ -187,6 +187,8 @@ The docs at [mabims.dev](https://mabims.dev) include:
 - **Bilingual** — Indonesian (default) and English
 - **Live playground** — try API calls directly from the browser
 - **API Reference** — every endpoint with parameters, response shapes, and error codes
+- **FAQ** — common questions about MABIMS, auth, timezone, and integration
+- **Blog** — tutorials, integration guides, and the story behind the API
 - **Data Coverage** — table dates, computed range, and fallback behavior
 
 ## Repository layout

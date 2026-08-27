@@ -1,0 +1,22 @@
+{
+  "starlightBlog.authors.count_one": "{{count}} artikel oleh {{author}}",
+  "starlightBlog.authors.count_other": "{{count}} artikel oleh {{author}}",
+  "starlightBlog.metrics.readingTime.minutes": " - {{count}} min baca",
+  "starlightBlog.metrics.words_one": " - {{count}} kata",
+  "starlightBlog.metrics.words_other": " - {{count}} kata",
+  "starlightBlog.pagination.prev": "Artikel baru",
+  "starlightBlog.pagination.next": "Artikel lama",
+  "starlightBlog.post.date": "{{date, datetime(dateStyle: medium)}}",
+  "starlightBlog.post.lastUpdate": " - Terakhir diperbarui: <time datetime=\"{{isoDate}}\">{{date, datetime(dateStyle: medium)}}</time>",
+  "starlightBlog.post.draft": "Draf",
+  "starlightBlog.post.featured": "Unggulan",
+  "starlightBlog.post.tags": "Tag:",
+  "starlightBlog.sidebar.all": "Semua artikel",
+  "starlightBlog.sidebar.featured": "Artikel unggulan",
+  "starlightBlog.sidebar.recent": "Artikel terbaru",
+  "starlightBlog.sidebar.tags": "Tag",
+  "starlightBlog.sidebar.authors": "Penulis",
+  "starlightBlog.sidebar.rss": "RSS",
+  "starlightBlog.tags.count_one": "{{count}} artikel dengan tag \"{{tag}}\"",
+  "starlightBlog.tags.count_other": "{{count}} artikel dengan tag \"{{tag}}\""
+}

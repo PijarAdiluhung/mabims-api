@@ -84,3 +84,17 @@ starlight-theme-select {
 .content details > :not(summary) {
   padding: 0 1.5rem 1.5rem;
 }
+
+/* Blog cover image — make thinner */
+.sl-blog-cover {
+  max-height: 280px;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.sl-blog-cover img {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  object-position: center;
+}
