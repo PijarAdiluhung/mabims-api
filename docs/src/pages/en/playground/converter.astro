@@ -15,7 +15,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'http://localhost:8000';
   <form id="conv-form" class="pg-form">
     <label>
       Date
-      <input type="date" id="date" required />
+      <input type="text" id="date" readonly placeholder="YYYY-MM-DD" required />
     </label>
     <label>
       Calendar
@@ -30,21 +30,44 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'http://localhost:8000';
   <pre class="pg-result" id="result" hidden></pre>
 
   <script>
-    import flatpickr from 'flatpickr';
-    import 'flatpickr/dist/flatpickr.min.css';
+    import { Calendar } from 'vanilla-calendar-pro';
+    import 'vanilla-calendar-pro/styles/index.css';
+
+    let cleanup: (() => void) | null = null;
 
     function initPicker() {
       const el = document.querySelector<HTMLInputElement>('#date');
-      if (el && !el.dataset.flatpickr) {
-        flatpickr(el, {
-          dateFormat: 'Y-m-d',
-          defaultDate: 'today',
-          minDate: '2024-01-01',
-          maxDate: '2052-12-31',
-          disableMobile: true,
-        });
-      }
+      if (!el) return;
+
+      cleanup?.();
+      cleanup = null;
+
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      el.value = today;
+
+      const calendar = new Calendar(el, {
+        inputMode: true,
+        positionToInput: 'bottom',
+        openOnFocus: true,
+        selectionDatesMode: 'single',
+        selectedTheme: 'dark',
+        dateMin: '2024-01-01',
+        dateMax: '2052-12-31',
+        selectedDates: [today],
+        onChangeToInput(self) {
+          const [date] = self.context.selectedDates;
+          if (date) {
+            el.value = date;
+            calendar.hide();
+          }
+        },
+      });
+
+      calendar.init();
+      cleanup = () => calendar.destroy();
     }
+
     initPicker();
     document.addEventListener('astro:page-load', initPicker);
   </script>
@@ -130,6 +153,14 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'http://localhost:8000';
       background: var(--sl-color-bg);
       color: var(--sl-color-text);
     }
+    .pg-form input#date {
+      cursor: pointer;
+      min-width: 9.5rem;
+    }
+    .pg-form input#date:focus {
+      outline: none;
+      border-color: var(--sl-color-accent);
+    }
     .pg-btn {
       padding: 0.5rem 1.25rem;
       border-radius: 0.375rem;
@@ -147,6 +178,46 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'http://localhost:8000';
     }
     .pg-result.pg-fallback {
       outline: 2px solid var(--sl-color-orange-high);
+    }
+  </style>
+
+  <style is:global>
+    /* Calendar is appended to document.body in input mode */
+    [data-vc='calendar'][data-vc-input] {
+      --vc-bg: #1a1c24;
+      --vc-color: #c4c4c4;
+      --vc-focus-outline-color: #fecf46;
+      --vc-header-color: #ffffff;
+      --vc-title-color: #ffffff;
+      --vc-title-color-hover: #fecf46;
+      --vc-months-years-bg: transparent;
+      --vc-months-years-color: #c4c4c4;
+      --vc-months-years-bg-hover: #262933;
+      --vc-months-years-bg-selected: #fecf46;
+      --vc-months-years-color-selected: #17181c;
+      --vc-week-day-color: #888888;
+      --vc-week-day-off-color: #c98080;
+      --vc-date-bg: transparent;
+      --vc-date-color: #b8bcc8;
+      --vc-date-color-hover: #ffffff;
+      --vc-date-bg-hover: #262933;
+      --vc-date-hover-bg: #262933;
+      --vc-date-outside-color: #55575f;
+      --vc-date-disabled-color: #4a4d57;
+      --vc-date-today-bg: #262933;
+      --vc-date-today-color: #fecf46;
+      --vc-date-selected-bg: #fecf46;
+      --vc-date-selected-color: #17181c;
+      --vc-date-selected-outside-bg: #262933;
+      --vc-date-selected-outside-color: #fecf46;
+      --vc-date-weekend-color: #c98080;
+      --vc-date-weekend-bg-hover: #262933;
+      --vc-date-weekend-hover-bg: #262933;
+      --vc-date-weekend-outside-bg: transparent;
+      --vc-date-weekend-outside-color: #8a6f6f;
+      z-index: 50;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.55);
     }
   </style>
 </StarlightPage>
