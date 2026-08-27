@@ -59,7 +59,7 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: 3rem;
-    padding: 1rem 0;
+    padding: 1rem 0 5rem;
   }
 
   /* ---- Tier 3: background depth ---- */
@@ -100,7 +100,7 @@
     .hero-section {
       grid-template-columns: 1fr 1fr;
       gap: 4rem;
-      padding: clamp(2rem, 10vmin, 8rem) 0;
+      padding: clamp(4rem, 12vmin, 10rem) 0;
       min-height: clamp(600px, 80svh, 900px);
     }
   }
@@ -384,6 +384,7 @@
   @media (max-width: 63.9375rem) {
     .hero-section {
       padding-top: clamp(2rem, 8vmin, 4rem);
+      padding-bottom: clamp(3.5rem, 8vmin, 6rem);
     }
 
     .hero-terminal {
