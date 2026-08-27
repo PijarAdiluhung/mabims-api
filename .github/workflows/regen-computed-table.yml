@@ -1,9 +1,6 @@
-name: Regenerate computed table
+name: Regenerate computed seed
 
 on:
-  schedule:
-    # Every year on Jan 15 at 02:00 UTC (cron is best-effort; can be delayed)
-    - cron: "0 2 15 1 *"
   workflow_dispatch:
 
 permissions:
@@ -35,19 +32,17 @@ jobs:
           path: api/.ephem
           key: de421.bsp-v1
 
-      - name: Build computed table (verifies curated overlap before writing)
-        run: python scripts/build_computed_table.py
+      - name: Build computed seed (verifies curated overlap before writing)
+        run: python scripts/generate_seed.py
 
       - name: Create pull request with the diff
         uses: peter-evans/create-pull-request@v7
         with:
           branch: chore/regen-computed-table
-          title: "chore(data): regenerate computed_table.json"
-          commit-message: "chore(data): regenerate computed_table.json"
+          title: "chore(data): regenerate computed_seed.json"
+          commit-message: "chore(data): regenerate computed_seed.json"
           body: |
-            Automated yearly regeneration via `scripts/build_computed_table.py`.
+            Manual regeneration via `scripts/generate_seed.py`.
 
             The script verified the overlap with the curated MABIMS table
             byte-for-byte before writing. Review the diff, then merge.
-          labels: |
-            data

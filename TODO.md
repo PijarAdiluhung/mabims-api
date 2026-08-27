@@ -18,7 +18,7 @@
 - [ ] Decide long-term data format for yearly tables (versioned files + `/meta.data_version` bump)
 
 ## Computed tier (precomputed_table)
-- [x] Yearly regeneration of `api/data/computed_table.json` → `.github/workflows/regen-computed-table.yml` runs the build each Jan 15 and opens a PR with the diff. Note: GitHub auto-disables scheduled workflows after ~60 days of repo inactivity — any push resets the timer, or trigger manually via *Run workflow*
+- [x] Computed-seed regeneration on demand → `.github/workflows/regen-computed-table.yml` (`workflow_dispatch`): rebuilds `computed_seed.json`, verifies curated overlap byte-for-byte, opens a PR with the diff. Seed is static through Hijri 1473, so no yearly cron needed; rerun manually after criteria/ephemeris changes
 - [x] Seed `MabimsCalcProvider` blocks from the precomputed file at startup so out-of-range lazy walks start from the file edge instead of the 2024 anchor
 - [ ] Revisit borderline warning noise: ~52% of computed months sit within the 0.25° margin band, making the warning fire on half of responses — consider raising the band, or only warning when `visible` is true
 
