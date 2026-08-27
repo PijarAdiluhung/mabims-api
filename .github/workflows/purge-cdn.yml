@@ -12,11 +12,11 @@ jobs:
       - name: Purge API zone
         run: >
           curl -sS --fail --retry 5 --retry-delay 2 --retry-all-errors -X POST
-          "https://api.bunnycdn.com/pullzone/${{ secrets.BUNNY_API_ZONE_API }}/purgeCache"
+          "https://api.bunny.net/pullzone/${{ secrets.BUNNY_API_ZONE_API }}/purgeCache"
           -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
 
       - name: Purge Docs zone
         run: >
           curl -sS --fail --retry 5 --retry-delay 2 --retry-all-errors -X POST
-          "https://api.bunnycdn.com/pullzone/${{ secrets.BUNNY_API_ZONE_DOCS }}/purgeCache"
+          "https://api.bunny.net/pullzone/${{ secrets.BUNNY_API_ZONE_DOCS }}/purgeCache"
           -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
