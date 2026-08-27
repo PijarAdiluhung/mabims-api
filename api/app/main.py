@@ -34,12 +34,18 @@ from .schemas import (
     ConvertResponse,
     Coverage,
     EventItem,
+    EventsInput,
     EventsResponse,
+    HealthResponse,
     HilalEvening,
     HilalInfoResponse,
+    HilalInput,
     HilalMonth,
     HilalPrevMonth,
     MetaResponse,
+    MonthInput,
+    MonthResponse,
+    RangeInput,
     RangeItem,
     RangeResponse,
 )
@@ -48,6 +54,8 @@ from .timeutil import (
     NO_STORE_HEADERS,
     SHORT_CACHE_HEADERS,
     dynamic_cache_headers,
+    etag_from_bytes,
+    etag_headers,
     resolve_tz,
     tz_label,
 )
@@ -131,6 +139,13 @@ def _error(code: str, message: str, status: int) -> JSONResponse:
     )
 
 
+def _json_response(content: dict, headers: dict[str, str]) -> JSONResponse:
+    body = json.dumps(content, separators=(",", ":")).encode()
+    etag = etag_from_bytes(body)
+    merged = {**headers, **etag_headers(etag)}
+    return JSONResponse(content=content, headers=merged)
+
+
 def _parse_iso_date(value: str) -> date:
     try:
         return date.fromisoformat(value)
@@ -203,7 +218,20 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
 
     service = CalendarService(data_path, stores=stores)
 
-    app = FastAPI(title="MABIMS Date Converter API", version=APP_VERSION)
+    app = FastAPI(
+        title="MABIMS API",
+        version=APP_VERSION,
+        tags=[
+            {"name": "Health", "description": "Liveness probes"},
+            {"name": "Today", "description": "Today's Hijri date (timezone-aware)"},
+            {"name": "Convert", "description": "Single date conversion"},
+            {"name": "Range", "description": "Bulk date range conversion"},
+            {"name": "Month", "description": "All days in a calendar month"},
+            {"name": "Events", "description": "Islamic observances"},
+            {"name": "Hilal", "description": "Hilal visibility data and charts"},
+            {"name": "Meta", "description": "API metadata and coverage"},
+        ],
+    )
 
     limiter = Limiter(key_func=get_remote_address, default_limits=[settings.rate_limit])
     app.state.limiter = limiter
@@ -316,7 +344,13 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                     warnings.append(warning)
         return aggregate, warnings
 
-    @app.api_route("/healthz", response_model=None, methods=["GET", "HEAD"])
+    @app.api_route(
+        "/healthz",
+        response_model=HealthResponse,
+        tags=["Health"],
+        summary="Liveness probe",
+        methods=["GET", "HEAD"],
+    )
     @limiter.exempt
     def healthz(request: Request):
         return JSONResponse(
@@ -324,7 +358,14 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             headers=NO_STORE_HEADERS,
         )
 
-    @app.api_route("/api/v1/meta", response_model=None, methods=["GET", "HEAD"])
+    @app.api_route(
+        "/api/v1/meta",
+        response_model=MetaResponse,
+        tags=["Meta"],
+        summary="API metadata",
+        description="Returns data version, coverage range, and fallback/computed status.",
+        methods=["GET", "HEAD"],
+    )
     @limiter.exempt
     def meta(request: Request):
         fallback_active, fallback_months = aladhan_store.summary() if aladhan_store else (False, [])
@@ -340,9 +381,16 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             method=COMPUTED_METHOD if active_computed is not None else None,
             docs_url=settings.docs_url,
         )
-        return JSONResponse(content=payload.model_dump(), headers=SHORT_CACHE_HEADERS)
+        return _json_response(payload.model_dump(), SHORT_CACHE_HEADERS)
 
-    @app.api_route("/api/v1/convert", response_model=None, methods=["GET", "HEAD"])
+    @app.api_route(
+        "/api/v1/convert",
+        response_model=ConvertResponse,
+        tags=["Convert"],
+        summary="Convert a single date",
+        description="Convert a date between Gregorian and Hijri calendars.",
+        methods=["GET", "HEAD"],
+    )
     def convert(
         request: Request,
         date_: str | None = Query(default=None, alias="date"),
@@ -361,9 +409,16 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             source=source,
             warnings=_warnings_for(source, hijri_value),
         )
-        return JSONResponse(content=payload.model_dump(), headers=IMMUTABLE_CACHE_HEADERS)
+        return _json_response(payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
 
-    @app.api_route("/api/v1/today", response_model=None, methods=["GET", "HEAD"])
+    @app.api_route(
+        "/api/v1/today",
+        response_model=ConvertResponse,
+        tags=["Today"],
+        summary="Today's Hijri date",
+        description="Returns today's Hijri date, timezone-aware.",
+        methods=["GET", "HEAD"],
+    )
     def today(request: Request, tz: str | None = Query(default=None)):
         try:
             tzo = resolve_tz(tz)
@@ -377,9 +432,16 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             source=source,
             warnings=_warnings_for(source, value),
         )
-        return JSONResponse(content=payload.model_dump(), headers=dynamic_cache_headers(tzo))
+        return _json_response(payload.model_dump(), dynamic_cache_headers(tzo))
 
-    @app.api_route("/api/v1/today/{target_date}", response_model=None, methods=["GET", "HEAD"])
+    @app.api_route(
+        "/api/v1/today/{target_date}",
+        response_model=ConvertResponse,
+        tags=["Today"],
+        summary="Hijri date for a fixed Gregorian date",
+        description="Immutable endpoint — CDN-cacheable forever. Date format: YYYY-MM-DD.",
+        methods=["GET", "HEAD"],
+    )
     def today_on(request: Request, target_date: str):
         target = _parse_iso_date(target_date)
         value, source = _resolve_pair(target.isoformat(), "gregorian")
@@ -389,7 +451,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             source=source,
             warnings=_warnings_for(source, value),
         )
-        return JSONResponse(content=payload.model_dump(), headers=IMMUTABLE_CACHE_HEADERS)
+        return _json_response(payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
 
     def _collect_items(start: date, end: date, cal: str) -> list[RangeItem]:
         service.ensure_range(start.isoformat(), end.isoformat(), cal)
@@ -414,7 +476,14 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             cursor = date.fromordinal(cursor.toordinal() + 1)
         return items
 
-    @app.api_route("/api/v1/range", response_model=None, methods=["GET", "HEAD"])
+    @app.api_route(
+        "/api/v1/range",
+        response_model=RangeResponse,
+        tags=["Range"],
+        summary="Bulk date conversion",
+        description="Convert a date range between Gregorian and Hijri. Maximum 400 days.",
+        methods=["GET", "HEAD"],
+    )
     def range_(
         request: Request,
         start: str = Query(...),
@@ -437,14 +506,21 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         items = _collect_items(start_d, end_d, cal)
         aggregate_source, warnings = _aggregate(items)
         payload = RangeResponse(
-            input={"start": start_d.isoformat(), "end": end_d.isoformat(), "calendar": cal},
+            input=RangeInput(start=start_d.isoformat(), end=end_d.isoformat(), calendar=cal),
             count=len(items),
             items=items,
             warnings=warnings,
         )
-        return JSONResponse(content=payload.model_dump(), headers=IMMUTABLE_CACHE_HEADERS)
+        return _json_response(payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
 
-    @app.api_route("/api/v1/events", response_model=None, methods=["GET", "HEAD"])
+    @app.api_route(
+        "/api/v1/events",
+        response_model=EventsResponse,
+        tags=["Events"],
+        summary="Islamic events for a year",
+        description="Curated Islamic observances: 1 Muharram, Maulid, Ramadan, Eid.",
+        methods=["GET", "HEAD"],
+    )
     def events(
         request: Request,
         year: int = Query(...),
@@ -465,14 +541,21 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         ]
         aggregate_source, warnings = _aggregate(items)
         payload = EventsResponse(
-            input={"year": year, "calendar": cal},
+            input=EventsInput(year=year, calendar=cal),
             count=len(items),
             events=items,
             warnings=warnings,
         )
-        return JSONResponse(content=payload.model_dump(), headers=IMMUTABLE_CACHE_HEADERS)
+        return _json_response(payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
 
-    @app.api_route("/api/v1/month", response_model=None, methods=["GET", "HEAD"])
+    @app.api_route(
+        "/api/v1/month",
+        response_model=MonthResponse,
+        tags=["Month"],
+        summary="All days in a month",
+        description="Calendar-grid sugar over /range. Returns every day in the given month.",
+        methods=["GET", "HEAD"],
+    )
     def month(
         request: Request,
         year: int = Query(...),
@@ -522,13 +605,13 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                 raise ApiError("date_out_of_supported_range", _supported_range_message())
 
         aggregate_source, warnings = _aggregate(items)
-        payload = RangeResponse(
-            input={"year": year, "month": month, "calendar": cal},
+        payload = MonthResponse(
+            input=MonthInput(year=year, month=month, calendar=cal),
             count=len(items),
             items=items,
             warnings=warnings,
         )
-        return JSONResponse(content=payload.model_dump(), headers=IMMUTABLE_CACHE_HEADERS)
+        return _json_response(payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
 
     def _hilal_context(month: int, year: int):
         try:
@@ -555,7 +638,14 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         )
         return res, sighting, alt_ok, elong_ok, source, warnings
 
-    @app.api_route("/api/v1/hilal/info", response_model=None, methods=["GET", "HEAD"])
+    @app.api_route(
+        "/api/v1/hilal/info",
+        response_model=HilalInfoResponse,
+        tags=["Hilal"],
+        summary="Hilal visibility data",
+        description="Geocentric hisab data for the evening deciding a Hijri month start (Sabang).",
+        methods=["GET", "HEAD"],
+    )
     @limiter.limit("60/hour")
     def hilal_info(
         request: Request,
@@ -565,7 +655,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         res, sighting, alt_ok, elong_ok, source, warnings = _hilal_context(month, year)
         crit = sighting.criteria
         payload = HilalInfoResponse(
-            input={"month": month, "year": year},
+            input=HilalInput(month=month, year=year),
             month=HilalMonth(
                 name=res.target_name,
                 number=res.target_month,
@@ -597,9 +687,15 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             source=source,
             warnings=warnings,
         )
-        return JSONResponse(content=payload.model_dump(), headers=HILAL_CACHE)
+        return _json_response(payload.model_dump(), HILAL_CACHE)
 
-    @app.api_route("/api/v1/hilal/viz", response_model=None, methods=["GET", "HEAD"])
+    @app.api_route(
+        "/api/v1/hilal/viz",
+        tags=["Hilal"],
+        summary="Hilal sky chart PNG",
+        description="Renders a 720x1280 PNG chart of hilal visibility with MABIMS criteria table.",
+        methods=["GET", "HEAD"],
+    )
     @limiter.limit("30/hour")
     def hilal_viz(
         request: Request,
@@ -634,7 +730,11 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                 f"Could not render chart: {exc.__class__.__name__}",
                 500,
             ) from exc
-        return Response(content=png, media_type="image/png", headers=HILAL_CACHE)
+        return Response(
+            content=png,
+            media_type="image/png",
+            headers={**HILAL_CACHE, **etag_headers(etag_from_bytes(png))},
+        )
 
     return app
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import re
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -51,3 +52,11 @@ def dynamic_cache_headers(tz: timezone | ZoneInfo) -> dict[str, str]:
 
 NO_STORE_HEADERS = {"Cache-Control": "no-store"}
 SHORT_CACHE_HEADERS = {"Cache-Control": "public, max-age=300"}
+
+
+def etag_from_bytes(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()[:16]
+
+
+def etag_headers(etag: str) -> dict[str, str]:
+    return {"ETag": f'"{etag}"'}

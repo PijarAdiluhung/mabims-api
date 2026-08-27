@@ -1,9 +1,7 @@
 """Contract tests: real endpoint responses must keep matching the Pydantic schemas.
 
-Endpoints are registered with ``response_model=None`` (they serialize manually),
-so FastAPI does not validate outgoing JSON. These tests parse each response into
-its declared model so any shape change fails loudly here instead of silently
-breaking API consumers or going stale versus the docs.
+These tests parse each response into its declared model so any shape change fails
+loudly here instead of silently breaking API consumers or going stale versus the docs.
 """
 
 from __future__ import annotations
@@ -24,6 +22,7 @@ from app.schemas import (
     EventsResponse,
     HealthResponse,
     MetaResponse,
+    MonthResponse,
     RangeResponse,
 )
 
@@ -117,7 +116,7 @@ def test_month_matches_schema(client, real_data):
     year, month = g_last.year, g_last.month
     response = client.get(f"/api/v1/month?year={year}&month={month}&calendar=gregorian")
     assert response.status_code == 200
-    body = _parse(response.json(), RangeResponse)
+    body = _parse(response.json(), MonthResponse)
     month_start = max(date(year, month, 1), g_first)
     month_end = date(year, month, pycalendar.monthrange(year, month)[1])
     expected_end = min(month_end, g_last)

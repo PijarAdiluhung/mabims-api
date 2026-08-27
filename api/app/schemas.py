@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
+
+Source = Literal["mabims", "mabims-computed", "fallback:aladhan-ummalqura"]
 
 
 class ConversionInput(BaseModel):
@@ -17,14 +21,20 @@ class ConversionOutput(BaseModel):
 class ConvertResponse(BaseModel):
     input: ConversionInput
     output: ConversionOutput
-    source: str
+    source: Source
     warnings: list[str] = Field(default_factory=list)
 
 
 class RangeItem(BaseModel):
     gregorian: str
     hijri: str
-    source: str
+    source: Source
+
+
+class RangeInput(BaseModel):
+    start: str
+    end: str
+    calendar: str
 
 
 class EventItem(BaseModel):
@@ -32,25 +42,39 @@ class EventItem(BaseModel):
     name: str
     hijri: str
     gregorian: str
-    source: str
+    source: Source
+
+
+class EventsInput(BaseModel):
+    year: int
+    calendar: str
 
 
 class EventsResponse(BaseModel):
-    input: dict
+    input: EventsInput
     count: int
     events: list[EventItem]
     warnings: list[str] = Field(default_factory=list)
 
 
 class RangeResponse(BaseModel):
-    input: dict
+    input: RangeInput
     count: int
     items: list[RangeItem]
     warnings: list[str] = Field(default_factory=list)
 
 
-class MonthResponse(RangeResponse):
-    pass
+class MonthInput(BaseModel):
+    year: int
+    month: int
+    calendar: str
+
+
+class MonthResponse(BaseModel):
+    input: MonthInput
+    count: int
+    items: list[RangeItem]
+    warnings: list[str] = Field(default_factory=list)
 
 
 class Coverage(BaseModel):
@@ -79,26 +103,26 @@ class HilalMonth(BaseModel):
     name: str
     number: int
     year: int
-    start: str  # gregorian ISO of day 1
+    start: str
 
 
 class HilalPrevMonth(BaseModel):
     name: str
     number: int
     year: int
-    length: int  # 29 or 30
+    length: int
 
 
 class HilalEvening(BaseModel):
-    hijri_date: str  # e.g. "30 Sya'ban 1447 H"
+    hijri_date: str
     hijri_day: int
-    gregorian_date: str  # ISO
-    sunset: str  # "HH:MM" local (Sabang, WIB)
-    moonset: str  # "HH:MM" local or "N/A"
-    moon_alt_deg: float  # geocentric hisab, refraction-corrected (MABIMS frame)
-    moon_az_deg: float  # geocentric, degrees from north clockwise
-    sun_alt_deg: float  # geocentric geometric
-    elongation_deg: float  # geocentric
+    gregorian_date: str
+    sunset: str
+    moonset: str
+    moon_alt_deg: float
+    moon_az_deg: float
+    sun_alt_deg: float
+    elongation_deg: float
     illumination_pct: float
     age_hours: float
     alt_ok: bool
@@ -106,12 +130,17 @@ class HilalEvening(BaseModel):
     visible: bool
 
 
+class HilalInput(BaseModel):
+    month: int
+    year: int
+
+
 class HilalInfoResponse(BaseModel):
-    input: dict
+    input: HilalInput
     month: HilalMonth
     previous_month: HilalPrevMonth
     evening: HilalEvening
-    source: str
+    source: Source
     warnings: list[str] = Field(default_factory=list)
 
 
