@@ -37,4 +37,4 @@
 - [x] Repoint malangmengaji.com integrations to new hostnames
 - [x] One week parallel run (old Netlify stays live)
 - [x] Retire Netlify function + old domain redirects
-- [ ] Push final state; tag `v1.0.0`
+- [x] Push final state; tag `v1.0.0`

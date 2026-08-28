@@ -5,6 +5,7 @@ import hashlib
 import json
 import math
 from datetime import date, datetime
+from pathlib import Path
 
 from fastapi import FastAPI, Query, Request
 from fastapi.responses import JSONResponse, Response
@@ -84,6 +85,7 @@ _HIJRI_YEARS_PER_GREGORIAN = 365.2425 / 354.36792
 
 SABANG_TZ = "Asia/Jakarta"
 SABANG_DISPLAY = "Sabang \u00b7 Indonesia"
+STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
 GREGORIAN_MONTH_NAMES = {
     1: "January", 2: "February", 3: "March", 4: "April",
@@ -368,6 +370,16 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         return JSONResponse(
             content={"status": "ok", "version": APP_VERSION},
             headers=NO_STORE_HEADERS,
+        )
+
+    @app.get("/favicon.ico", include_in_schema=False)
+    @limiter.exempt
+    def favicon():
+        icon = STATIC_DIR / "favicon.ico"
+        return Response(
+            content=icon.read_bytes(),
+            media_type="image/x-icon",
+            headers={"Cache-Control": "public, max-age=86400"},
         )
 
     @app.api_route(
