@@ -36,7 +36,7 @@ description: Riwayat perubahan API dan dokumentasi MABIMS.
 - **GET /range** — konversi massal untuk rentang tanggal (maks 400 hari). Setiap item membawa `source` masing-masing.
 - **GET /month** — grid kalender bulanan, 29–30 item per bulan.
 - **Tabel MABIMS resmi** — data dari Kemenag RI, cakupan 2024-01-13 hingga 2026-12-31.
-- **Fallback chain** — MABIMS table → Neo MABIMS computed (Sabang) → Umm al-Qura (Aladhan).
+- **Fallback chain** — MABIMS table → Neo MABIMS computed (Sabang).
 - **CDN caching** — Bunny CDN, dynamic TTL berdasarkan timezone, origin hanya melihat ~1 request per lokasi edge per hari.
 - **CORS** — fleksibel, aplikasi client-side di domain mana pun bisa memanggil langsung.
 - **Rate limiting** — 240 request per menit per IP, 429 when exceeded.

@@ -36,7 +36,7 @@ description: History of changes to the MABIMS API and documentation.
 - **GET /range** — bulk conversion for date ranges (max 400 days). Each item carries its own `source`.
 - **GET /month** — monthly calendar grid, 29–30 items per month.
 - **Official MABIMS table** — data from Kemenag RI, coverage 2024-01-13 to 2026-12-31.
-- **Fallback chain** — MABIMS table → Neo MABIMS computed (Sabang) → Umm al-Qura (Aladhan).
+- **Fallback chain** — MABIMS table → Neo MABIMS computed (Sabang).
 - **CDN caching** — Bunny CDN, dynamic TTL based on timezone, origin sees ~1 request per edge location per day.
 - **CORS** — flexible, client-side apps on any domain can call directly.
 - **Rate limiting** — 240 requests per minute per IP, 429 when exceeded.
