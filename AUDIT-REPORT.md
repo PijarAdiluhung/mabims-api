@@ -46,6 +46,9 @@
 | 5 | Migration guide created (`/migration`) with Aladhan → MABIMS side-by-side examples (ID + EN) | ✅ Done |
 | 6 | Migration guide added to sidebar | ✅ Done |
 | 7 | Sidebar FAQ renamed to "FAQ - Pertanyaan" | ✅ Done |
+| 8 | Changelog page created (`/changelog`) with 1.0.0, 1.1.0, docs updates | ✅ Done |
+| 9 | Changelog added to sidebar below FAQ | ✅ Done |
+| 10 | Blog removed from sidebar (kept in top nav) | ✅ Done |
 
 ---
 
@@ -58,8 +61,8 @@
 | **No SDK / npm package** | Only raw HTTP examples. No `npm install mabims`. | Medium |
 | **No integration examples in API docs** | Blog tutorial exists but not inline in API reference pages. | Low |
 | **No status page link** | No uptime monitoring or status page. | Medium |
-| **No versioning strategy** | No mention of `/v2` or if `/v1` is frozen. | Low |
-| **No changelog** | Blog has 3 posts but no "what changed" log. | Low |
+| **No versioning strategy** | No mention of `/v2` or if `/v1` is frozen. | ~~Low~~ Done — SemVer adopted, documented in changelog |
+| **No changelog** | Blog has 3 posts but no "what changed" log. | ~~Low~~ Done |
 | **No community channel** | GitHub Issues only. No Discord/Telegram. | Low |
 
 ### Marketing & Conversion
@@ -73,9 +76,34 @@
 
 ---
 
+## Sidebar Structure (current)
+
+```
+Quickstart
+Access & Rate Limits
+API Reference
+  GET /today
+  GET /convert
+  GET /range & /month
+  GET /events
+  GET /hilal
+  GET /meta
+Playground
+  Konverter
+  Hilal
+Data Coverage
+Migration dari Aladhan
+FAQ - Pertanyaan
+Changelog
+```
+
+Blog removed from sidebar — accessible via top nav and landing page CTA.
+
+---
+
 ## Verdict
 
-The product and docs are genuinely strong — above average for a free API. The main friction isn't **information** — it's **perceived effort**. The changes made today (Coba CTA, error examples, migration guide, tutorial link) directly address the "convinced → integrated" gap.
+The product and docs are genuinely strong — above average for a free API. The changes made today (Coba CTA, error examples, migration guide, tutorial link, changelog, sidebar cleanup) directly address the "convinced → integrated" gap.
 
 ---
 

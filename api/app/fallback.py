@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import tempfile
@@ -10,6 +11,8 @@ from pathlib import Path
 from typing import Protocol
 
 from .calendar import MonthKey
+
+log = logging.getLogger(__name__)
 
 FALLBACK_SOURCE = "fallback:aladhan-ummalqura"
 
@@ -128,6 +131,9 @@ class FallbackStore:
             )
             if key.label in data["months"]:
                 return
+            log.warning(
+                "%s: fetching %s via HTTP (not preloaded)", self.source_name, key.label
+            )
             if key.kind == "G":
                 g2h = self.provider.fetch_by_gregorian(key.year, key.month)
                 h2g = _invert(g2h)

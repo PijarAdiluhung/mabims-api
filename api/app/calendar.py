@@ -86,7 +86,10 @@ class CalendarService:
         key = month_key_for(date_iso, calendar)
         with self._lock:
             for store in self.stores:
-                store.ensure_month(key)
+                try:
+                    store.ensure_month(key)
+                except Exception:
+                    continue
                 result = self.lookup(date_iso, calendar)
                 if result.value is not None:
                     return result
@@ -119,7 +122,10 @@ class CalendarService:
                 probe = f"{key.year:04d}-{key.month:02d}-{'15' if key.kind == 'G' else '01'}"
                 probe_calendar = "gregorian" if key.kind == "G" else "hijri"
                 for store in self.stores:
-                    store.ensure_month(key)
+                    try:
+                        store.ensure_month(key)
+                    except Exception:
+                        continue
                     if store.lookup(probe, probe_calendar) is not None:
                         break
 
