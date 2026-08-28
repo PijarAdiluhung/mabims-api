@@ -11,10 +11,16 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? "http://localhost:8000";
       "Konversi tanggal langsung terhadap API MABIMS secara real time.",
   }}
 >
-  <p id="status">Memeriksa status API…</p>
+  <p>
+    Halaman ini adalah sampel dari dua fungsionalitas API MABIMS: untuk
+    menampilkan hari ini dan untuk mengkonversi tanggal. Ada lebih dari 2 fungsi ini, silahkan cek dokumentasi.
+  </p>
 
   <section class="conv-section">
     <h2>Hari Ini</h2>
+    <p>
+      Contoh penggunaan MABIMS API untuk menampilkan tanggal Hijriah hari ini.
+    </p>
     <div class="today-display" id="today-display">Memuat…</div>
     <details>
       <summary>Respons JSON lengkap</summary>
@@ -24,10 +30,18 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? "http://localhost:8000";
 
   <section class="conv-section">
     <h2>Konverter</h2>
+    <p>Implementasi sederhana sebagai demo konversi tanggal.</p>
+    <p id="status">Memeriksa status API…</p>
     <form id="conv-form" class="pg-form">
       <label>
         Tanggal
-        <input type="text" id="date" readonly placeholder="YYYY-MM-DD" required />
+        <input
+          type="text"
+          id="date"
+          readonly
+          placeholder="YYYY-MM-DD"
+          required
+        />
       </label>
       <button type="submit" class="pg-btn">Konversi</button>
     </form>
@@ -98,10 +112,11 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? "http://localhost:8000";
         const res = await fetch(`${apiBase}/api/v1/meta`);
         if (!res.ok) throw new Error(res.status);
         const meta = await res.json();
+        statusEl.className = "pg-status pg-ok";
         statusEl.textContent =
-          `Data MABIMS resmi Kemenag mencakup ${meta.coverage.first} → ${meta.coverage.last}` +
+          `Data kalender MABIMS resmi dari Kemenag saat ini mencakup: ${meta.coverage.first} → ${meta.coverage.last}` +
           (meta.fallback_active
-            ? " · Di luar cakupan ini, menggunakan perhitungan Neo MABIMS."
+            ? " Di luar cakupan ini, menggunakan perhitungan Neo MABIMS."
             : "");
       } catch {
         statusEl.textContent =
@@ -154,7 +169,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? "http://localhost:8000";
 
   <style is:global>
     .conv-section {
-      margin-bottom: 2rem;
+      margin-bottom: 1rem;
     }
     .conv-section h2 {
       font-size: 1.25rem;
@@ -214,15 +229,19 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? "http://localhost:8000";
       font-weight: 600;
     }
     @media (max-width: 42rem) {
-    .conv-error {
-      padding: 0.75rem 1rem;
-      border-radius: 0.5rem;
-      background: color-mix(in srgb, var(--sl-color-red-high) 12%, transparent);
-      border: 1px solid rgba(239, 68, 68, 0.15);
-      margin-bottom: 0.75rem;
-      color: var(--sl-color-red-high);
-    }
-    .pg-form {
+      .conv-error {
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        background: color-mix(
+          in srgb,
+          var(--sl-color-red-high) 12%,
+          transparent
+        );
+        border: 1px solid rgba(239, 68, 68, 0.15);
+        margin-bottom: 0.75rem;
+        color: var(--sl-color-red-high);
+      }
+      .pg-form {
         gap: 0;
       }
       .pg-form label {
@@ -243,7 +262,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? "http://localhost:8000";
       border-color: var(--sl-color-accent);
     }
     /* Calendar is appended to document.body in input mode */
-    [data-vc='calendar'][data-vc-input] {
+    [data-vc="calendar"][data-vc-input] {
       --vc-bg: #1a1c24;
       --vc-color: #c4c4c4;
       --vc-focus-outline-color: #fecf46;
@@ -297,7 +316,6 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? "http://localhost:8000";
     }
     details summary {
       cursor: pointer;
-      margin-bottom: 0.5rem;
     }
   </style>
 </StarlightPage>

@@ -12,6 +12,11 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'http://localhost:8000';
 >
   <div class="pg-status" id="status" role="status">Checking API status…</div>
 
+  <p>
+    This page is a sample of two MABIMS API functionalities:
+    displaying today's date and converting dates.
+  </p>
+
   <form id="conv-form" class="pg-form">
     <label>
       Date
@@ -86,9 +91,9 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'http://localhost:8000';
         const meta = await res.json();
         statusEl.className = 'pg-status pg-ok';
         statusEl.textContent =
-          `✅ Authoritative MABIMS data · coverage ${meta.coverage.first} → ${meta.coverage.last}` +
+          `Authoritative MABIMS data from Kemenag · coverage ${meta.coverage.first} → ${meta.coverage.last}` +
           (meta.fallback_active
-            ? ' · fallback tier available only for dates outside the curated table'
+            ? ' · dates outside this range use Neo MABIMS computation'
             : '');
       } catch {
         statusEl.className = 'pg-status pg-warn';

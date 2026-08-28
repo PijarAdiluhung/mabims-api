@@ -1,20 +1,37 @@
 ---
-import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 
-const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'http://localhost:8000';
+const apiBase = import.meta.env.PUBLIC_API_BASE ?? "http://localhost:8000";
 const months = [
-  [1, 'Muharram'], [2, 'Safar'], [3, 'Rabiul Awal'], [4, 'Rabiul Akhir'],
-  [5, 'Jumadil Awal'], [6, 'Jumadil Akhir'], [7, 'Rajab'], [8, "Sya'ban"],
-  [9, 'Ramadhan'], [10, 'Syawal'], [11, "Dzulqa'dah"], [12, 'Dzulhijjah'],
+  [1, "Muharram"],
+  [2, "Safar"],
+  [3, "Rabiul Awal"],
+  [4, "Rabiul Akhir"],
+  [5, "Jumadil Awal"],
+  [6, "Jumadil Akhir"],
+  [7, "Rajab"],
+  [8, "Sya'ban"],
+  [9, "Ramadhan"],
+  [10, "Syawal"],
+  [11, "Dzulqa'dah"],
+  [12, "Dzulhijjah"],
 ];
 ---
 
 <StarlightPage
   frontmatter={{
-    title: 'Playground Hilal',
-    description: 'Generate grafik visibilitas hilal untuk malam penentuan awal bulan Hijriah.',
+    title: "Playground Hilal",
+    description:
+      "Generate grafik visibilitas hilal untuk malam penentuan awal bulan Hijriah.",
   }}
 >
+  <p>
+    Halaman ini adalah sampel dari fungsionalitas API MABIMS untuk menampilkan
+    visibilitas hilal. Coba sekarang dan dapatkan gambar visibilitas hilal di
+    Sabang, titik paling barat di Indonesia yang sering menjadi penentu awal
+    bulan.
+  </p>
+
   <div class="pg-status" id="status" role="status">Memeriksa status API…</div>
 
   <form id="hilal-form" class="pg-form">
@@ -26,7 +43,11 @@ const months = [
     </label>
     <label>
       Tahun Hijriah
-      <input type="number" id="tahun" value="1447" min="1446" max="1486" required />
+      <select id="tahun">
+        {Array.from({ length: 41 }, (_, i) => 1446 + i).map((y) => (
+          <option value={y} selected={y === 1447}>{y}</option>
+        ))}
+      </select>
     </label>
     <button type="submit" class="pg-btn">Render Grafik</button>
   </form>
@@ -36,12 +57,17 @@ const months = [
       <div class="hilal-skeleton" id="skeleton">
         <div class="hilal-spinner" role="status" aria-label="Memuat"></div>
       </div>
-      <img id="chart" alt="Grafik visibilitas hilal" width="360" height="640" hidden />
+      <img
+        id="chart"
+        alt="Grafik visibilitas hilal"
+        width="360"
+        height="640"
+        hidden
+      />
       <figcaption id="figcap"></figcaption>
     </figure>
     <div class="hilal-data" id="data" hidden>
       <div class="hilal-verdict" id="verdict"></div>
-      <dl class="hilal-facts" id="facts"></dl>
       <details>
         <summary>Respons JSON lengkap</summary>
         <pre class="pg-result" id="raw"></pre>
@@ -52,19 +78,18 @@ const months = [
   <p class="hilal-note" id="error" hidden></p>
 
   <script define:vars={{ apiBase }}>
-    const statusEl = document.getElementById('status');
-    const form = document.getElementById('hilal-form');
-    const bulanEl = document.getElementById('bulan');
-    const tahunEl = document.getElementById('tahun');
-    const figureEl = document.getElementById('figure');
-    const chartEl = document.getElementById('chart');
-    const skeletonEl = document.getElementById('skeleton');
-    const figcapEl = document.getElementById('figcap');
-    const dataEl = document.getElementById('data');
-    const verdictEl = document.getElementById('verdict');
-    const factsEl = document.getElementById('facts');
-    const rawEl = document.getElementById('raw');
-    const errorEl = document.getElementById('error');
+    const statusEl = document.getElementById("status");
+    const form = document.getElementById("hilal-form");
+    const bulanEl = document.getElementById("bulan");
+    const tahunEl = document.getElementById("tahun");
+    const figureEl = document.getElementById("figure");
+    const chartEl = document.getElementById("chart");
+    const skeletonEl = document.getElementById("skeleton");
+    const figcapEl = document.getElementById("figcap");
+    const dataEl = document.getElementById("data");
+    const verdictEl = document.getElementById("verdict");
+    const rawEl = document.getElementById("raw");
+    const errorEl = document.getElementById("error");
 
     async function loadStatus() {
       try {
@@ -81,15 +106,16 @@ const months = [
         const firstHijri = `${firstBody.output.day} ${firstBody.output.month_name} ${firstBody.output.year}`;
         const lastHijri = `${lastBody.output.day} ${lastBody.output.month_name} ${lastBody.output.year}`;
 
-        statusEl.className = 'pg-status pg-ok';
+        statusEl.className = "pg-status pg-ok";
         statusEl.textContent =
-          `Data MABIMS resmi Kemenag mencakup ${firstHijri} → ${lastHijri}` +
+          `Data kalender MABIMS resmi dari Kemenag saat ini mencakup: ${firstHijri} → ${lastHijri}` +
           (meta.fallback_active
-            ? ' · Di luar cakupan ini, menggunakan perhitungan Neo MABIMS.'
-            : '');
+            ? " Di luar cakupan ini, menggunakan perhitungan Neo MABIMS."
+            : "");
       } catch {
-        statusEl.className = 'pg-status pg-warn';
-        statusEl.textContent = 'API tidak dapat diakses dari sini — mungkin belum di-deploy.';
+        statusEl.className = "pg-status pg-warn";
+        statusEl.textContent =
+          "API tidak dapat diakses dari sini — mungkin belum di-deploy.";
       }
     }
 
@@ -111,18 +137,14 @@ const months = [
       }
     }
 
-    function fact(label, value) {
-      return `<div><dt>${label}</dt><dd>${value}</dd></div>`;
-    }
-
-    form.addEventListener('submit', async (event) => {
+    form.addEventListener("submit", async (event) => {
       event.preventDefault();
       errorEl.hidden = true;
       dataEl.hidden = true;
       figureEl.hidden = false;
       skeletonEl.hidden = false;
       chartEl.hidden = true;
-      figcapEl.textContent = 'Merender grafik…';
+      figcapEl.textContent = "Merender grafik…";
 
       const params = new URLSearchParams({
         month: bulanEl.value,
@@ -136,8 +158,7 @@ const months = [
         if (!res.ok) {
           figureEl.hidden = true;
           errorEl.hidden = false;
-          errorEl.textContent =
-            `${res.status} ${body?.error?.code ?? ''}: ${body?.error?.message ?? res.statusText}`;
+          errorEl.textContent = `${res.status} ${body?.error?.code ?? ""}: ${body?.error?.message ?? res.statusText}`;
           return;
         }
         const ev = body.evening;
@@ -148,7 +169,7 @@ const months = [
         };
         chartEl.onerror = () => {
           skeletonEl.hidden = true;
-          figcapEl.textContent = 'Gagal memuat gambar.';
+          figcapEl.textContent = "Gagal memuat gambar.";
         };
         chartEl.src = vizUrl;
 
@@ -156,18 +177,8 @@ const months = [
         verdictEl.textContent = visible
           ? `🌙 TERLIHAT — malam 1 ${body.month.name} ${body.month.year} H`
           : `⛔ TIDAK TERLIHAT — 1 ${body.month.name} ${body.month.year} H kemungkinan mundur`;
-        verdictEl.className = `hilal-verdict ${visible ? 'is-ok' : 'is-bad'}`;
+        verdictEl.className = `hilal-verdict ${visible ? "is-ok" : "is-bad"}`;
 
-        factsEl.innerHTML = [
-          fact('Malam penentuan', `${ev.hijri_date} (${ev.gregorian_date})`),
-          fact('Matahari terbenam', ev.sunset),
-          fact('Bulan terbenam', ev.moonset),
-          fact('Alt. bulan', `${ev.moon_alt_deg.toFixed(1)}° (min 3.0°) — ${ev.alt_ok ? 'lolos' : 'gagal'}`),
-          fact('Elongasi', `${ev.elongation_deg.toFixed(1)}° (min 6.4°) — ${ev.elong_ok ? 'lolos' : 'gagal'}`),
-          fact('Iluminasi', `${ev.illumination_pct.toFixed(1)}%`),
-          fact('Usia bulan', `${ev.age_hours.toFixed(0)} jam`),
-          fact('Sumber', body.source),
-        ].join('');
         rawEl.textContent = JSON.stringify(body, null, 2);
         dataEl.hidden = false;
       } catch (error) {
@@ -189,10 +200,18 @@ const months = [
       border: 1px solid var(--sl-color-gray-5);
     }
     .pg-ok {
-      background: color-mix(in srgb, var(--sl-color-green-high) 15%, transparent);
+      background: color-mix(
+        in srgb,
+        var(--sl-color-green-high) 15%,
+        transparent
+      );
     }
     .pg-warn {
-      background: color-mix(in srgb, var(--sl-color-orange-high) 18%, transparent);
+      background: color-mix(
+        in srgb,
+        var(--sl-color-orange-high) 18%,
+        transparent
+      );
     }
     .pg-form {
       display: flex;
@@ -305,30 +324,14 @@ const months = [
       margin-bottom: 0.5rem;
     }
     .hilal-verdict.is-ok {
-      background: color-mix(in srgb, var(--sl-color-green-high) 18%, transparent);
+      background: color-mix(
+        in srgb,
+        var(--sl-color-green-high) 18%,
+        transparent
+      );
     }
     .hilal-verdict.is-bad {
       background: color-mix(in srgb, var(--sl-color-red-high) 16%, transparent);
-    }
-    .hilal-facts {
-      display: grid;
-      gap: 0;
-      margin: 0 0 1rem;
-    }
-    .hilal-facts div {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      border-bottom: 1px solid var(--sl-color-gray-6);
-      padding: 0.35rem 0;
-    }
-    .hilal-facts dt {
-      color: var(--sl-color-gray-3);
-    }
-    .hilal-facts dd {
-      margin: 0;
-      font-weight: 600;
-      text-align: right;
     }
     .hilal-note {
       color: var(--sl-color-red-high);
@@ -342,7 +345,6 @@ const months = [
     }
     details summary {
       cursor: pointer;
-      margin-bottom: 0.5rem;
     }
   </style>
 </StarlightPage>

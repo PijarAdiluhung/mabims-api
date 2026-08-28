@@ -17,6 +17,17 @@ const months = [
 >
   <div class="pg-status" id="status" role="status">Checking API status…</div>
 
+  <p>
+    This page is a sample of the MABIMS API hilal visibility functionality.
+    Try it now and get a hilal visibility chart for Sabang, Indonesia's westernmost point
+    that often determines the start of the month.
+  </p>
+
+  <p>
+    Neo MABIMS criteria: moon altitude ≥ 3.0° and elongation ≥ 6.4° at sunset in Sabang.
+    If both are met, the moon is considered visible and 1 Muharram begins the next day.
+  </p>
+
   <form id="hilal-form" class="pg-form">
     <label>
       Hijri month
@@ -26,7 +37,11 @@ const months = [
     </label>
     <label>
       Hijri year
-      <input type="number" id="tahun" value="1447" min="1446" max="1486" required />
+      <select id="tahun">
+        {Array.from({ length: 41 }, (_, i) => 1446 + i).map((y) => (
+          <option value={y} selected={y === 1447}>{y}</option>
+        ))}
+      </select>
     </label>
     <button type="submit" class="pg-btn">Render chart</button>
   </form>
@@ -41,7 +56,6 @@ const months = [
     </figure>
     <div class="hilal-data" id="data" hidden>
       <div class="hilal-verdict" id="verdict"></div>
-      <dl class="hilal-facts" id="facts"></dl>
       <details>
         <summary>Full JSON response</summary>
         <pre class="pg-result" id="raw"></pre>
@@ -62,7 +76,6 @@ const months = [
     const figcapEl = document.getElementById('figcap');
     const dataEl = document.getElementById('data');
     const verdictEl = document.getElementById('verdict');
-    const factsEl = document.getElementById('facts');
     const rawEl = document.getElementById('raw');
     const errorEl = document.getElementById('error');
 
@@ -73,9 +86,9 @@ const months = [
         const meta = await res.json();
         statusEl.className = 'pg-status pg-ok';
         statusEl.textContent =
-          `✅ Authoritative MABIMS data · coverage ${meta.coverage.first} → ${meta.coverage.last}` +
+          `Authoritative MABIMS data from Kemenag · coverage ${meta.coverage.first} → ${meta.coverage.last}` +
           (meta.fallback_active
-            ? ' · fallback tier available only for dates outside the curated table'
+            ? ' · dates outside this range use Neo MABIMS computation'
             : '');
       } catch {
         statusEl.className = 'pg-status pg-warn';
@@ -88,10 +101,8 @@ const months = [
         const res = await fetch(`${apiBase}/api/v1/today`);
         if (!res.ok) return;
         const body = await res.json();
-        const hijri = body?.output?.date;
-        if (!hijri) return;
-        let year = parseInt(hijri.slice(0, 4), 10);
-        let month = parseInt(hijri.slice(5, 7), 10) + 1;
+        let month = body.output.month + 1;
+        let year = body.output.year;
         if (month > 12) {
           month = 1;
           year += 1;
@@ -101,10 +112,6 @@ const months = [
       } catch {
         /* keep static defaults */
       }
-    }
-
-    function fact(label, value) {
-      return `<div><dt>${label}</dt><dd>${value}</dd></div>`;
     }
 
     form.addEventListener('submit', async (event) => {
@@ -150,16 +157,6 @@ const months = [
           : `⛔ NOT VISIBLE — 1 ${body.month.name} ${body.month.year} AH likely shifts a day`;
         verdictEl.className = `hilal-verdict ${visible ? 'is-ok' : 'is-bad'}`;
 
-        factsEl.innerHTML = [
-          fact('Sighting evening', `${ev.hijri_date} (${ev.gregorian_date})`),
-          fact('Sunset', ev.sunset),
-          fact('Moonset', ev.moonset),
-          fact('Moon altitude', `${ev.moon_alt_deg.toFixed(1)}° (min 3.0°) — ${ev.alt_ok ? 'pass' : 'fail'}`),
-          fact('Elongation', `${ev.elongation_deg.toFixed(1)}° (min 6.4°) — ${ev.elong_ok ? 'pass' : 'fail'}`),
-          fact('Illumination', `${ev.illumination_pct.toFixed(1)}%`),
-          fact('Moon age', `${ev.age_hours.toFixed(0)} h`),
-          fact('Source', body.source),
-        ].join('');
         rawEl.textContent = JSON.stringify(body, null, 2);
         dataEl.hidden = false;
       } catch (error) {
@@ -291,26 +288,6 @@ const months = [
     }
     .hilal-verdict.is-bad {
       background: color-mix(in srgb, var(--sl-color-red-high) 16%, transparent);
-    }
-    .hilal-facts {
-      display: grid;
-      gap: 0.6rem;
-      margin: 0 0 1rem;
-    }
-    .hilal-facts div {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      border-bottom: 1px solid var(--sl-color-gray-6);
-      padding-bottom: 0.4rem;
-    }
-    .hilal-facts dt {
-      color: var(--sl-color-gray-3);
-    }
-    .hilal-facts dd {
-      margin: 0;
-      font-weight: 600;
-      text-align: right;
     }
     .hilal-note {
       color: var(--sl-color-red-high);

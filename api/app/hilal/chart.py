@@ -62,6 +62,9 @@ def verdict_label(data: dict) -> str:
         return "DI BAWAH HORIZON"
     if not data["visible"]:
         return "TIDAK TERLIHAT"
+    bm = data.get("borderline_margins", [])
+    if bm and (bm[0] or bm[1]):
+        return "MENDEKATI BATAS"
     return "TERLIHAT"
 
 
@@ -233,8 +236,14 @@ def _draw_verdict_pill(img: Image.Image, data: dict, mx: float, my: float,
     if px + pw > W - 40:
         px = mx - moon_size / 2 - 24 - pw
     py = min(int(my) - 23, horizon_y - 70)
+    if vt == "MENDEKATI BATAS":
+        pill_col = pal["accent"]
+    elif data["visible"]:
+        pill_col = pal["good"]
+    else:
+        pill_col = pal["bad"]
     _pill(img, int(max(40, px)), py, vt,
-          pal["good"] if data["visible"] else pal["bad"], (30, 16, 24), pf,
+          pill_col, (30, 16, 24), pf,
           pad_x=20, pad_y=10)
 
 
@@ -256,8 +265,8 @@ def _criteria_table(img: Image.Image, data: dict, box: tuple, pal: dict) -> None
     d.line([x0, y0 + 40, x1, y0 + 40], fill=pal["border"], width=1)
 
     crit = [
-        ("ALT. BULAN", f"{data['moon_alt']:+.1f}\u00b0", ">= 3.0\u00b0", data["alt_ok"]),
-        ("ELONGASI", f"{data['elong']:.1f}\u00b0", ">= 6.4\u00b0", data["elong_ok"]),
+        ("ALT. BULAN", f"{data['moon_alt']:+.1f}\u00b0", "3.0\u00b0", data["alt_ok"]),
+        ("ELONGASI", f"{data['elong']:.1f}\u00b0", "6.4\u00b0", data["elong_ok"]),
     ]
     chips = Image.new("RGBA", img.size, (0, 0, 0, 0))
     cd = ImageDraw.Draw(chips)
@@ -311,7 +320,7 @@ def render_chart(data: dict) -> Image.Image:
     _starfield(img, (0, 190, W, int(H * 0.35)), n=int(W * H / 4400),
                horizon_y=int(H * 0.35))
     mx, my = _draw_sky_scene(img, data, (40, 190, W - 40, horizon_y), pal,
-                             moon_size=170, sun_size=36, alt_hi=14.0)
+                             moon_size=119, sun_size=36, alt_hi=14.0)
 
     d = ImageDraw.Draw(img)
     pts: list[tuple[float, float]] = [(0, horizon_y + 2)]
@@ -321,11 +330,15 @@ def render_chart(data: dict) -> Image.Image:
     pts += [(W, horizon_y + 2), (W, H), (0, H)]
     d.polygon(pts, fill=pal["ground"])
     d.line([0, horizon_y, W, horizon_y], fill=pal["horizon"], width=2)
-    _draw_verdict_pill(img, data, mx, my, 170, pal, horizon_y)
+    _draw_verdict_pill(img, data, mx, my, 119, pal, horizon_y)
 
-    _txt(d, (40, 32), data["hijri"], font(50, bold=True), pal["text"])
-    _txt(d, (40, 96), f"{data['greg']}  \u00b7  {data['loc']}", font(28), pal["muted"])
-    _txt(d, (40, 140), data["label"], font(24, bold=True), pal["accent"])
+    # visibility_label e.g. "VISIBILITAS 1 RAMADHAN 1447 H"
+    vl_parts = data["label"].split()
+    vis_month = vl_parts[2] if len(vl_parts) >= 3 else ""
+    vis_year = vl_parts[3] if len(vl_parts) >= 4 else ""
+    _txt(d, (40, 32), f"Visibilitas {vis_month} {vis_year}", font(42, bold=True), pal["text"])
+    _txt(d, (40, 82), f"{data['greg']}  \u00b7  {data['hijri']}", font(28), pal["muted"])
+    _txt(d, (40, 118), data["loc"], font(24), pal["muted"])
 
     card_y = horizon_y + 30
     card_h = H - card_y - 52
@@ -357,7 +370,8 @@ def chart_png_bytes(data: dict) -> bytes:
 def build_chart_data(*, hijri_label: str, evening_date: date, location_display: str,
                      visibility_label: str, sunset: str, moonset: str, moon_alt: float,
                      moon_az: float, sun_alt: float, sun_az: float, elong: float,
-                     illum: float, alt_ok: bool, elong_ok: bool) -> dict:
+                     illum: float, alt_ok: bool, elong_ok: bool,
+                     alt_margin: float = 0.0, elong_margin: float = 0.0) -> dict:
     """Assemble the renderer's data dict from typed inputs."""
     return {
         "hijri": hijri_label,
@@ -375,4 +389,8 @@ def build_chart_data(*, hijri_label: str, evening_date: date, location_display: 
         "alt_ok": bool(alt_ok),
         "elong_ok": bool(elong_ok),
         "visible": bool(alt_ok and elong_ok),
+        "borderline_margins": [
+            alt_ok and 0 < alt_margin < 0.25,
+            elong_ok and 0 < elong_margin < 0.25,
+        ],
     }

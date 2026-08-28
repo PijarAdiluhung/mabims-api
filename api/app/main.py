@@ -733,6 +733,8 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             illum=sighting.illumination_pct / 100.0,
             alt_ok=alt_ok,
             elong_ok=elong_ok,
+            alt_margin=crit.moon_alt_deg - HILAL_ALT_MIN_DEG,
+            elong_margin=crit.elongation_deg - HILAL_ELONG_MIN_DEG,
         )
         try:
             png = chart_png_bytes(data)
