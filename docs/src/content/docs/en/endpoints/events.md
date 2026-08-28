@@ -52,8 +52,8 @@ Items are sorted by Gregorian date.
 ## Notes
 
 - Within table coverage, `source` is `mabims`. Beyond it, `source` is `mabims-computed`
-  (Neo MABIMS criteria) or `fallback:aladhan-ummalqura` (emergency last resort).
-- Warnings are included when computed or fallback data is used — check the `warnings[]`
+  (Neo MABIMS criteria).
+- Warnings are included when computed data is used — check the `warnings[]`
   array in the response.
 - For `calendar=gregorian`, the endpoint estimates which hijri years overlap the requested
   gregorian year and resolves each event across those years.

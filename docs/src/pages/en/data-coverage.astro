@@ -30,7 +30,6 @@ try {
   <p>Requests after the table end are answered by forward computation:</p>
   <ol>
     <li><strong><code>mabims-computed</code></strong> — the Neo MABIMS criteria evaluated live at Sabang (hilal altitude ≥ 3° and elongation ≥ 6.4° at sunset on day 29). This is the same rule the curated table follows, so it stays on-method into the future. Months decided by a margin under 0.25° carry a borderline warning.</li>
-    <li><strong><code>fallback:aladhan-ummalqura</code></strong> — Umm al-Qura via Aladhan as a last resort, fetched lazily per month and cached at the origin.</li>
   </ol>
 
   <blockquote>
@@ -50,5 +49,5 @@ try {
   <p>Dates outside these bounds are rejected with a <code>date_out_of_supported_range</code> error.</p>
 
   <h2>Monitoring</h2>
-  <p><a href="/en/endpoints/meta/"><code>GET /meta</code></a> exposes <code>computed_active</code>, <code>computed_months</code>, <code>fallback_active</code> and <code>fallback_months</code>. The <a href="/en/playground/">live status</a> panel on the Playground page reads it in real time.</p>
+  <p><a href="/en/endpoints/meta/"><code>GET /meta</code></a> exposes <code>computed_active</code> and <code>computed_months</code>. The <a href="/en/playground/">live status</a> panel on the Playground page reads it in real time.</p>
 </StarlightPage>

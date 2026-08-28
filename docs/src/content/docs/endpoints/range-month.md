@@ -29,7 +29,7 @@ GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
 }
 ```
 
-Setiap item membawa `source` masing-masing, karena rentang yang melewati batasan data MABIMS dapat mencampur data resmi dan fallback.
+Setiap item membawa `source` masing-masing, karena rentang yang melewati batasan data MABIMS dapat mencampur data resmi dan data komputed.
 
 ## GET /month
 

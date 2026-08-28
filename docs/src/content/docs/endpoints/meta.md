@@ -27,8 +27,6 @@ GET /api/v1/meta
 |---|---|
 | `data_version` | Hash pendek dari tabel MABIMS yang berubah ketika tabel diperbarui |
 | `coverage` | Rentang Gregorian yang dicakup oleh tabel otoritatif |
-| `fallback_active` | `true` setelah ada permintaan yang dilayani dari fallback Umm al-Qura (lapis terakhir) |
-| `fallback_months` | Bulan-bulan mana yang diambil ke layer fallback Umm al-Qura |
 | `computed_active` | `true` setelah ada permintaan yang dilayani dari kalendar hitungan Neo MABIMS |
 | `computed_months` | Bulan-bulan mana yang sudah dihitung via kriteria Neo MABIMS |
 | `method` | Metode perhitungan di luar tabel (`neo-mabims-sabang`) |
@@ -36,8 +34,7 @@ GET /api/v1/meta
 ## Perilaku klien yang direkomendasikan
 
 1. Poll `/meta` secara harian (murah dan dapat di-cache selama 5 menit).
-2. Jika `computed_active` atau `fallback_active` bernilai true, tampilkan pemberitahuan halus di UI Anda — tanggal bisa bergeser ±1 hari dari pengumuman resmi.
-3. Beri peringatan jika `fallback_active` tetap true selama lebih dari beberapa hari: tabel tahunan perlu diperbarui di upstream.
+2. Jika `computed_active` bernilai true, tampilkan pemberitahuan halus di UI Anda — tanggal bisa bergeser ±1 hari dari pengumuman resmi.
 
 ## GET /healthz
 

@@ -52,9 +52,8 @@ Item diurutkan berdasarkan tanggal Gregorian.
 ## Catatan
 
 - Di dalam cakupan tabel, `source` adalah `mabims`. Di luar cakupan, `source` adalah
-  `mabims-computed` (kriteria Neo MABIMS) atau `fallback:aladhan-ummalqura` (cadangan
-  terakhir).
-- Peringatan disertakan saat data komputasi atau fallback digunakan — periksa array
+  `mabims-computed` (kriteria Neo MABIMS).
+- Peringatan disertakan saat data komputasi digunakan — periksa array
   `warnings[]` di respons.
 - Untuk `calendar=gregorian`, endpoint memperkirakan tahun hijriah yang tumpang tindih
   dengan tahun gregorian yang diminta dan menyelesaikan setiap event di tahun-tahun tersebut.

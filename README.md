@@ -61,7 +61,6 @@ The `source` field indicates where the data came from:
 |---|---|
 | `mabims` | Official MABIMS table from Kemenag |
 | `mabims-computed` | Computed with Neo MABIMS criteria (altitude ≥ 3°, elongation ≥ 6.4° at Sabang sunset) |
-| `fallback:aladhan-ummalqura` | Emergency fallback (last resort) |
 
 | Endpoint | Purpose | Rate Limit |
 |---|---|---|
@@ -189,7 +188,7 @@ The docs at [mabims.dev](https://mabims.dev) include:
 - **API Reference** — every endpoint with parameters, response shapes, and error codes
 - **FAQ** — common questions about MABIMS, auth, timezone, and integration
 - **Blog** — tutorials, integration guides, and the story behind the API
-- **Data Coverage** — table dates, computed range, and fallback behavior
+- **Data Coverage** — table dates and computed range
 
 ## Repository layout
 
@@ -241,8 +240,7 @@ Regenerate the seed yearly with `api/scripts/generate_seed.py` (verifies curated
 before writing); `.github/workflows/regen-computed-table.yml` automates it every January and
 opens a PR with the diff.
 
-A Umm al-Qura tier remains wired as an emergency last resort; `/meta` exposes `method`,
-`computed_active`, `computed_months`, `fallback_active` and `fallback_months`.
+`/meta` exposes `method`, `computed_active`, `computed_months`, `fallback_active` and `fallback_months`.
 
 ---
 

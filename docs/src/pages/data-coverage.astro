@@ -30,7 +30,6 @@ try {
   <p>Permintaan setelah akhir tabel dijawab dengan perhitungan maju (forward-only):</p>
   <ol>
     <li><strong><code>mabims-computed</code></strong> — kriteria Neo MABIMS dihitung langsung di Sabang (tinggi hilal ≥ 3° dan elongasi ≥ 6,4° saat matahari terbenam pada hari ke-29). Aturan sama dengan tabel kurasi, sehingga tetap <em>on-method</em>. Bulan dengan margin keputusan di bawah 0,25° mendapat peringatan borderline.</li>
-    <li><strong><code>fallback:aladhan-ummalqura</code></strong> — Umm al-Qura via Aladhan sebagai upaya terakhir, diambil lazy per bulan dan di-cache di origin.</li>
   </ol>
 
   <h2>Batas keras</h2>
@@ -46,5 +45,5 @@ try {
   <p>Tanggal di luar batas ini akan ditolak dengan error <code>date_out_of_supported_range</code>.</p>
 
   <h2>Monitoring</h2>
-  <p><a href="/endpoints/meta/"><code>GET /meta</code></a> menampilkan <code>computed_active</code>, <code>computed_months</code>, <code>fallback_active</code>, dan <code>fallback_months</code>. Panel <a href="/playground/">status langsung</a> di halaman Playground membacanya secara real time.</p>
+  <p><a href="/endpoints/meta/"><code>GET /meta</code></a> menampilkan <code>computed_active</code> dan <code>computed_months</code>. Panel <a href="/playground/">status langsung</a> di halaman Playground membacanya secara real time.</p>
 </StarlightPage>

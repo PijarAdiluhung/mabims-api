@@ -30,7 +30,7 @@ GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
 ```
 
 Each item carries its own `source` — ranges crossing the table boundary can mix
-authoritative and fallback data.
+authoritative and computed data.
 
 ## GET /month
 

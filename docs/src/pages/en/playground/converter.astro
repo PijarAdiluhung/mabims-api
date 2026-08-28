@@ -92,7 +92,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'http://localhost:8000';
         statusEl.className = 'pg-status pg-ok';
         statusEl.textContent =
           `Authoritative MABIMS data from Kemenag · coverage ${meta.coverage.first} → ${meta.coverage.last}` +
-          (meta.fallback_active
+          (meta.computed_active
             ? ' · dates outside this range use Neo MABIMS computation'
             : '');
       } catch {

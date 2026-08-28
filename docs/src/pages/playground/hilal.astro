@@ -109,7 +109,7 @@ const months = [
         statusEl.className = "pg-status pg-ok";
         statusEl.textContent =
           `Data kalender MABIMS resmi dari Kemenag saat ini mencakup: ${firstHijri} → ${lastHijri}` +
-          (meta.fallback_active
+          (meta.computed_active
             ? " Di luar cakupan ini, menggunakan perhitungan Neo MABIMS."
             : "");
       } catch {
