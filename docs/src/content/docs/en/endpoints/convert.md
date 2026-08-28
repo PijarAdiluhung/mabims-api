@@ -23,7 +23,7 @@ GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
 ```json
 {
   "input": { "date": "2025-01-03", "calendar": "gregorian" },
-  "output": { "date": "1446-07-03", "calendar": "hijri" },
+  "output": { "date": "1446-07-03", "calendar": "hijri", "day": 3, "month": 7, "month_name": "Rajab", "year": 1446 },
   "source": "mabims",
   "warnings": []
 }

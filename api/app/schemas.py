@@ -16,6 +16,10 @@ class ConversionInput(BaseModel):
 class ConversionOutput(BaseModel):
     date: str
     calendar: str
+    day: int
+    month: int
+    month_name: str
+    year: int
 
 
 class ConvertResponse(BaseModel):

@@ -19,7 +19,7 @@ from .events import find_events
 from .fallback import FALLBACK_SOURCE, AladhanProvider, FallbackStore, MemoryFallbackStore
 from .hilal.astro import lunar_age_hours, moonset_local, phase_angle_deg, sunset_utc
 from .hilal.chart import build_chart_data, chart_png_bytes
-from .hilal.service import MonthNotResolvable, resolve_sighting_evening
+from .hilal.service import MONTH_NAMES_ID, MonthNotResolvable, resolve_sighting_evening
 from .mabims_astro import (
     SABANG_LAT_DEG,
     SABANG_LON_DEG,
@@ -84,6 +84,18 @@ _HIJRI_YEARS_PER_GREGORIAN = 365.2425 / 354.36792
 
 SABANG_TZ = "Asia/Jakarta"
 SABANG_DISPLAY = "Sabang \u00b7 Indonesia"
+
+GREGORIAN_MONTH_NAMES = {
+    1: "January", 2: "February", 3: "March", 4: "April",
+    5: "May", 6: "June", 7: "July", 8: "August",
+    9: "September", 10: "October", 11: "November", 12: "December",
+}
+
+
+def _parse_date_parts(iso: str, calendar: str) -> dict:
+    y, m, d = (int(iso[0:4]), int(iso[5:7]), int(iso[8:10]))
+    names = MONTH_NAMES_ID if calendar == "hijri" else GREGORIAN_MONTH_NAMES
+    return {"day": d, "month": m, "month_name": names[m], "year": y}
 
 
 class SightingObservation:
@@ -405,7 +417,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         hijri_value = value if cal == "gregorian" else target.isoformat()
         payload = ConvertResponse(
             input=ConversionInput(date=target.isoformat(), calendar=cal),
-            output=ConversionOutput(date=value, calendar=opposite),
+            output=ConversionOutput(date=value, calendar=opposite, **_parse_date_parts(value, opposite)),
             source=source,
             warnings=_warnings_for(source, hijri_value),
         )
@@ -428,7 +440,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         value, source = _resolve_pair(today_iso, "gregorian")
         payload = ConvertResponse(
             input=ConversionInput(date=today_iso, calendar="gregorian", tz=tz_label(tzo)),
-            output=ConversionOutput(date=value, calendar="hijri"),
+            output=ConversionOutput(date=value, calendar="hijri", **_parse_date_parts(value, "hijri")),
             source=source,
             warnings=_warnings_for(source, value),
         )
@@ -447,7 +459,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         value, source = _resolve_pair(target.isoformat(), "gregorian")
         payload = ConvertResponse(
             input=ConversionInput(date=target.isoformat(), calendar="gregorian"),
-            output=ConversionOutput(date=value, calendar="hijri"),
+            output=ConversionOutput(date=value, calendar="hijri", **_parse_date_parts(value, "hijri")),
             source=source,
             warnings=_warnings_for(source, value),
         )

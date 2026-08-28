@@ -84,17 +84,6 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? "http://localhost:8000";
   </script>
 
   <script define:vars={{ apiBase }}>
-    const HIJRI_MONTHS = [
-      '', 'Muharram', 'Safar', 'Rabiul Awal', 'Rabiul Akhir',
-      'Jumadil Awal', 'Jumadil Akhir', 'Rajab', "Sya'ban",
-      'Ramadhan', 'Syawal', "Dzulqa'dah", 'Dzulhijjah',
-    ];
-
-    function formatHijri(dateStr) {
-      const [y, m, d] = dateStr.split('-').map(Number);
-      return `${d} ${HIJRI_MONTHS[m]} ${y}`;
-    }
-
     const statusEl = document.getElementById("status");
     const form = document.getElementById("conv-form");
     const dateEl = document.getElementById("date");
@@ -126,7 +115,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? "http://localhost:8000";
         if (!res.ok) throw new Error(res.status);
         const body = await res.json();
         todayDisplay.innerHTML =
-          `<span class="today-hijri">${formatHijri(body.output.date)}</span>` +
+          `<span class="today-hijri">${body.output.day} ${body.output.month_name} ${body.output.year}</span>` +
           `<span class="today-greg">${body.input.date}</span>`;
         todayRaw.textContent = JSON.stringify(body, null, 2);
       } catch {
@@ -148,7 +137,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? "http://localhost:8000";
           convOutput.className = "conv-error";
         } else {
           convOutput.innerHTML =
-            `<span class="conv-result-hijri">${formatHijri(body.output.date)}</span>` +
+            `<span class="conv-result-hijri">${body.output.day} ${body.output.month_name} ${body.output.year}</span>` +
             `<span class="conv-result-greg">${body.input.date}</span>`;
           convOutput.className = "conv-result-display";
           convRaw.textContent = JSON.stringify(body, null, 2);

@@ -13,7 +13,7 @@ curl "https://api.mabims.dev/api/v1/today"
 ```json
 {
   "input": { "date": "2026-08-27", "calendar": "gregorian", "tz": "Asia/Jakarta" },
-  "output": { "date": "1448-03-14", "calendar": "hijri" },
+  "output": { "date": "1448-03-14", "calendar": "hijri", "day": 14, "month": 3, "month_name": "Rabiul Akhir", "year": 1448 },
   "source": "mabims",
   "warnings": []
 }
@@ -25,7 +25,7 @@ curl "https://api.mabims.dev/api/v1/convert?date=2025-01-03&calendar=gregorian"
 ```json
 {
   "input": { "date": "2025-01-03", "calendar": "gregorian", "tz": null },
-  "output": { "date": "1446-07-03", "calendar": "hijri" },
+  "output": { "date": "1446-07-03", "calendar": "hijri", "day": 3, "month": 7, "month_name": "Rajab", "year": 1446 },
   "source": "mabims",
   "warnings": []
 }

@@ -33,17 +33,17 @@ Response-nya kira-kira begini:
 ```json
 {
   "input": { "date": "2026-08-28", "calendar": "gregorian", "tz": "Asia/Jakarta" },
-  "output": { "date": "1448-03-15", "calendar": "hijri" },
+  "output": { "date": "1448-03-15", "calendar": "hijri", "day": 15, "month": 3, "month_name": "Rabiul Akhir", "year": 1448 },
   "source": "mabims",
   "warnings": []
 }
 ```
 
-Kamu tinggal ambil field `output.date` untuk ditampilkan. Formatnya `YYYY-MM-DD`, jadi tinggal di-split:
+Kamu tinggal ambil field `output` untuk ditampilkan. Sudah terurai — tidak perlu parse sendiri:
 
 ```js
-const [year, month, day] = data.output.date.split("-");
-document.querySelector("#hijri-date").textContent = `${day} ${month} ${year} H`;
+const { day, month_name, year } = data.output;
+document.querySelector("#hijri-date").textContent = `${day} ${month_name} ${year} H`;
 ```
 
 Jadi misalnya di header website kamu ada:

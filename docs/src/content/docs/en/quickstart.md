@@ -20,7 +20,7 @@ curl "https://api.mabims.dev/api/v1/today"
 ```json
 {
   "input": { "date": "2026-08-24", "calendar": "gregorian", "tz": "Asia/Jakarta" },
-  "output": { "date": "1448-03-11", "calendar": "hijri" },
+  "output": { "date": "1448-03-11", "calendar": "hijri", "day": 11, "month": 3, "month_name": "Rabiul Akhir", "year": 1448 },
   "source": "mabims",
   "warnings": []
 }

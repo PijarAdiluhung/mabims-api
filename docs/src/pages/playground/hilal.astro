@@ -52,17 +52,6 @@ const months = [
   <p class="hilal-note" id="error" hidden></p>
 
   <script define:vars={{ apiBase }}>
-    const HIJRI_MONTHS = [
-      '', 'Muharram', 'Safar', 'Rabiul Awal', 'Rabiul Akhir',
-      'Jumadil Awal', 'Jumadil Akhir', 'Rajab', "Sya'ban",
-      'Ramadhan', 'Syawal', "Dzulqa'dah", 'Dzulhijjah',
-    ];
-
-    function formatHijri(dateStr) {
-      const [y, m, d] = dateStr.split('-').map(Number);
-      return `${d} ${HIJRI_MONTHS[m]} ${y}`;
-    }
-
     const statusEl = document.getElementById('status');
     const form = document.getElementById('hilal-form');
     const bulanEl = document.getElementById('bulan');
@@ -89,8 +78,8 @@ const months = [
         ]);
         const firstBody = await firstRes.json();
         const lastBody = await lastRes.json();
-        const firstHijri = formatHijri(firstBody.output.date);
-        const lastHijri = formatHijri(lastBody.output.date);
+        const firstHijri = `${firstBody.output.day} ${firstBody.output.month_name} ${firstBody.output.year}`;
+        const lastHijri = `${lastBody.output.day} ${lastBody.output.month_name} ${lastBody.output.year}`;
 
         statusEl.className = 'pg-status pg-ok';
         statusEl.textContent =
@@ -109,10 +98,8 @@ const months = [
         const res = await fetch(`${apiBase}/api/v1/today`);
         if (!res.ok) return;
         const body = await res.json();
-        const hijri = body?.output?.date;
-        if (!hijri) return;
-        let year = parseInt(hijri.slice(0, 4), 10);
-        let month = parseInt(hijri.slice(5, 7), 10) + 1;
+        let month = body.output.month + 1;
+        let year = body.output.year;
         if (month > 12) {
           month = 1;
           year += 1;
