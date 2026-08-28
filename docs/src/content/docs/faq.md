@@ -95,3 +95,10 @@ Gunakan endpoint `/hilal/info` untuk data kriteria, atau `/hilal/viz` untuk graf
 Ya, kode sumbernya terbuka di GitHub: [PijarAdiluhung/mabims-api](https://github.com/PijarAdiluhung/mabims-api). Kontribusi dan laporan isu selalu diterima.
 
 </details>
+
+<details>
+<summary>Siapa yang membuat mabims.dev?</summary>
+
+mabims.dev dibuat oleh Pijar Sukma Adiluhung, developer asal Indonesia yang juga penghobi astronomi amatir (nggak heran kalau endpoint /hilal/viz digarap detail). Proyek ini lahir dari pengalaman pribadi melihat banyak aplikasi kalender Hijriah di Indonesia pakai kriteria Umm al-Qura yang kurang pas untuk konteks lokal. Kamu bisa lihat proyek lain buatannya di [kajian.malangmengaji.com](https://kajian.malangmengaji.com), atau cek kode sumber mabims.dev di [GitHub](https://github.com/PijarAdiluhung/mabims-api). Bisa juga baca tulisannya di [/blog](/blog).
+
+</details>
