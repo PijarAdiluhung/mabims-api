@@ -28,6 +28,21 @@ GET /api/v1/today?tz={timezone}
 
 Field `input.tz` menampilkan zona waktu yang *terdeteksi sistem* sehingga klien dapat memastikan zona yang digunakan.
 
+## Error
+
+```json
+{
+  "error": {
+    "code": "invalid_timezone",
+    "message": "..."
+  }
+}
+```
+
+| `code` | HTTP | Penyebab |
+|---|---|---|
+| `invalid_timezone` | 400 | Zona waktu tidak dikenal |
+
 ## Varian immutable
 
 ```{=html}

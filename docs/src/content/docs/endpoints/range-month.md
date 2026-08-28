@@ -43,5 +43,21 @@ Untuk `calendar=hijri`, respons berisi setiap tanggal Gregorian yang menjadi acu
 
 ## Kesalahan
 
-`invalid_step` · `range_too_large` (>400 hari) · `out_of_coverage` · `invalid_month`
-· `invalid_year` — semua mengembalikan kode `400` dengan notifikasi kesalahan yang standar.
+Semua kesalahan mengembalikan JSON dengan format standar:
+
+```json
+{
+  "error": {
+    "code": "range_too_large",
+    "message": "Range is limited to 400 days."
+  }
+}
+```
+
+| `code` | HTTP | Penyebab |
+|---|---|---|
+| `invalid_step` | 400 | Step bukan `day` |
+| `range_too_large` | 400 | Rentang > 400 hari |
+| `out_of_coverage` | 400 | Tanggal di luar cakupan tabel |
+| `invalid_month` | 400 | Bulan bukan 1–12 |
+| `invalid_year` | 400 | Tahun di luar batas yang didukung |

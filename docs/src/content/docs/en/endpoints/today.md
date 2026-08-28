@@ -30,6 +30,21 @@ GET /api/v1/today?tz={timezone}
 
 The `input.tz` field echoes the *resolved* timezone so clients can confirm what was used.
 
+## Errors
+
+```json
+{
+  "error": {
+    "code": "invalid_timezone",
+    "message": "..."
+  }
+}
+```
+
+| `code` | HTTP | Cause |
+|---|---|---|
+| `invalid_timezone` | 400 | Unrecognized timezone |
+
 ## Immutable variant
 
 ```{=html}

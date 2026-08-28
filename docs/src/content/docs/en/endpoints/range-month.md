@@ -45,5 +45,21 @@ maps — exactly what a Hijri month-view needs (29–30 items). Same item shape 
 
 ## Errors
 
-`invalid_step` · `range_too_large` (>400 days) · `out_of_coverage` · `invalid_month`
-· `invalid_year` — all return `400` with the standard error envelope.
+All errors return a standard JSON envelope:
+
+```json
+{
+  "error": {
+    "code": "range_too_large",
+    "message": "Range is limited to 400 days."
+  }
+}
+```
+
+| `code` | HTTP | Cause |
+|---|---|---|
+| `invalid_step` | 400 | Step is not `day` |
+| `range_too_large` | 400 | Range exceeds 400 days |
+| `out_of_coverage` | 400 | Date outside table coverage |
+| `invalid_month` | 400 | Month is not 1–12 |
+| `invalid_year` | 400 | Year out of supported bounds |

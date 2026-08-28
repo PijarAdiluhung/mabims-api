@@ -29,8 +29,34 @@ GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
 }
 ```
 
-**400** — invalid date format or unknown calendar (`invalid_date`, `invalid_calendar`, `missing_parameter`)
-**404** — `date_not_found`: no pair exists for that date; check [/meta](/endpoints/meta)
+**400** — invalid date format or unknown calendar
+
+```json
+{
+  "error": {
+    "code": "invalid_date",
+    "message": "'not-a-date' is not a valid ISO date (YYYY-MM-DD)."
+  }
+}
+```
+
+| `code` | Cause |
+|---|---|
+| `invalid_date` | Date is not in `YYYY-MM-DD` format |
+| `invalid_calendar` | `calendar` parameter is not `gregorian` or `hijri` |
+| `missing_parameter` | `date` query parameter is missing |
+| `out_of_coverage` | Date is outside table coverage; see [/meta](/endpoints/meta) |
+
+**404** — `date_not_found`: no pair exists for that date
+
+```json
+{
+  "error": {
+    "code": "date_not_found",
+    "message": "No calendar pair exists for 2023-01-01 (gregorian). See /api/v1/meta for coverage."
+  }
+}
+```
 
 ## Caching
 

@@ -59,3 +59,19 @@ Item diurutkan berdasarkan tanggal Gregorian.
 - Untuk `calendar=gregorian`, endpoint memperkirakan tahun hijriah yang tumpang tindih
   dengan tahun gregorian yang diminta dan menyelesaikan setiap event di tahun-tahun tersebut.
 - Seperti `/convert`, respons di dalam cakupan tabel di-cache di CDN secara immutable.
+
+## Error
+
+```json
+{
+  "error": {
+    "code": "invalid_year",
+    "message": "..."
+  }
+}
+```
+
+| `code` | HTTP | Penyebab |
+|---|---|---|
+| `invalid_calendar` | 400 | Calendar bukan `gregorian` atau `hijri` |
+| `invalid_year` | 400 | Tahun di luar batas yang didukung |

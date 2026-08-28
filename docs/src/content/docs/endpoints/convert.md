@@ -29,8 +29,34 @@ GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
 }
 ```
 
-**400** — format tanggal tidak valid atau kalender tidak dikenal (`invalid_date`, `invalid_calendar`, `missing_parameter`)
-**404** — `date_not_found`: tidak ada pasangan untuk tanggal tersebut; periksa [/meta](/endpoints/meta)
+**400** — format tanggal tidak valid atau kalender tidak dikenal
+
+```json
+{
+  "error": {
+    "code": "invalid_date",
+    "message": "'bukan-tanggal' is not a valid ISO date (YYYY-MM-DD)."
+  }
+}
+```
+
+| `code` | Penyebab |
+|---|---|
+| `invalid_date` | Format tanggal bukan `YYYY-MM-DD` |
+| `invalid_calendar` | Parameter `calendar` bukan `gregorian` atau `hijri` |
+| `missing_parameter` | Query parameter `date` tidak ada |
+| `out_of_coverage` | Tanggal di luar cakupan tabel; lihat [/meta](/endpoints/meta) |
+
+**404** — `date_not_found`: tidak ada pasangan untuk tanggal tersebut
+
+```json
+{
+  "error": {
+    "code": "date_not_found",
+    "message": "No calendar pair exists for 2023-01-01 (gregorian). See /api/v1/meta for coverage."
+  }
+}
+```
 
 ## Caching
 

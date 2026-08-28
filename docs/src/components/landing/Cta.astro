@@ -27,10 +27,13 @@
         Quickstart
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </a>
-      <a href="/faq/" class="btn btn-secondary">
-        FAQ
+      <a href="/playground/converter/" class="btn btn-secondary">
+        Coba
       </a>
     </div>
+    <p class="cta-hint">
+      <a href="/blog/cara-pakai-mabims-api/">Lihat tutorial integrasi →</a>
+    </p>
   </div>
 </section>
 
@@ -128,6 +131,21 @@
     flex-wrap: wrap;
     justify-content: center;
     gap: 1rem;
+  }
+
+  .cta-card .cta-hint {
+    margin: 1.5rem 0 0;
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .cta-card .cta-hint a {
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .cta-card .cta-hint a:hover {
+    color: var(--sl-color-accent);
   }
 
   .btn {

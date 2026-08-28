@@ -58,3 +58,19 @@ Items are sorted by Gregorian date.
 - For `calendar=gregorian`, the endpoint estimates which hijri years overlap the requested
   gregorian year and resolves each event across those years.
 - Like `/convert`, responses within table coverage are cached immutably at the CDN.
+
+## Errors
+
+```json
+{
+  "error": {
+    "code": "invalid_year",
+    "message": "..."
+  }
+}
+```
+
+| `code` | HTTP | Cause |
+|---|---|---|
+| `invalid_calendar` | 400 | Calendar is not `gregorian` or `hijri` |
+| `invalid_year` | 400 | Year out of supported bounds |
