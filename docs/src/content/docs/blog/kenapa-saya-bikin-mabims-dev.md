@@ -7,7 +7,8 @@ tags:
   - MABIMS
   - Kemenag
   - Hijriah
-excerpt: "Dari website Kemenag yang tanggalnya kacau, viral, sampai akhirnya dihapus — ini cerita kenapa mabims.dev dibuat."
+excerpt: "Dulu, website Kemenag pernah menampilkan tanggal Hijriah di halamannya. Banyak orang termasuk saya sendiri terbiasa mengandalkannya. Tinggal buka website, lihat pojok atas, jadi tahu deh sekarang tanggal berapa Hijriah. Sampai suatu hari, ada postingan viral...."
+featured: true
 cover:
   image: ../../../assets/eclipse.jpg
   alt: Gerhana bulan
@@ -17,15 +18,15 @@ authors:
 
 Ada cerita lucu (dan sedikit menyedihkan) di balik mabims.dev.
 
-Dulu, website Kemenag pernah menampilkan tanggal Hijriah di halamannya. Banyak orang termasuk saya sendiri terbiasa mengandalkannya: buka website, lihat pojok atas atau footer, tahu sekarang tanggal berapa Hijriah.
+Dulu, website Kemenag pernah menampilkan tanggal Hijriah di halamannya. Banyak orang termasuk saya sendiri terbiasa mengandalkannya. Tinggal buka website, lihat pojok atas, jadi tahu deh sekarang tanggal berapa Hijriah.
 
-Sampai suatu hari, ada yang iseng bandingkan. Kalender keluaran Kemenag di rumahnya bilang tanggal 30, tapi website itu bilang sudah masuk tanggal 1 bulan berikutnya. Selisih sehari. Kelihatannya sepele, tapi buat urusan kalender Hijriah, selisih sehari itu bisa berarti beda hari mulai puasa atau beda hari raya.
+Sampai suatu hari, ada postingan viral. Kalender keluaran Kemenag bilang tanggal 30, tapi website Kemenag bilang udah masuk tanggal 1 bulan berikutnya. Selisih sehari.
 
 Postingan itu itu nyebar. Rame. Orang-orang mempertanyakan kenapa situs resmi bisa beda sama kalendernya yang dikeluarkan sendiri.
 
 ## Solusinya? Dihapus aja
 
-Saat itu saya nggak tahu detail di baliknya, apakah itu bug, salah kalkulasi, atau apa. Yang saya tahu, ujung-ujungnya elegan sekali: **tanggal Hijriah di website itu dihapus**. Bukan diperbaiki, dihapus. Masalah selesai secara teknis, walau nggak benar-benar selesai secara substansi.
+Saat itu saya nggak tahu detail di baliknya, apakah itu bug, salah kalkulasi, atau apa. Yang saya tahu, ujung-ujungnya elegan sekali: **tanggal Hijriah di website itu dihapus**. Bukan diperbaiki, dihapus. Masalah selesai sih iya... tapi kayak gimana gitu.
 
 ## Beberapa tahun kemudian, saya jadi junior dev
 
@@ -37,11 +38,11 @@ Jadi kemungkinan besar itu bukan "bug" dalam arti kesalahan kode. Itu bug karena
 
 ## Isi gap-nya
 
-Setelah nyadar itu, saya mikir: kalau developer lain di Indonesia mau bikin aplikasi yang nampilin kalender Hijriah dan pengen datanya sesuai keputusan Kemenag (bukan Saudi), opsinya dikit banget. Kebanyakan harus scraping manual atau maintain tabel sendiri.
+Setelah nyadar itu, saya mikir: kalau developer lain di Indonesia mau bikin aplikasi yang nampilin kalender Hijriah dan pengen datanya sesuai keputusan Kemenag (bukan Saudi), opsinya dikit banget. Kebanyakan harus scraping manual atau maintain tabel sendiri (spoiler: developer =/= ahli astronomi).
 
 Makanya saya bikin **mabims.dev**: API kalender Hijriah yang sumbernya dari kalender resmi Kemenag RI, pakai kriteria Neo MABIMS untuk fallback di luar cakupan. Gratis, tanpa API key, tinggal panggil endpoint.
 
-Realistis sih, saya nggak tahu bakal banyak yang pakai atau nggak. Tapi minimal ada satu aplikasi yang pasti pakai: [kajian.malangmengaji.com](https://kajian.malangmengaji.com), yang saya bangun juga. Kalau nggak ada developer lain yang butuh, ya sudah — API ini akan tetap jalan buat aplikasi saya sendiri.
+Realistisnya... saya nggak tahu bakal banyak yang pakai atau nggak. Tapi minimal ada satu aplikasi yang pasti pakai: [kajian.malangmengaji.com](https://kajian.malangmengaji.com), yang saya bangun juga. Kalau nggak ada developer lain yang butuh, ya sudah... API ini akan tetap jalan buat aplikasi saya sendiri.
 
 Tapi kalau kamu develop aplikasi yang butuh kalender Hijriah yang akurat buat Indonesia, silakan pakai. Gratis, open source, dan mudah-mudahan nggak akan pernah perlu dihapus karena ketauan salah tanggal :)
 

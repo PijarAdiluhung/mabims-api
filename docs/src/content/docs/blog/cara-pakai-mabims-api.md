@@ -7,7 +7,7 @@ tags:
   - JavaScript
   - Integrasi
   - Hijriah
-excerpt: "Contoh integrasi dari JavaScript vanilla, Vue, React, sampai mobile. Semua tanpa library tambahan."
+excerpt: "API ini saya bikin buat developer, dan saya nggak mau integrasinya berhenti di dokumentasi yang isinya cuma `GET /today` lalu selesai. Jadi di tulisan ini saya mau kasih contoh dari yang paling sederhana sampai yang agak proper: JavaScript biasa, Vue, React, sampai aplikasi mobile."
 cover:
   image: ../../../assets/tutorial.jpg
   alt: Tutorial integrasi API
@@ -15,7 +15,7 @@ authors:
   - pijar
 ---
 
-API ini memang saya bikin buat developer, saya nggak mau integrasinya berhenti di dokumentasi yang isinya cuma `GET /today` lalu selesai. Jadi di tulisan ini saya mau kasih contoh dari yang paling sederhana sampai yang agak proper: JavaScript biasa, Vue, React, sampai aplikasi mobile.
+API ini saya bikin buat developer, dan saya nggak mau integrasinya berhenti di dokumentasi yang isinya cuma `GET /today` lalu selesai. Jadi di tulisan ini saya mau kasih contoh dari yang paling sederhana sampai yang agak proper: JavaScript biasa, Vue, React, sampai aplikasi mobile.
 
 ## Paling sederhana: JavaScript
 
@@ -39,7 +39,7 @@ Response-nya kira-kira begini:
 }
 ```
 
-Kamu tinggal ambil field `output` untuk ditampilkan. Sudah terurai — tidak perlu parse sendiri:
+Kamu tinggal ambil field `output` untuk ditampilkan. Sudah lengkap, tidak perlu parse sendiri:
 
 ```js
 const { day, month_name, year } = data.output;
@@ -177,7 +177,7 @@ Secara sederhana, ada dua kemungkinan:
 
 Kenapa saya expose informasi ini?
 
-Karena saya nggak mau API diam-diam memberikan hasil perhitungan lalu developer mengira itu adalah tanggal yang secara eksplisit tercantum di tabel resmi.
+Karena saya nggak mau API diam-diam memberikan hasil perhitungan lalu developer mengira itu adalah tanggal resmi dari Kemenag.
 
 Kalau aplikasi kamu cukup serius soal kalender, kamu bisa menyimpan atau menampilkan informasi tersebut.
 
@@ -205,17 +205,11 @@ Misalnya pseudocode-nya:
 
 ```text
 GET https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta
-
         ↓
-
 JSON response
-
         ↓
-
 Simpan ke state
-
         ↓
-
 Tampilkan:
 "1448-03-15"
 ```
@@ -306,14 +300,4 @@ Kalau aplikasinya butuh timezone tertentu, tentukan timezone-nya secara eksplisi
 
 Dan kalau aplikasimu penting secara administratif atau keagamaan, **tetap perlakukan API sebagai sumber data teknis, bukan pengganti keputusan resmi Kemenag.**
 
-Karena pada akhirnya, alasan saya bikin API ini dari awal juga bukan supaya developer punya "library tanggal Hijriah yang lain".
-
-Saya cuma ingin ketika seorang developer Indonesia menulis:
-
-```js
-fetch("https://api.mabims.dev/api/v1/today")
-```
-
-dia nggak perlu bertanya lagi:
-
-**"Ini kalendernya pakai standar siapa?"**
+Sekian. Semoga bermanfaat!
