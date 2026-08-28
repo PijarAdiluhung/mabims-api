@@ -101,7 +101,6 @@
       grid-template-columns: 1fr 1fr;
       gap: 4rem;
       padding: clamp(4rem, 12vmin, 10rem) 0;
-      min-height: clamp(600px, 80svh, 900px);
     }
   }
 
@@ -436,7 +435,24 @@
     }
 
     function renderJSON(data) {
-      outputEl.innerHTML = highlight(JSON.stringify(data, null, 2));
+      const o = data.output;
+      const compact = `{
+  "input": {
+    "date": "${data.input.date}",
+    "calendar": "${data.input.calendar}",
+    "tz": "${data.input.tz}"
+  },
+  "output": {
+    "date": "${o.date}", "calendar": "${o.calendar}",
+    "day": ${o.day}, "month": ${o.month}, "year": ${o.year},
+    "month_name": "${o.month_name}"
+  },
+  "source": "${data.source}",
+  "warnings": ${JSON.stringify(data.warnings)}
+}`;
+      const expanded = JSON.stringify(data, null, 2);
+      const isMobile = window.matchMedia('(max-width: 40rem)').matches;
+      outputEl.innerHTML = highlight(isMobile ? expanded : compact);
     }
 
     commandEl.textContent = COMMANDS.curl;

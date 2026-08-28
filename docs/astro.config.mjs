@@ -82,8 +82,8 @@ export default defineConfig({
           label: 'API Reference',
           translations: { en: 'API Reference' },
           items: [
-            { label: 'GET /convert', link: '/endpoints/convert' },
             { label: 'GET /today', link: '/endpoints/today' },
+            { label: 'GET /convert', link: '/endpoints/convert' },
             { label: 'GET /range & /month', link: '/endpoints/range-month' },
             { label: 'GET /events', link: '/endpoints/events' },
             { label: 'GET /hilal', link: '/endpoints/hilal' },
@@ -100,6 +100,7 @@ export default defineConfig({
         },
         { label: 'Data Coverage', link: '/data-coverage', translations: { en: 'Data Coverage' } },
         { label: 'FAQ', link: '/faq', translations: { en: 'FAQ' } },
+        { label: 'Blog', link: '/blog' },
       ],
     }),
   ],
