@@ -95,6 +95,7 @@ export default defineConfig({
           translations: { en: 'Playground' },
           items: [
             { label: 'Konverter', link: '/playground/converter', translations: { en: 'Converter' } },
+            { label: 'Kalender', link: '/playground/kalender', translations: { en: 'Calendar' } },
             { label: 'Hilal', link: '/playground/hilal', translations: { en: 'Hilal' } },
           ],
         },

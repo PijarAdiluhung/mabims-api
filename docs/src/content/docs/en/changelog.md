@@ -3,6 +3,24 @@ title: Changelog
 description: History of changes to the MABIMS API and documentation.
 ---
 
+## 1.1.1 — 2026-08-29
+
+### Fixed
+
+- **Out-of-table Hijri months** — `/month` and `/range` with `calendar=hijri` are now served from the Neo MABIMS computed tier (previously only dates inside the official table were reachable through these two endpoints).
+- **Hijri `/range` day-31 bug** — `/range?calendar=hijri` failed with `out_of_coverage` whenever the range crossed a month boundary (Hijri months have no day 31). It now walks Hijri months month-by-month.
+- **24-question Safar day 30 rejected** — `YYYY-02-30` is a valid Hijri date (Safar can have 30 days) but was rejected as `invalid_date` because the Gregorian parser knows no Feb 30. The Hijri parser now separates syntax validation (days 1–30) from data existence; genuinely absent days (e.g. day 30 in a 29-day month) honestly return `404 date_not_found`.
+
+---
+
+## Documentation Updates — 2026-08-29
+
+- New Calendar playground (`/playground/kalender`) — a full Hijri year, two columns, rendered live from `/month` and `/events`. Large number = Hijri date, small = Gregorian, Friday marked yellow, event badges, today marker.
+- Calendar playground logic moved to a shared module (`src/lib/kalender.core.js`) so the ID & EN versions stay identical.
+- `/range` & `/month` docs updated: `calendar=hijri` is now served from the computed tier beyond the official table.
+
+---
+
 ## Documentation Updates — 2026-08-28
 
 - Landing page with live JSON preview and latency badge

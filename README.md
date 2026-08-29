@@ -67,8 +67,8 @@ The `source` field indicates where the data came from:
 | `GET /api/v1/today?tz=` | Today's Hijri date, timezone-aware (default `Asia/Jakarta`). Accepts any IANA timezone (e.g. `Asia/Kuala_Lumpur`, `Asia/Singapore`). | 240/min |
 | `GET /api/v1/today/{date}` | Same as above for a fixed `YYYY-MM-DD` date. Immutable, CDN-cacheable forever. | 240/min |
 | `GET /api/v1/convert?date=&calendar=` | Single date conversion, either direction. `calendar` must be `hijri` or `gregorian`. | 240/min |
-| `GET /api/v1/range?start=&end=&calendar=` | Bulk conversion (≤400 days). `calendar` must be `hijri` or `gregorian`. | 240/min |
-| `GET /api/v1/month?year=&month=&calendar=` | All days in a month. `calendar` must be `hijri` or `gregorian`. | 240/min |
+| `GET /api/v1/range?start=&end=&calendar=` | Bulk conversion (≤400 days). `calendar` must be `hijri` or `gregorian`. Beyond table coverage, hijri ranges are served from the computed tier. | 240/min |
+| `GET /api/v1/month?year=&month=&calendar=` | All days in a month. `calendar` must be `hijri` or `gregorian`. Hijri months beyond the table are served from the computed tier. | 240/min |
 | `GET /api/v1/events?year=&calendar=` | Islamic observances. | 240/min |
 | `GET /api/v1/hilal/info?month=&year=` | Hilal visibility data for the evening deciding a month start (geocentric hisab, Sabang). | 60/hour |
 | `GET /api/v1/hilal/viz?month=&year=` | Hilal sky chart PNG (720×1280) with MABIMS criteria table. | 30/hour |

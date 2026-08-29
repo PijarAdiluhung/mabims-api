@@ -1,0 +1,321 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+
+const apiBase = import.meta.env.PUBLIC_API_BASE ?? "http://localhost:8000";
+const hijriMonths = [
+  "Muharram", "Safar", "Rabiul Awal", "Rabiul Akhir",
+  "Jumadil Awal", "Jumadil Akhir", "Rajab", "Sya'ban",
+  "Ramadhan", "Syawal", "Dzulqa'dah", "Dzulhijjah",
+];
+const weekdays = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
+const gregMonths = [
+  "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+  "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
+];
+const eventShortNames = {
+  "1_muharram": "1 Muharram",
+  maulid_nabi: "Maulid",
+  awal_ramadan: "1 Ramadhan",
+  idul_fitri: "1 Syawal",
+  idul_adha: "10 Dzulhijjah",
+};
+---
+
+<StarlightPage
+  frontmatter={{
+    title: "Playground Kalender",
+    description:
+      "Kalender Hijriah setahun penuh, langsung dari data resmi Kemenag.",
+  }}
+>
+  <p>
+    Kalender <strong>Hijriah</strong> untuk tahun berjalan, dirender langsung
+    dari endpoint <code>/range</code>. Angka besar = tanggal Hijriah, angka
+    kecil = tanggal Masehi. Hari <strong>Jumat</strong> ditandai kuning.
+  </p>
+
+  <div class="pg-status" id="status" role="status">Memeriksa status API…</div>
+
+  <div class="kal-head">
+    <h2 class="kal-title">Kalender Hijriah <span id="kal-year">…</span></h2>
+    <span class="kal-source" id="kal-source"></span>
+  </div>
+
+  <div class="kal-legend">
+    <span class="legend-item"><span class="legend-chip legend-fri"></span> Jumat</span>
+    <span class="legend-item"><span class="legend-ring"></span> Hari ini</span>
+  </div>
+
+  <div class="kal-wall" id="wall"></div>
+
+  <details>
+    <summary>Respons JSON lengkap (endpoint /month + /events)</summary>
+    <pre class="pg-result" id="raw"></pre>
+  </details>
+
+  <script>
+    import {
+      WEEKDAYS, GREG_MONTHS, MONTH_NAMES, EVENT_SHORT,
+      fetchStatus, fetchToday, fetchMonth, fetchHijriEvents, buildWall,
+    } from "../../lib/kalender.core.js";
+
+    const apiBase = import.meta.env.PUBLIC_API_BASE ?? "http://localhost:8000";
+
+    const statusEl = document.getElementById("status");
+    const yearEl = document.getElementById("kal-year");
+    const sourceEl = document.getElementById("kal-source");
+    const wallEl = document.getElementById("wall");
+    const rawEl = document.getElementById("raw");
+
+    let todayHijri = null;
+    let currentYear = null;
+
+    async function load() {
+      try {
+        const today = await fetchToday(apiBase);
+        const year = today.output.year;
+        todayHijri = today.output.date;
+        if (currentYear !== year) {
+          currentYear = year;
+          yearEl.textContent = year;
+          sourceEl.textContent = today.source === "mabims" ? "Data resmi Kemenag" : "Neo MABIMS";
+          const months = await Promise.all(
+            Array.from({ length: 12 }, (_, i) => fetchMonth(apiBase, year, i + 1))
+          );
+          const events = await fetchHijriEvents(apiBase, year);
+          const monthsByKey = new Map();
+          for (let m = 0; m < 12; m++) {
+            const body = months[m];
+            if (body) monthsByKey.set(m + 1, body.items ?? []);
+          }
+          buildWall(wallEl, year, monthsByKey, events, todayHijri, {
+            weekdays: WEEKDAYS, gregMonths: GREG_MONTHS, hijriMonths: MONTH_NAMES, eventShortNames: EVENT_SHORT,
+          });
+          rawEl.textContent = JSON.stringify(
+            { months: months.filter(Boolean), events },
+            null,
+            2
+          );
+        }
+      } catch {
+        statusEl.className = "pg-status pg-warn";
+        statusEl.textContent =
+          "API tidak dapat diakses dari sini — mungkin belum di-deploy.";
+      }
+    }
+
+    loadStatus();
+    load();
+
+    async function loadStatus() {
+      fetchStatus(apiBase, statusEl);
+    }
+
+    // auto-switch year: re-check after midnight and on focus
+    async function checkYear() {
+      try {
+        const today = await fetchToday(apiBase);
+        if (today.output.year !== currentYear) await load();
+      } catch {
+        /* keep current view */
+      }
+    }
+    const now = new Date();
+    const untilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 1, 0).getTime() - now.getTime();
+    setTimeout(checkYear, Math.min(untilMidnight, 0x7fffffff));
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) checkYear();
+    });
+  </script>
+
+  <style is:global>
+    .pg-status {
+      margin-bottom: 1.5rem;
+    }
+    .kal-head {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+    .kal-title {
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+    .kal-title #kal-year {
+      color: var(--sl-color-accent);
+    }
+    .kal-source {
+      font-size: 0.8rem;
+      color: var(--sl-color-gray-3);
+    }
+    .kal-legend {
+      display: flex;
+      gap: 1.25rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.8rem;
+      color: var(--sl-color-gray-3);
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .legend-chip {
+      width: 0.8rem;
+      height: 0.8rem;
+      border-radius: 0.25rem;
+    }
+    .legend-chip.legend-fri {
+      background: color-mix(in srgb, var(--sl-color-accent) 22%, transparent);
+      border: 1px solid color-mix(in srgb, var(--sl-color-accent) 55%, transparent);
+    }
+    .legend-ring {
+      width: 0.8rem;
+      height: 0.8rem;
+      border-radius: 0.25rem;
+      border: 2px dashed var(--sl-color-accent);
+    }
+    .kal-wall {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.25rem;
+    }
+    @media (max-width: 47.9rem) {
+      .kal-wall {
+        grid-template-columns: 1fr;
+      }
+    }
+    .kal-card {
+      border: 1px solid var(--sl-color-gray-5);
+      border-radius: 0.75rem;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.015);
+    }
+    .kal-card-head {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      padding: 0.6rem 0.85rem;
+      border-bottom: 1px solid var(--sl-color-gray-5);
+    }
+    .kal-mnum {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--sl-color-accent);
+    }
+    .kal-mname {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+    .kal-myear {
+      font-weight: 400;
+      color: var(--sl-color-gray-3);
+      font-size: 0.8rem;
+    }
+    .kal-week {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      padding: 0.35rem 0.45rem;
+      border-bottom: 1px solid var(--sl-color-gray-6);
+    }
+    .kal-week > * {
+      margin: 0;
+    }
+    .kal-dow {
+      text-align: center;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--sl-color-gray-4);
+    }
+    .kal-dow.is-fri {
+      color: var(--sl-color-accent);
+    }
+    .kal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      padding: 0 0.45rem;
+    }
+    .kal-grid > * {
+      margin: 0;
+    }
+    .kal-cell {
+      position: relative;
+      min-height: 2.4rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.1rem;
+      border-bottom: 1px solid var(--sl-color-gray-6);
+      border-right: 1px solid var(--sl-color-gray-6);
+      padding: 0.15rem 0.1rem;
+    }
+    .kal-cell:nth-child(7n) {
+      border-right: none;
+    }
+    .kal-cell.is-empty {
+      border-color: transparent;
+      background: transparent;
+    }
+    .kal-day {
+      font-size: 0.85rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--sl-color-text);
+    }
+    .kal-cell.is-fri .kal-day {
+      color: var(--sl-color-accent);
+    }
+    .kal-cell.is-today .kal-day {
+      color: var(--sl-color-accent);
+    }
+    .kal-greg {
+      font-size: 0.55rem;
+      color: var(--sl-color-gray-3);
+      line-height: 1;
+    }
+    .kal-cell.has-event::after {
+      content: "";
+      position: absolute;
+      top: 0.2rem;
+      right: 0.2rem;
+      width: 0.3rem;
+      height: 0.3rem;
+      border-radius: 50%;
+      background: var(--sl-color-accent);
+    }
+    .kal-cell.is-today {
+      outline: 2px dashed var(--sl-color-accent);
+      outline-offset: -2px;
+    }
+    .kal-events {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      padding: 0.4rem 0.55rem;
+      border-top: 1px solid var(--sl-color-gray-6);
+      font-size: 0.55rem;
+      color: var(--sl-color-gray-3);
+    }
+    .kal-ev-badge {
+      padding: 0.1rem 0.35rem;
+      border-radius: 0.25rem;
+      background: color-mix(in srgb, var(--sl-color-accent) 18%, transparent);
+      color: var(--sl-color-accent);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .pg-result {
+      padding: 1rem;
+      border-radius: 0.5rem;
+      background: var(--sl-color-bg-code);
+      overflow-x: auto;
+    }
+    details summary {
+      cursor: pointer;
+    }
+  </style>
+</StarlightPage>
