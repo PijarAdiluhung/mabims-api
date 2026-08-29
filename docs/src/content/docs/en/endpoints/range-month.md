@@ -13,7 +13,7 @@ GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `start` / `end` | string | yes | ISO dates; `start ≤ end`; max span 400 days |
+| `start` / `end` | string | yes | ISO dates; `start ≤ end`; max span 45 days |
 | `calendar` | string | no (default `gregorian`) | Calendar of the input bounds |
 
 ```json
@@ -34,7 +34,7 @@ authoritative and computed data.
 
 For `calendar=hijri`, ranges can extend past the official table coverage — Hijri
 months beyond the table are served from the Neo MABIMS computed tier (through
-±2053 / Hijri 1473). `start`/`end` still cap at 400 days.
+±2053 / Hijri 1473). `start`/`end` still cap at 45 days.
 
 ## GET /month
 
@@ -57,7 +57,7 @@ All errors return a standard JSON envelope:
 {
   "error": {
     "code": "range_too_large",
-    "message": "Range is limited to 400 days."
+    "message": "Range is limited to 45 days."
   }
 }
 ```
@@ -65,7 +65,7 @@ All errors return a standard JSON envelope:
 | `code` | HTTP | Cause |
 |---|---|---|
 | `invalid_step` | 400 | Step is not `day` |
-| `range_too_large` | 400 | Range exceeds 400 days |
+| `range_too_large` | 400 | Range exceeds 45 days |
 | `out_of_coverage` | 400 | Date outside table coverage |
 | `invalid_month` | 400 | Month is not 1–12 |
 | `invalid_year` | 400 | Year out of supported bounds |

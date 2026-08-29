@@ -82,7 +82,7 @@ export default defineConfig({
               var nameMap = {
                 quickstart: 'Quickstart', access: 'Access & Rate Limits',
                 endpoints: 'API Reference', today: 'GET /today', convert: 'GET /convert',
-                'range-month': 'GET /range & /month', events: 'GET /events',
+                'range-month': 'GET /range & /month', year: 'GET /year', events: 'GET /events',
                 hilal: 'GET /hilal', meta: 'GET /meta', playground: 'Playground',
                 converter: 'Konverter', kalender: 'Kalender', 'data-coverage': 'Data Coverage',
                 migration: 'Migration', faq: 'FAQ', changelog: 'Changelog', blog: 'Blog'
@@ -182,6 +182,7 @@ export default defineConfig({
             { label: 'GET /today', link: '/endpoints/today' },
             { label: 'GET /convert', link: '/endpoints/convert' },
             { label: 'GET /range & /month', link: '/endpoints/range-month' },
+            { label: 'GET /year', link: '/endpoints/year' },
             { label: 'GET /events', link: '/endpoints/events' },
             { label: 'GET /hilal', link: '/endpoints/hilal' },
             { label: 'GET /meta', link: '/endpoints/meta' },

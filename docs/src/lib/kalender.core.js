@@ -65,6 +65,13 @@ export async function fetchMonth(apiBase, year, month) {
   return res.json();
 }
 
+export async function fetchYear(apiBase, year) {
+  const params = new URLSearchParams({ year: String(year), calendar: "hijri" });
+  const res = await fetch(`${apiBase}/api/v1/year?${params}`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
 export async function fetchHijriEvents(apiBase, year) {
   const params = new URLSearchParams({ year: String(year), calendar: "hijri" });
   try {

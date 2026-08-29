@@ -161,8 +161,64 @@ def test_hijri_month_returns_sorted_pairs(client, real_data):
     assert gregorians == sorted(gregorians)
 
 
+def test_year_gregorian(client, real_data):
+    response = client.get("/api/v1/year?year=2025&calendar=gregorian")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["input"]["year"] == 2025
+    assert body["input"]["calendar"] == "gregorian"
+    assert len(body["months"]) == 12
+    total = sum(len(body["months"][str(m)]) for m in range(1, 13))
+    assert body["count"] == total
+    assert total == 365
+    for m in range(1, 13):
+        assert str(m) in body["months"]
+        items = body["months"][str(m)]
+        assert len(items) > 0
+        for item in items:
+            g = item["gregorian"]
+            assert g.startswith(f"2025-{m:02d}-")
+            assert real_data["gregorian_to_hijri"][g] == item["hijri"]
+
+
+def test_year_hijri(client, real_data):
+    hijri_years = sorted(set(k[:4] for k in real_data["hijri_to_gregorian"]))
+    year = int(hijri_years[len(hijri_years) // 2])
+    response = client.get(f"/api/v1/year?year={year}&calendar=hijri")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["input"]["year"] == year
+    assert body["input"]["calendar"] == "hijri"
+    assert len(body["months"]) == 12
+    total = sum(len(body["months"][str(m)]) for m in range(1, 13))
+    assert body["count"] == total
+    assert total >= 354
+    for m in range(1, 13):
+        assert str(m) in body["months"]
+        items = body["months"][str(m)]
+        assert len(items) > 0
+        for item in items:
+            assert item["hijri"].startswith(f"{year:04d}-{m:02d}-")
+
+
+def test_year_matches_12_month_calls(client):
+    response_g = client.get("/api/v1/year?year=2025&calendar=gregorian")
+    assert response_g.status_code == 200
+    year_body = response_g.json()
+    for m in range(1, 13):
+        month_resp = client.get(f"/api/v1/month?year=2025&month={m}&calendar=gregorian")
+        assert month_resp.status_code == 200
+        assert month_resp.json()["items"] == year_body["months"][str(m)]
+
+
+def test_year_invalid_year(client):
+    response = client.get("/api/v1/year?year=0&calendar=gregorian")
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "invalid_year"
+
+
 def test_range_too_large(client):
-    response = client.get("/api/v1/range?start=2025-01-01&end=2026-06-01&calendar=gregorian")
+    response = client.get("/api/v1/range?start=2025-01-01&end=2025-03-01&calendar=gregorian")
     assert response.status_code == 400
     assert response.json()["error"]["code"] == "range_too_large"
 

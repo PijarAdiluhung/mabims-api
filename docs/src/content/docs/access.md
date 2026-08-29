@@ -26,7 +26,7 @@ Self-hoster dapat mengaktifkan kembali daftar origin yang diizinkan melalui vari
   batas rate utama — sebagian besar permintaan tidak pernah mencapai origin.
 - **Origin** (FastAPI): 240/menit per IP sebagai cadangan jika CDN dilewati. Endpoint hilal
   (`/hilal/info`, `/hilal/viz`) lebih ketat di origin (60 atau 30/jam) karena komputasi berat,
-  namun batas per-endpoint di CDN belum dikonfigurasi.
+  namun respons-nya di-cache publik di CDN (`s-maxage=86400`) sehingga edges hanya sekali render per hari.
 - Permintaan yang identik dilayani dari cache CDN dan tidak pernah mencapai origin. Dengan
   jutaan permintaan/hari, origin hanya melihat sekitar satu permintaan per lokasi edge per
   sumber daya yang di-cache per hari.

@@ -3,6 +3,27 @@ title: Changelog
 description: History of changes to the MABIMS API and documentation.
 ---
 
+## 1.2.0 — 2026-08-29
+
+### Added
+
+- **GET /year** — all days in a year (12 months in one call). `calendar` must be `hijri` or `gregorian`. Response contains a `months` object keyed 1–12, each holding an array of items identical to `/range`. Much simpler than calling `/month` 12 times.
+
+### Changed
+
+- **`/range` max 45 days** — the `/range` limit for `calendar=gregorian` is reduced from 400 days to 45 days. For longer spans, use `/month` or `/year`.
+
+### Fixed
+
+- **Hilal viz caching in docs** — documentation incorrectly stated `Cache-Control: private` for `/hilal/info` and `/hilal/viz`. The code actually sends `public, s-maxage=86400` (CDN-cached). Docs now reflect the actual behavior.
+
+### Updated
+
+- Calendar playground now uses `/year` (1 request) instead of 12 `/month` calls.
+- Docs: `/range` limit updated across all pages (ID & EN), landing page, sidebar, README.
+
+---
+
 ## 1.1.1 — 2026-08-29
 
 ### Fixed

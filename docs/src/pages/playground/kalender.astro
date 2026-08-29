@@ -30,7 +30,7 @@ const eventShortNames = {
 >
   <p>
     Kalender <strong>Hijriah</strong> untuk tahun berjalan, dirender langsung
-    dari endpoint <code>/month</code> dan <code>/events</code>. Angka besar = tanggal Hijriah, angka
+    dari endpoint <code>/year</code> dan <code>/events</code>. Angka besar = tanggal Hijriah, angka
     kecil = tanggal Masehi. Hari <strong>Jumat</strong> ditandai kuning.
   </p>
 
@@ -62,14 +62,14 @@ const eventShortNames = {
   </div>
 
   <details>
-    <summary>Respons JSON lengkap (endpoint /month + /events)</summary>
+    <summary>Respons JSON lengkap (endpoint /year + /events)</summary>
     <pre class="pg-result" id="raw"></pre>
   </details>
 
   <script>
     import {
       WEEKDAYS, GREG_MONTHS, MONTH_NAMES, EVENT_SHORT,
-      fetchStatus, fetchToday, fetchMonth, fetchHijriEvents, buildWall,
+      fetchStatus, fetchToday, fetchYear, fetchHijriEvents, buildWall,
     } from "../../lib/kalender.core.js";
 
     const apiBase = import.meta.env.PUBLIC_API_BASE ?? "http://localhost:8000";
@@ -92,20 +92,19 @@ const eventShortNames = {
           currentYear = year;
           yearEl.textContent = year;
           sourceEl.textContent = today.source === "mabims" ? "Data resmi Kemenag" : "Neo MABIMS";
-          const months = await Promise.all(
-            Array.from({ length: 12 }, (_, i) => fetchMonth(apiBase, year, i + 1))
-          );
+          const yearBody = await fetchYear(apiBase, year);
           const events = await fetchHijriEvents(apiBase, year);
           const monthsByKey = new Map();
-          for (let m = 0; m < 12; m++) {
-            const body = months[m];
-            if (body) monthsByKey.set(m + 1, body.items ?? []);
+          if (yearBody) {
+            for (let m = 1; m <= 12; m++) {
+              monthsByKey.set(m, yearBody.months[String(m)] ?? []);
+            }
           }
           buildWall(wallEl, year, monthsByKey, events, todayHijri, {
             weekdays: WEEKDAYS, gregMonths: GREG_MONTHS, hijriMonths: MONTH_NAMES, eventShortNames: EVENT_SHORT,
           });
           rawEl.textContent = JSON.stringify(
-            { months: months.filter(Boolean), events },
+            { year: yearBody, events },
             null,
             2
           );

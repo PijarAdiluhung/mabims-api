@@ -67,8 +67,9 @@ The `source` field indicates where the data came from:
 | `GET /api/v1/today?tz=` | Today's Hijri date, timezone-aware (default `Asia/Jakarta`). Accepts any IANA timezone (e.g. `Asia/Kuala_Lumpur`, `Asia/Singapore`). | 240/min |
 | `GET /api/v1/today/{date}` | Same as above for a fixed `YYYY-MM-DD` date. Immutable, CDN-cacheable forever. | 240/min |
 | `GET /api/v1/convert?date=&calendar=` | Single date conversion, either direction. `calendar` must be `hijri` or `gregorian`. | 240/min |
-| `GET /api/v1/range?start=&end=&calendar=` | Bulk conversion (≤400 days). `calendar` must be `hijri` or `gregorian`. Beyond table coverage, hijri ranges are served from the computed tier. | 240/min |
+| `GET /api/v1/range?start=&end=&calendar=` | Bulk conversion (≤45 days). `calendar` must be `hijri` or `gregorian`. Beyond table coverage, hijri ranges are served from the computed tier. | 240/min |
 | `GET /api/v1/month?year=&month=&calendar=` | All days in a month. `calendar` must be `hijri` or `gregorian`. Hijri months beyond the table are served from the computed tier. | 240/min |
+| `GET /api/v1/year?year=&calendar=` | All days in a year (12 months). `calendar` must be `hijri` or `gregorian`. | 240/min |
 | `GET /api/v1/events?year=&calendar=` | Islamic observances. | 240/min |
 | `GET /api/v1/hilal/info?month=&year=` | Hilal visibility data for the evening deciding a month start (geocentric hisab, Sabang). | 60/hour |
 | `GET /api/v1/hilal/viz?month=&year=` | Hilal sky chart PNG (720×1280) with MABIMS criteria table. | 30/hour |
@@ -141,8 +142,9 @@ Every response includes an `ETag` header. Clients should send `If-None-Match` to
 | `/api/v1/convert` | `max-age=86400` | Immutable for fixed dates |
 | `/api/v1/range` | `max-age=86400` | Immutable for fixed dates |
 | `/api/v1/month` | `max-age=86400` | Immutable for fixed dates |
+| `/api/v1/year` | `max-age=86400` | Immutable for fixed dates |
 | `/api/v1/events` | `max-age=86400` | Immutable for fixed dates |
-| `/api/v1/hilal/*` | `max-age=86400` | 24 hours |
+| `/api/v1/hilal/*` | `public, max-age=86400, s-maxage=86400` | CDN-cached — one render per edge location per day |
 
 Note: `/convert` does not depend on timezone by design — only `/today` accepts `tz`, because "today" depends on where you are. The immutable `/today/{date}` variant does not accept `tz` either.
 

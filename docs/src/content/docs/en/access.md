@@ -30,7 +30,7 @@ rule (`ALLOWED_ORIGIN_SUFFIXES`) also allows apex + all subdomains of a domain.
   primary rate limit — most requests never reach the origin.
 - **Origin** (FastAPI): 240/min per IP as a fallback if the CDN is bypassed. Hilal endpoints
   (`/hilal/info`, `/hilal/viz`) are stricter at the origin (60 or 30/hour) due to heavy
-  computation, but CDN-level per-endpoint limits are not yet configured.
+  computation, but their responses are publicly CDN-cached (`s-maxage=86400`) so edges only render once per day.
 - Identical requests are served from CDN cache and never reach the origin. At millions of
   requests/day the origin sees roughly one request per edge location per cached resource per day.
 - [`/today`](/endpoints/today) responses carry a TTL that expires exactly at local midnight,

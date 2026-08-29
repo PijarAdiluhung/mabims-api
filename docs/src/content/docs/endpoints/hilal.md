@@ -74,8 +74,8 @@ kriteria `PARAMETER · MIN. MABIMS · STATUS`. Output deterministik per paramete
 
 ## Perilaku caching
 
-- `Cache-Control: private, max-age=86400` — hasil deterministik per parameter, namun
-  tidak di-cache publik di CDN.
+- `Cache-Control: public, max-age=86400, s-maxage=86400` — hasil deterministik per parameter,
+  di-cache publik di CDN (CDN mendapat satu render per edge location per hari).
 - Render adalah operasi CPU: gunakan parameter minimal yang Anda butuhkan,
   dan hormati rate limit.
 

@@ -49,6 +49,8 @@ from .schemas import (
     RangeInput,
     RangeItem,
     RangeResponse,
+    YearInput,
+    YearResponse,
 )
 from .timeutil import (
     IMMUTABLE_CACHE_HEADERS,
@@ -74,7 +76,7 @@ BORDERLINE_WARNING_TEMPLATE = (
     "announced date may shift by one day."
 )
 COMPUTED_METHOD = "neo-mabims-sabang"
-MAX_RANGE_DAYS = 400
+MAX_RANGE_DAYS = 45
 MIN_SUPPORTED_GREGORIAN = "2024-01-13"
 MAX_SUPPORTED_GREGORIAN = date(2053, 8, 1)
 HILAL_CACHE = {"Cache-Control": "public, max-age=86400, s-maxage=86400"}
@@ -265,6 +267,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             {"name": "Convert", "description": "Single date conversion"},
             {"name": "Range", "description": "Bulk date range conversion"},
             {"name": "Month", "description": "All days in a calendar month"},
+            {"name": "Year", "description": "All days in a calendar year"},
             {"name": "Events", "description": "Islamic observances"},
             {"name": "Hilal", "description": "Hilal visibility data and charts"},
             {"name": "Meta", "description": "API metadata and coverage"},
@@ -622,7 +625,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         response_model=RangeResponse,
         tags=["Range"],
         summary="Bulk date conversion",
-        description="Convert a date range between Gregorian and Hijri. Maximum 400 days.",
+        description="Convert a date range between Gregorian and Hijri. Maximum 45 days.",
         methods=["GET", "HEAD"],
     )
     def range_(
@@ -749,6 +752,62 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             input=MonthInput(year=year, month=month, calendar=cal),
             count=len(items),
             items=items,
+            warnings=warnings,
+        )
+        return _json_response(payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
+
+    @app.api_route(
+        "/api/v1/year",
+        response_model=YearResponse,
+        tags=["Year"],
+        summary="All days in a year",
+        description="Returns every day in all 12 months of a Hijri or Gregorian year.",
+        methods=["GET", "HEAD"],
+    )
+    def year(
+        request: Request,
+        year: int = Query(...),
+        calendar: str = Query(default="hijri"),
+    ):
+        cal = _validate_calendar(calendar)
+        if not 1 <= year <= 3000:
+            raise ApiError("invalid_year", "'year' is out of supported bounds.")
+
+        all_items: list[RangeItem] = []
+        months: dict[int, list[RangeItem]] = {}
+
+        for m in range(1, 13):
+            if cal == "gregorian":
+                days_in_month = pycalendar.monthrange(year, m)[1]
+                start_d = date(year, m, 1)
+                end_d = date(year, m, days_in_month)
+                _check_supported(start_d.isoformat(), cal)
+                _check_supported(end_d.isoformat(), cal)
+                items = _collect_items(start_d.isoformat(), end_d.isoformat(), cal)
+            else:
+                _check_supported(f"{year:04d}-{m:02d}-01", cal)
+                items = _hijri_month_items(year, m)
+                if not items:
+                    raise ApiError(
+                        "out_of_coverage",
+                        f"Hijri month {year:04d}-{m:02d} is outside available coverage; see /api/v1/meta.",
+                        400,
+                    )
+                start_d = date.fromisoformat(items[0].gregorian)
+                end_d = date.fromisoformat(items[-1].gregorian)
+                if (
+                    start_d.isoformat() < MIN_SUPPORTED_GREGORIAN
+                    or end_d.isoformat() > _max_supported_gregorian().isoformat()
+                ):
+                    raise ApiError("date_out_of_supported_range", _supported_range_message())
+            months[m] = items
+            all_items.extend(items)
+
+        aggregate_source, warnings = _aggregate(all_items)
+        payload = YearResponse(
+            input=YearInput(year=year, calendar=cal),
+            count=len(all_items),
+            months=months,
             warnings=warnings,
         )
         return _json_response(payload.model_dump(), IMMUTABLE_CACHE_HEADERS)

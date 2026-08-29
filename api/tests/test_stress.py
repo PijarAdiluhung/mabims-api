@@ -204,20 +204,20 @@ class TestCorruptSeed:
 class TestRangeStress:
     def test_full_year_range(self, tmp_path):
         client = _make_full_client(tmp_path)
-        r = client.get("/api/v1/range?start=2024-01-13&end=2025-01-01&calendar=gregorian")
+        r = client.get("/api/v1/range?start=2024-01-13&end=2024-02-26&calendar=gregorian")
         assert r.status_code == 200
         body = r.json()
-        expected_days = (date(2025, 1, 1) - date(2024, 1, 13)).days + 1
+        expected_days = (date(2024, 2, 26) - date(2024, 1, 13)).days + 1
         assert body["count"] == expected_days
         sources = {item["source"] for item in body["items"]}
         assert "mabims" in sources or "mabims-computed" in sources
 
     def test_cross_boundary_range(self, tmp_path):
         client = _make_full_client(tmp_path)
-        r = client.get("/api/v1/range?start=2026-11-01&end=2027-03-01&calendar=gregorian")
+        r = client.get("/api/v1/range?start=2026-12-15&end=2027-01-28&calendar=gregorian")
         assert r.status_code == 200
         body = r.json()
-        expected_days = (date(2027, 3, 1) - date(2026, 11, 1)).days + 1
+        expected_days = (date(2027, 1, 28) - date(2026, 12, 15)).days + 1
         assert body["count"] == expected_days
         sources = {item["source"] for item in body["items"]}
         assert "mabims" in sources
@@ -225,15 +225,22 @@ class TestRangeStress:
 
     def test_all_days_resolve_correctly(self, tmp_path):
         client = _make_computed_client(tmp_path, SEED_PATH)
-        r = client.get("/api/v1/range?start=2025-01-01&end=2025-12-31&calendar=gregorian")
+        r = client.get("/api/v1/range?start=2025-01-01&end=2025-02-14&calendar=gregorian")
         assert r.status_code == 200
         body = r.json()
-        assert body["count"] == 365
+        expected_days = (date(2025, 2, 14) - date(2025, 1, 1)).days + 1
+        assert body["count"] == expected_days
         for item in body["items"]:
             parts = item["hijri"].split("-")
             assert len(parts) == 3
             assert 1 <= int(parts[1]) <= 12
             assert 1 <= int(parts[2]) <= 30
+
+    def test_range_too_large_rejected(self, tmp_path):
+        client = _make_full_client(tmp_path)
+        r = client.get("/api/v1/range?start=2025-01-01&end=2025-03-01&calendar=gregorian")
+        assert r.status_code == 400
+        assert r.json()["error"]["code"] == "range_too_large"
 
 
 # ---------------------------------------------------------------------------

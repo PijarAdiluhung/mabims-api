@@ -80,8 +80,8 @@ deliberately not drawn — the sky tells the truth. Output is deterministic per 
 
 ## Caching
 
-- `Cache-Control: private, max-age=86400` — deterministic per parameter but not
-  publicly CDN-cached.
+- `Cache-Control: public, max-age=86400, s-maxage=86400` — deterministic per parameter,
+  publicly CDN-cached (CDN gets one render per edge location per day).
 - Rendering is CPU work: request only what you need and respect the rate limits.
 
 ## Errors

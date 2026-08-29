@@ -81,6 +81,18 @@ class MonthResponse(BaseModel):
     warnings: list[str] = Field(default_factory=list)
 
 
+class YearInput(BaseModel):
+    year: int
+    calendar: str
+
+
+class YearResponse(BaseModel):
+    input: YearInput
+    count: int
+    months: dict[int, list[RangeItem]]
+    warnings: list[str] = Field(default_factory=list)
+
+
 class Coverage(BaseModel):
     first: str
     last: str

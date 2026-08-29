@@ -13,7 +13,7 @@ GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
 
 | Parameter | Tipe | Wajib | Deskripsi |
 |---|---|---|---|
-| `start` / `end` | string | ya | Tanggal ISO; `start ≤ end`; rentang maks 400 hari |
+| `start` / `end` | string | ya | Tanggal ISO; `start ≤ end`; rentang maks 45 hari |
 | `calendar` | string | tidak (default `gregorian`) | Kalender dari batas input |
 
 ```json
@@ -31,7 +31,7 @@ GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
 
 Setiap item membawa `source` masing-masing, karena rentang yang melewati batasan data MABIMS dapat mencampur data resmi dan data komputed.
 
-Untuk `calendar=hijri`, rentang dapat melampaui cakupan tabel resmi — bulan Hijriah di luar tabel dilayani dari perhitungan Neo MABIMS (hingga ±2053 / Hijriah 1473). Batas `start`/`end` tetap maks 400 hari.
+Untuk `calendar=hijri`, rentang dapat melampaui cakupan tabel resmi — bulan Hijriah di luar tabel dilayani dari perhitungan Neo MABIMS (hingga ±2053 / Hijriah 1473). Batas `start`/`end` tetap maks 45 hari.
 
 ## GET /month
 
@@ -51,7 +51,7 @@ Semua kesalahan mengembalikan JSON dengan format standar:
 {
   "error": {
     "code": "range_too_large",
-    "message": "Range is limited to 400 days."
+    "message": "Range is limited to 45 days."
   }
 }
 ```
@@ -59,7 +59,7 @@ Semua kesalahan mengembalikan JSON dengan format standar:
 | `code` | HTTP | Penyebab |
 |---|---|---|
 | `invalid_step` | 400 | Step bukan `day` |
-| `range_too_large` | 400 | Rentang > 400 hari |
+| `range_too_large` | 400 | Rentang > 45 hari |
 | `out_of_coverage` | 400 | Tanggal di luar cakupan tabel |
 | `invalid_month` | 400 | Bulan bukan 1–12 |
 | `invalid_year` | 400 | Tahun di luar batas yang didukung |
