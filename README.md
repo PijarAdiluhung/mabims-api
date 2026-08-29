@@ -82,7 +82,7 @@ The hilal visibility criteria follow Neo MABIMS: **moon altitude ≥ 3.0°** and
 
 | Parameter | Values | Notes |
 |---|---|---|
-| `calendar` | `hijri`, `gregorian` | Required on `/convert`, `/range`, `/month`, `/events`. |
+| `calendar` | `hijri`, `gregorian` | Default `gregorian` on `/convert`, `/range`. Default `hijri` on `/month`, `/year`, `/events`. |
 | `date` | `YYYY-MM-DD` | ISO 8601 date format. |
 | `tz` | IANA timezone or UTC offset | Default `Asia/Jakarta` (UTC+7). Examples: `Asia/Kuala_Lumpur`, `UTC+8`, `+08:00`. |
 | `start`, `end` | `YYYY-MM-DD` | Used by `/range`. |

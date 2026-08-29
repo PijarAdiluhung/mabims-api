@@ -1,0 +1,125 @@
+---
+title: GET /convert & /range
+description: Single date conversion and bulk date range conversion.
+---
+
+## GET /convert
+
+Converts one date in the direction implied by `calendar`.
+
+```
+GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
+```
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `date` | string | yes | ISO date (`YYYY-MM-DD`) |
+| `calendar` | string | no (default `gregorian`) | Calendar of the input date |
+
+## Responses
+
+**200 OK**
+
+```json
+{
+  "input": { "date": "2025-01-03", "calendar": "gregorian" },
+  "output": { "date": "1446-07-03", "calendar": "hijri", "day": 3, "month": 7, "month_name": "Rajab", "year": 1446 },
+  "source": "mabims",
+  "warnings": []
+}
+```
+
+**400** — invalid date format or unknown calendar
+
+```json
+{
+  "error": {
+    "code": "invalid_date",
+    "message": "'not-a-date' is not a valid ISO date (YYYY-MM-DD)."
+  }
+}
+```
+
+| `code` | Cause |
+|---|---|
+| `invalid_date` | Date is not in `YYYY-MM-DD` format |
+| `invalid_calendar` | `calendar` parameter is not `gregorian` or `hijri` |
+| `missing_parameter` | `date` query parameter is missing |
+| `out_of_coverage` | Date is outside table coverage; see [/meta](/endpoints/meta) |
+
+**404** — `date_not_found`: no pair exists for that date
+
+```json
+{
+  "error": {
+    "code": "date_not_found",
+    "message": "No calendar pair exists for 2023-01-01 (gregorian). See /api/v1/meta for coverage."
+  }
+}
+```
+
+:::note
+`/convert` is timezone-independent by design. Only [`/today`](/endpoints/today) takes a `tz`
+parameter, because "today" depends on where you ask from.
+:::
+
+---
+
+## GET /range
+
+Converts every day in an inclusive range.
+
+```
+GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
+```
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `start` / `end` | string | yes | ISO dates; `start ≤ end`; max span 45 days |
+| `calendar` | string | no (default `gregorian`) | Calendar of the input bounds |
+
+```json
+{
+  "input": { "start": "2025-01-01", "end": "2025-01-03", "calendar": "gregorian" },
+  "count": 3,
+  "items": [
+    { "gregorian": "2025-01-01", "hijri": "1446-07-01", "source": "mabims" },
+    { "gregorian": "2025-01-02", "hijri": "1446-07-02", "source": "mabims" },
+    { "gregorian": "2025-01-03", "hijri": "1446-07-03", "source": "mabims" }
+  ],
+  "warnings": []
+}
+```
+
+Each item carries its own `source` — ranges crossing the table boundary can mix
+authoritative and computed data.
+
+For `calendar=hijri`, ranges can extend past the public table coverage — Hijri
+months beyond the table are served from the Neo MABIMS computed tier (through
+±2053 / Hijri 1473). `start`/`end` still cap at 45 days.
+
+## Caching
+
+Responses are immutable per input and sent with `Cache-Control: max-age=86400` — safe to cache
+at any layer for a full day.
+
+## Errors
+
+All errors return a standard JSON envelope:
+
+```json
+{
+  "error": {
+    "code": "range_too_large",
+    "message": "Range is limited to 45 days."
+  }
+}
+```
+
+| `code` | HTTP | Cause |
+|---|---|---|
+| `invalid_step` | 400 | Step is not `day` |
+| `range_too_large` | 400 | Range exceeds 45 days |
+| `out_of_coverage` | 400 | Date outside table coverage |

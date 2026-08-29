@@ -1,7 +1,28 @@
 ---
-title: GET /year
-description: All days in a year — 12 months in one call.
+title: GET /month & /year
+description: Monthly and yearly calendar grids.
 ---
+
+## GET /month
+
+Convenience wrapper that resolves a whole month grid.
+
+```
+GET /api/v1/month?year={Y}&month={M}&calendar={hijri|gregorian}
+```
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `year` | int | yes | Hijri or Gregorian year |
+| `month` | int | yes | Month 1–12 |
+| `calendar` | string | no (default `hijri`) | Calendar of the `year` input |
+
+For `calendar=hijri` the response contains every Gregorian date onto which that Hijri month
+maps — exactly what a Hijri month-view needs (29–30 items). Hijri months beyond the public
+table (e.g. next year) are still resolved from the Neo MABIMS computed tier while within
+the supported range. Same item shape as `/range`.
 
 ## GET /year
 
@@ -49,6 +70,7 @@ For `calendar=hijri`, months beyond the public table are still served from the N
 
 | `code` | HTTP | Cause |
 |---|---|---|
+| `invalid_month` | 400 | Month is not 1–12 |
 | `invalid_year` | 400 | Year out of supported bounds |
 | `invalid_calendar` | 400 | `calendar` param is not `hijri` or `gregorian` |
 | `out_of_coverage` | 400 | Month outside table coverage |

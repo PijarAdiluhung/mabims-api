@@ -1,7 +1,25 @@
 ---
-title: GET /year
-description: Semua hari dalam satu tahun — 12 bulan sekaligus.
+title: GET /month & /year
+description: Grid kalender bulanan dan tahunan.
 ---
+
+## GET /month
+
+Wrapper praktis untuk mendapatkan 1 bulan penuh.
+
+```
+GET /api/v1/month?year={Y}&month={M}&calendar={hijri|gregorian}
+```
+
+## Parameter
+
+| Parameter | Tipe | Wajib | Deskripsi |
+|---|---|---|---|
+| `year` | int | ya | Tahun Hijriah atau Gregorian |
+| `month` | int | ya | Bulan 1–12 |
+| `calendar` | string | tidak (default `hijri`) | Kalender dari input `year` |
+
+Untuk `calendar=hijri`, respons berisi setiap tanggal Gregorian yang menjadi acuan dari bulan Hijriah tersebut (29–30 item). Bulan Hijriah di luar tabel publik (mis. tahun mendatang) tetap dilayani dari perhitungan Neo MABIMS selama masih dalam rentang yang didukung. Bentuk item sama dengan `/range`.
 
 ## GET /year
 
@@ -49,7 +67,8 @@ Untuk `calendar=hijri`, bulan Hijriah di luar tabel publik tetap dilayani dari p
 
 | `code` | HTTP | Penyebab |
 |---|---|---|
+| `invalid_month` | 400 | Bulan bukan 1–12 |
 | `invalid_year` | 400 | Tahun di luar batas yang didukung |
 | `invalid_calendar` | 400 | Parameter `calendar` bukan `hijri` atau `gregorian` |
 | `out_of_coverage` | 400 | Bulan di luar cakupan tabel |
-| `date_out_of_supported_range` | 400 |Tanggal di luar rentang yang didukung |
+| `date_out_of_supported_range` | 400 | Tanggal di luar rentang yang didukung |

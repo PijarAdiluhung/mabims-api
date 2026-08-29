@@ -455,7 +455,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
     def convert(
         request: Request,
         date_: str | None = Query(default=None, alias="date"),
-        calendar: str = Query(default="hijri"),
+        calendar: str = Query(default="gregorian"),
     ):
         if not date_:
             raise ApiError("missing_parameter", "You must provide a 'date' query parameter.")
@@ -637,7 +637,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         request: Request,
         start: str = Query(...),
         end: str = Query(...),
-        calendar: str = Query(default="hijri"),
+        calendar: str = Query(default="gregorian"),
         step: str = Query(default="day"),
     ):
         cal = _validate_calendar(calendar)

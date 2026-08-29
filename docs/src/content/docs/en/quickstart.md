@@ -57,5 +57,5 @@ full policy and abuse protection details.
 
 ## Next steps
 
-- Full parameter reference: [API Reference](/endpoints/convert)
+- Full parameter reference: [API Reference](/endpoints/convert-range)
 - Try it live: [Playground](/playground)

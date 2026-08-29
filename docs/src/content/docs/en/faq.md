@@ -76,7 +76,7 @@ Official table data is available for 2024–2026. Outside that range, the API ca
 <details>
 <summary>How do I convert between Gregorian and Hijri dates?</summary>
 
-Use `GET /convert?date=YYYY-MM-DD&calendar=gregorian` or `calendar=hijri` depending on the conversion direction. Full documentation: [API Reference /convert](/en/endpoints/convert).
+Use `GET /convert?date=YYYY-MM-DD&calendar=gregorian` or `calendar=hijri` depending on the conversion direction. Full documentation: [API Reference /convert & /range](/en/endpoints/convert-range).
 
 </details>
 

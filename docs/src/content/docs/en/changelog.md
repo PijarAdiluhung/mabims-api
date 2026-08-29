@@ -13,7 +13,8 @@ description: History of changes to the MABIMS API and documentation.
 
 ### Changed
 
-- **`calendar` default → `hijri`** — `/convert`, `/range`, `/month`, `/events` now default to `hijri` (previously `gregorian`). Consistent with `/year` and the API's identity as a Hijri calendar service. Playgrounds that need gregorian already pass `calendar=gregorian` explicitly.
+- **`calendar` defaults unified** — `/convert` and `/range` default to `gregorian` (matching their `YYYY-MM-DD` input format). `/month`, `/year`, `/events` default to `hijri` (matching the API's identity). Previously only `/year` defaulted to `hijri`.
+- **Docs reorganized** — `/convert` & `/range` merged into one page (gregorian), `/month` & `/year` merged into one page (hijri), `/events` kept separate.
 
 ### Security
 

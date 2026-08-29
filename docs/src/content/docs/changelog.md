@@ -13,7 +13,8 @@ description: Riwayat perubahan API dan dokumentasi MABIMS.
 
 ### Changed
 
-- **`calendar` default → `hijri`** — `/convert`, `/range`, `/month`, `/events` kini default ke `hijri` (sebelumnya `gregorian`). Konsisten dengan `/year` dan filosofi API sebagai layanan kalender Hijriah. Playground yang membutuhkan gregorian sudah mengirim `calendar=gregorian` secara eksplisit.
+- **`calendar` default diseragamkan** — `/convert` dan `/range` default `gregorian` (sesuai format input `YYYY-MM-DD`). `/month`, `/year`, `/events` default `hijri` (sesuai filosofi API). Sebelumnya inkonsisten: `/year` saja yang default `hijri`.
+- **Dokumentasi disusun ulang** — `/convert` & `/range` digabung satu halaman (gregorian), `/month` & `/year` digabung satu halaman (hijri), `/events` terpisah.
 
 ### Security
 

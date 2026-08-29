@@ -56,5 +56,5 @@ Panggilan server-side juga tidak dibatasi. Lihat [Akses & Batas Rate](/access) u
 
 ## Langkah selanjutnya
 
-- Referensi parameter lengkap: [Referensi API](/endpoints/convert)
+- Referensi parameter lengkap: [Referensi API](/endpoints/convert-range)
 - Coba langsung: [Playground](/playground)

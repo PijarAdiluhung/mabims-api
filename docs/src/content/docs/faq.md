@@ -76,7 +76,7 @@ Default-nya **Asia/Jakarta (UTC+7)**, khusus untuk endpoint `/today`. Bisa di-ov
 <details>
 <summary>Bagaimana cara konversi tanggal Masehi ke Hijriah atau sebaliknya?</summary>
 
-Pakai endpoint `GET /convert?date=YYYY-MM-DD&calendar=gregorian` atau `calendar=hijri` sesuai arah konversi yang diinginkan. Lihat dokumentasi lengkap: [Referensi API /convert](/endpoints/convert).
+Pakai endpoint `GET /convert?date=YYYY-MM-DD&calendar=gregorian` atau `calendar=hijri` sesuai arah konversi yang diinginkan. Lihat dokumentasi lengkap: [Referensi API /convert & /range](/endpoints/convert-range).
 
 </details>
 
