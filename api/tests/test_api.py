@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import calendar as pycalendar
 import json
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
@@ -9,7 +8,7 @@ from zoneinfo import ZoneInfo
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import Settings
+from app.config import APP_VERSION, Settings
 from app.main import create_app
 
 API_DIR = Path(__file__).resolve().parent.parent
@@ -44,7 +43,7 @@ def client(real_data):
 def test_healthz(client):
     response = client.get("/healthz")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "version": "1.0.0"}
+    assert response.json() == {"status": "ok", "version": APP_VERSION}
 
 
 def test_convert_gregorian_known_pair(client, real_data):
@@ -180,7 +179,7 @@ def test_origin_public_by_default(client):
     any_origin = client.get("/api/v1/today", headers={"Origin": "https://random-site.example"})
     none = client.get("/api/v1/today")
     assert any_origin.status_code == 200
-    assert any_origin.headers["access-control-allow-origin"] == "https://random-site.example"
+    assert any_origin.headers["access-control-allow-origin"] == "*"
     assert none.status_code == 200
 
 
@@ -200,12 +199,12 @@ def test_preflight_options(client):
         headers={"Origin": "https://partner.example", "Access-Control-Request-Method": "GET"},
     )
     assert response.status_code == 204
-    assert response.headers["access-control-allow-origin"] == "https://partner.example"
+    assert response.headers["access-control-allow-origin"] == "*"
 
 
-class TestFallbackBridge:
+class TestComputedFallback:
     @pytest.fixture()
-    def fallback_env(self, tmp_path, real_data):
+    def computed_env(self, tmp_path, real_data):
         data_dir = tmp_path / "data"
         data_dir.mkdir()
 
@@ -215,66 +214,34 @@ class TestFallbackBridge:
             shrunk["hijri_to_gregorian"][value] = key
         (data_dir / "calendar_data.json").write_text(json.dumps(shrunk), encoding="utf-8")
 
-        class FakeAladhan:
-            def __init__(self):
-                self.g_calls = 0
-                self.h_calls = 0
-
-            def fetch_by_gregorian(self, year, month):
-                self.g_calls += 1
-                pairs = {}
-                for day in range(1, pycalendar.monthrange(year, month)[1] + 1):
-                    pairs[f"{year:04d}-{month:02d}-{day:02d}"] = f"1449-{month:02d}-{day:02d}"
-                return pairs
-
-            def fetch_by_hijri(self, hy, hm):
-                self.h_calls += 1
-                pairs = {}
-                for day in range(1, 30 + 1):
-                    pairs[f"{hy:04d}-{hm:02d}-{day:02d}"] = f"2027-{hm:02d}-{min(day, 28):02d}"
-                return pairs
-
-        fake = FakeAladhan()
         settings = make_settings(
             data_dir=data_dir,
             enable_fallback=True,
+            enable_computed=True,
+            enable_aladhan=False,
             allowed_origins=[],
         )
-        app = create_app(settings=settings, fallback_provider=fake)
-        return TestClient(app), fake, data_dir
+        app = create_app(settings=settings)
+        return TestClient(app)
 
-    def test_fallback_serves_marks_and_persists_once(self, fallback_env):
-        client_, fake, data_dir = fallback_env
-        first = client_.get("/api/v1/convert?date=2026-06-15&calendar=gregorian")
-        assert first.status_code == 200
-        body = first.json()
-        assert body["output"]["date"] == "1449-06-15"
-        assert body["source"] == "fallback:aladhan-ummalqura"
-        assert any("Umm al-Qura" in warning for warning in body["warnings"])
-        assert fake.g_calls == 1
-        assert (data_dir / "fallback_2026.json").exists()
-
-        second = client_.get("/api/v1/convert?date=2026-06-16&calendar=gregorian")
-        assert second.status_code == 200
-        assert fake.g_calls == 1
-
-        meta = client_.get("/api/v1/meta").json()
-        assert meta["fallback_active"] is True
-        assert meta["fallback_months"] == ["G2026-06"]
-
-    def test_fallback_hijri_direction(self, fallback_env):
-        client_, fake, _ = fallback_env
-        response = client_.get("/api/v1/convert?date=1449-06-15&calendar=hijri")
+    def test_computed_fallback_serves_outside_table(self, computed_env):
+        response = computed_env.get("/api/v1/convert?date=2035-06-15&calendar=gregorian")
         assert response.status_code == 200
-        assert response.json()["output"]["date"] == "2027-06-15"
-        assert fake.h_calls == 1
+        body = response.json()
+        assert body["source"] == "mabims-computed"
+        assert any("Neo MABIMS" in w for w in body["warnings"])
 
-    def test_preloaded_year_file_avoids_refetch(self, fallback_env):
-        client_, fake, data_dir = fallback_env
-        client_.get("/api/v1/convert?date=2026-06-15&calendar=gregorian")
+    def test_computed_fallback_hijri_direction(self, computed_env):
+        response = computed_env.get("/api/v1/convert?date=1460-01-01&calendar=hijri")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["source"] == "mabims-computed"
+        assert any("Neo MABIMS" in w for w in body["warnings"])
 
-        from app.fallback import FallbackStore
-
-        store = FallbackStore(data_dir, fake)
-        store.load_existing()
-        assert store.lookup("2026-06-15", "gregorian") == "1449-06-15"
+    def test_curated_dates_still_use_mabims_source(self, computed_env, real_data):
+        g_iso = min(real_data["gregorian_to_hijri"])
+        response = computed_env.get(f"/api/v1/convert?date={g_iso}&calendar=gregorian")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["source"] == "mabims"
+        assert body["warnings"] == []

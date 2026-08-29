@@ -127,3 +127,101 @@ class TestComputedTierIntegration:
         assert meta["method"] == "neo-mabims-sabang"
         assert meta["fallback_active"] is False
         assert meta["computed_active"] is False
+
+
+def _shrunk_curated_months() -> tuple[list[str], dict[str, str]]:
+    """First two fully/partially covered Hijri months of the shrunk table."""
+    raw = json.loads(DATA_PATH.read_text(encoding="utf-8"))
+    g2h = dict(sorted(raw["gregorian_to_hijri"].items())[:90])
+    h2g = {v: k for k, v in g2h.items()}
+    months = sorted({h[:7] for h in h2g})
+    return months, h2g
+
+
+class TestComputedTierHijriEndpoints:
+    def test_hijri_month_computed(self, computed_client):
+        r = computed_client.get("/api/v1/month?year=1449&month=1&calendar=hijri")
+        assert r.status_code == 200
+        body = r.json()
+        assert 29 <= body["count"] <= 30
+        assert all(i["source"] == COMPUTED_SOURCE for i in body["items"])
+        gregorians = [i["gregorian"] for i in body["items"]]
+        assert gregorians == sorted(gregorians)
+        assert body["items"][0]["hijri"] == "1449-01-01"
+
+    def test_hijri_month_curated_not_extended_by_computed(self, computed_client):
+        # A fully-curated month keeps its authoritative length (29 or 30),
+        # even if the computed provider would differ.
+        months, h2g = _shrunk_curated_months()
+        m1_days = sorted(h for h in h2g if h[:7] == months[0])
+        curated_len = len(m1_days)
+        assert curated_len in (29, 30)
+        r = computed_client.get(
+            f"/api/v1/month?year={months[0][:4]}&month={int(months[0][5:7])}&calendar=hijri"
+        )
+        assert r.status_code == 200
+        body = r.json()
+        assert body["count"] == curated_len
+        assert all(i["source"] == "mabims" for i in body["items"])
+
+    def test_hijri_range_crosses_curated_month_boundary(self, computed_client):
+        months, h2g = _shrunk_curated_months()
+        m1_days = sorted(h for h in h2g if h[:7] == months[0])
+        m2_days = sorted(h for h in h2g if h[:7] == months[1])
+        start, end = m1_days[-1], m2_days[0]
+        r = computed_client.get(f"/api/v1/range?start={start}&end={end}&calendar=hijri")
+        assert r.status_code == 200
+        items = r.json()["items"]
+        assert [i["hijri"] for i in items] == [start, end]
+        assert all(i["source"] == "mabims" for i in items)
+
+    def test_hijri_range_rejects_phantom_day30(self, computed_client):
+        # Rabiul Akhir 1448 is 29 days, so 1448-04-30 is gregorian-valid but
+        # has no Hijri pair. It must 404, not silently clip the range.
+        r = computed_client.get(
+            "/api/v1/range?start=1448-04-30&end=1448-05-02&calendar=hijri"
+        )
+        assert r.status_code == 404
+        assert r.json()["error"]["code"] == "date_not_found"
+
+    def test_hijri_safar30_is_accepted(self, computed_client):
+        # Some Hijri years (e.g. 1450) have a 30-day Safar, so 1450-02-30 is a
+        # legitimate date even though it is invalid in the Gregorian calendar.
+        r = computed_client.get("/api/v1/convert?date=1450-02-30&calendar=hijri")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["output"]["calendar"] == "gregorian"
+
+        # The range endpoint must accept it too.
+        r2 = computed_client.get(
+            "/api/v1/range?start=1450-02-30&end=1450-02-30&calendar=hijri"
+        )
+        assert r2.status_code == 200
+        assert r2.json()["count"] == 1
+        assert r2.json()["items"][0]["hijri"] == "1450-02-30"
+
+    def test_hijri_safar30_in_29day_month_is_not_found(self, computed_client):
+        # Guard: a 30 Safar request for a year where Safar has 29 days must 404.
+        assert computed_client.get(
+            "/api/v1/month?year=1449&month=2&calendar=hijri"
+        ).json()["count"] == 29
+        r = computed_client.get("/api/v1/convert?date=1449-02-30&calendar=hijri")
+        assert r.status_code == 404
+        assert r.json()["error"]["code"] == "date_not_found"
+
+    def test_hijri_range_full_year_computed(self, computed_client):
+        # End on the real last day of Dzulhijjah (may be 29 or 30).
+        last = computed_client.get(
+            "/api/v1/month?year=1449&month=12&calendar=hijri"
+        ).json()["items"][-1]["hijri"]
+        r = computed_client.get(
+            f"/api/v1/range?start=1449-01-01&end={last}&calendar=hijri"
+        )
+        assert r.status_code == 200
+        body = r.json()
+        assert 350 <= body["count"] <= 355
+        hijris = [i["hijri"] for i in body["items"]]
+        assert hijris == sorted(hijris)
+        assert len(hijris) == len(set(hijris))
+        assert all(i["source"] == COMPUTED_SOURCE for i in body["items"])
+        assert any("Neo MABIMS" in w for w in body["warnings"])

@@ -4,6 +4,7 @@ import calendar as pycalendar
 import hashlib
 import json
 import math
+import re
 from datetime import date, datetime
 from pathlib import Path
 
@@ -28,7 +29,7 @@ from .mabims_astro import (
     EveningObservation,
     observation_on_sunset,
 )
-from .mabims_computed import COMPUTED_SOURCE, MabimsCalcProvider
+from .mabims_computed import COMPUTED_SOURCE, MabimsCalcProvider, next_hijri_month
 from .schemas import (
     ConversionInput,
     ConversionOutput,
@@ -165,6 +166,30 @@ def _parse_iso_date(value: str) -> date:
         return date.fromisoformat(value)
     except (TypeError, ValueError):
         raise ApiError("invalid_date", f"'{value}' is not a valid ISO date (YYYY-MM-DD).") from None
+
+
+_HIJRI_DATE_RE = re.compile(r"^(\d{4})-(\d{2})-(\d{2})$")
+
+
+def _parse_hijri_date(value: str) -> str:
+    """Validate a Hijri ``YYYY-MM-DD`` string without Gregorian date rules.
+
+    ``date.fromisoformat`` validates against the Gregorian calendar, so a
+    legitimate Hijri date like ``1368-02-30`` (30 Safar — a 30-day month) would
+    be rejected as a nonexistent Gregorian Feb 30 — and ``datetime.date`` cannot
+    even represent ``February 30`` in any year. Hijri months are 29/30 days, so
+    the syntactically valid day range is 1–30; whether a specific day exists in
+    a given month is left to the data lookup (``date_not_found``). Returns the
+    normalized ISO string and never constructs a ``date`` object.
+    """
+    normalized = (value or "").strip()
+    match = _HIJRI_DATE_RE.match(normalized)
+    if match is None:
+        raise ApiError("invalid_date", f"'{value}' is not a valid ISO date (YYYY-MM-DD).")
+    year, month, day = (int(g) for g in match.groups())
+    if not 1 <= month <= 12 or not 1 <= day <= 30:
+        raise ApiError("invalid_date", f"'{value}' is not a valid ISO date (YYYY-MM-DD).")
+    return f"{year:04d}-{month:02d}-{day:02d}"
 
 
 def _validate_calendar(value: str | None) -> str:
@@ -423,12 +448,12 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         if not date_:
             raise ApiError("missing_parameter", "You must provide a 'date' query parameter.")
         cal = _validate_calendar(calendar)
-        target = _parse_iso_date(date_)
-        value, source = _resolve_pair(target.isoformat(), cal)
+        target_iso = _parse_hijri_date(date_) if cal == "hijri" else _parse_iso_date(date_).isoformat()
+        value, source = _resolve_pair(target_iso, cal)
         opposite = "hijri" if cal == "gregorian" else "gregorian"
-        hijri_value = value if cal == "gregorian" else target.isoformat()
+        hijri_value = value if cal == "gregorian" else target_iso
         payload = ConvertResponse(
-            input=ConversionInput(date=target.isoformat(), calendar=cal),
+            input=ConversionInput(date=target_iso, calendar=cal),
             output=ConversionOutput(date=value, calendar=opposite, **_parse_date_parts(value, opposite)),
             source=source,
             warnings=_warnings_for(source, hijri_value),
@@ -477,7 +502,48 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         )
         return _json_response(payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
 
-    def _collect_items(start: date, end: date, cal: str) -> list[RangeItem]:
+    def _hijri_month_items(year: int, month: int) -> list[RangeItem]:
+        """All days of a Hijri month, served from whichever tier covers it.
+
+        A Hijri month is 29 or 30 days, never 31 — days are probed by exact
+        Hijri ISO date and the first missing day ends the month, so a
+        fabricated ``day 31`` can never be produced. When the curated table
+        fully covers the month it is served as-is (authoritative — a computed
+        pad could wrongly extend an official 29-day month to 30). When the
+        table is absent or truncated mid-month, the computed store is ensured
+        and ``lookup`` fills the gap (curated days still win where present).
+        """
+        prefix = f"{year:04d}-{month:02d}-"
+        curated = sorted(k for k in service.h2g if k.startswith(prefix))
+        if curated:
+            last_day = int(curated[-1][8:10])
+            contiguous = len(curated) == last_day
+            if contiguous and last_day in (29, 30):
+                return [
+                    RangeItem(
+                        gregorian=service.h2g[h_iso],
+                        hijri=h_iso,
+                        source=SOURCE_MABIMS,
+                    )
+                    for h_iso in curated
+                ]
+        service.ensure_hijri_month(year, month)
+        items: list[RangeItem] = []
+        for day in range(1, 31):
+            h_iso = f"{prefix}{day:02d}"
+            result = service.lookup(h_iso, "hijri")
+            if result.value is None:
+                break
+            items.append(
+                RangeItem(gregorian=result.value, hijri=h_iso, source=result.source)
+            )
+        return items
+
+    def _collect_items(start_iso: str, end_iso: str, cal: str) -> list[RangeItem]:
+        if cal == "hijri":
+            return _collect_hijri_items(start_iso, end_iso)
+        start = date.fromisoformat(start_iso)
+        end = date.fromisoformat(end_iso)
         service.ensure_range(start.isoformat(), end.isoformat(), cal)
         items: list[RangeItem] = []
         cursor = start
@@ -492,12 +558,59 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                 )
             items.append(
                 RangeItem(
-                    gregorian=iso if cal == "gregorian" else result.value,
-                    hijri=result.value if cal == "gregorian" else iso,
+                    gregorian=iso,
+                    hijri=result.value,
                     source=result.source,
                 )
             )
             cursor = date.fromordinal(cursor.toordinal() + 1)
+        return items
+
+    def _collect_hijri_items(start_iso: str, end_iso: str) -> list[RangeItem]:
+        """Bulk convert a Hijri range by walking whole Hijri months.
+
+        Hijri months are 29/30 days, so stepping with ``date.fromordinal``
+        (used by the Gregorian path) would fabricate nonexistent ``day 31``\u2019s
+        and break on every month boundary. Instead we iterate month keys and
+        clip each month's items to the requested slice.
+
+        Everything stays string-based: a valid Hijri day like ``Safar 30``
+        cannot be represented by ``datetime.date`` (Gregorian Feb 30 does not
+        exist), so we never build ``date`` objects here.
+
+        The requested ``start`` and ``end`` must themselves be real Hijri
+        dates: a day like ``30`` in a 29-day month is a valid ISO string yet
+        has no calendar pair, so it is rejected up front instead of silently
+        clipping the range.
+        """
+        for bound in (start_iso, end_iso):
+            service.ensure_hijri_month(int(bound[0:4]), int(bound[5:7]))
+            lookup = service.lookup(bound, "hijri")
+            if lookup.value is None:
+                raise ApiError(
+                    "date_not_found",
+                    f"No calendar pair exists for {bound} (hijri). "
+                    "See /api/v1/meta for coverage.",
+                    404,
+                )
+        items: list[RangeItem] = []
+        cy = int(start_iso[0:4])
+        cm = int(start_iso[5:7])
+        ey = int(end_iso[0:4])
+        em = int(end_iso[5:7])
+        while (cy, cm) <= (ey, em):
+            month_items = _hijri_month_items(cy, cm)
+            if not month_items:
+                raise ApiError(
+                    "out_of_coverage",
+                    f"No calendar pair exists for {cy:04d}-{cm:02d}; "
+                    "check /api/v1/meta for coverage.",
+                    400,
+                )
+            for item in month_items:
+                if start_iso <= item.hijri <= end_iso:
+                    items.append(item)
+            cy, cm = next_hijri_month(cy, cm)
         return items
 
     @app.api_route(
@@ -518,19 +631,30 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         cal = _validate_calendar(calendar)
         if step != "day":
             raise ApiError("invalid_step", "Only step='day' is supported.")
-        start_d = _parse_iso_date(start)
-        end_d = _parse_iso_date(end)
-        if start_d > end_d:
-            raise ApiError("invalid_range", "'start' must be on or before 'end'.")
-        span = (end_d - start_d).days + 1
-        if span > MAX_RANGE_DAYS:
-            raise ApiError("range_too_large", f"Range is limited to {MAX_RANGE_DAYS} days.")
-        _check_supported(start_d.isoformat(), cal)
-        _check_supported(end_d.isoformat(), cal)
-        items = _collect_items(start_d, end_d, cal)
+        if cal == "hijri":
+            start_iso = _parse_hijri_date(start)
+            end_iso = _parse_hijri_date(end)
+            if start_iso > end_iso:
+                raise ApiError("invalid_range", "'start' must be on or before 'end'.")
+            _check_supported(start_iso, cal)
+            _check_supported(end_iso, cal)
+            items = _collect_items(start_iso, end_iso, cal)
+        else:
+            start_d = _parse_iso_date(start)
+            end_d = _parse_iso_date(end)
+            if start_d > end_d:
+                raise ApiError("invalid_range", "'start' must be on or before 'end'.")
+            span = (end_d - start_d).days + 1
+            if span > MAX_RANGE_DAYS:
+                raise ApiError("range_too_large", f"Range is limited to {MAX_RANGE_DAYS} days.")
+            _check_supported(start_d.isoformat(), cal)
+            _check_supported(end_d.isoformat(), cal)
+            items = _collect_items(start_d.isoformat(), end_d.isoformat(), cal)
         aggregate_source, warnings = _aggregate(items)
         payload = RangeResponse(
-            input=RangeInput(start=start_d.isoformat(), end=end_d.isoformat(), calendar=cal),
+            input=RangeInput(start=start_iso if cal == "hijri" else start_d.isoformat(),
+                             end=end_iso if cal == "hijri" else end_d.isoformat(),
+                             calendar=cal),
             count=len(items),
             items=items,
             warnings=warnings,
@@ -598,30 +722,18 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             end_d = date(year, month, days_in_month)
             _check_supported(start_d.isoformat(), cal)
             _check_supported(end_d.isoformat(), cal)
-            items = _collect_items(start_d, end_d, cal)
+            items = _collect_items(start_d.isoformat(), end_d.isoformat(), cal)
         else:
-            prefix = f"{year:04d}-{month:02d}-"
-            _check_supported(f"{prefix}01", cal)
-            has_main_data = any(key.startswith(prefix) for key in service.h2g)
-            if not has_main_data:
-                service.ensure_hijri_month(year, month)
-            pairs: list[tuple[str, str]] = []
-            for h_iso, g_iso in service.h2g.items():
-                if h_iso.startswith(prefix):
-                    pairs.append((g_iso, h_iso))
-            pairs.sort()
-            if not pairs:
+            _check_supported(f"{year:04d}-{month:02d}-01", cal)
+            items = _hijri_month_items(year, month)
+            if not items:
                 raise ApiError(
                     "out_of_coverage",
-                    f"Hijri month {prefix[:-1]} is outside available coverage; see /api/v1/meta.",
+                    f"Hijri month {year:04d}-{month:02d} is outside available coverage; see /api/v1/meta.",
                     400,
                 )
-            items = [
-                RangeItem(gregorian=g, hijri=h, source=service.lookup(h, "hijri").source)
-                for g, h in pairs
-            ]
-            start_d = date.fromisoformat(pairs[0][0])
-            end_d = date.fromisoformat(pairs[-1][0])
+            start_d = date.fromisoformat(items[0].gregorian)
+            end_d = date.fromisoformat(items[-1].gregorian)
             if (
                 start_d.isoformat() < MIN_SUPPORTED_GREGORIAN
                 or end_d.isoformat() > _max_supported_gregorian().isoformat()

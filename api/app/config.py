@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-APP_VERSION = "1.1.0"
+APP_VERSION = "1.1.1"
 
 DEFAULT_ORIGIN_SUFFIXES = ["malangmengaji.com"]
 
