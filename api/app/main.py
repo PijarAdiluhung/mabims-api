@@ -77,7 +77,7 @@ COMPUTED_METHOD = "neo-mabims-sabang"
 MAX_RANGE_DAYS = 400
 MIN_SUPPORTED_GREGORIAN = "2024-01-13"
 MAX_SUPPORTED_GREGORIAN = date(2053, 8, 1)
-HILAL_CACHE = {"Cache-Control": "public, max-age=86400"}
+HILAL_CACHE = {"Cache-Control": "public, max-age=86400, s-maxage=86400"}
 HILAL_ALT_MIN_DEG = 3.0
 HILAL_ELONG_MIN_DEG = 6.4
 
@@ -408,7 +408,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         return Response(
             content=icon.read_bytes(),
             media_type="image/x-icon",
-            headers={"Cache-Control": "public, max-age=86400"},
+            headers={"Cache-Control": "public, max-age=86400, s-maxage=86400"},
         )
 
     @app.api_route(

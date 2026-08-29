@@ -123,7 +123,7 @@ def test_today_on_immutable_cache(client, real_data):
     g_iso = min(real_data["gregorian_to_hijri"])
     response = client.get(f"/api/v1/today/{g_iso}")
     assert response.status_code == 200
-    assert response.headers["cache-control"] == "public, max-age=86400"
+    assert response.headers["cache-control"] == "public, max-age=86400, s-maxage=86400"
     assert response.json()["output"]["date"] == real_data["gregorian_to_hijri"][g_iso]
 
 

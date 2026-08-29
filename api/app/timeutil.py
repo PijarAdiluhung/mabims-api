@@ -42,7 +42,7 @@ def seconds_until_midnight(now: datetime) -> int:
     return max(remaining, MIN_CACHE_TTL_SECONDS)
 
 
-IMMUTABLE_CACHE_HEADERS = {"Cache-Control": f"public, max-age={DAY_TTL_SECONDS}"}
+IMMUTABLE_CACHE_HEADERS = {"Cache-Control": f"public, max-age={DAY_TTL_SECONDS}, s-maxage={DAY_TTL_SECONDS}"}
 
 
 def dynamic_cache_headers(tz: timezone | ZoneInfo) -> dict[str, str]:

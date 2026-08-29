@@ -46,7 +46,20 @@ const eventShortNames = {
     <span class="legend-item"><span class="legend-ring"></span> Today</span>
   </div>
 
-  <div class="kal-wall" id="wall"></div>
+  <div class="kal-wall" id="wall">
+    <div class="kal-skel"><div class="skel-head"></div><div class="skel-week"></div><div class="skel-grid"></div></div>
+    <div class="kal-skel"><div class="skel-head"></div><div class="skel-week"></div><div class="skel-grid"></div></div>
+    <div class="kal-skel"><div class="skel-head"></div><div class="skel-week"></div><div class="skel-grid"></div></div>
+    <div class="kal-skel"><div class="skel-head"></div><div class="skel-week"></div><div class="skel-grid"></div></div>
+    <div class="kal-skel"><div class="skel-head"></div><div class="skel-week"></div><div class="skel-grid"></div></div>
+    <div class="kal-skel"><div class="skel-head"></div><div class="skel-week"></div><div class="skel-grid"></div></div>
+    <div class="kal-skel"><div class="skel-head"></div><div class="skel-week"></div><div class="skel-grid"></div></div>
+    <div class="kal-skel"><div class="skel-head"></div><div class="skel-week"></div><div class="skel-grid"></div></div>
+    <div class="kal-skel"><div class="skel-head"></div><div class="skel-week"></div><div class="skel-grid"></div></div>
+    <div class="kal-skel"><div class="skel-head"></div><div class="skel-week"></div><div class="skel-grid"></div></div>
+    <div class="kal-skel"><div class="skel-head"></div><div class="skel-week"></div><div class="skel-grid"></div></div>
+    <div class="kal-skel"><div class="skel-head"></div><div class="skel-week"></div><div class="skel-grid"></div></div>
+  </div>
 
   <details>
     <summary>Full JSON response (/month + /events)</summary>
@@ -316,6 +329,34 @@ const eventShortNames = {
     }
     details summary {
       cursor: pointer;
+    }
+    .kal-skel {
+      border: 1px solid var(--sl-color-gray-5);
+      border-radius: 0.75rem;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.015);
+    }
+    .skel-head, .skel-week, .skel-grid {
+      background: linear-gradient(90deg, var(--sl-color-gray-6) 25%, var(--sl-color-gray-5) 50%, var(--sl-color-gray-6) 75%);
+      background-size: 200% 100%;
+      animation: skel-shimmer 1.5s ease-in-out infinite;
+      border-radius: 0.3rem;
+    }
+    .skel-head {
+      height: 2rem;
+      margin: 0.6rem 0.85rem;
+    }
+    .skel-week {
+      height: 1.2rem;
+      margin: 0.35rem 0.45rem;
+    }
+    .skel-grid {
+      height: 8rem;
+      margin: 0.4rem 0.45rem 0.6rem;
+    }
+    @keyframes skel-shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
     }
   </style>
 </StarlightPage>

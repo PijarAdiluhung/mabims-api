@@ -22,9 +22,16 @@ Self-hoster dapat mengaktifkan kembali daftar origin yang diizinkan melalui vari
 
 ## Batas rate & caching
 
-- **Origin** menerapkan batas rate per-IP (default 240/menit, `429` ketika dilebihi) murni sebagai perlindungan penyalahgunaan.
-- Di *production environment*, API berada di belakang CDN: permintaan yang identik dilayani di edge dan tidak pernah mencapai origin. Dengan jutaan permintaan/hari, origin hanya melihat sekitar satu permintaan per lokasi edge per sumber daya yang di-cache per hari.
-- Respons [`/today`](/endpoints/today) membawa TTL yang kedaluwarsa tepat pada tengah malam waktu lokal, sehingga jawaban yang di-cache tidak pernah basi setelah pergantian hari.
+- **CDN edge** (Bunny CDN): 4 request/detik per IP secara terus-menerus, burst 24. Ini adalah
+  batas rate utama — sebagian besar permintaan tidak pernah mencapai origin.
+- **Origin** (FastAPI): 240/menit per IP sebagai cadangan jika CDN dilewati. Endpoint hilal
+  (`/hilal/info`, `/hilal/viz`) lebih ketat di origin (60 atau 30/jam) karena komputasi berat,
+  namun batas per-endpoint di CDN belum dikonfigurasi.
+- Permintaan yang identik dilayani dari cache CDN dan tidak pernah mencapai origin. Dengan
+  jutaan permintaan/hari, origin hanya melihat sekitar satu permintaan per lokasi edge per
+  sumber daya yang di-cache per hari.
+- Respons [`/today`](/endpoints/today) membawa TTL yang kedaluwarsa tepat pada tengah malam
+  waktu lokal, sehingga jawaban yang di-cache tidak pernah basi setelah pergantian hari.
 
 ## Batas lebih tinggi / penggunaan komersial
 

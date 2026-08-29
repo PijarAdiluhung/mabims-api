@@ -158,7 +158,9 @@ The API follows [semver](https://semver.org/). The current version is returned b
 
 ## Rate limits
 
-Default: **240 requests/minute** per IP. Hilal endpoints are stricter (60 or 30/hour) due to heavier computation.
+Default: **240 requests/minute** (4/s sustained, burst 24) per IP via Bunny CDN. The origin
+also applies a per-IP limit (240/min) as a fallback. Hilal endpoints are stricter (60 or 30/hour)
+due to heavier computation.
 
 ## Authentication
 
