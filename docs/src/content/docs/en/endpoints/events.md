@@ -18,7 +18,7 @@ GET /api/v1/events?year={Y}&calendar={gregorian|hijri}
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `year` | integer | yes | Year in the requested `calendar` (Hijri: `1446`, Gregorian: `2025`) |
-| `calendar` | string | no (default `gregorian`) | `gregorian` or `hijri` |
+| `calendar` | string | no (default `hijri`) | `gregorian` or `hijri` |
 
 ## Response
 

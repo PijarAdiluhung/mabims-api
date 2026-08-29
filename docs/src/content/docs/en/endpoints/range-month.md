@@ -14,7 +14,7 @@ GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `start` / `end` | string | yes | ISO dates; `start ≤ end`; max span 45 days |
-| `calendar` | string | no (default `gregorian`) | Calendar of the input bounds |
+| `calendar` | string | no (default `hijri`) | Calendar of the input bounds |
 
 ```json
 {

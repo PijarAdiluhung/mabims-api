@@ -18,7 +18,7 @@ GET /api/v1/events?year={Y}&calendar={gregorian|hijri}
 | Parameter | Tipe | Wajib | Deskripsi |
 |---|---|---|---|
 | `year` | integer | ya | Tahun kalender sesuai `calendar` (Hijriah: `1446`, Gregorian: `2025`) |
-| `calendar` | string | tidak (default `gregorian`) | `gregorian` atau `hijri` |
+| `calendar` | string | tidak (default `hijri`) | `gregorian` atau `hijri` |
 
 ## Respons
 

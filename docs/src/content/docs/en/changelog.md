@@ -3,6 +3,24 @@ title: Changelog
 description: History of changes to the MABIMS API and documentation.
 ---
 
+## 1.2.1 — 2026-08-29
+
+### Fixed
+
+- **CORS headers on cached responses** — `Access-Control-Allow-Origin` was only added when the request carried an `Origin` header. BunnyCDN cached the headerless variant and blocked cross-origin `fetch()` in browsers. All responses (OPTIONS, errors, and GET without Origin) now always include CORS headers.
+- **README `/range` error table** — `range_too_large` incorrectly said "400 days"; fixed to 45.
+- **404 page in sitemap** — `/en/404/` is no longer included in the sitemap.
+
+### Changed
+
+- **`calendar` default → `hijri`** — `/convert`, `/range`, `/month`, `/events` now default to `hijri` (previously `gregorian`). Consistent with `/year` and the API's identity as a Hijri calendar service. Playgrounds that need gregorian already pass `calendar=gregorian` explicitly.
+
+### Security
+
+- **`X-Content-Type-Options: nosniff`** — added to all API responses.
+
+---
+
 ## 1.2.0 — 2026-08-29
 
 ### Added

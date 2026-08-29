@@ -3,6 +3,24 @@ title: Changelog
 description: Riwayat perubahan API dan dokumentasi MABIMS.
 ---
 
+## 1.2.1 — 2026-08-29
+
+### Fixed
+
+- **CORS header pada respons CDN** — `Access-Control-Allow-Origin` sebelumnya hanya ditambahkan saat request memiliki header `Origin`. BunnyCDN menyimpan varian tanpa header CORS, mem-block `fetch()` lintas-origin di browser. Kini semua respons (termasuk OPTIONS, error, dan GET tanpa Origin) selalu menyertakan header CORS.
+- **README `/range` error table** — kolom `range_too_large` salah menampilkan "400 days", diperbaiki menjadi 45 hari.
+- **404 page di sitemap** — `/en/404/` tidak lagi disertakan dalam sitemap.
+
+### Changed
+
+- **`calendar` default → `hijri`** — `/convert`, `/range`, `/month`, `/events` kini default ke `hijri` (sebelumnya `gregorian`). Konsisten dengan `/year` dan filosofi API sebagai layanan kalender Hijriah. Playground yang membutuhkan gregorian sudah mengirim `calendar=gregorian` secara eksplisit.
+
+### Security
+
+- **`X-Content-Type-Options: nosniff`** — ditambahkan ke semua respons API.
+
+---
+
 ## 1.2.0 — 2026-08-29
 
 ### Added

@@ -14,7 +14,7 @@ GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `date` | string | yes | ISO date (`YYYY-MM-DD`) |
-| `calendar` | string | no (default `gregorian`) | Calendar of the input date |
+| `calendar` | string | no (default `hijri`) | Calendar of the input date |
 
 ## Responses
 

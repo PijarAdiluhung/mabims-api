@@ -295,17 +295,22 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             response = Response(status_code=204)
         else:
             if origin and not _origin_allowed(origin, settings):
-                return _error(
+                resp = _error(
                     "forbidden_origin",
                     f"Origin '{origin}' is not allowed to access this API.",
                     403,
                 )
+                resp.headers["Access-Control-Allow-Origin"] = "*"
+                resp.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+                resp.headers["Access-Control-Allow-Headers"] = "Content-Type"
+                resp.headers["Access-Control-Max-Age"] = "600"
+                return resp
             response = await call_next(request)
-        if origin:
-            response.headers["Access-Control-Allow-Origin"] = "*"
-            response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-            response.headers["Access-Control-Allow-Headers"] = "Content-Type"
-            response.headers["Access-Control-Max-Age"] = "600"
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        response.headers["Access-Control-Max-Age"] = "600"
+        response.headers["X-Content-Type-Options"] = "nosniff"
         return response
 
     def _resolve_pair(date_iso: str, calendar: str) -> tuple[str, str]:
@@ -450,7 +455,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
     def convert(
         request: Request,
         date_: str | None = Query(default=None, alias="date"),
-        calendar: str = Query(default="gregorian"),
+        calendar: str = Query(default="hijri"),
     ):
         if not date_:
             raise ApiError("missing_parameter", "You must provide a 'date' query parameter.")
@@ -632,7 +637,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         request: Request,
         start: str = Query(...),
         end: str = Query(...),
-        calendar: str = Query(default="gregorian"),
+        calendar: str = Query(default="hijri"),
         step: str = Query(default="day"),
     ):
         cal = _validate_calendar(calendar)
@@ -679,7 +684,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
     def events(
         request: Request,
         year: int = Query(...),
-        calendar: str = Query(default="gregorian"),
+        calendar: str = Query(default="hijri"),
     ):
         cal = _validate_calendar(calendar)
         if not 1000 <= year <= 3000:
@@ -715,7 +720,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         request: Request,
         year: int = Query(...),
         month: int = Query(...),
-        calendar: str = Query(default="gregorian"),
+        calendar: str = Query(default="hijri"),
     ):
         cal = _validate_calendar(calendar)
         if not 1 <= month <= 12:

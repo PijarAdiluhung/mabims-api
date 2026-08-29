@@ -124,7 +124,7 @@ All errors follow a consistent JSON shape:
 | 400 | `invalid_year` | `year` is out of supported bounds |
 | 400 | `out_of_coverage` | Date is outside available coverage |
 | 400 | `date_out_of_supported_range` | Date exceeds supported range |
-| 400 | `range_too_large` | Range exceeds 400 days |
+| 400 | `range_too_large` | Range exceeds 45 days |
 | 404 | `date_not_found` | No calendar pair exists for this date |
 | 500 | `render_failed` | Hilal chart rendering failed |
 | 503 | `computation_unavailable` | Astronomical computation failed or is disabled |

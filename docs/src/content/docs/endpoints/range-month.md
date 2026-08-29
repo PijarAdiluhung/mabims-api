@@ -14,7 +14,7 @@ GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
 | Parameter | Tipe | Wajib | Deskripsi |
 |---|---|---|---|
 | `start` / `end` | string | ya | Tanggal ISO; `start ≤ end`; rentang maks 45 hari |
-| `calendar` | string | tidak (default `gregorian`) | Kalender dari batas input |
+| `calendar` | string | tidak (default `hijri`) | Kalender dari batas input |
 
 ```json
 {

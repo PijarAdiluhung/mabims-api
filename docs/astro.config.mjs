@@ -7,7 +7,9 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   site: 'https://mabims.dev',
   integrations: [
-    sitemap(),
+    sitemap({
+      filter: (page) => !page.includes('/404'),
+    }),
     starlight({
       title: 'API Kalender MABIMS',
       description:

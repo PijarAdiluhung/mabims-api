@@ -98,8 +98,8 @@ const months = [
         const meta = await res.json();
 
         const [firstRes, lastRes] = await Promise.all([
-          fetch(`${apiBase}/api/v1/convert?date=${meta.coverage.first}`),
-          fetch(`${apiBase}/api/v1/convert?date=${meta.coverage.last}`),
+          fetch(`${apiBase}/api/v1/convert?date=${meta.coverage.first}&calendar=gregorian`),
+          fetch(`${apiBase}/api/v1/convert?date=${meta.coverage.last}&calendar=gregorian`),
         ]);
         const firstBody = await firstRes.json();
         const lastBody = await lastRes.json();
