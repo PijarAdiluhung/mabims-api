@@ -13,7 +13,6 @@ from fastapi.responses import JSONResponse, Response
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
-from slowapi.util import get_remote_address
 
 from .calendar import SOURCE_MABIMS, CalendarService
 from .config import APP_VERSION, Settings
@@ -272,7 +271,12 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         ],
     )
 
-    limiter = Limiter(key_func=get_remote_address, default_limits=[settings.rate_limit])
+    def _rate_limit_key(request: Request) -> str:
+        if xff := request.headers.get("x-real-ip"):
+            return xff
+        return request.client.host if request.client else "unknown"
+
+    limiter = Limiter(key_func=_rate_limit_key, default_limits=[settings.rate_limit])
     app.state.limiter = limiter
     app.add_middleware(SlowAPIMiddleware)
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
