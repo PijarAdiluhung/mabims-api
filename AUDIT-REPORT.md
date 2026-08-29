@@ -61,8 +61,8 @@
 | **No SDK / npm package** | Only raw HTTP examples. No `npm install mabims`. | Medium |
 | **No integration examples in API docs** | Blog tutorial exists but not inline in API reference pages. | Low |
 | **No status page link** | No uptime monitoring or status page. | Medium |
-| **No versioning strategy** | No mention of `/v2` or if `/v1` is frozen. | ~~Low~~ Done — SemVer adopted, documented in changelog |
-| **No changelog** | Blog has 3 posts but no "what changed" log. | ~~Low~~ Done |
+| **No versioning strategy** | No mention of `/v2` or if `/v1` is frozen. | ✅ Done — SemVer adopted, documented in changelog |
+| **No changelog** | Blog has 3 posts but no "what changed" log. | ✅ Done |
 | **No community channel** | GitHub Issues only. No Discord/Telegram. | Low |
 
 ### Marketing & Conversion

@@ -1,7 +1,7 @@
 # TODO
 
 ## Branding & domain
-- [x] Pick domain + `api.` hostname (candidates: `hariini.app`, `tanggalan.id`, `mabims.dev`, `hijridate.dev`) choice: mabims.dev, during testing: mabims.pixostudio.id
+- [x] Pick domain + `api.` hostname (candidates: `hariini.app`, `tanggalan.id`, `mabims.dev`, `hijridate.dev`) choice: mabims.dev
 - [x] Settle site title / tagline (current: "MABIMS Date Converter API") choice: mabims.dev - Integrasikan sistem kalender hijriah MABIMS dalam aplikasi / website Anda
 - [x] Logo + favicon refresh (current favicons inherited from old project) + OG/social preview image — mabims.png in navbar + hero, Poppins font (#fecf46 yellow)
 - [x] Replace all placeholders once domain is live (bought mabims.dev): docs content + `PUBLIC_API_BASE` → `api.mabims.dev`; astro site + `/meta` docs_url → `https://mabims.dev`
@@ -10,7 +10,7 @@
 - [x] VPS: Dokploy compose service + domains → DEPLOY.md §2
 - [x] Bunny pull zones, *respect origin headers*, query strings in cache key → DEPLOY.md §3
 - [x] Smoke checklist incl. cache-hit verification (second request must not reach origin) → DEPLOY.md §4
-- [ ] Uptime monitor on `/healthz` + alert if `fallback_active` stays true > a few days (healthchecks.io or similar)
+- [x] Uptime monitor on `/healthz` + alert (Instatus)
 
 ## Data — hard deadline 2027-01-01
 - [ ] 2027 MABIMS table: build the yearly ingest script (source: regional authority announcements), extend `api/data/`
