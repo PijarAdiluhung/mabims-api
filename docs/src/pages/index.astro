@@ -26,9 +26,67 @@ const description = 'Integrasikan kalender Hijriah MABIMS ke web / aplikasi Anda
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" />
     <meta name="theme-color" content="#23262f" />
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://mabims.dev/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mabims.dev/" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image" content="https://mabims.dev/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="mabims.dev" />
+    <meta property="og:locale" content="id_ID" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content="https://mabims.dev/og-image.png" />
+
+    <!-- hreflang -->
+    <link rel="alternate" hreflang="id" href="https://mabims.dev/" />
+    <link rel="alternate" hreflang="en" href="https://mabims.dev/en/" />
+    <link rel="alternate" hreflang="x-default" href="https://mabims.dev/" />
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "mabims.dev",
+        "url": "https://mabims.dev",
+        "description": "API konversi tanggal Hijriah resmi MABIMS untuk Indonesia. Data Kemenag, bukan Umm al-Qura.",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://mabims.dev/faq/?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "MABIMS API",
+        "url": "https://mabims.dev",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Cross-platform",
+        "description": "Free REST API for Hijri (Islamic) calendar conversion using official MABIMS moon-sighting data from Indonesia's Ministry of Religious Affairs.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Pijar Adiluhung"
+        }
+      }
+    </script>
   </head>
   <body>
     <nav class="landing-nav">
