@@ -8,7 +8,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, timedelta
 from pathlib import Path
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app.config import Settings
@@ -91,7 +90,7 @@ class TestConcurrency:
         with ThreadPoolExecutor(max_workers=20) as pool:
             list(pool.map(fetch, self.DATES))
 
-        assert not errors, f"Errors under concurrency:\n" + "\n".join(errors)
+        assert not errors, "Errors under concurrency:\n" + "\n".join(errors)
         assert latencies
         p50 = statistics.median(latencies)
         p95 = sorted(latencies)[int(len(latencies) * 0.95)]
