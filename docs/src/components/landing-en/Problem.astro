@@ -1,0 +1,147 @@
+---
+import { XCircle, CheckCircle } from '@lucide/astro';
+---
+
+<section class="problem-section">
+  <div class="problem-header">
+    <h2>Don't Use the <span class="accent">Wrong</span> Hijri Calendar</h2>
+    <p>
+      Almost all Hijri calendar APIs use Umm al-Qura (Saudi) as default. That calendar
+      follows Saudi authority, not Indonesia's official Kemenag decision.
+      The result? Your app's dates can be ±1 day off from local moon sighting.
+    </p>
+  </div>
+
+  <div class="comparison-visual">
+    <div class="comparison-card comparison-card--wrong">
+      <div class="comparison-badge"><XCircle size={14} /> Umm al-Qura</div>
+      <div class="comparison-date">1 Ramadhan 1447 H</div>
+      <div class="comparison-gregorian">18 February 2026</div>
+      <div class="comparison-note">What your app shows</div>
+    </div>
+
+    <div class="comparison-arrow">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    </div>
+
+    <div class="comparison-card comparison-card--right">
+      <div class="comparison-badge"><CheckCircle size={14} /> MABIMS</div>
+      <div class="comparison-date">30 Sya'ban 1447 H</div>
+      <div class="comparison-gregorian">18 February 2026</div>
+      <div class="comparison-note">What's seen in Indonesia's sky</div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .problem-section {
+    padding: clamp(3rem, 6vw, 6rem) 0;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .problem-header {
+    max-width: 48rem;
+    margin: 0 auto 2.5rem;
+  }
+
+  .problem-header h2 {
+    font-size: clamp(1.75rem, 1rem + 3vw, 2.75rem);
+    font-weight: 700;
+    color: var(--sl-color-white);
+    margin: 0 0 1.25rem;
+    line-height: 1.2;
+  }
+
+  .problem-header h2 .accent {
+    color: #ef4444;
+  }
+
+  .problem-header p {
+    font-size: clamp(1rem, 0.5rem + 1vw, 1.125rem);
+    color: var(--sl-color-gray-2);
+    line-height: 1.8;
+    margin: 0;
+  }
+
+  .comparison-visual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 0;
+  }
+
+  @media (min-width: 40rem) {
+    .comparison-visual {
+      flex-direction: row;
+      justify-content: center;
+    }
+  }
+
+  .comparison-card {
+    padding: 1.75rem 2rem;
+    border-radius: 14px;
+    min-width: 16rem;
+    text-align: center;
+  }
+
+  .comparison-card--wrong {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  .comparison-card--right {
+    background: rgba(254, 207, 70, 0.05);
+    border: 1px solid rgba(254, 207, 70, 0.25);
+  }
+
+  .comparison-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: var(--sl-text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+  }
+
+  .comparison-card--wrong .comparison-badge {
+    color: #ef4444;
+  }
+
+  .comparison-card--right .comparison-badge {
+    color: var(--sl-color-accent);
+  }
+
+  .comparison-date {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--sl-color-white);
+    margin-bottom: 0.5rem;
+  }
+
+  .comparison-gregorian {
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+    margin-bottom: 0.75rem;
+  }
+
+  .comparison-note {
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+    font-style: italic;
+  }
+
+  .comparison-arrow {
+    color: var(--sl-color-gray-3);
+    transform: rotate(90deg);
+  }
+
+  @media (min-width: 40rem) {
+    .comparison-arrow {
+      transform: none;
+    }
+  }
+</style>

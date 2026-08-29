@@ -1,0 +1,152 @@
+---
+import { Mosque, Zap, CalendarDays, Code, Globe, RefreshCcw } from '@lucide/astro';
+
+const features = [
+  {
+    icon: Mosque,
+    title: 'Official Kemenag Data',
+    description: 'Uses the official calendar table from Indonesia\'s Ministry of Religious Affairs, not Saudi authority.',
+    color: 'yellow',
+  },
+  {
+    icon: Zap,
+    title: 'No Authentication',
+    description: 'Just call the endpoint. No API key needed, no registration required.',
+    color: 'green',
+  },
+  {
+    icon: CalendarDays,
+    title: 'Wide Coverage',
+    description: 'Table data for 2024–2026, forward computation up to 2053.',
+    color: 'purple',
+  },
+  {
+    icon: Code,
+    title: 'Open Source',
+    description: 'Source code on GitHub. Transparent, verifiable, contributions always welcome.',
+    color: 'pink',
+  },
+  {
+    icon: Globe,
+    title: 'Timezone-Aware',
+    description: 'Supports all IANA timezones. Defaults to Asia/Jakarta, overridable.',
+    color: 'blue',
+  },
+  {
+    icon: RefreshCcw,
+    title: 'Smart Fallback',
+    description: 'Beyond table coverage, computes using Neo MABIMS criteria (moon ≥ 3°, elongation ≥ 6.4°).',
+    color: 'orange',
+  },
+];
+---
+
+<section class="features-section">
+  <div class="features-header">
+    <h2>Time to Switch to <span class="accent">MABIMS</span></h2>
+    <p>No API key, no registration. All you change is the data source.</p>
+  </div>
+
+  <div class="features-grid">
+    {features.map((feature) => (
+      <article class={`feature-card feature-card--${feature.color}`}>
+        <div class="feature-icon"><feature.icon size={20} /></div>
+        <h3>{feature.title}</h3>
+        <p>{feature.description}</p>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style>
+  .features-section {
+    padding: clamp(3rem, 6vw, 6rem) 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .features-header {
+    text-align: center;
+    max-width: 36rem;
+    margin: 0 auto 4rem;
+  }
+
+  .features-header h2 {
+    font-size: clamp(1.75rem, 1rem + 3vw, 2.5rem);
+    font-weight: 700;
+    color: var(--sl-color-white);
+    margin: 0 0 1rem;
+  }
+
+  .features-header h2 .accent {
+    color: var(--sl-color-accent);
+  }
+
+  .features-header p {
+    font-size: clamp(1rem, 0.5rem + 1vw, 1.125rem);
+    color: var(--sl-color-gray-2);
+    margin: 0;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  @media (min-width: 40rem) {
+    .features-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .features-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+  }
+
+  .feature-card {
+    padding: 1.75rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .feature-card:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+    transform: translateY(-2px);
+  }
+
+  .feature-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    margin-bottom: 1.25rem;
+  }
+
+  .feature-card--yellow .feature-icon { background: rgba(254, 207, 70, 0.12); }
+  .feature-card--green .feature-icon { background: rgba(34, 197, 94, 0.12); }
+  .feature-card--purple .feature-icon { background: rgba(168, 85, 247, 0.12); }
+  .feature-card--pink .feature-icon { background: rgba(236, 72, 153, 0.12); }
+  .feature-card--blue .feature-icon { background: rgba(59, 130, 246, 0.12); }
+  .feature-card--orange .feature-icon { background: rgba(249, 115, 22, 0.12); }
+
+  .feature-card h3 {
+    font-size: var(--sl-text-h4);
+    font-weight: 600;
+    color: var(--sl-color-white);
+    margin: 0 0 0.75rem;
+  }
+
+  .feature-card p {
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+    line-height: 1.7;
+    margin: 0;
+  }
+</style>

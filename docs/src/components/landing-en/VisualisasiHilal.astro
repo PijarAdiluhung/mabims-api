@@ -1,0 +1,131 @@
+---
+---
+
+<section class="viz-section">
+  <div class="viz-preview">
+    <img
+      src="/viz.png"
+      alt="Hilal visibility chart — the evening determining the start of Ramadan 1447 H in Sabang"
+      width="280"
+      height="498"
+      loading="lazy"
+    />
+  </div>
+
+  <div class="viz-content">
+    <h2><span class="accent">Hilal</span> Visualization</h2>
+    <p>
+      Not just data — we also present hilal visibility imagery.
+      The <code>/hilal/viz</code> endpoint renders a 720×1280 sky chart for
+      the sighting evening: moon position, crescent orientation facing the sun,
+      verdict (VISIBLE / NOT VISIBLE), and criteria table.
+    </p>
+    <p>
+      Everything is computed using MABIMS criteria at Sabang's coordinates, to estimate what
+      the Indonesian government may announce.
+    </p>
+    <div class="viz-endpoint">
+      <span class="viz-method">GET</span>
+      <code class="viz-url">/api/v1/hilal/viz?month=1&year=1448</code>
+    </div>
+  </div>
+</section>
+
+<style>
+  .viz-section {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "content"
+      "preview";
+    gap: 3rem;
+    padding: clamp(3rem, 6vw, 6rem) 0;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  @media (min-width: 64rem) {
+    .viz-section {
+      grid-template-columns: 280px 1fr;
+      grid-template-areas: "preview content";
+      gap: 4rem;
+    }
+  }
+
+  .viz-content {
+    grid-area: content;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .viz-content h2 {
+    font-size: clamp(1.75rem, 1rem + 3vw, 2.75rem);
+    font-weight: 700;
+    color: var(--sl-color-white);
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .viz-content h2 .accent {
+    color: var(--sl-color-accent);
+  }
+
+  .viz-content p {
+    font-size: clamp(1rem, 0.5rem + 1vw, 1.125rem);
+    color: var(--sl-color-gray-2);
+    line-height: 1.8;
+    margin: 0;
+  }
+
+  .viz-content code {
+    color: var(--sl-color-accent);
+    background: rgba(254, 207, 70, 0.1);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+
+  .viz-endpoint {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    margin-top: 0.5rem;
+  }
+
+  .viz-method {
+    padding: 0.2rem 0.6rem;
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: monospace;
+  }
+
+  .viz-url {
+    font-size: 0.8rem;
+    color: var(--sl-color-gray-2);
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    word-break: break-all;
+  }
+
+  .viz-preview {
+    grid-area: preview;
+    display: flex;
+    justify-content: center;
+  }
+
+  .viz-preview img {
+    width: 100%;
+    max-width: 360px;
+    height: auto;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #1f1235;
+  }
+</style>

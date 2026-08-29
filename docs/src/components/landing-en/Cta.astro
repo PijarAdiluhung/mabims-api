@@ -1,0 +1,186 @@
+---
+---
+
+<section class="cta-section">
+  <div class="cta-card">
+    <div class="cta-moon" aria-hidden="true">
+      <div class="cta-moon-disc"></div>
+      <div class="cta-moon-mask"></div>
+    </div>
+    <div class="cta-stars" aria-hidden="true">
+      <span class="star" style="top:12%;left:8%;opacity:.6"></span>
+      <span class="star" style="top:25%;left:72%;opacity:.5"></span>
+      <span class="star" style="top:68%;left:88%;opacity:.55"></span>
+      <span class="star" style="top:45%;left:18%;opacity:.45"></span>
+      <span class="star" style="top:80%;left:55%;opacity:.5"></span>
+      <span class="star" style="top:15%;left:45%;opacity:.6"></span>
+      <span class="star" style="top:55%;left:92%;opacity:.45"></span>
+      <span class="star" style="top:72%;left:30%;opacity:.55"></span>
+    </div>
+    <h2>Get Started in 1 Minute</h2>
+    <p>No registration needed. Just call this endpoint:</p>
+    <div class="cta-code">
+      <code>curl "https://api.mabims.dev/api/v1/today"</code>
+    </div>
+    <div class="cta-actions">
+      <a href="/en/quickstart/" class="btn btn-primary">
+        Quickstart
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+      <a href="/en/playground/converter/" class="btn btn-secondary">
+        Try it
+      </a>
+    </div>
+    <p class="cta-hint">
+      <a href="/en/blog/cara-pakai-mabims-api/">View integration tutorial →</a>
+    </p>
+  </div>
+</section>
+
+<style>
+  .cta-section {
+    padding: clamp(3rem, 6vw, 6rem) 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .cta-card {
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    padding: 4rem 2rem;
+    background: linear-gradient(135deg, rgba(254, 207, 70, 0.06) 0%, rgba(254, 207, 70, 0.02) 100%);
+    border: 1px solid rgba(254, 207, 70, 0.15);
+    border-radius: 20px;
+  }
+
+  .cta-stars {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: #fecf46;
+  }
+
+  .cta-moon {
+    position: absolute;
+    top: -30px;
+    right: -40px;
+    width: 160px;
+    height: 160px;
+    opacity: 0.08;
+    z-index: 0;
+  }
+
+  .cta-moon-disc {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #fecf46;
+  }
+
+  .cta-moon-mask {
+    position: absolute;
+    top: -12px;
+    left: 40px;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #1a1a2e;
+  }
+
+  .cta-card h2 {
+    font-size: clamp(1.75rem, 1rem + 3vw, 2.5rem);
+    font-weight: 700;
+    color: var(--sl-color-white);
+    margin: 0 0 1rem;
+  }
+
+  .cta-card p {
+    font-size: clamp(1rem, 0.5rem + 1vw, 1.125rem);
+    color: var(--sl-color-gray-2);
+    margin: 0 0 2rem;
+  }
+
+  .cta-code {
+    margin-bottom: 2.5rem;
+  }
+
+  .cta-code code {
+    display: inline-block;
+    padding: 1rem 1.5rem;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: clamp(0.7rem, 0.5rem + 0.8vw, 1rem);
+    color: var(--sl-color-accent);
+    word-break: break-all;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .cta-card .cta-hint {
+    margin: 1.5rem 0 0;
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .cta-card .cta-hint a {
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .cta-card .cta-hint a:hover {
+    color: var(--sl-color-accent);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: var(--sl-text-sm);
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .btn-primary {
+    background: var(--sl-color-accent) !important;
+    color: #1a1a2e !important;
+    font-weight: 700;
+  }
+
+  .btn-primary:hover {
+    background: var(--sl-color-accent-high) !important;
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--sl-color-white);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--sl-color-white);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+</style>

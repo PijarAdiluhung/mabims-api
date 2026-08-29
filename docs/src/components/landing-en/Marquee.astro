@@ -1,0 +1,151 @@
+---
+const divergenceData = [
+  { date: '11 Mar 2024', mabims: "30 Sya'ban 1445 H", ummAlQura: '1 Ramadhan 1445 H', tag: '🌙 Different fasting start' },
+  { date: '9 May 2024', mabims: '30 Syawal 1445 H', ummAlQura: '1 Dzulqa\'dah 1445 H', tag: '' },
+  { date: '5 Aug 2024', mabims: '30 Muharram 1446 H', ummAlQura: '1 Safar 1446 H', tag: '' },
+  { date: '2 Dec 2024', mabims: '30 Jumadilakhir 1446 H', ummAlQura: '1 Rajab 1446 H', tag: '' },
+  { date: '30 Mar 2025', mabims: '30 Ramadhan 1446 H', ummAlQura: '1 Syawal 1446 H', tag: '🎉 Different Eid' },
+  { date: '26 Jun 2025', mabims: '30 Dzulhijjah 1446 H', ummAlQura: '1 Muharram 1447 H', tag: '✨ Different new year 1447' },
+  { date: '24 Aug 2025', mabims: '30 Safar 1447 H', ummAlQura: '1 Rabiulawal 1447 H', tag: '' },
+  { date: '18 Feb 2026', mabims: "30 Sya'ban 1447 H", ummAlQura: '1 Ramadhan 1447 H', tag: '🌙 Different fasting start' },
+  { date: '15 Jul 2026', mabims: '30 Muharram 1448 H', ummAlQura: '1 Safar 1448 H', tag: '' },
+  { date: '12 Sep 2026', mabims: '30 Rabiulawal 1448 H', ummAlQura: '1 Rabiulakhir 1448 H', tag: '' },
+];
+---
+
+<section class="marquee-section">
+  <div class="marquee">
+    <div class="marquee-track">
+      <div class="marquee-group">
+        {divergenceData.map((d) => (
+          <article class="diverge-card">
+            <span class="diverge-date">{d.date}</span>
+            <span class="diverge-label">MABIMS</span>
+            <span class="diverge-hijri diverge-hijri--mabims">{d.mabims}</span>
+            <span class="diverge-label">Umm al-Qura</span>
+            <span class="diverge-hijri">{d.ummAlQura}</span>
+            {d.tag && <span class="diverge-tag">{d.tag}</span>}
+          </article>
+        ))}
+      </div>
+      <div class="marquee-group" aria-hidden="true">
+        {divergenceData.map((d) => (
+          <article class="diverge-card">
+            <span class="diverge-date">{d.date}</span>
+            <span class="diverge-label">MABIMS</span>
+            <span class="diverge-hijri diverge-hijri--mabims">{d.mabims}</span>
+            <span class="diverge-label">Umm al-Qura</span>
+            <span class="diverge-hijri">{d.ummAlQura}</span>
+            {d.tag && <span class="diverge-tag">{d.tag}</span>}
+          </article>
+        ))}
+      </div>
+    </div>
+  </div>
+  <p class="marquee-caption">
+    In 2024–2026 alone, there are <strong>418 days</strong> that differ from Umm al-Qura.
+  </p>
+</section>
+
+<style>
+  .marquee-section {
+    padding: clamp(2.5rem, 5vw, 4rem) 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .marquee {
+    overflow: hidden;
+    padding-block: 0.5rem;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  }
+
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee-scroll 70s linear infinite;
+  }
+
+  .marquee:hover .marquee-track {
+    animation-play-state: paused;
+  }
+
+  @keyframes marquee-scroll {
+    to { transform: translateX(-50%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marquee {
+      overflow-x: auto;
+      -webkit-mask-image: none;
+      mask-image: none;
+      scrollbar-width: thin;
+    }
+    .marquee-track { animation: none; }
+  }
+
+  .marquee-group {
+    display: flex;
+    margin: 0;
+  }
+
+  .diverge-card {
+    display: flex;
+    flex-direction: column;
+    width: 240px;
+    margin: 0 1rem 0 0;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.015) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    transition: border-color 0.2s;
+  }
+
+  .diverge-card:hover {
+    border-color: rgba(254, 207, 70, 0.35);
+  }
+
+  .diverge-date {
+    font-size: var(--sl-text-xs);
+    color: #999;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .diverge-label {
+    font-size: var(--sl-text-xs);
+    color: #777;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .diverge-hijri {
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    color: #e8e8ee;
+    margin-bottom: 0.6rem;
+  }
+
+  .diverge-hijri:last-of-type { margin-bottom: 0; }
+
+  .diverge-hijri--mabims {
+    color: var(--sl-color-accent);
+  }
+
+  .diverge-tag {
+    margin-top: 0.75rem;
+    font-size: var(--sl-text-xs);
+    color: #b9b9c4;
+  }
+
+  .marquee-caption {
+    text-align: center;
+    color: #999;
+    font-size: var(--sl-text-sm);
+    max-width: 42rem;
+    margin: 1.5rem auto 0;
+    padding: 0 1rem;
+  }
+</style>

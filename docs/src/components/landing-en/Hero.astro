@@ -1,0 +1,502 @@
+---
+---
+
+<section class="hero-section">
+  <div class="hero-grid-bg" aria-hidden="true"></div>
+
+  <div class="hero-content">
+    <h1 class="hero-title">
+      MABIMS Calendar <span class="accent">API</span> for Indonesia
+    </h1>
+    <p class="hero-tagline">
+      Integrate the MABIMS Hijri calendar into your website or app.
+      Single endpoint, no authentication, official Kemenag data.
+    </p>
+    <div class="hero-actions">
+      <a href="/en/quickstart/" class="btn btn-primary">
+        Quickstart
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+      <a href="/en/playground/converter/" class="btn btn-secondary">
+        Try it
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-terminal" data-terminal>
+    <div class="terminal-header">
+      <div class="terminal-tabs" role="tablist" aria-label="Code examples">
+        <button type="button" class="terminal-tab is-active" role="tab" aria-selected="true" data-lang="curl">cURL</button>
+        <button type="button" class="terminal-tab" role="tab" aria-selected="false" data-lang="js">JavaScript</button>
+        <button type="button" class="terminal-tab" role="tab" aria-selected="false" data-lang="python">Python</button>
+      </div>
+      <span class="terminal-title">terminal</span>
+    </div>
+    <div class="terminal-body">
+      <div class="terminal-line">
+        <span class="terminal-prompt">$</span>
+        <code class="terminal-command" data-command></code>
+        <button type="button" class="terminal-copy" data-copy aria-label="Copy command">
+          <svg class="icon-copy" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          <svg class="icon-check" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </button>
+      </div>
+      <div class="terminal-output">
+        <div class="terminal-status" data-status hidden><span data-status-text></span></div>
+        <pre data-output></pre>
+      </div>
+      <div class="terminal-line">
+        <span class="terminal-prompt">$</span>
+        <span class="terminal-cursor">█</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero-section {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    padding: 1rem 0 5rem;
+  }
+
+  .hero-grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1.5px);
+    background-size: 26px 26px;
+    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 62% 38%, #000 20%, transparent 72%);
+    mask-image: radial-gradient(ellipse 90% 70% at 62% 38%, #000 20%, transparent 72%);
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-self: start;
+    padding-top: 0;
+  }
+
+  @media (min-width: 48rem) {
+    .hero-content {
+      padding-top: 1rem;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .hero-content {
+      padding-top: 2rem;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .hero-section {
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      padding: clamp(4rem, 12vmin, 10rem) 0;
+    }
+  }
+
+  .hero-title {
+    font-size: clamp(2rem, 1rem + 4vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--sl-color-white);
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .hero-title .accent {
+    color: var(--sl-color-accent);
+  }
+
+  .hero-tagline {
+    font-size: clamp(1rem, 0.5rem + 1.5vw, 1.25rem);
+    color: var(--sl-color-gray-2);
+    line-height: 1.7;
+    max-width: 32rem;
+    margin: 0;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: var(--sl-text-sm);
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .btn-primary {
+    background: var(--sl-color-accent) !important;
+    color: #1a1a2e !important;
+    font-weight: 700;
+  }
+
+  .btn-primary:hover {
+    background: var(--sl-color-accent-high) !important;
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--sl-color-white);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--sl-color-white);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .hero-terminal {
+    position: relative;
+    z-index: 1;
+    background: #161b22;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    align-self: start;
+    box-shadow:
+      0 24px 60px -24px rgba(0, 0, 0, 0.6),
+      0 0 80px -30px rgba(254, 207, 70, 0.25);
+    animation: terminal-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .hero-terminal::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 45% at 50% -10%, rgba(254, 207, 70, 0.07), transparent 70%);
+    pointer-events: none;
+  }
+
+  @keyframes terminal-rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-terminal {
+      animation: none;
+    }
+  }
+
+  .terminal-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .terminal-tabs {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .terminal-tab {
+    font-family: inherit;
+    font-size: 0.7rem;
+    padding: 0.3rem 0.65rem;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.45);
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+  }
+
+  .terminal-tab:hover {
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .terminal-tab.is-active {
+    color: var(--sl-color-accent);
+    background: rgba(254, 207, 70, 0.12);
+  }
+
+  .terminal-title {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.3);
+  }
+
+  @media (max-width: 40rem) {
+    .terminal-title {
+      display: none;
+    }
+  }
+
+  .terminal-body {
+    position: relative;
+    padding: 1.25rem;
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+
+  .terminal-line {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .terminal-prompt {
+    color: var(--sl-color-accent);
+    user-select: none;
+  }
+
+  .terminal-command {
+    flex: 1;
+    color: var(--sl-color-gray-2);
+    word-break: break-all;
+    white-space: pre-wrap;
+  }
+
+  .terminal-copy {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    margin-top: -2px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .terminal-copy:hover {
+    color: rgba(255, 255, 255, 0.85);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .terminal-copy .icon-check {
+    display: none;
+  }
+
+  .terminal-copy.is-copied {
+    color: #28ca41;
+    border-color: rgba(40, 202, 65, 0.4);
+  }
+
+  .terminal-copy.is-copied .icon-copy {
+    display: none;
+  }
+
+  .terminal-copy.is-copied .icon-check {
+    display: block;
+  }
+
+  .terminal-output {
+    position: relative;
+    margin: 0.75rem 0 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .terminal-output pre {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--sl-color-gray-3);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .terminal-output .tok-key { color: #9aa4b2; }
+  .terminal-output .tok-str { color: #eac96d; }
+  .terminal-output .tok-num { color: #7ddfa3; }
+  .terminal-output .tok-bool { color: #d2a8ff; }
+
+  .terminal-status {
+    position: absolute;
+    top: 0.65rem;
+    right: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .terminal-status::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .terminal-status.is-live {
+    color: #28ca41;
+  }
+
+  .terminal-status.is-live::before {
+    background: #28ca41;
+    box-shadow: 0 0 6px rgba(40, 202, 65, 0.6);
+  }
+
+  .terminal-cursor {
+    color: var(--sl-color-accent);
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+
+  @media (max-width: 63.9375rem) {
+    .hero-section {
+      padding-top: clamp(2rem, 8vmin, 4rem);
+      padding-bottom: clamp(3.5rem, 8vmin, 6rem);
+    }
+
+    .hero-terminal {
+      max-width: 100%;
+    }
+  }
+</style>
+
+<script>
+  const terminal = document.querySelector('[data-terminal]');
+
+  if (terminal) {
+    const commandEl = terminal.querySelector('[data-command]');
+    const outputEl = terminal.querySelector('[data-output]');
+    const statusEl = terminal.querySelector('[data-status]');
+    const statusText = terminal.querySelector('[data-status-text]');
+    const copyBtn = terminal.querySelector('[data-copy]');
+
+    const API_URL = 'https://api.mabims.dev/api/v1/today';
+
+    const COMMANDS = {
+      curl: 'curl "https://api.mabims.dev/api/v1/today"',
+      js: 'const res = await fetch("https://api.mabims.dev/api/v1/today");\nconst data = await res.json();',
+      python: 'import requests\nr = requests.get("https://api.mabims.dev/api/v1/today")\nprint(r.json())',
+    };
+
+    const SAMPLE = {
+      input: { date: '2026-08-27', calendar: 'gregorian', tz: 'Asia/Jakarta' },
+      output: { date: '1448-03-14', calendar: 'hijri', day: 14, month: 3, month_name: 'Rabiul Akhir', year: 1448 },
+      source: 'mabims',
+      warnings: [],
+    };
+
+    let currentLang = 'curl';
+
+    const escapeHtml = (s) =>
+      s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    function highlight(json) {
+      return escapeHtml(json).replace(
+        /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(?:true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g,
+        (match) => {
+          let cls = 'tok-num';
+          if (match.startsWith('"')) cls = match.trimEnd().endsWith(':') ? 'tok-key' : 'tok-str';
+          else if (/^(?:true|false|null)$/.test(match)) cls = 'tok-bool';
+          return `<span class="${cls}">${match}</span>`;
+        }
+      );
+    }
+
+    function renderJSON(data) {
+      const o = data.output;
+      const compact = `{
+  "input": {
+    "date": "${data.input.date}",
+    "calendar": "${data.input.calendar}",
+    "tz": "${data.input.tz}"
+  },
+  "output": {
+    "date": "${o.date}", "calendar": "${o.calendar}",
+    "day": ${o.day}, "month": ${o.month}, "year": ${o.year},
+    "month_name": "${o.month_name}"
+  },
+  "source": "${data.source}",
+  "warnings": ${JSON.stringify(data.warnings)}
+}`;
+      const expanded = JSON.stringify(data, null, 2);
+      const isMobile = window.matchMedia('(max-width: 40rem)').matches;
+      outputEl.innerHTML = highlight(isMobile ? expanded : compact);
+    }
+
+    commandEl.textContent = COMMANDS.curl;
+    renderJSON(SAMPLE);
+
+    terminal.querySelectorAll('.terminal-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        currentLang = tab.dataset.lang;
+        for (const t of terminal.querySelectorAll('.terminal-tab')) {
+          const active = t === tab;
+          t.classList.toggle('is-active', active);
+          t.setAttribute('aria-selected', String(active));
+        }
+        commandEl.textContent = COMMANDS[currentLang];
+      });
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(COMMANDS[currentLang]);
+        copyBtn.classList.add('is-copied');
+        setTimeout(() => copyBtn.classList.remove('is-copied'), 1500);
+      } catch {
+        /* clipboard unavailable */
+      }
+    });
+
+    async function fetchLive() {
+      const started = performance.now();
+      const ctrl = new AbortController();
+      const timeout = setTimeout(() => ctrl.abort(), 4000);
+      try {
+        const res = await fetch(API_URL, { signal: ctrl.signal });
+        clearTimeout(timeout);
+        if (!res.ok) throw new Error(String(res.status));
+        const data = await res.json();
+        renderJSON(data);
+        statusEl.hidden = false;
+        statusEl.classList.add('is-live');
+        statusText.textContent = `200 OK · ${Math.max(1, Math.round(performance.now() - started))} ms`;
+      } catch {
+        clearTimeout(timeout);
+        statusEl.hidden = false;
+        statusEl.classList.remove('is-live');
+        statusText.textContent = 'sample';
+      }
+    }
+
+    setTimeout(fetchLive, 500);
+  }
+</script>
