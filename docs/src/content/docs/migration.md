@@ -124,4 +124,4 @@ const data = await res.json();
 2. **Ubah format tanggal** dari `DD-MM-YYYY` ke `YYYY-MM-DD`
 3. **Sesuaikan parsing response** — MABIMS menggunakan `output` bukan `data.hijri`
 4. **Gunakan `/today`** alih-alih hit `/gToH` manual setiap hari
-5. **Periksa `source`** — MABIMS menandai apakah data dari tabel resmi (`mabims`) atau komputasi (`mabims-computed`)
+5. **Periksa `source`** — MABIMS menandai apakah data dari tabel publik (`mabims`) atau komputasi (`mabims-computed`)

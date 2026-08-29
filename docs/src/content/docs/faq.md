@@ -29,7 +29,7 @@ Untuk keperluan di Indonesia, MABIMS lebih akurat karena berdasarkan imkan rukya
 <details>
 <summary>Apakah API ini produk resmi Kemenag atau MABIMS?</summary>
 
-Bukan. API ini independen, dibangun menggunakan data tabel resmi Kemenag RI sebagai sumber. Untuk kepastian hukum syar'i, tetap rujuk pengumuman resmi Kemenag.
+Bukan. API ini independen, dibangun menggunakan data tabel publik Kemenag RI sebagai sumber. Untuk kepastian hukum syar'i, tetap rujuk pengumuman resmi Kemenag.
 
 </details>
 
@@ -54,8 +54,8 @@ Bisa. CORS bersifat terbuka, jadi bisa dipanggil langsung dari browser di domain
 <details>
 <summary>Apa bedanya <code>source: "mabims"</code> dan <code>source: "mabims-computed"</code>?</summary>
 
-- **`mabims`** — tanggal diambil langsung dari kalender resmi Kemenag.
-- **`mabims-computed`** — dihitung otomatis dengan kriteria Neo MABIMS karena tanggal berada di luar cakupan tabel resmi.
+- **`mabims`** — tanggal diambil langsung dari kalender publik Kemenag.
+- **`mabims-computed`** — dihitung otomatis dengan kriteria Neo MABIMS karena tanggal berada di luar cakupan tabel publik.
 
 </details>
 

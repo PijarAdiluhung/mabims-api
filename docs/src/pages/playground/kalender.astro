@@ -25,7 +25,7 @@ const eventShortNames = {
   frontmatter={{
     title: "Playground Kalender",
     description:
-      "Kalender Hijriah setahun penuh, langsung dari data resmi Kemenag.",
+      "Kalender Hijriah setahun penuh, langsung dari data publik Kemenag.",
   }}
 >
   <p>
@@ -91,7 +91,7 @@ const eventShortNames = {
         if (currentYear !== year) {
           currentYear = year;
           yearEl.textContent = year;
-          sourceEl.textContent = today.source === "mabims" ? "Data resmi Kemenag" : "Neo MABIMS";
+          sourceEl.textContent = today.source === "mabims" ? "Data publik Kemenag" : "Neo MABIMS";
           const yearBody = await fetchYear(apiBase, year);
           const events = await fetchHijriEvents(apiBase, year);
           const monthsByKey = new Map();

@@ -15,9 +15,15 @@
       </a>
     </div>
 
-    <div class="footer-center">
-      <span class="footer-copyright">MABIMS adalah standar rukyah Kemenag RI. API ini bukan produk resmi MABIMS/Kemenag.</span>
-    </div>
+    <nav class="footer-links">
+      <a href="/terms/">Ketentuan</a>
+      <span class="footer-sep">·</span>
+      <a href="/privacy/">Privasi</a>
+      <span class="footer-sep">·</span>
+      <a href="/data-sources/">Sumber Data</a>
+      <span class="footer-sep">·</span>
+      <a href="/disclaimer/">Disclaimer</a>
+    </nav>
 
     <div class="footer-right">
       <a
@@ -94,13 +100,29 @@
     opacity: 1;
   }
 
-  .footer-center {
-    text-align: center;
+  .footer-links {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
-  .footer-copyright {
+  .footer-links a {
     font-size: var(--sl-text-xs);
     color: var(--sl-color-gray-3);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover {
+    color: var(--sl-color-white);
+  }
+
+  .footer-sep {
+    color: var(--sl-color-gray-3);
+    opacity: 0.4;
+    font-size: var(--sl-text-xs);
   }
 
   .footer-right {

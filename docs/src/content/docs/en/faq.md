@@ -29,7 +29,7 @@ For use in Indonesia, MABIMS is more accurate because it follows Kemenag RI's of
 <details>
 <summary>Is this API an official product of Kemenag or MABIMS?</summary>
 
-No. This API is independent, built by PIXO Studio using official Kemenag RI table data as its source. For legal certainty in Islamic law, always refer to official Kemenag announcements.
+No. This API is independent, built by PIXO Studio using publicly available Kemenag RI table data as its source. For legal certainty in Islamic law, always refer to official Kemenag announcements.
 
 </details>
 
@@ -54,8 +54,8 @@ Yes. CORS is open, so it can be called directly from the browser on any domain. 
 <details>
 <summary>What's the difference between <code>source: "mabims"</code> and <code>source: "mabims-computed"</code>?</summary>
 
-- **`mabims`** — date taken directly from Kemenag's official table.
-- **`mabims-computed`** — automatically calculated using Neo MABIMS criteria because the date falls outside the official table's coverage (before 2024 or after 2026).
+- **`mabims`** — date taken directly from Kemenag's publicly available table.
+- **`mabims-computed`** — automatically calculated using Neo MABIMS criteria because the date falls outside the table's coverage (before 2024 or after 2026).
 
 </details>
 

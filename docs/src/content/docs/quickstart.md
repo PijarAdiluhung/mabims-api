@@ -44,7 +44,7 @@ curl "https://api.mabims.dev/api/v1/convert?date=1446-07-03&calendar=hijri"
 
 Setiap respons membawa field `source`:
 
-- `mabims` — dari sumber resmi Kemenag 
+- `mabims` — dari data publik Kemenag
 - `mabims-computed` — dihitung dengan kriteria Neo MABIMS
 
 Perlakukan `warnings` sebagai pemberitahuan kepada pengguna apabila ia mengandung payload (tidak kosong).

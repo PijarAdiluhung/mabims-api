@@ -32,7 +32,7 @@ GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
 Each item carries its own `source` — ranges crossing the table boundary can mix
 authoritative and computed data.
 
-For `calendar=hijri`, ranges can extend past the official table coverage — Hijri
+For `calendar=hijri`, ranges can extend past the public table coverage — Hijri
 months beyond the table are served from the Neo MABIMS computed tier (through
 ±2053 / Hijri 1473). `start`/`end` still cap at 45 days.
 
@@ -45,7 +45,7 @@ GET /api/v1/month?year={Y}&month={M}&calendar={gregorian|hijri}
 ```
 
 For `calendar=hijri` the response contains every Gregorian date onto which that Hijri month
-maps — exactly what a Hijri month-view needs (29–30 items). Hijri months beyond the official
+maps — exactly what a Hijri month-view needs (29–30 items). Hijri months beyond the public
 table (e.g. next year) are still resolved from the Neo MABIMS computed tier while within
 the supported range. Same item shape as `/range`.
 

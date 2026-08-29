@@ -201,6 +201,17 @@ export default defineConfig({
         { label: 'Migration dari Aladhan', link: '/migration', translations: { en: 'Migration from Aladhan' } },
         { label: 'FAQ - Pertanyaan', link: '/faq', translations: { en: 'FAQ' } },
         { label: 'Changelog', link: '/changelog' },
+        {
+          label: 'Legal',
+          translations: { en: 'Legal' },
+          collapsed: true,
+          items: [
+            { label: 'Ketentuan', link: '/terms', translations: { en: 'Terms' } },
+            { label: 'Privasi', link: '/privacy', translations: { en: 'Privacy' } },
+            { label: 'Sumber Data', link: '/data-sources', translations: { en: 'Data Sources' } },
+            { label: 'Disclaimer', link: '/disclaimer' },
+          ],
+        },
       ],
     }),
   ],

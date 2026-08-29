@@ -43,7 +43,7 @@ GET /api/v1/year?year={Y}&calendar={hijri|gregorian}
 
 Each month key contains an array of items with the same shape as `/range`. The total `count` is the number of days across the entire year.
 
-For `calendar=hijri`, months beyond the official table are still served from the Neo MABIMS computed tier while within the supported range.
+For `calendar=hijri`, months beyond the public table are still served from the Neo MABIMS computed tier while within the supported range.
 
 ## Errors
 

@@ -1,7 +1,7 @@
 # MABIMS API
 
-Gregorian ⇄ Hijri date conversion, Islamic events, and hilal visibility data, powered by the
-official **MABIMS** moon-sighting tables from **Religious Ministry (Kemenag) of Indonesia**. Serves curated lookup data, and beyond table coverage it computes dates live with the Neo MABIMS criteria.
+Gregorian ⇄ Hijri date conversion, Islamic events, and hilal visibility data, built on the
+publicly available **MABIMS** moon-sighting tables published by **Kementerian Agama Republik Indonesia**. Serves curated lookup data, and beyond table coverage it computes dates live with the Neo MABIMS criteria.
 
 **Full docs, playground, API reference, FAQ, and blog → [mabims.dev](https://mabims.dev)**
 
@@ -59,8 +59,8 @@ The `source` field indicates where the data came from:
 
 | `source` | Meaning |
 |---|---|
-| `mabims` | Official MABIMS table from Kemenag |
-| `mabims-computed` | Computed with Neo MABIMS criteria (altitude ≥ 3°, elongation ≥ 6.4° at Sabang sunset) |
+| `mabims` | Curated from data publik yang dikeluarkan resmi oleh Kementerian Agama RI |
+| `mabims-computed` | Computed with Neo MABIMS criteria (altitude ≥ 3°, elongation ≥ 6.4° at Sabang sunset) — algorithmic estimates, not official data |
 
 | Endpoint | Purpose | Rate Limit |
 |---|---|---|
@@ -245,6 +245,10 @@ before writing); `.github/workflows/regen-computed-table.yml` automates it every
 opens a PR with the diff.
 
 `/meta` exposes `method`, `computed_active`, `computed_months`, `fallback_active` and `fallback_months`.
+
+## Disclaimer
+
+MABIMS API is an independent open-source project and is **not affiliated with, sponsored by, endorsed by, or officially authorized by** Kementerian Agama Republik Indonesia or MABIMS. Data sourced from publicly available MABIMS tables. Computed results (`mabims-computed`) are algorithmic estimates using Neo MABIMS criteria and do not represent official observations or announcements.
 
 ---
 

@@ -3,8 +3,8 @@ title: GET /hilal
 description: Visibilitas hilal — data kriteria dan grafik langit untuk malam penentuan awal bulan Hijriah.
 ---
 
-Ada dua endpoint untuk **visibilitas hilal**, dan malam penentuan selalu **malam tanggal 29**, malam rukyatul hilal. Bila hilal tidak terlihat, bulan
-lengkap 30 hari dan awal bulan bergeser sehari. Batas bulan diambil dari **penanggalan Kemenag kriteria MABIMS**, dan data astronomis dihitung dengan **perhitungan geosentris di Sabang**, sebagai lokasi paling barat di Indonesia.
+Ada dua endpoint untuk **visibilitas hilal**, dan malam penentuan selalu **malam tanggal 29**, malam rukyatul hilal. Bila kriteria tidak terpenuhi, bulan
+lengkap 30 hari dan awal bulan bergeser sehari. Batas bulan diambil dari **data publik yang dikeluarkan resmi oleh Kementerian Agama RI**, dan data astronomis dihitung dengan **perhitungan geosentris di Sabang**, sebagai lokasi paling barat di Indonesia.
 
 ```
 GET /api/v1/hilal/info?month={bulan}&year={tahun}   → JSON
@@ -21,8 +21,8 @@ GET /api/v1/hilal/viz?month={bulan}&year={tahun}    → PNG 720×1280
 | `month` | int 1–12 | ya | Bulan Hijriah **target** (grafik menampilkan malam penentuannya) |
 | `year` | int | ya | Tahun Hijriah target |
 
-Titik hisab tunggal: **Sabang, Indonesia** (5°53′N 95°19′E, WIB). Endpoint ini untuk memperkirakan
-*apa yang mungkin diumumkan pemerintah Indonesia*.
+Titik hisab tunggal: **Sabang, Indonesia** (5°53′N 95°19′E, WIB). Endpoint ini menggunakan
+kriteria Neo MABIMS yang sama dengan perhitungan tabel computed.
 
 ## Contoh
 
@@ -67,7 +67,7 @@ Sabang karena itu fenomena pengamat.
 ## Grafik (`/hilal/viz`)
 
 PNG vertikal 720×1280 berisi: langit senja dengan bulan sabit (arah cahaya menghadap
-matahari), pil verdict (`TERLIHAT` / `TIDAK TERLIHAT` / `DI BAWAH HORIZON`), dan tabel
+matahari), pil verdict (`MEMENUHI` / `TIDAK MEMENUHI` / `MENDEKATI BATAS` / `DI BAWAH HORIZON`), dan tabel
 kriteria `PARAMETER · MIN. MABIMS · STATUS`. Output deterministik per parameter.
 
 ![Contoh grafik visibilitas hilal — 29 Sya'ban 1447 H, Sabang](/viz.png)

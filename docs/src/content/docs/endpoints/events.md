@@ -4,7 +4,7 @@ description: Tanggal hari besar Islam (1 Muharram, Maulid, Awal Ramadan, Idul Fi
 ---
 
 Mengembalikan tanggal **hari besar Islam** untuk satu tahun kalender. Di dalam cakupan
-tabel MABIMS, tanggal langsung dari tabel resmi Kemenag — tabel yang sama dengan
+tabel MABIMS, tanggal langsung dari tabel publik Kemenag — tabel yang sama dengan
 `/convert`. Di luar cakupan tabel, tanggal dikomputasi secara langsung menggunakan kriteria
 Neo MABIMS (ketinggian hilal ≥ 3° dan elonagasi ≥ 6.4° saat matahari terbenam di Sabang),
 sehingga Anda bisa mendapatkan tanggal hari besar bertahun-tahun ke depan.

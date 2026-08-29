@@ -29,9 +29,9 @@ GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
 }
 ```
 
-Setiap item membawa `source` masing-masing, karena rentang yang melewati batasan data MABIMS dapat mencampur data resmi dan data komputed.
+Setiap item membawa `source` masing-masing, karena rentang yang melewati batasan data MABIMS dapat mencampur data publik dan data komputed.
 
-Untuk `calendar=hijri`, rentang dapat melampaui cakupan tabel resmi — bulan Hijriah di luar tabel dilayani dari perhitungan Neo MABIMS (hingga ±2053 / Hijriah 1473). Batas `start`/`end` tetap maks 45 hari.
+Untuk `calendar=hijri`, rentang dapat melampaui cakupan tabel publik — bulan Hijriah di luar tabel dilayani dari perhitungan Neo MABIMS (hingga ±2053 / Hijriah 1473). Batas `start`/`end` tetap maks 45 hari.
 
 ## GET /month
 
@@ -41,7 +41,7 @@ Wrapper praktis untuk mendapatkan 1 bulan penuh.
 GET /api/v1/month?year={Y}&month={M}&calendar={gregorian|hijri}
 ```
 
-Untuk `calendar=hijri`, respons berisi setiap tanggal Gregorian yang menjadi acuan dari bulan Hijriah tersebut (29–30 item). Bulan Hijriah di luar tabel resmi (mis. tahun mendatang) tetap dilayani dari perhitungan Neo MABIMS selama masih dalam rentang yang didukung. Bentuk item sama dengan `/range`.
+Untuk `calendar=hijri`, respons berisi setiap tanggal Gregorian yang menjadi acuan dari bulan Hijriah tersebut (29–30 item). Bulan Hijriah di luar tabel publik (mis. tahun mendatang) tetap dilayani dari perhitungan Neo MABIMS selama masih dalam rentang yang didukung. Bentuk item sama dengan `/range`.
 
 ## Kesalahan
 

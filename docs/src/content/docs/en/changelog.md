@@ -36,9 +36,20 @@ description: History of changes to the MABIMS API and documentation.
 
 ## Documentation Updates — 2026-08-29
 
+### Legal Compliance
+
+- **Footer redesigned** — inline legal links (Terms · Privacy · Data Sources · Disclaimer), dropped inline disclaimer text.
+- **New pages**: `/terms`, `/privacy`, `/data-sources`, `/disclaimer` (bilingual ID+EN), collapsed under "Legal" sidebar group.
+- **Hilal viz labels updated** — verdict pill: "MEMENUHI KRITERIA" / "TIDAK MEMENUHI" / "MENDEKATI BATAS" / "DI BAWAH HORIZON". Chips: "MEMENUHI" / "TIDAK MEMENUHI".
+- **Wording fixes** — "official/resmi" → "data publik" across README, landing page, footer, hilal docs, endpoint docs, playground, quickstart, FAQ, migration. Softened government affiliation language.
+- **Schema descriptions** — `source`, `warnings`, `visible`, `alt_ok`, `elong_ok` fields now have OpenAPI descriptions.
+- **Disclaimer section** added to README with non-affiliation clause.
+
+### Updated
+
 - New Calendar playground (`/playground/kalender`) — a full Hijri year, two columns, rendered live from `/month` and `/events`. Large number = Hijri date, small = Gregorian, Friday marked yellow, event badges, today marker.
 - Calendar playground logic moved to a shared module (`src/lib/kalender.core.js`) so the ID & EN versions stay identical.
-- `/range` & `/month` docs updated: `calendar=hijri` is now served from the computed tier beyond the official table.
+- `/range` & `/month` docs updated: `calendar=hijri` is now served from the computed tier beyond the public table.
 
 ---
 

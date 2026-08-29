@@ -43,7 +43,7 @@ GET /api/v1/year?year={Y}&calendar={hijri|gregorian}
 
 Setiap kunci bulan berisi array item dengan format yang sama dengan `/range`. Total `count` adalah jumlah hari di seluruh tahun.
 
-Untuk `calendar=hijri`, bulan Hijriah di luar tabel resmi tetap dilayani dari perhitungan Neo MABIMS selama masih dalam rentang yang didukung.
+Untuk `calendar=hijri`, bulan Hijriah di luar tabel publik tetap dilayani dari perhitungan Neo MABIMS selama masih dalam rentang yang didukung.
 
 ## Kesalahan
 

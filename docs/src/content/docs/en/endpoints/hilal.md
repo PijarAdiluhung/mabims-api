@@ -4,9 +4,9 @@ description: Hilal visibility — criteria data and sky chart for the evening th
 ---
 
 Two endpoints for **hilal visibility**: the deciding evening is always the **29th** of the
-current month — the night people actually go looking for the crescent. If it is not seen,
-the month completes 30 days and the start shifts a day. Month boundaries come from the
-**authoritative MABIMS tables** (not Umm al-Qura), and the astronomy uses the **Sabang
+current month — the night people actually go looking for the crescent. If the criteria are
+not fulfilled, the month completes 30 days and the start shifts a day. Month boundaries come from the
+**data publik yang dikeluarkan resmi oleh Kementerian Agama RI** (publicly available official MABIMS tables) (not Umm al-Qura), and the astronomy uses the **Sabang
 geocentric hisab** — the same reference frame as the tables themselves, so the verdict
 always agrees with month lengths in `/convert`.
 
@@ -26,8 +26,8 @@ same criteria table. Both are public but tightly rate limited
 | `month` | int 1–12 | yes | **Target** Hijri month (the chart shows its deciding evening) |
 | `year` | int | yes | Target Hijri year |
 
-Single reckoning point: **Sabang, Indonesia** (5°53′N 95°19′E, WIB). These endpoints model
-*what the Indonesian government might announce*, not per-city astronomical sight.
+Single reckoning point: **Sabang, Indonesia** (5°53′N 95°19′E, WIB). These endpoints use the
+same Neo MABIMS criteria as the computed table — they are estimates, not official announcements.
 
 ## Example
 
@@ -72,8 +72,8 @@ observer phenomena.
 ## Chart (`/hilal/viz`)
 
 A 720×1280 vertical PNG: sunset sky with the crescent (bright limb facing the sun), a
-verdict pill (`TERLIHAT` / `TIDAK TERLIHAT` / `DI BAWAH HORIZON`) and a
-`PARAMETER · MABIMS MIN · STATUS` criteria table. When the criteria fail the moon is
+verdict pill (`MEMENUHI` / `TIDAK MEMENUHI` / `MENDEKATI BATAS` / `DI BAWAH HORIZON`) and a
+`PARAMETER · MABIMS MIN · STATUS` criteria table. When the criteria are not fulfilled the moon is
 deliberately not drawn — the sky tells the truth. Output is deterministic per parameter.
 
 ![Sample hilal visibility chart — 29 Sya'ban 1447 H, Sabang](/viz.png)

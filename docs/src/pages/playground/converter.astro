@@ -114,7 +114,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? "http://localhost:8000";
         const meta = await res.json();
         statusEl.className = "pg-status pg-ok";
         statusEl.textContent =
-          `Data kalender MABIMS resmi dari Kemenag saat ini mencakup: ${meta.coverage.first} → ${meta.coverage.last}` +
+          `Data kalender MABIMS dari Kemenag saat ini mencakup: ${meta.coverage.first} → ${meta.coverage.last}` +
           (meta.computed_active
             ? " Di luar cakupan ini, menggunakan perhitungan Neo MABIMS."
             : "");

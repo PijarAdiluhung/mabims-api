@@ -61,11 +61,11 @@ def verdict_label(data: dict) -> str:
     if data["moon_alt"] < 0:
         return "DI BAWAH HORIZON"
     if not data["visible"]:
-        return "TIDAK TERLIHAT"
+        return "TIDAK MEMENUHI"
     bm = data.get("borderline_margins", [])
     if bm and (bm[0] or bm[1]):
         return "MENDEKATI BATAS"
-    return "TERLIHAT"
+    return "MEMENUHI KRITERIA"
 
 
 # ── primitives ──

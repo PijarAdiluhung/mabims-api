@@ -25,8 +25,8 @@ class ConversionOutput(BaseModel):
 class ConvertResponse(BaseModel):
     input: ConversionInput
     output: ConversionOutput
-    source: Source
-    warnings: list[str] = Field(default_factory=list)
+    source: Source = Field(description="Data origin: 'mabims' = curated from publicly available Kemenag tables, 'mabims-computed' = Neo MABIMS algorithmic estimates")
+    warnings: list[str] = Field(default_factory=list, description="Non-empty when borderline months or computed fallback applies")
 
 
 class RangeItem(BaseModel):
@@ -141,9 +141,9 @@ class HilalEvening(BaseModel):
     elongation_deg: float
     illumination_pct: float
     age_hours: float
-    alt_ok: bool
-    elong_ok: bool
-    visible: bool
+    alt_ok: bool = Field(description="Moon altitude >= 3.0 degrees at Sabang sunset")
+    elong_ok: bool = Field(description="Elongation >= 6.4 degrees at Sabang sunset")
+    visible: bool = Field(description="True when both alt_ok and elong_ok are true — criteria fulfilled, not a claim of actual observation")
 
 
 class HilalInput(BaseModel):
@@ -156,8 +156,8 @@ class HilalInfoResponse(BaseModel):
     month: HilalMonth
     previous_month: HilalPrevMonth
     evening: HilalEvening
-    source: Source
-    warnings: list[str] = Field(default_factory=list)
+    source: Source = Field(description="Data origin: 'mabims' = curated from publicly available Kemenag tables, 'mabims-computed' = Neo MABIMS algorithmic estimates")
+    warnings: list[str] = Field(default_factory=list, description="Non-empty when borderline months or computed fallback applies")
 
 
 class ErrorBody(BaseModel):

@@ -15,9 +15,15 @@
       </a>
     </div>
 
-    <div class="footer-center">
-      <span class="footer-copyright">MABIMS is the rukyah standard of Kemenag RI. This API is not an official MABIMS/Kemenag product.</span>
-    </div>
+    <nav class="footer-links">
+      <a href="/en/terms/">Terms</a>
+      <span class="footer-sep">·</span>
+      <a href="/en/privacy/">Privacy</a>
+      <span class="footer-sep">·</span>
+      <a href="/en/data-sources/">Data Sources</a>
+      <span class="footer-sep">·</span>
+      <a href="/en/disclaimer/">Disclaimer</a>
+    </nav>
 
     <div class="footer-right">
       <a
@@ -94,13 +100,29 @@
     opacity: 1;
   }
 
-  .footer-center {
-    text-align: center;
+  .footer-links {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
-  .footer-copyright {
+  .footer-links a {
     font-size: var(--sl-text-xs);
     color: var(--sl-color-gray-3);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover {
+    color: var(--sl-color-white);
+  }
+
+  .footer-sep {
+    color: var(--sl-color-gray-3);
+    opacity: 0.4;
+    font-size: var(--sl-text-xs);
   }
 
   .footer-right {

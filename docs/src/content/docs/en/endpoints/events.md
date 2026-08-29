@@ -4,7 +4,7 @@ description: Islamic observance dates (1 Muharram, Maulid, Ramadan start, Eid al
 ---
 
 Returns the **Islamic observance dates** for one calendar year. Within the curated MABIMS
-table, dates come straight from the official Kemenag table — the same one that powers
+table, dates come straight from the public Kemenag table — the same one that powers
 `/convert`. Beyond table coverage, dates are computed live using the Neo MABIMS criteria
 (hilal altitude ≥ 3° and elongation ≥ 6.4° at Sabang sunset), giving you observance dates
 years into the future.
