@@ -3,6 +3,8 @@ title: GET /events
 description: Islamic observance dates (1 Muharram, Maulid, Ramadan start, Eid al-Fitr, Eid al-Fadha) from the MABIMS table, extended with computed dates beyond table coverage.
 ---
 
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
 Returns the **Islamic observance dates** for one calendar year. Within the curated MABIMS
 table, dates come straight from the public Kemenag table — the same one that powers
 `/convert`. Beyond table coverage, dates are computed live using the Neo MABIMS criteria
@@ -19,6 +21,32 @@ GET /api/v1/events?year={Y}&calendar={gregorian|hijri}
 |---|---|---|---|
 | `year` | integer | yes | Year in the requested `calendar` (Hijri: `1446`, Gregorian: `2025`) |
 | `calendar` | string | no (default `hijri`) | `gregorian` or `hijri` |
+
+## Example
+
+<Tabs syncKey="code">
+  <TabItem label="curl">
+    ```bash
+    curl "https://api.mabims.dev/api/v1/events?year=1446&calendar=hijri"
+    ```
+  </TabItem>
+  <TabItem label="JavaScript">
+    ```js
+    const res = await fetch("https://api.mabims.dev/api/v1/events?year=1446&calendar=hijri");
+    const data = await res.json();
+    data.events.forEach(e => console.log(e.name, e.gregorian));
+    ```
+  </TabItem>
+  <TabItem label="PHP">
+    ```php
+    $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/events?year=1446&calendar=hijri');
+    $data = json_decode($response->getBody(), true);
+    foreach ($data['events'] as $event) {
+        echo $event['name'] . ' ' . $event['gregorian'] . PHP_EOL;
+    }
+    ```
+  </TabItem>
+</Tabs>
 
 ## Response
 

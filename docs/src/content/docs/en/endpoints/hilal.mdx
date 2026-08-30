@@ -3,6 +3,8 @@ title: GET /hilal
 description: Hilal visibility — criteria data and sky chart for the evening that decides a Hijri month start.
 ---
 
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
 Two endpoints for **hilal visibility**: the deciding evening is always the **29th** of the
 current month — the night people actually go looking for the crescent. If the criteria are
 not fulfilled, the month completes 30 days and the start shifts a day. Month boundaries come from the
@@ -31,9 +33,27 @@ same Neo MABIMS criteria as the computed table — they are estimates, not offic
 
 ## Example
 
-```bash
-curl "https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447"
-```
+<Tabs syncKey="code">
+  <TabItem label="curl">
+    ```bash
+    curl "https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447"
+    ```
+  </TabItem>
+  <TabItem label="JavaScript">
+    ```js
+    const res = await fetch("https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447");
+    const data = await res.json();
+    console.log("Visible:", data.evening.visible);
+    ```
+  </TabItem>
+  <TabItem label="PHP">
+    ```php
+    $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447');
+    $data = json_decode($response->getBody(), true);
+    echo 'Visible: ' . ($data['evening']['visible'] ? 'true' : 'false') . PHP_EOL;
+    ```
+  </TabItem>
+</Tabs>
 
 ```json
 {
@@ -76,7 +96,7 @@ verdict pill (`MEMENUHI` / `TIDAK MEMENUHI` / `MENDEKATI BATAS` / `DI BAWAH HORI
 `PARAMETER · MABIMS MIN · STATUS` criteria table. When the criteria are not fulfilled the moon is
 deliberately not drawn — the sky tells the truth. Output is deterministic per parameter.
 
-![Sample hilal visibility chart — 29 Sya'ban 1447 H, Sabang](/viz.png)
+<img src="/viz.png" alt="Sample hilal visibility chart — 29 Sya'ban 1447 H, Sabang" style="max-width: 480px;" />
 
 ## Caching
 

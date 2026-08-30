@@ -3,17 +3,39 @@ title: GET /today
 description: Endpoint utama — tanggal Hijriah hari ini, memperhatikan zona waktu.
 ---
 
-Mengembalikan tanggal Hijriah untuk "sekarang" di zona waktu yang diminta. Ini adalah endpoint yang paling sering di-poll oleh aplikasi consumer, maka telah dioptimalkan. Respons memiliki **TTL edge-cache dinamis** sehingga CDN melayani hampir semua traffic.
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-```
-GET /api/v1/today?tz={timezone}
-```
+Mengembalikan tanggal Hijriah untuk "sekarang" di zona waktu yang diminta. Ini adalah endpoint yang paling sering di-poll oleh aplikasi consumer, maka telah dioptimalkan. Respons memiliki **TTL edge-cache dinamis** sehingga CDN melayani hampir semua traffic.
 
 ## Parameter
 
 | Parameter | Tipe | Wajib | Deskripsi |
 |---|---|---|---|
 | `tz` | string | tidak (default `Asia/Jakarta`, UTC+7) | Nama zona IANA (`Asia/Kuala_Lumpur`) atau UTC offset (`UTC+7`, `+08:00`) |
+
+## Contoh
+
+<Tabs syncKey="code">
+  <TabItem label="curl">
+    ```bash
+    curl "https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta"
+    ```
+  </TabItem>
+  <TabItem label="JavaScript">
+    ```js
+    const res = await fetch("https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta");
+    const data = await res.json();
+    console.log(data.output.date); // "1448-03-11"
+    ```
+  </TabItem>
+  <TabItem label="PHP">
+    ```php
+    $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta');
+    $data = json_decode($response->getBody(), true);
+    echo $data['output']['date']; // "1448-03-11"
+    ```
+  </TabItem>
+</Tabs>
 
 ## Respons
 

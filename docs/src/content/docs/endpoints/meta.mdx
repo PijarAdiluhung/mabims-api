@@ -3,11 +3,37 @@ title: GET /meta
 description: Cakupan tabel, versi data, dan status fallback.
 ---
 
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
 Info tentang dataset yang machine-readable.
 
 ```
 GET /api/v1/meta
 ```
+
+## Contoh
+
+<Tabs syncKey="code">
+  <TabItem label="curl">
+    ```bash
+    curl "https://api.mabims.dev/api/v1/meta"
+    ```
+  </TabItem>
+  <TabItem label="JavaScript">
+    ```js
+    const res = await fetch("https://api.mabims.dev/api/v1/meta");
+    const data = await res.json();
+    console.log("Coverage:", data.coverage.first, "→", data.coverage.last);
+    ```
+  </TabItem>
+  <TabItem label="PHP">
+    ```php
+    $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/meta');
+    $data = json_decode($response->getBody(), true);
+    echo 'Coverage: ' . $data['coverage']['first'] . ' → ' . $data['coverage']['last'] . PHP_EOL;
+    ```
+  </TabItem>
+</Tabs>
 
 ```json
 {

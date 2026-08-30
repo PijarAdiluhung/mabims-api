@@ -3,6 +3,8 @@ title: GET /convert & /range
 description: Single date conversion and bulk date range conversion.
 ---
 
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
 ## GET /convert
 
 Converts one date in the direction implied by `calendar`.
@@ -17,6 +19,30 @@ GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
 |---|---|---|---|
 | `date` | string | yes | ISO date (`YYYY-MM-DD`) |
 | `calendar` | string | no (default `gregorian`) | Calendar of the input date |
+
+## Example
+
+<Tabs syncKey="code">
+  <TabItem label="curl">
+    ```bash
+    curl "https://api.mabims.dev/api/v1/convert?date=2025-01-03&calendar=gregorian"
+    ```
+  </TabItem>
+  <TabItem label="JavaScript">
+    ```js
+    const res = await fetch("https://api.mabims.dev/api/v1/convert?date=2025-01-03&calendar=gregorian");
+    const data = await res.json();
+    console.log(data.output.date); // "1446-07-03"
+    ```
+  </TabItem>
+  <TabItem label="PHP">
+    ```php
+    $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/convert?date=2025-01-03&calendar=gregorian');
+    $data = json_decode($response->getBody(), true);
+    echo $data['output']['date']; // "1446-07-03"
+    ```
+  </TabItem>
+</Tabs>
 
 ## Responses
 
@@ -79,6 +105,32 @@ GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
 |---|---|---|---|
 | `start` / `end` | string | yes | ISO dates; `start ≤ end`; max span 45 days |
 | `calendar` | string | no (default `gregorian`) | Calendar of the input bounds |
+
+## Example
+
+<Tabs syncKey="code">
+  <TabItem label="curl">
+    ```bash
+    curl "https://api.mabims.dev/api/v1/range?start=2025-01-01&end=2025-01-03&calendar=gregorian"
+    ```
+  </TabItem>
+  <TabItem label="JavaScript">
+    ```js
+    const res = await fetch("https://api.mabims.dev/api/v1/range?start=2025-01-01&end=2025-01-03&calendar=gregorian");
+    const data = await res.json();
+    data.items.forEach(i => console.log(i.gregorian, "→", i.hijri));
+    ```
+  </TabItem>
+  <TabItem label="PHP">
+    ```php
+    $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/range?start=2025-01-01&end=2025-01-03&calendar=gregorian');
+    $data = json_decode($response->getBody(), true);
+    foreach ($data['items'] as $item) {
+        echo $item['gregorian'] . ' → ' . $item['hijri'] . PHP_EOL;
+    }
+    ```
+  </TabItem>
+</Tabs>
 
 ```json
 {

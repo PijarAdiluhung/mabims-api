@@ -3,6 +3,8 @@ title: GET /month & /year
 description: Monthly and yearly calendar grids.
 ---
 
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
 ## GET /month
 
 Convenience wrapper that resolves a whole month grid.
@@ -18,6 +20,32 @@ GET /api/v1/month?year={Y}&month={M}&calendar={hijri|gregorian}
 | `year` | int | yes | Hijri or Gregorian year |
 | `month` | int | yes | Month 1–12 |
 | `calendar` | string | no (default `hijri`) | Calendar of the `year` input |
+
+## Example
+
+<Tabs syncKey="code">
+  <TabItem label="curl">
+    ```bash
+    curl "https://api.mabims.dev/api/v1/month?year=1447&month=1&calendar=hijri"
+    ```
+  </TabItem>
+  <TabItem label="JavaScript">
+    ```js
+    const res = await fetch("https://api.mabims.dev/api/v1/month?year=1447&month=1&calendar=hijri");
+    const data = await res.json();
+    data.items.forEach(i => console.log(i.gregorian, "→", i.hijri));
+    ```
+  </TabItem>
+  <TabItem label="PHP">
+    ```php
+    $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/month?year=1447&month=1&calendar=hijri');
+    $data = json_decode($response->getBody(), true);
+    foreach ($data['items'] as $item) {
+        echo $item['gregorian'] . ' → ' . $item['hijri'] . PHP_EOL;
+    }
+    ```
+  </TabItem>
+</Tabs>
 
 For `calendar=hijri` the response contains every Gregorian date onto which that Hijri month
 maps — exactly what a Hijri month-view needs (29–30 items). Hijri months beyond the public
@@ -36,6 +64,30 @@ GET /api/v1/year?year={Y}&calendar={hijri|gregorian}
 |---|---|---|---|
 | `year` | int | yes | Hijri or Gregorian year |
 | `calendar` | string | no (default `hijri`) | Calendar of the `year` input |
+
+## Example
+
+<Tabs syncKey="code">
+  <TabItem label="curl">
+    ```bash
+    curl "https://api.mabims.dev/api/v1/year?year=1447&calendar=hijri"
+    ```
+  </TabItem>
+  <TabItem label="JavaScript">
+    ```js
+    const res = await fetch("https://api.mabims.dev/api/v1/year?year=1447&calendar=hijri");
+    const data = await res.json();
+    console.log(data.count, "days in year", data.input.year);
+    ```
+  </TabItem>
+  <TabItem label="PHP">
+    ```php
+    $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/year?year=1447&calendar=hijri');
+    $data = json_decode($response->getBody(), true);
+    echo $data['count'] . ' days in year ' . $data['input']['year'] . PHP_EOL;
+    ```
+  </TabItem>
+</Tabs>
 
 ```json
 {

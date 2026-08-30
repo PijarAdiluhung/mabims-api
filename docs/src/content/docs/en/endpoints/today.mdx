@@ -3,6 +3,8 @@ title: GET /today
 description: The hero endpoint — today's Hijri date, timezone aware.
 ---
 
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
 Returns the Hijri date for "now" in the requested timezone. This is the endpoint most consumer
 apps poll, and it is tuned for it: responses carry **dynamic edge-cache TTLs** so a CDN serves
 nearly all traffic.
@@ -16,6 +18,30 @@ GET /api/v1/today?tz={timezone}
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `tz` | string | no (default `Asia/Jakarta`, UTC+7) | IANA zone name (`Asia/Kuala_Lumpur`) or UTC offset (`UTC+7`, `+08:00`) |
+
+## Example
+
+<Tabs syncKey="code">
+  <TabItem label="curl">
+    ```bash
+    curl "https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta"
+    ```
+  </TabItem>
+  <TabItem label="JavaScript">
+    ```js
+    const res = await fetch("https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta");
+    const data = await res.json();
+    console.log(data.output.date); // "1448-03-11"
+    ```
+  </TabItem>
+  <TabItem label="PHP">
+    ```php
+    $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta');
+    $data = json_decode($response->getBody(), true);
+    echo $data['output']['date']; // "1448-03-11"
+    ```
+  </TabItem>
+</Tabs>
 
 ## Response
 

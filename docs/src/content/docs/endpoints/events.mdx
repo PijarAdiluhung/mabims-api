@@ -3,6 +3,8 @@ title: GET /events
 description: Tanggal hari besar Islam (1 Muharram, Maulid, Awal Ramadan, Idul Fitri, Idul Adha) dari tabel MABIMS, diperluas dengan data komputasi di luar cakupan tabel.
 ---
 
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
 Mengembalikan tanggal **hari besar Islam** untuk satu tahun kalender. Di dalam cakupan
 tabel MABIMS, tanggal langsung dari tabel publik Kemenag — tabel yang sama dengan
 `/convert`. Di luar cakupan tabel, tanggal dikomputasi secara langsung menggunakan kriteria
@@ -19,6 +21,32 @@ GET /api/v1/events?year={Y}&calendar={gregorian|hijri}
 |---|---|---|---|
 | `year` | integer | ya | Tahun kalender sesuai `calendar` (Hijriah: `1446`, Gregorian: `2025`) |
 | `calendar` | string | tidak (default `hijri`) | `gregorian` atau `hijri` |
+
+## Contoh
+
+<Tabs syncKey="code">
+  <TabItem label="curl">
+    ```bash
+    curl "https://api.mabims.dev/api/v1/events?year=1446&calendar=hijri"
+    ```
+  </TabItem>
+  <TabItem label="JavaScript">
+    ```js
+    const res = await fetch("https://api.mabims.dev/api/v1/events?year=1446&calendar=hijri");
+    const data = await res.json();
+    data.events.forEach(e => console.log(e.name, e.gregorian));
+    ```
+  </TabItem>
+  <TabItem label="PHP">
+    ```php
+    $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/events?year=1446&calendar=hijri');
+    $data = json_decode($response->getBody(), true);
+    foreach ($data['events'] as $event) {
+        echo $event['name'] . ' ' . $event['gregorian'] . PHP_EOL;
+    }
+    ```
+  </TabItem>
+</Tabs>
 
 ## Respons
 
