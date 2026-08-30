@@ -424,19 +424,16 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         response_model=MetaResponse,
         tags=["Meta"],
         summary="API metadata",
-        description="Returns data version, coverage range, and fallback/computed status.",
+        description="Returns data version, coverage range, and computed status.",
         methods=["GET", "HEAD"],
     )
     @limiter.exempt
     def meta(request: Request):
-        fallback_active, fallback_months = aladhan_store.summary() if aladhan_store else (False, [])
         computed_active, computed_months = computed_store.summary() if computed_store else (False, [])
         payload = MetaResponse(
             version=APP_VERSION,
             data_version=data_version,
             coverage=Coverage(first=service.coverage_first_g, last=service.coverage_last_g),
-            fallback_active=fallback_active,
-            fallback_months=fallback_months,
             computed_active=computed_active,
             computed_months=computed_months,
             method=COMPUTED_METHOD if active_computed is not None else None,

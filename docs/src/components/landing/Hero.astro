@@ -28,7 +28,7 @@
       <div class="terminal-tabs" role="tablist" aria-label="Contoh kode">
         <button type="button" class="terminal-tab is-active" role="tab" aria-selected="true" data-lang="curl">cURL</button>
         <button type="button" class="terminal-tab" role="tab" aria-selected="false" data-lang="js">JavaScript</button>
-        <button type="button" class="terminal-tab" role="tab" aria-selected="false" data-lang="python">Python</button>
+        <button type="button" class="terminal-tab" role="tab" aria-selected="false" data-lang="php">PHP</button>
       </div>
       <span class="terminal-title">terminal</span>
     </div>
@@ -407,7 +407,7 @@
     const COMMANDS = {
       curl: 'curl "https://api.mabims.dev/api/v1/today"',
       js: 'const res = await fetch("https://api.mabims.dev/api/v1/today");\nconst data = await res.json();',
-      python: 'import requests\nr = requests.get("https://api.mabims.dev/api/v1/today")\nprint(r.json())',
+      php: '$client = new \\GuzzleHttp\\Client();\n$res = $client->get("https://api.mabims.dev/api/v1/today");\nprint_r($res->getBody()->getContents());',
     };
 
     const SAMPLE = {

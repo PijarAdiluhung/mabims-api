@@ -244,7 +244,7 @@ Regenerate the seed yearly with `api/scripts/generate_seed.py` (verifies curated
 before writing); `.github/workflows/regen-computed-table.yml` automates it every January and
 opens a PR with the diff.
 
-`/meta` exposes `method`, `computed_active`, `computed_months`, `fallback_active` and `fallback_months`.
+`/meta` exposes `method`, `computed_active`, and `computed_months`.
 
 ## Disclaimer
 

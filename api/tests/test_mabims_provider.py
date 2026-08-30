@@ -125,7 +125,7 @@ class TestComputedTierIntegration:
     def test_meta_exposes_method_and_tiers(self, computed_client):
         meta = computed_client.get("/api/v1/meta").json()
         assert meta["method"] == "neo-mabims-sabang"
-        assert meta["fallback_active"] is False
+
         assert meta["computed_active"] is False
 
 

@@ -134,7 +134,7 @@ def test_meta_coverage_and_version(client, real_data):
     g_keys = sorted(real_data["gregorian_to_hijri"])
     assert body["coverage"]["first"] == g_keys[0]
     assert body["coverage"]["last"] == g_keys[-1]
-    assert body["fallback_active"] is False
+
     assert len(body["data_version"]) == 12
 
 

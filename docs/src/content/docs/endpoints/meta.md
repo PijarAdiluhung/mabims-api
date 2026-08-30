@@ -14,8 +14,6 @@ GET /api/v1/meta
   "version": "1.0.0",
   "data_version": "9f2c41aa7b03",
   "coverage": { "first": "2024-01-13", "last": "2026-12-31" },
-  "fallback_active": false,
-  "fallback_months": [],
   "computed_active": false,
   "computed_months": [],
   "method": "neo-mabims-sabang",

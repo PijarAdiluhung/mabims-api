@@ -286,7 +286,7 @@ const description = 'Integrate the MABIMS Hijri calendar into your website or ap
   .mobile-menu {
     display: none;
     position: fixed;
-    top: 60px;
+    top: 0;
     left: 0;
     right: 0;
     background: rgba(35, 38, 47, 0.98);
@@ -338,9 +338,13 @@ const description = 'Integrate the MABIMS Hijri calendar into your website or ap
 <script>
   const toggle = document.getElementById('nav-toggle');
   const menu = document.getElementById('mobile-menu');
+  const nav = document.querySelector('.landing-nav');
 
   toggle?.addEventListener('click', () => {
     toggle.classList.toggle('active');
     menu.classList.toggle('active');
+    if (menu.classList.contains('active') && nav) {
+      menu.style.top = nav.offsetHeight + 'px';
+    }
   });
 </script>
