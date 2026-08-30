@@ -1,0 +1,110 @@
+# MABIMS API
+
+> Free, open API for Hijri-Gregorian date conversion using Indonesia's official MABIMS criteria (Kementerian Agama RI). Not Umm al-Qura.
+
+MABIMS API serves Hijri-Gregorian date conversion, Islamic event dates, and hilal visibility data for Indonesia. It uses official MABIMS tables from Kemenag RI and the Neo MABIMS criteria for dates beyond table coverage: moon altitude ≥ 3° and elongation ≥ 6.4° at Sabang sunset.
+
+## Key Facts
+- Base URL: https://api.mabims.dev/api/v1
+- Auth: None required, fully open
+- Default timezone: Asia/Jakarta (UTC+7)
+- Rate limit: 240 requests/minute per IP
+- Data source: Official Kemenag RI MABIMS tables (Hijri 1445–1448)
+- Computed fallback: Through Hijri 1473 (~mid-2050)
+- OpenAPI spec: https://api.mabims.dev/openapi.json
+- Docs: https://mabims.dev
+- Source: https://github.com/PijarAdiluhung/mabims-api
+
+## Endpoints
+
+### Today's Hijri Date
+GET /api/v1/today?tz=Asia/Jakarta
+Returns today's Hijri date, timezone-aware. Accepts any IANA timezone.
+
+### Date Conversion
+GET /api/v1/convert?date=YYYY-MM-DD&calendar=gregorian
+Convert Gregorian to Hijri. Use calendar=hijri for the reverse direction.
+
+### Date Range
+GET /api/v1/range?start=YYYY-MM-DD&end=YYYY-MM-DD&calendar=gregorian
+Bulk convert up to 45 days.
+
+### Month Grid
+GET /api/v1/month?year=1448&month=3&calendar=hijri
+All days in a month. Useful for rendering a full calendar view.
+
+### Year Grid
+GET /api/v1/year?year=1448&calendar=hijri
+All days in a year (12 months).
+
+### Islamic Events
+GET /api/v1/events?year=2026&calendar=gregorian
+Returns: Awal Ramadan, Idul Fitri, Idul Adha, 1 Muharram, Maulid Nabi.
+
+### Hilal Visibility
+GET /api/v1/hilal/info?month=9&year=1447
+Hilal visibility data (JSON) for the evening deciding a month start.
+
+GET /api/v1/hilal/viz?month=9&year=1447
+Hilal sky chart PNG (720×1280) with MABIMS criteria table.
+
+### Meta
+GET /api/v1/meta
+Coverage info, data version, fallback status.
+
+## How to Display Hijri Date on a Website
+
+Simplest approach using the MABIMS API:
+
+```javascript
+const res = await fetch("https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta");
+const data = await res.json();
+const { day, month_name, year } = data.output;
+document.getElementById("hijri").textContent = `${day} ${month_name} ${year} H`;
+```
+
+For converting any specific date:
+
+```javascript
+const res = await fetch("https://api.mabims.dev/api/v1/convert?date=2026-03-01&calendar=gregorian");
+const data = await res.json();
+// data.output.date = "1447-08-30"
+```
+
+For a full month calendar:
+
+```javascript
+const res = await fetch("https://api.mabims.dev/api/v1/month?year=1448&month=3&calendar=hijri");
+const data = await response.json();
+// data.days = array of all days in the month
+```
+
+## Why MABIMS Not Umm al-Qura?
+
+Most Hijri calendar libraries and APIs default to Umm al-Qura (Saudi Arabia's calendar). For Indonesia, this can be ±1 day off from Kemenag's official announcement. MABIMS API uses Indonesia's own criteria and official data.
+
+## Response Format
+
+Every response includes:
+- `source`: "mabims" (from official table) or "mabims-computed" (calculated with Neo MABIMS criteria)
+- `warnings[]`: Array of warnings, empty when data is clean
+- `input`: Echo of the request parameters
+
+## Error Format
+
+```json
+{
+  "error": {
+    "code": "invalid_date",
+    "message": "'xyz' is not a valid ISO date (YYYY-MM-DD)."
+  }
+}
+```
+
+## Links
+- Quickstart: https://mabims.dev/quickstart
+- Full API Reference: https://mabims.dev/endpoints/convert-range
+- FAQ: https://mabims.dev/faq
+- Tutorial (Bahasa): https://mabims.dev/blog/cara-pakai-mabims-api
+- Migration from Aladhan: https://mabims.dev/migration
+- Hilal Visibility Guide: https://mabims.dev/endpoints/hilal

@@ -55,3 +55,31 @@ curl "https://api.mabims.dev/api/v1/today"
 ```
 
 Dokumentasi lengkap ada di [mabims.dev/quickstart](https://mabims.dev/quickstart).
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Cerita di Balik MABIMS API",
+  "description": "Dari website Kemenag yang tanggalnya kacau, viral, sampai akhirnya dihapus... ini cerita kenapa mabims.dev dibuat.",
+  "datePublished": "2026-08-27",
+  "author": {
+    "@type": "Person",
+    "name": "Pijar Adiluhung",
+    "url": "https://pixostudio.id"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "mabims.dev",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://mabims.dev/mabims-long.png"
+    }
+  },
+  "image": "https://mabims.dev/og-image.png",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://mabims.dev/blog/kenapa-saya-bikin-mabims-dev"
+  }
+}
+</script>

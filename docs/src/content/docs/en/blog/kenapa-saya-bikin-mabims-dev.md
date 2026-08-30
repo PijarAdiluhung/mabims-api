@@ -55,3 +55,31 @@ curl "https://api.mabims.dev/api/v1/today"
 ```
 
 Full documentation at [mabims.dev/quickstart](https://mabims.dev/en/quickstart).
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "The Story Behind MABIMS API",
+  "description": "From Kemenag's website showing wrong dates, to going viral, to being taken down... here's why mabims.dev was created.",
+  "datePublished": "2026-08-27",
+  "author": {
+    "@type": "Person",
+    "name": "Pijar Adiluhung",
+    "url": "https://pixostudio.id"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "mabims.dev",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://mabims.dev/mabims-long.png"
+    }
+  },
+  "image": "https://mabims.dev/og-image.png",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://mabims.dev/en/blog/kenapa-saya-bikin-mabims-dev"
+  }
+}
+</script>

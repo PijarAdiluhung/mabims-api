@@ -59,3 +59,77 @@ full policy and abuse protection details.
 
 - Full parameter reference: [API Reference](/endpoints/convert-range)
 - Try it live: [Playground](/playground)
+- OpenAPI spec: [api.mabims.dev/openapi.json](https://api.mabims.dev/openapi.json)
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebAPI",
+  "name": "MABIMS API",
+  "description": "Free Hijri-Gregorian date conversion API based on Indonesia's official MABIMS criteria (Kementerian Agama RI). No API key required.",
+  "url": "https://api.mabims.dev",
+  "documentation": "https://mabims.dev/en/quickstart",
+  "openAPISpec": "https://api.mabims.dev/openapi.json",
+  "provider": {
+    "@type": "Organization",
+    "name": "mabims.dev",
+    "url": "https://mabims.dev"
+  },
+  "potentialAction": [
+    {
+      "@type": "InvokeAction",
+      "name": "Get today's Hijri date",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://api.mabims.dev/api/v1/today?tz={timezone}",
+        "contentType": "application/json"
+      }
+    },
+    {
+      "@type": "InvokeAction",
+      "name": "Convert Gregorian to Hijri",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://api.mabims.dev/api/v1/convert?date={date}&calendar=gregorian",
+        "contentType": "application/json"
+      }
+    },
+    {
+      "@type": "InvokeAction",
+      "name": "Convert Hijri to Gregorian",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://api.mabims.dev/api/v1/convert?date={date}&calendar=hijri",
+        "contentType": "application/json"
+      }
+    },
+    {
+      "@type": "InvokeAction",
+      "name": "Get Islamic events",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://api.mabims.dev/api/v1/events?year={year}&calendar={calendar}",
+        "contentType": "application/json"
+      }
+    },
+    {
+      "@type": "InvokeAction",
+      "name": "Get month calendar",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://api.mabims.dev/api/v1/month?year={year}&month={month}&calendar={calendar}",
+        "contentType": "application/json"
+      }
+    },
+    {
+      "@type": "InvokeAction",
+      "name": "Get hilal visibility",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://api.mabims.dev/api/v1/hilal/info?month={month}&year={year}",
+        "contentType": "application/json"
+      }
+    }
+  ]
+}
+</script>

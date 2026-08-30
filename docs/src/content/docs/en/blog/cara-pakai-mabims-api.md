@@ -301,3 +301,31 @@ If your app needs a specific timezone, specify it explicitly.
 And if your app is administratively or religiously significant, **always treat the API as a technical data source, not a replacement for official Kemenag decisions.**
 
 That's it. Hope it helps!
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Integration Tutorial",
+  "description": "Integration examples for the mabims.dev API, from the simplest to more proper setups: JavaScript, Vue, React, and mobile.",
+  "datePublished": "2026-08-28",
+  "author": {
+    "@type": "Person",
+    "name": "Pijar Adiluhung",
+    "url": "https://pixostudio.id"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "mabims.dev",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://mabims.dev/mabims-long.png"
+    }
+  },
+  "image": "https://mabims.dev/og-image.png",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://mabims.dev/en/blog/cara-pakai-mabims-api"
+  }
+}
+</script>

@@ -86,3 +86,31 @@ GET https://api.mabims.dev/api/v1/hilal/viz?month=1&year=1448
 ```
 
 Ganti `month` dan `year` sesuai bulan Hijriah yang mau dicek. Dokumentasi lengkap parameter ada di [mabims.dev/endpoints/hilal](https://mabims.dev/endpoints/hilal).
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Kenapa Cari Hilal di Sabang?",
+  "description": "Bedah teknis endpoint /hilal/viz. Astronomi geosentrik, kriteria Neo MABIMS, sampai cara chart PNG-nya dirender dari nol.",
+  "datePublished": "2026-08-29",
+  "author": {
+    "@type": "Person",
+    "name": "Pijar Adiluhung",
+    "url": "https://pixostudio.id"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "mabims.dev",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://mabims.dev/mabims-long.png"
+    }
+  },
+  "image": "https://mabims.dev/og-image.png",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://mabims.dev/blog/behind-hilal-viz"
+  }
+}
+</script>

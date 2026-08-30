@@ -1,0 +1,497 @@
+# MABIMS API — Full Reference
+
+> Free, open API for Hijri-Gregorian date conversion using Indonesia's official MABIMS criteria (Kementerian Agama RI). Not Umm al-Qura.
+
+## Overview
+
+MABIMS API provides:
+1. Hijri-Gregorian date conversion (both directions)
+2. Islamic event dates (Ramadan, Eid, Hajj, etc.)
+3. Hilal (crescent moon) visibility data and sky charts
+4. Full month/year calendar grids
+
+Built on official MABIMS tables published by Kementerian Agama RI. For dates beyond table coverage, uses Neo MABIMS criteria: moon altitude ≥ 3° and elongation ≥ 6.4° at sunset in Sabang (5°53′N 95°19′E), Indonesia's westernmost point.
+
+## Key Facts
+
+- Base URL: https://api.mabims.dev/api/v1
+- Authentication: None required, fully open
+- CORS: Fully open to all origins
+- Default timezone: Asia/Jakarta (UTC+7)
+- Rate limit: 240 requests/minute per IP (Bunny CDN + origin fallback)
+- Hilal rate limits: /hilal/info 60/hour, /hilal/viz 30/hour per IP
+- Data coverage: Hijri 1445–1448 (official tables), computed through Hijri 1473 (~mid-2050)
+- OpenAPI spec: https://api.mabims.dev/openapi.json
+- Docs: https://mabims.dev
+- Source code: https://github.com/PijarAdiluhung/mabims-api
+- Contact: halo@pixostudio.id
+
+## Response Conventions
+
+Every response includes:
+- `source`: "mabims" (from official Kemenag table) or "mabims-computed" (calculated with Neo MABIMS criteria)
+- `warnings[]`: Array of warning strings, empty when data is clean
+- `input`: Echo of the request parameters
+
+## Error Response Format
+
+```json
+{
+  "error": {
+    "code": "invalid_date",
+    "message": "'xyz' is not a valid ISO date (YYYY-MM-DD)."
+  }
+}
+```
+
+## Parameters
+
+| Parameter | Type | Values | Notes |
+|---|---|---|---|
+| `calendar` | string | `hijri`, `gregorian` | Default `gregorian` on /convert, /range. Default `hijri` on /month, /year, /events. |
+| `date` | string | `YYYY-MM-DD` | ISO 8601 date format |
+| `tz` | string | IANA timezone or UTC offset | Default `Asia/Jakarta`. Only accepted by /today endpoints. |
+| `start`, `end` | string | `YYYY-MM-DD` | Used by /range endpoint |
+| `year` | integer | Hijri or Gregorian year | Depending on `calendar` parameter |
+| `month` | integer | 1–12 | Hijri or Gregorian month |
+
+---
+
+## Endpoint: GET /today
+
+Returns today's Hijri date, timezone-aware.
+
+```
+GET /api/v1/today?tz={timezone}
+```
+
+| Parameter | Required | Default | Description |
+|---|---|---|---|
+| `tz` | No | `Asia/Jakarta` | IANA timezone (e.g. `Asia/Kuala_Lumpur`, `Asia/Singapore`) or UTC offset (e.g. `UTC+8`, `+08:00`) |
+
+### Example Request
+
+```bash
+curl "https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta"
+```
+
+### Example Response
+
+```json
+{
+  "input": { "date": "2026-08-27", "calendar": "gregorian", "tz": "Asia/Jakarta" },
+  "output": { "date": "1448-03-14", "calendar": "hijri", "day": 14, "month": 3, "month_name": "Rabiul Akhir", "year": 1448 },
+  "source": "mabims",
+  "warnings": []
+}
+```
+
+### Caching
+
+`Cache-Control: max-age=60, s-maxage=<seconds to midnight>` — CDN caches until midnight in the requested timezone.
+
+---
+
+## Endpoint: GET /today/{date}
+
+Same as /today but for a fixed date. Immutable, CDN-cacheable forever.
+
+```
+GET /api/v1/today/{YYYY-MM-DD}
+```
+
+No timezone parameter — the date is fixed.
+
+---
+
+## Endpoint: GET /convert
+
+Single date conversion, either direction.
+
+```
+GET /api/v1/convert?date={YYYY-MM-DD}&calendar={hijri|gregorian}
+```
+
+| Parameter | Required | Default | Description |
+|---|---|---|---|
+| `date` | Yes | — | ISO 8601 date |
+| `calendar` | No | `gregorian` | Direction: `gregorian` = Gregorian→Hijri, `hijri` = Hijri→Gregorian |
+
+### Example: Gregorian to Hijri
+
+```bash
+curl "https://api.mabims.dev/api/v1/convert?date=2025-01-03&calendar=gregorian"
+```
+
+```json
+{
+  "input": { "date": "2025-01-03", "calendar": "gregorian", "tz": null },
+  "output": { "date": "1446-07-03", "calendar": "hijri", "day": 3, "month": 7, "month_name": "Rajab", "year": 1446 },
+  "source": "mabims",
+  "warnings": []
+}
+```
+
+### Example: Hijri to Gregorian
+
+```bash
+curl "https://api.mabims.dev/api/v1/convert?date=1446-07-03&calendar=hijri"
+```
+
+```json
+{
+  "input": { "date": "1446-07-03", "calendar": "hijri", "tz": null },
+  "output": { "date": "2025-01-03", "calendar": "gregorian", "day": 3, "month": 1, "month_name": "January", "year": 2025 },
+  "source": "mabims",
+  "warnings": []
+}
+```
+
+### Caching
+
+`Cache-Control: max-age=86400` — Immutable for fixed dates.
+
+---
+
+## Endpoint: GET /range
+
+Bulk date conversion (max 45 days).
+
+```
+GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={hijri|gregorian}
+```
+
+| Parameter | Required | Default | Description |
+|---|---|---|---|
+| `start` | Yes | — | Start date (ISO 8601) |
+| `end` | Yes | — | End date (ISO 8601) |
+| `calendar` | No | `gregorian` | Direction of conversion |
+
+### Error
+
+Returns `range_too_large` (400) if range exceeds 45 days.
+
+---
+
+## Endpoint: GET /month
+
+All days in a month.
+
+```
+GET /api/v1/month?year={year}&month={month}&calendar={hijri|gregorian}
+```
+
+| Parameter | Required | Default | Description |
+|---|---|---|---|
+| `year` | Yes | — | Year (Hijri or Gregorian) |
+| `month` | Yes | — | Month 1–12 |
+| `calendar` | No | `hijri` | Calendar type |
+
+### Example
+
+```bash
+curl "https://api.mabims.dev/api/v1/month?year=1448&month=3&calendar=hijri"
+```
+
+Returns all days in Rabiul Akhir 1448 H with their Gregorian equivalents.
+
+---
+
+## Endpoint: GET /year
+
+All days in a year (12 months).
+
+```
+GET /api/v1/year?year={year}&calendar={hijri|gregorian}
+```
+
+| Parameter | Required | Default | Description |
+|---|---|---|---|
+| `year` | Yes | — | Year (Hijri or Gregorian) |
+| `calendar` | No | `hijri` | Calendar type |
+
+---
+
+## Endpoint: GET /events
+
+Islamic observance dates for a year.
+
+```
+GET /api/v1/events?year={year}&calendar={hijri|gregorian}
+```
+
+| Parameter | Required | Default | Description |
+|---|---|---|---|
+| `year` | Yes | — | Year (Hijri or Gregorian) |
+| `calendar` | No | `hijri` | Calendar type |
+
+### Events Returned
+
+| `event` slug | Name | Hijri Date |
+|---|---|---|
+| `1_muharram` | Islamic New Year | 1 Muharram |
+| `maulid_nabi` | Prophet Muhammad's Birthday | 12 Rabi' al-Awwal |
+| `awal_ramadan` | Start of Ramadan | 1 Ramadan |
+| `idul_fitri` | Eid al-Fitr | 1 Shawwal |
+| `idul_adha` | Eid al-Adha | 10 Dhul Hijjah |
+
+### Example
+
+```bash
+curl "https://api.mabims.dev/api/v1/events?year=2025&calendar=gregorian"
+```
+
+```json
+{
+  "input": { "year": 2025, "calendar": "gregorian" },
+  "count": 5,
+  "events": [
+    { "event": "awal_ramadan", "name": "Awal Ramadan", "hijri": "1446-09-01", "gregorian": "2025-03-01", "source": "mabims" },
+    { "event": "idul_fitri", "name": "Idul Fitri", "hijri": "1446-10-01", "gregorian": "2025-03-31", "source": "mabims" },
+    { "event": "idul_adha", "name": "Idul Adha", "hijri": "1446-12-10", "gregorian": "2025-06-06", "source": "mabims" },
+    { "event": "1_muharram", "name": "Tahun Baru Islam", "hijri": "1447-01-01", "gregorian": "2025-06-27", "source": "mabims" },
+    { "event": "maulid_nabi", "name": "Maulid Nabi Muhammad Shallallahu Alaihi Wasallam", "hijri": "1447-03-12", "gregorian": "2025-09-05", "source": "mabims" }
+  ],
+  "warnings": []
+}
+```
+
+Items are ordered by Gregorian date.
+
+---
+
+## Endpoint: GET /hilal/info
+
+Hilal visibility data (JSON) for the evening deciding a month start. The deciding evening is always the 29th of the previous Hijri month.
+
+```
+GET /api/v1/hilal/info?month={month}&year={year}
+```
+
+| Parameter | Required | Description |
+|---|---|---|
+| `month` | Yes | Hijri month target (1–12) |
+| `year` | Yes | Hijri year target |
+
+### Example
+
+```bash
+curl "https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447"
+```
+
+```json
+{
+  "input": { "month": 9, "year": 1447 },
+  "month": { "name": "Ramadhan", "number": 9, "year": 1447, "start": "2026-02-19" },
+  "previous_month": { "name": "Sya'ban", "number": 8, "year": 1447, "length": 30 },
+  "evening": {
+    "hijri_date": "29 Sya'ban 1447 H",
+    "hijri_day": 29,
+    "gregorian_date": "2026-02-17",
+    "sunset": "18:14",
+    "moonset": "18:51",
+    "moon_alt_deg": 8.78,
+    "moon_az_deg": 263.98,
+    "sun_alt_deg": -0.83,
+    "elongation_deg": 11.07,
+    "illumination_pct": 1.07,
+    "age_hours": 23.2,
+    "alt_ok": true,
+    "elong_ok": true,
+    "visible": true
+  },
+  "source": "mabims",
+  "warnings": []
+}
+```
+
+### Visibility Criteria
+
+`visible = alt_ok && elong_ok` follows Neo MABIMS:
+- Moon altitude (refraction-corrected) ≥ 3.0°
+- Elongation ≥ 6.4°
+- At sunset in Sabang, Indonesia
+
+### Caching
+
+`Cache-Control: public, max-age=86400, s-maxage=86400`
+
+---
+
+## Endpoint: GET /hilal/viz
+
+Hilal sky chart PNG (720×1280) showing the evening sky, crescent position, and MABIMS criteria table.
+
+```
+GET /api/v1/hilal/viz?month={month}&year={year}
+```
+
+Same parameters as /hilal/info. Returns a PNG image.
+
+The chart includes:
+- Twilight sky with crescent moon (light facing sun)
+- Verdict pill: MEMENUHI / TIDAK MEMENUHI / MENDEKATI BATAS / DI BAWAH HORIZON
+- Criteria table: PARAMETER · MIN. MABIMS · STATUS
+
+### Caching
+
+`Cache-Control: public, max-age=86400, s-maxage=86400` — One render per edge location per day.
+
+---
+
+## Endpoint: GET /meta
+
+Coverage info, data version, and fallback status.
+
+```
+GET /api/v1/meta
+```
+
+Returns `method`, `computed_active`, and `computed_months`.
+
+---
+
+## Endpoint: GET /healthz
+
+Liveness probe. No rate limit.
+
+```
+GET /healthz
+```
+
+---
+
+## Error Codes
+
+| HTTP Status | `error.code` | When |
+|---|---|---|
+| 400 | `invalid_date` | Malformed date string |
+| 400 | `invalid_calendar` | `calendar` param is not `hijri` or `gregorian` |
+| 400 | `invalid_timezone` | Unknown timezone string |
+| 400 | `missing_parameter` | Required query param not provided |
+| 400 | `invalid_step` | `step` param is not `day` |
+| 400 | `invalid_range` | `start` is after `end` |
+| 400 | `invalid_month` | `month` is not between 1 and 12 |
+| 400 | `invalid_year` | `year` is out of supported bounds |
+| 400 | `out_of_coverage` | Date is outside available coverage |
+| 400 | `date_out_of_supported_range` | Date exceeds supported range |
+| 400 | `range_too_large` | Range exceeds 45 days |
+| 404 | `date_not_found` | No calendar pair exists for this date |
+| 500 | `render_failed` | Hilal chart rendering failed |
+| 503 | `computation_unavailable` | Astronomical computation failed or is disabled |
+
+---
+
+## Caching Strategy
+
+Every response includes an `ETag` header. Clients should send `If-None-Match` to avoid re-downloading unchanged data.
+
+| Endpoint | Cache-Control | Notes |
+|---|---|---|
+| `/healthz` | `no-store` | Never cached |
+| `/api/v1/meta` | `max-age=300` | 5 minutes |
+| `/api/v1/today` | `max-age=60, s-maxage=<seconds to midnight>` | Dynamic — CDN caches until midnight |
+| `/api/v1/today/{date}` | `max-age=86400` | Immutable |
+| `/api/v1/convert` | `max-age=86400` | Immutable for fixed dates |
+| `/api/v1/range` | `max-age=86400` | Immutable for fixed dates |
+| `/api/v1/month` | `max-age=86400` | Immutable for fixed dates |
+| `/api/v1/year` | `max-age=86400` | Immutable for fixed dates |
+| `/api/v1/events` | `max-age=86400` | Immutable for fixed dates |
+| `/api/v1/hilal/*` | `public, max-age=86400, s-maxage=86400` | CDN-cached |
+
+---
+
+## Integration Examples
+
+### JavaScript (vanilla)
+
+```javascript
+// Today's Hijri date
+const res = await fetch("https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta");
+const data = await res.json();
+const { day, month_name, year } = data.output;
+console.log(`${day} ${month_name} ${year} H`);
+```
+
+### Vue 3 (Composition API)
+
+```vue
+<script setup>
+import { ref, onMounted } from "vue";
+
+const hijriDate = ref(null);
+
+onMounted(async () => {
+  const res = await fetch("https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta");
+  hijriDate.value = await res.json();
+});
+</script>
+
+<template>
+  <div v-if="hijriDate">{{ hijriDate.output.date }}</div>
+</template>
+```
+
+### React
+
+```jsx
+import { useEffect, useState } from "react";
+
+export default function HijriDate() {
+  const [date, setDate] = useState(null);
+
+  useEffect(() => {
+    fetch("https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta")
+      .then(r => r.json())
+      .then(setDate);
+  }, []);
+
+  if (!date) return <span>Loading...</span>;
+  return <span>{date.output.date}</span>;
+}
+```
+
+### Python
+
+```python
+import requests
+
+res = requests.get("https://api.mabims.dev/api/v1/today")
+data = res.json()
+print(f"{data['output']['day']} {data['output']['month_name']} {data['output']['year']} H")
+```
+
+### cURL
+
+```bash
+# Today
+curl "https://api.mabims.dev/api/v1/today"
+
+# Convert specific date
+curl "https://api.mabims.dev/api/v1/convert?date=2026-03-01&calendar=gregorian"
+
+# Islamic events for 2026
+curl "https://api.mabims.dev/api/v1/events?year=2026&calendar=gregorian"
+
+# Hilal visibility for Ramadan
+curl "https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447"
+```
+
+---
+
+## Migration from Aladhan
+
+If you're currently using the Aladhan API for Hijri dates, see the migration guide:
+https://mabims.dev/migration
+
+Key difference: Aladhan defaults to Umm al-Qura (Saudi Arabia), which can be ±1 day off from Indonesia's official announcements. MABIMS API uses Kemenag RI's official data.
+
+---
+
+## About
+
+Built by PIXO Studio (https://pixostudio.id). Independent open-source project, not affiliated with Kementerian Agama RI. Data sourced from publicly available MABIMS tables.
+
+- GitHub: https://github.com/PijarAdiluhung/mabims-api
+- Contact: halo@pixostudio.id
+- Blog: https://mabims.dev/blog

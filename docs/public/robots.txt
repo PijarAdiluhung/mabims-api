@@ -1,4 +1,20 @@
 User-agent: *
 Allow: /
 
+# LLM crawlers — welcome to index this content
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
 Sitemap: https://mabims.dev/sitemap-index.xml

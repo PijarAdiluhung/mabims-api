@@ -1,5 +1,5 @@
 ---
-title: "Tutorial Integrasi"
+title: "Tutorial Integrasi MABIMS API"
 description: "Contoh integrasi API mabims.dev dari yang paling sederhana sampai yang agak proper: JavaScript, Vue, React, sampai mobile."
 date: 2026-08-28
 tags:
@@ -301,3 +301,31 @@ Kalau aplikasinya butuh timezone tertentu, tentukan timezone-nya secara eksplisi
 Dan kalau aplikasimu penting secara administratif atau keagamaan, **tetap perlakukan API sebagai sumber data teknis, bukan pengganti keputusan resmi Kemenag.**
 
 Sekian. Semoga bermanfaat!
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Tutorial Integrasi",
+  "description": "Contoh integrasi API mabims.dev dari yang paling sederhana sampai yang agak proper: JavaScript, Vue, React, sampai mobile.",
+  "datePublished": "2026-08-28",
+  "author": {
+    "@type": "Person",
+    "name": "Pijar Adiluhung",
+    "url": "https://pixostudio.id"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "mabims.dev",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://mabims.dev/mabims-long.png"
+    }
+  },
+  "image": "https://mabims.dev/og-image.png",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://mabims.dev/blog/cara-pakai-mabims-api"
+  }
+}
+</script>

@@ -86,3 +86,31 @@ GET https://api.mabims.dev/api/v1/hilal/viz?month=1&year=1448
 ```
 
 Change `month` and `year` to the Hijri month you want to check. Full parameter documentation at [mabims.dev/en/endpoints/hilal](https://mabims.dev/en/endpoints/hilal).
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Why Search for the Hilal in Sabang?",
+  "description": "Technical deep-dive into the /hilal/viz endpoint. Geocentric astronomy, Neo MABIMS criteria, and how the PNG chart is rendered from scratch.",
+  "datePublished": "2026-08-29",
+  "author": {
+    "@type": "Person",
+    "name": "Pijar Adiluhung",
+    "url": "https://pixostudio.id"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "mabims.dev",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://mabims.dev/mabims-long.png"
+    }
+  },
+  "image": "https://mabims.dev/og-image.png",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://mabims.dev/en/blog/behind-hilal-viz"
+  }
+}
+</script>
