@@ -13,6 +13,13 @@ MABIMS singkatan dari Menteri-menteri Agama Brunei, Indonesia, Malaysia, Singapu
 </details>
 
 <details>
+<summary>Apa itu mabims.dev?</summary>
+
+Mabims.dev adalah API open-source gratis untuk kalender Hijriah Indonesia. Menyediakan tanggal Hijri hari ini, konversi tanggal, kalender bulanan dan tahunan, data visibilitas hilal, serta jadwal hari besar Islam. Semuanya berdasarkan data kalender publik dari Kementerian Agama RI. Selengkapnya di halaman [Tentang](/about).
+
+</details>
+
+<details>
 <summary>Kenapa tanggal Hijriah di aplikasi saya beda dengan yang diumumkan pemerintah Indonesia?</summary>
 
 Kebanyakan API dan aplikasi kalender Hijriah memakai kriteria Umm al-Qura (Arab Saudi) sebagai default. Karena metode rukyah dan lokasi pengamatannya berbeda, hasilnya bisa selisih ±1 hari dari keputusan resmi Kemenag, terutama untuk awal puasa, Idulfitri, dan Idul Adha.
@@ -34,13 +41,6 @@ Bukan. API ini independen, dibangun menggunakan data tabel publik Kemenag RI seb
 </details>
 
 ## Akses & Autentikasi
-
-<details>
-<summary>Apa itu mabims.dev?</summary>
-
-mabims.dev adalah API open-source gratis untuk kalender Hijriah Indonesia. Menyediakan tanggal Hijri hari ini, konversi tanggal, kalender bulanan dan tahunan, data visibilitas hilal, serta jadwal hari besar Islam — semuanya berdasarkan data resmi MABIMS dari Kementerian Agama RI. Selengkapnya di halaman [Tentang](/about).
-
-</details>
 
 <details>
 <summary>Apakah API ini gratis dan butuh API key?</summary>
@@ -90,7 +90,7 @@ Pakai endpoint `GET /convert?date=YYYY-MM-DD&calendar=gregorian` atau `calendar=
 <details>
 <summary>Bagaimana cara mengecek visibilitas hilal untuk bulan tertentu?</summary>
 
-Gunakan endpoint `/hilal/info` untuk data kriteria, atau `/hilal/viz` untuk grafik visibilitas hilal (720×1280 PNG) yang menampilkan posisi bulan, arah sabit, dan verdict TERLIHAT/TIDAK TERLIHAT — dihitung di titik Sabang.
+Gunakan endpoint `/hilal/info` untuk data kriteria, atau `/hilal/viz` untuk grafik visibilitas hilal (720×1280 PNG) yang menampilkan posisi bulan, arah sabit, dan verdict MEMENUHI KRITERIA/TIDAK MEMENUHI dihitung di titik Sabang.
 
 </details>
 
@@ -143,7 +143,7 @@ Google dan kebanyakan aplikasi kalender menggunakan Umm al-Qura (standar Arab Sa
 <details>
 <summary>Hisab dan rukyah, apa bedanya?</summary>
 
-**Hisab** adalah perhitungan astronomi untuk menentukan posisi hilal. **Rukyah** adalah pengamatan langsung hilal di langit. Kriteria Neo MABIMS menggabungkan keduanya: menggunakan perhitungan hisab (ketinggian hilal ≥ 3°, elongasi ≥ 6,4°) yang merepresentasikan apakah hilal bisa dirukyah secara visual di Sabang.
+**Hisab** adalah perhitungan astronomi untuk menentukan posisi hilal. **Rukyah** adalah pengamatan langsung hilal di langit. Kriteria Neo MABIMS menggabungkan keduanya: menggunakan perhitungan hisab (ketinggian hilal ≥ 3°, elongasi ≥ 6,4°) yang merepresentasikan apakah hilal bisa dirukyah secara visual. Namun untuk keputusan akhir, rukyah secara riil masih dibutuhkan, bersamaan dengan sidang isbat.
 
 </details>
 
