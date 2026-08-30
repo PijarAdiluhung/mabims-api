@@ -192,7 +192,7 @@ fetch('https://api.mabims.dev/api/v1/month?year=1447&month=9&calendar=hijri')
   .then(res => res.json())
   .then(data => {
     const listEl = document.getElementById('kalender-bulan')
-    data.days.forEach(item => {
+    data.items.forEach(item => {
       const li = document.createElement('li')
       li.textContent = `${item.hijri} (${item.gregorian})`
       listEl.appendChild(li)

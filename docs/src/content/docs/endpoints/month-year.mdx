@@ -47,6 +47,26 @@ GET /api/v1/month?year={Y}&month={M}&calendar={hijri|gregorian}
   </TabItem>
 </Tabs>
 
+### Response
+
+```json
+{
+  "input": { "year": 1447, "month": 9, "calendar": "hijri" },
+  "count": 30,
+  "items": [
+    { "gregorian": "2026-03-01", "hijri": "1447-09-01", "source": "mabims" },
+    { "gregorian": "2026-03-02", "hijri": "1447-09-02", "source": "mabims" }
+  ],
+  "warnings": []
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `items` | `RangeItem[]` | Each item has `gregorian`, `hijri`, and `source` |
+| `count` | int | Number of days in the month (29 or 30) |
+| `source` | string | `"mabims"` for curated data, `"mabims-computed"` for Neo MABIMS fallback |
+
 Untuk `calendar=hijri`, respons berisi setiap tanggal Gregorian yang menjadi acuan dari bulan Hijriah tersebut (29–30 item). Bulan Hijriah di luar tabel publik (mis. tahun mendatang) tetap dilayani dari perhitungan Neo MABIMS selama masih dalam rentang yang didukung. Bentuk item sama dengan `/range`.
 
 ## GET /year

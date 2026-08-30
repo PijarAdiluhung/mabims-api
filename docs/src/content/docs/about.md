@@ -33,6 +33,42 @@ Karena metode rukyah dan lokasi pengamatannya berbeda, hasilnya bisa selisih ±1
 | `GET /hilal/info` | Data visibilitas hilal (JSON) |
 | `GET /hilal/viz` | Grafik langit hilal (PNG 720×1280) |
 
+## Cara Integrasi Kalender Hijriah
+
+MABIMS.dev adalah REST API standar — bisa dipakai dari JavaScript, PHP, Python, Dart, Swift, Kotlin, atau bahasa apapun yang bisa melakukan HTTP request. Tidak perlu library khusus.
+
+**Tanggal Hijri hari ini:**
+
+```javascript
+const res = await fetch("https://api.mabims.dev/api/v1/today");
+const { day, month_name, year } = (await res.json()).output;
+// "1448-03-14" → "14 Rabiul Akhir 1448 H"
+```
+
+**Konversi tanggal tertentu:**
+
+```javascript
+const res = await fetch("https://api.mabims.dev/api/v1/convert?date=2026-03-01&calendar=gregorian");
+const { date } = (await res.json()).output;
+// "1447-08-30"
+```
+
+**Kalender satu tahun penuh:**
+
+```javascript
+const res = await fetch("https://api.mabims.dev/api/v1/year?year=1448&calendar=hijri");
+const { months } = await res.json();
+// 12 array, masing-masing berisi semua hari dalam bulan Hijri
+```
+
+Lihat [Quickstart](/quickstart) untuk panduan lengkap atau coba langsung di [Playground](/playground/converter).
+
+## Dibandingkan dengan Alternatif
+
+Untuk konteks Indonesia, MABIMS.dev lebih akurat dari Umm al-Qura (standar Saudi yang bisa selisih ±1 hari) dan Aladhan API (yang juga default ke Umm al-Qura). MABIMS.dev menggunakan data resmi Kemenag RI, bukan data dari otoritas negara lain.
+
+Jika Anda saat ini menggunakan Aladhan API, lihat panduan [Migration dari Aladhan](/migration) untuk perbandingan format respons dan contoh kode migrasi.
+
 ## Spesifikasi
 
 | | |
