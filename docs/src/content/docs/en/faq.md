@@ -36,6 +36,13 @@ No. This API is independent, built by PIXO Studio using publicly available Kemen
 ## Access & Authentication
 
 <details>
+<summary>What is mabims.dev?</summary>
+
+mabims.dev is a free open-source API for the Indonesian Hijri calendar. It provides today's Hijri date, date conversion, monthly and yearly calendars, hilal visibility data, and Islamic event dates — all based on official MABIMS data from Indonesia's Ministry of Religious Affairs (Kemenag RI). See the [About](/en/about) page for details.
+
+</details>
+
+<details>
 <summary>Is this API free and does it require an API key?</summary>
 
 Yes, it's free and requires no authentication. Just call the endpoint directly, with no registration or API key needed.
@@ -88,6 +95,57 @@ Use the `/hilal/info` endpoint for criterion data, or `/hilal/viz` for a hilal v
 </details>
 
 ## Other
+
+<details>
+<summary>How do I display a Hijri date on a website?</summary>
+
+Call the `GET /today` endpoint for today's date, then use the `day`, `month_name`, and `year` fields from the JSON response. Quick example:
+
+```javascript
+const res = await fetch("https://api.mabims.dev/api/v1/today");
+const data = await res.json();
+const { day, month_name, year } = data.output;
+document.getElementById("hijri").textContent = `${day} ${month_name} ${year} H`;
+```
+
+For converting a specific date, use `GET /convert?date=YYYY-MM-DD&calendar=gregorian`. See the [Quickstart](/en/quickstart) for a full guide.
+
+</details>
+
+<details>
+<summary>What programming languages are supported?</summary>
+
+Since MABIMS.dev is a standard REST API, it works with any programming language — JavaScript, PHP, Python, Dart, Swift, Kotlin, or even cURL directly from the terminal. No special libraries needed, just call the endpoint.
+
+</details>
+
+<details>
+<summary>Does the data match official Kemenag announcements?</summary>
+
+Data tagged `source: "mabims"` comes directly from Kemenag RI's public tables, so it matches official announcements. For dates beyond table coverage, `source: "mabims-computed"` uses Neo MABIMS criteria which may differ from isbat session decisions since it's an astronomical estimate.
+
+</details>
+
+<details>
+<summary>When is the start of Ramadan?</summary>
+
+Use the `GET /events?year=2026&calendar=gregorian` endpoint to get the Ramadan start date. Data comes from Kemenag's official tables for available years, or is calculated using Neo MABIMS criteria for years beyond table coverage.
+
+</details>
+
+<details>
+<summary>Why are Hijri dates different on Google?</summary>
+
+Google and most calendar apps use Umm al-Qura (Saudi Arabia's standard), not MABIMS (Indonesia's standard). Because the observation location and rukyah method differ, results can be ±1 day off from Kemenag's official decisions.
+
+</details>
+
+<details>
+<summary>What's the difference between hisab and rukyah?</summary>
+
+**Hisab** is the astronomical calculation to determine the moon's position. **Rukyah** is the direct visual observation of the hilal (crescent moon). Neo MABIMS criteria combine both: using hisab calculations (moon altitude ≥ 3°, elongation ≥ 6.4°) that represent whether the hilal can be visually observed in Sabang.
+
+</details>
 
 <details>
 <summary>Is this API open source?</summary>

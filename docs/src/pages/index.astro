@@ -9,8 +9,8 @@ import Endpoints from '../components/landing/Endpoints.astro';
 import Cta from '../components/landing/Cta.astro';
 import Footer from '../components/landing/Footer.astro';
 
-const title = 'API Kalender MABIMS';
-const description = 'Integrasikan kalender Hijriah MABIMS ke web / aplikasi Anda. Satu endpoint, tanpa autentikasi, data publik dari Kemenag.';
+const title = 'MABIMS.dev — API Kalender Hijriah Open-Source untuk Indonesia';
+const description = 'API open-source gratis menampilkan tanggal Hijriah berdasarkan kriteria MABIMS Kementerian Agama RI. Tanpa API key, cocok untuk web dan aplikasi Indonesia.';
 ---
 
 <html lang="id">
@@ -85,6 +85,18 @@ const description = 'Integrasikan kalender Hijriah MABIMS ke web / aplikasi Anda
           "@type": "Person",
           "name": "Pijar Adiluhung"
         }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareSourceCode",
+        "name": "MABIMS API",
+        "codeRepository": "https://github.com/PijarAdiluhung/mabims-api",
+        "programmingLanguage": "Python",
+        "license": "https://opensource.org/licenses/MIT",
+        "runtimePlatform": "FastAPI",
+        "description": "Open-source Hijri-Gregorian date conversion API using Indonesia's official MABIMS criteria"
       }
     </script>
   </head>

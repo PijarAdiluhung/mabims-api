@@ -43,8 +43,8 @@ const features = [
 
 <section class="features-section">
   <div class="features-header">
-    <h2>Saatnya Pindah Ke <span class="accent">MABIMS</span></h2>
-    <p>Tanpa API key, tanpa registrasi. Yang Anda ganti cuma sumber datanya.</p>
+    <h2>Kalender Hijriah Indonesia, <span class="accent">Satu API</span></h2>
+    <p>MABIMS.dev adalah API open-source gratis yang menyediakan ekosistem kalender Hijriah untuk Indonesia. Semuanya berdasarkan kriteria MABIMS.</p>
   </div>
 
   <div class="features-grid">
@@ -55,6 +55,13 @@ const features = [
         <p>{feature.description}</p>
       </article>
     ))}
+  </div>
+
+  <div class="features-cta">
+    <a href="/about/" class="features-link">
+      Selengkapnya tentang MABIMS.dev
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    </a>
   </div>
 </section>
 
@@ -148,5 +155,25 @@ const features = [
     color: var(--sl-color-gray-3);
     line-height: 1.7;
     margin: 0;
+  }
+
+  .features-cta {
+    text-align: center;
+    margin-top: 2.5rem;
+  }
+
+  .features-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--sl-text-sm);
+    font-weight: 500;
+    color: var(--sl-color-accent);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .features-link:hover {
+    color: var(--sl-color-accent-high);
   }
 </style>

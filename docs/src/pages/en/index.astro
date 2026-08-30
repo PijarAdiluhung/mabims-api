@@ -9,8 +9,8 @@ import Endpoints from '../../components/landing-en/Endpoints.astro';
 import Cta from '../../components/landing-en/Cta.astro';
 import Footer from '../../components/landing-en/Footer.astro';
 
-const title = 'MABIMS Calendar API';
-const description = 'Integrate the MABIMS Hijri calendar into your website or app. Single endpoint, no authentication, data from publicly available Kemenag tables.';
+const title = 'MABIMS.dev — Open-Source Hijri Calendar API for Indonesia';
+const description = 'Free open-source API for Hijri dates based on official MABIMS criteria from Indonesia\'s Ministry of Religious Affairs (Kemenag RI). No API key, ready for web and mobile apps.';
 ---
 
 <html lang="en">
@@ -85,6 +85,18 @@ const description = 'Integrate the MABIMS Hijri calendar into your website or ap
           "@type": "Person",
           "name": "Pijar Adiluhung"
         }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareSourceCode",
+        "name": "MABIMS API",
+        "codeRepository": "https://github.com/PijarAdiluhung/mabims-api",
+        "programmingLanguage": "Python",
+        "license": "https://opensource.org/licenses/MIT",
+        "runtimePlatform": "FastAPI",
+        "description": "Open-source Hijri-Gregorian date conversion API using Indonesia's official MABIMS criteria"
       }
     </script>
   </head>

@@ -6,6 +6,7 @@ const pathname = Astro.url.pathname.replace(/\/$/, "") || "/";
 const segments = pathname.split("/").filter(Boolean);
 
 const nameMap: Record<string, string> = {
+  about: "Tentang",
   quickstart: "Quickstart",
   access: "Access & Rate Limits",
   endpoints: "API Reference",
@@ -63,6 +64,8 @@ const isQuickstart = pathname === "/quickstart" || pathname === "/en/quickstart"
       { "@type": "Question", name: "MABIMS vs Umm al-Qura - which is more accurate for Indonesia?", acceptedAnswer: { "@type": "Answer", text: "For use in Indonesia, MABIMS is more accurate because it follows Kemenag RI's official decision through the isbat session, not Saudi authority. Umm al-Qura is designed for Saudi Arabia's needs and does not represent Indonesia's rukyah/hisab results." } },
       { "@type": "Question", name: "Is this API an official product of Kemenag or MABIMS?", acceptedAnswer: { "@type": "Answer", text: "No. This API is independent, built by PIXO Studio using official Kemenag RI table data as its source. For legal certainty in Islamic law, always refer to official Kemenag announcements." } },
       { "@type": "Question", name: "Is this API free and does it require an API key?", acceptedAnswer: { "@type": "Answer", text: "Yes, it is free and requires no authentication. Just call the endpoint directly, with no registration or API key needed." } },
+      { "@type": "Question", name: "What is mabims.dev?", acceptedAnswer: { "@type": "Answer", text: "mabims.dev is a free open-source API for the Indonesian Hijri calendar. It provides today's Hijri date, date conversion, monthly and yearly calendars, hilal visibility data, and Islamic event dates — all based on official MABIMS data from Indonesia's Ministry of Religious Affairs (Kemenag RI)." } },
+      { "@type": "Question", name: "How do I display a Hijri date on a website?", acceptedAnswer: { "@type": "Answer", text: "Call GET /today for today's date, then use the day, month_name, and year fields from the JSON response. For converting a specific date, use GET /convert?date=YYYY-MM-DD&calendar=gregorian." } },
       { "@type": "Question", name: "Can it be used directly from the frontend?", acceptedAnswer: { "@type": "Answer", text: "Yes. CORS is open, so it can be called directly from the browser on any domain. For rate limit details and fair use policy, see the Access and Rate Limits page." } },
       { "@type": "Question", name: "What is the difference between source mabims and source mabims-computed?", acceptedAnswer: { "@type": "Answer", text: "mabims - date taken directly from Kemenag's official table. mabims-computed - automatically calculated using Neo MABIMS criteria because the date falls outside the official table's coverage." } },
       { "@type": "Question", name: "How far ahead does the data go?", acceptedAnswer: { "@type": "Answer", text: "Official table data is available for 2024 to 2026. Outside that range, the API calculates automatically using Neo MABIMS criteria up to the year 2053." } },
@@ -70,12 +73,19 @@ const isQuickstart = pathname === "/quickstart" || pathname === "/en/quickstart"
       { "@type": "Question", name: "How do I convert between Gregorian and Hijri dates?", acceptedAnswer: { "@type": "Answer", text: "Use GET /convert?date=YYYY-MM-DD and calendar=gregorian or calendar=hijri depending on the conversion direction." } },
       { "@type": "Question", name: "How do I check hilal visibility for a given month?", acceptedAnswer: { "@type": "Answer", text: "Use the /hilal/info endpoint for criterion data, or /hilal/viz for a hilal visibility chart showing moon position, crescent direction, and VISIBLE/NOT VISIBLE verdict." } },
       { "@type": "Question", name: "Is this API open source?", acceptedAnswer: { "@type": "Answer", text: "Yes, the source code is open on GitHub: PijarAdiluhung/mabims-api. Contributions and issue reports are always welcome." } },
+      { "@type": "Question", name: "What programming languages are supported?", acceptedAnswer: { "@type": "Answer", text: "Since MABIMS.dev is a standard REST API, it works with any programming language — JavaScript, PHP, Python, Dart, Swift, Kotlin, or even cURL directly from the terminal." } },
+      { "@type": "Question", name: "Does the data match official Kemenag announcements?", acceptedAnswer: { "@type": "Answer", text: "Data tagged source mabims comes directly from Kemenag RI's public tables, matching official announcements. Source mabims-computed uses Neo MABIMS criteria which may differ from isbat session decisions." } },
+      { "@type": "Question", name: "When is the start of Ramadan?", acceptedAnswer: { "@type": "Answer", text: "Use GET /events?year=2026&calendar=gregorian to get the Ramadan start date. Data comes from Kemenag's official tables or Neo MABIMS criteria for years beyond table coverage." } },
+      { "@type": "Question", name: "Why are Hijri dates different on Google?", acceptedAnswer: { "@type": "Answer", text: "Google and most calendar apps use Umm al-Qura (Saudi Arabia's standard), not MABIMS (Indonesia's standard). Results can be plus or minus 1 day off from Kemenag's official decisions." } },
+      { "@type": "Question", name: "What's the difference between hisab and rukyah?", acceptedAnswer: { "@type": "Answer", text: "Hisab is the astronomical calculation to determine the moon's position. Rukyah is the direct visual observation of the hilal. Neo MABIMS criteria combine both using hisab calculations that represent whether the hilal can be visually observed." } },
     ] : [
       { "@type": "Question", name: "Apa itu MABIMS?", acceptedAnswer: { "@type": "Answer", text: "MABIMS singkatan dari Menteri-menteri Agama Brunei, Indonesia, Malaysia, Singapura. Istilah ini lebih sering dipakai dalam konteks kriteria rukyah yang digunakan Kemenag RI untuk menentukan awal bulan Hijriah. Kriteria Neo MABIMS mensyaratkan hilal terlihat minimal 3 derajat dan elongasi minimal 6,4 derajat saat matahari terbenam." } },
       { "@type": "Question", name: "Kenapa tanggal Hijriah di aplikasi saya beda dengan yang diumumkan pemerintah Indonesia?", acceptedAnswer: { "@type": "Answer", text: "Kebanyakan API dan aplikasi kalender Hijriah memakai kriteria Umm al-Qura (Arab Saudi) sebagai default. Karena metode rukyah dan lokasi pengamatannya berbeda, hasilnya bisa selisih plus minus 1 hari dari keputusan resmi Kemenag." } },
       { "@type": "Question", name: "MABIMS vs Umm al-Qura, mana yang lebih akurat untuk Indonesia?", acceptedAnswer: { "@type": "Answer", text: "Untuk keperluan di Indonesia, MABIMS lebih akurat karena berdasarkan imkan rukyah, sehingga dapat diverifikasi Kemenag RI melalui sidang isbat. Umm al-Qura dirancang untuk kebutuhan Arab Saudi dan tidak merepresentasikan hasil rukyah Indonesia." } },
       { "@type": "Question", name: "Apakah API ini produk resmi Kemenag atau MABIMS?", acceptedAnswer: { "@type": "Answer", text: "Bukan. API ini independen, dibangun menggunakan data tabel resmi Kemenag RI sebagai sumber. Untuk kepastian hukum syar'i, tetap rujuk pengumuman resmi Kemenag." } },
       { "@type": "Question", name: "Apakah API ini gratis dan butuh API key?", acceptedAnswer: { "@type": "Answer", text: "Ya, gratis dan tanpa autentikasi. Cukup panggil endpoint langsung, tanpa registrasi atau API key." } },
+      { "@type": "Question", name: "Apa itu mabims.dev?", acceptedAnswer: { "@type": "Answer", text: "mabims.dev adalah API open-source gratis untuk kalender Hijriah Indonesia. Menyediakan tanggal Hijri hari ini, konversi tanggal, kalender bulanan dan tahunan, data visibilitas hilal, serta jadwal hari besar Islam — semuanya berdasarkan data resmi MABIMS dari Kementerian Agama RI." } },
+      { "@type": "Question", name: "Bagaimana cara menampilkan tanggal Hijriah di website?", acceptedAnswer: { "@type": "Answer", text: "Panggil GET /today untuk tanggal hari ini, lalu tampilkan field day, month_name, dan year dari respons JSON. Untuk konversi tanggal tertentu, pakai GET /convert?date=YYYY-MM-DD&calendar=gregorian." } },
       { "@type": "Question", name: "Apakah bisa dipakai langsung dari frontend?", acceptedAnswer: { "@type": "Answer", text: "Bisa. CORS bersifat terbuka, jadi bisa dipanggil langsung dari browser di domain manapun. Untuk detail rate limit dan kebijakan penggunaan wajar, lihat halaman Access & Rate Limits." } },
       { "@type": "Question", name: "Apa bedanya source mabims dan source mabims-computed?", acceptedAnswer: { "@type": "Answer", text: "mabims - tanggal diambil langsung dari kalender resmi Kemenag. mabims-computed - dihitung otomatis dengan kriteria Neo MABIMS karena tanggal berada di luar cakupan tabel resmi." } },
       { "@type": "Question", name: "Data-nya sampai tahun berapa?", acceptedAnswer: { "@type": "Answer", text: "Cek info data terbaru di halaman Data Coverage. Di luar rentang itu, API menghitung otomatis (fallback) memakai kriteria Neo MABIMS." } },
@@ -83,6 +93,11 @@ const isQuickstart = pathname === "/quickstart" || pathname === "/en/quickstart"
       { "@type": "Question", name: "Bagaimana cara konversi tanggal Masehi ke Hijriah atau sebaliknya?", acceptedAnswer: { "@type": "Answer", text: "Pakai endpoint GET /convert?date=YYYY-MM-DD&calendar=gregorian atau calendar=hijri sesuai arah konversi yang diinginkan." } },
       { "@type": "Question", name: "Bagaimana cara mengecek visibilitas hilal untuk bulan tertentu?", acceptedAnswer: { "@type": "Answer", text: "Gunakan endpoint /hilal/info untuk data kriteria, atau /hilal/viz untuk grafik visibilitas hilal yang menampilkan posisi bulan, arah sabit, dan verdict TERLIHAT/TIDAK TERLIHAT." } },
       { "@type": "Question", name: "Apakah API ini open source?", acceptedAnswer: { "@type": "Answer", text: "Ya, kode sumbernya terbuka di GitHub: PijarAdiluhung/mabims-api. Kontribusi dan laporan isu selalu diterima." } },
+      { "@type": "Question", name: "Bahasa pemrograman apa yang didukung?", acceptedAnswer: { "@type": "Answer", text: "Karena MABIMS.dev adalah REST API standar, bisa dipakai dari bahasa pemrograman apapun — JavaScript, PHP, Python, Dart, Swift, Kotlin, atau bahkan cURL langsung dari terminal." } },
+      { "@type": "Question", name: "Apakah data sesuai pengumuman resmi Kemenag?", acceptedAnswer: { "@type": "Answer", text: "Data source mabims diambil langsung dari tabel publik Kemenag RI, sehingga sesuai dengan pengumuman resmi. Source mabims-computed menggunakan kriteria Neo MABIMS yang bisa berbeda dari keputusan sidang isbat." } },
+      { "@type": "Question", name: "Kapan awal Ramadhan?", acceptedAnswer: { "@type": "Answer", text: "Gunakan endpoint GET /events?year=2026&calendar=gregorian untuk mendapatkan tanggal awal Ramadhan. Data berasal dari tabel resmi Kemenag atau kriteria Neo MABIMS." } },
+      { "@type": "Question", name: "Kenapa tanggal Hijriah di Google beda?", acceptedAnswer: { "@type": "Answer", text: "Google dan kebanyakan aplikasi kalender menggunakan Umm al-Qura (standar Arab Saudi), bukan MABIMS (standar Indonesia). Hasilnya bisa selisih plus minus 1 hari dari keputusan resmi Kemenag." } },
+      { "@type": "Question", name: "Hisab dan rukyah, apa bedanya?", acceptedAnswer: { "@type": "Answer", text: "Hisab adalah perhitungan astronomi untuk menentukan posisi hilal. Rukyah adalah pengamatan langsung hilal di langit. Kriteria Neo MABIMS menggabungkan keduanya." } },
     ],
   })} />
 )}
@@ -105,5 +120,31 @@ const isQuickstart = pathname === "/quickstart" || pathname === "/en/quickstart"
       { "@type": "InvokeAction", "name": "Get month calendar", "target": { "@type": "EntryPoint", "urlTemplate": "https://api.mabims.dev/api/v1/month?year={year}&month={month}&calendar={calendar}", "contentType": "application/json" } },
       { "@type": "InvokeAction", "name": "Get hilal visibility", "target": { "@type": "EntryPoint", "urlTemplate": "https://api.mabims.dev/api/v1/hilal/info?month={month}&year={year}", "contentType": "application/json" } },
     ],
+  })} />
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": isEnFaq ? "How to Use the MABIMS API" : "Cara Menggunakan MABIMS API",
+    "description": isEnFaq ? "Step-by-step guide to get today's Hijri date from the MABIMS API." : "Panduan langkah demi langkah untuk mendapatkan tanggal Hijri hari ini dari API MABIMS.",
+    "step": [
+      {
+        "@type": "HowToStep",
+        "position": 1,
+        "name": isEnFaq ? "Call the API" : "Panggil API",
+        "text": isEnFaq ? "Send a GET request to https://api.mabims.dev/api/v1/today" : "Kirim request GET ke https://api.mabims.dev/api/v1/today"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 2,
+        "name": isEnFaq ? "Read the response" : "Baca respons",
+        "text": isEnFaq ? 'The output.date field contains the Hijri date (e.g. "1448-03-14"). The output.month_name field contains the month name.' : 'Field output.date berisi tanggal Hijri (mis. "1448-03-14"). Field output.month_name berisi nama bulan.'
+      },
+      {
+        "@type": "HowToStep",
+        "position": 3,
+        "name": isEnFaq ? "Display on your website" : "Tampilkan di website Anda",
+        "text": isEnFaq ? "Use the day, month_name, and year fields to display the date in your app." : "Gunakan field day, month_name, dan year untuk menampilkan tanggal di aplikasi Anda."
+      }
+    ]
   })} />
 )}

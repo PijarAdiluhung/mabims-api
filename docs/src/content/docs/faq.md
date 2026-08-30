@@ -36,6 +36,13 @@ Bukan. API ini independen, dibangun menggunakan data tabel publik Kemenag RI seb
 ## Akses & Autentikasi
 
 <details>
+<summary>Apa itu mabims.dev?</summary>
+
+mabims.dev adalah API open-source gratis untuk kalender Hijriah Indonesia. Menyediakan tanggal Hijri hari ini, konversi tanggal, kalender bulanan dan tahunan, data visibilitas hilal, serta jadwal hari besar Islam — semuanya berdasarkan data resmi MABIMS dari Kementerian Agama RI. Selengkapnya di halaman [Tentang](/about).
+
+</details>
+
+<details>
 <summary>Apakah API ini gratis dan butuh API key?</summary>
 
 Ya, gratis dan tanpa autentikasi. Cukup panggil endpoint langsung, tanpa registrasi atau API key.
@@ -88,6 +95,57 @@ Gunakan endpoint `/hilal/info` untuk data kriteria, atau `/hilal/viz` untuk graf
 </details>
 
 ## Lainnya
+
+<details>
+<summary>Bagaimana cara menampilkan tanggal Hijriah di website?</summary>
+
+Panggil endpoint `GET /today` untuk tanggal hari ini, lalu tampilkan field `day`, `month_name`, dan `year` dari respons JSON. Contoh singkat:
+
+```javascript
+const res = await fetch("https://api.mabims.dev/api/v1/today");
+const data = await res.json();
+const { day, month_name, year } = data.output;
+document.getElementById("hijri").textContent = `${day} ${month_name} ${year} H`;
+```
+
+Untuk konversi tanggal tertentu, pakai `GET /convert?date=YYYY-MM-DD&calendar=gregorian`. Lihat [Quickstart](/quickstart) untuk panduan lengkap.
+
+</details>
+
+<details>
+<summary>Bahasa pemrograman apa yang didukung?</summary>
+
+Karena MABIMS.dev adalah REST API standar, bisa dipakai dari bahasa pemrograman apapun — JavaScript, PHP, Python, Dart, Swift, Kotlin, atau bahkan cURL langsung dari terminal. Tidak perlu library khusus, cukup panggil endpoint-nya.
+
+</details>
+
+<details>
+<summary>Apakah data sesuai pengumuman resmi Kemenag?</summary>
+
+Data `source: "mabims"` diambil langsung dari tabel publik Kemenag RI, sehingga sesuai dengan pengumuman resmi. Untuk tanggal di luar cakupan tabel, `source: "mabims-computed"` menggunakan kriteria Neo MABIMS yang bisa berbeda dari keputusan sidang isbat karena bersifat estimasi astronomi.
+
+</details>
+
+<details>
+<summary>Kapan awal Ramadhan?</summary>
+
+Gunakan endpoint `GET /events?year=2026&calendar=gregorian` untuk mendapatkan tanggal awal Ramadhan. Data berasal dari tabel resmi Kemenag untuk tahun yang sudah tersedia, atau dihitung dengan kriteria Neo MABIMS untuk tahun di luar cakupan tabel.
+
+</details>
+
+<details>
+<summary>Kenapa tanggal Hijriah di Google beda?</summary>
+
+Google dan kebanyakan aplikasi kalender menggunakan Umm al-Qura (standar Arab Saudi), bukan MABIMS (standar Indonesia). Karena lokasi pengamatan dan metode rukyah berbeda, hasilnya bisa selisih ±1 hari dari keputusan resmi Kemenag.
+
+</details>
+
+<details>
+<summary>Hisab dan rukyah, apa bedanya?</summary>
+
+**Hisab** adalah perhitungan astronomi untuk menentukan posisi hilal. **Rukyah** adalah pengamatan langsung hilal di langit. Kriteria Neo MABIMS menggabungkan keduanya: menggunakan perhitungan hisab (ketinggian hilal ≥ 3°, elongasi ≥ 6,4°) yang merepresentasikan apakah hilal bisa dirukyah secara visual di Sabang.
+
+</details>
 
 <details>
 <summary>Apakah API ini open source?</summary>
