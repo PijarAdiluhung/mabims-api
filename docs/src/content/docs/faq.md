@@ -15,7 +15,7 @@ MABIMS singkatan dari Menteri-menteri Agama Brunei, Indonesia, Malaysia, Singapu
 <details>
 <summary>Apa itu mabims.dev?</summary>
 
-Mabims.dev adalah API open-source gratis untuk kalender Hijriah Indonesia. Menyediakan tanggal Hijri hari ini, konversi tanggal, kalender bulanan dan tahunan, data visibilitas hilal, serta jadwal hari besar Islam. Semuanya berdasarkan data kalender publik dari Kementerian Agama RI. Selengkapnya di halaman [Tentang](/about).
+Mabims.dev adalah API open-source unofficial gratis untuk kalender Hijriah Indonesia. Menyediakan tanggal Hijri hari ini, konversi tanggal, kalender bulanan dan tahunan, data visibilitas hilal, serta jadwal hari besar Islam. Semuanya berdasarkan data kalender publik dari Kementerian Agama RI. Selengkapnya di halaman [Tentang](/about).
 
 </details>
 

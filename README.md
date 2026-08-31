@@ -1,7 +1,7 @@
 # MABIMS API
 
-Gregorian ⇄ Hijri date conversion, Islamic events, and hilal visibility data, built on the
-publicly available **MABIMS** moon-sighting tables published by **Kementerian Agama Republik Indonesia**. Serves curated lookup data, and beyond table coverage it computes dates live with the Neo MABIMS criteria.
+
+MABIMS.dev is an unofficial, free, open-source API that provides an ecosystem for the Indonesian Hijri calendar. Get today's Hijri date, date conversion tools, monthly and yearly calendars, hilal visibility data, and Islamic event dates. All based on MABIMS criteria from **Kementerian Agama Republik Indonesia**.
 
 **Full docs, playground, API reference, FAQ, and blog → [mabims.dev](https://mabims.dev)**
 
