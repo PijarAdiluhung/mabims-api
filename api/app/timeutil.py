@@ -51,6 +51,7 @@ def dynamic_cache_headers(tz: timezone | ZoneInfo) -> dict[str, str]:
 
 
 NO_STORE_HEADERS = {"Cache-Control": "no-store"}
+HEALTHZ_HEADERS = {"Cache-Control": "public, max-age=10"}
 SHORT_CACHE_HEADERS = {"Cache-Control": "public, max-age=300"}
 
 

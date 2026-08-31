@@ -7,7 +7,7 @@ tags:
   - Kemenag
   - Hijriah
   - Libur
-excerpt: "Kalender Hijriah resmi Kemenag RI untuk tahun 2026 sudah terbit. Berikut jadwal lengkap tanggal-tanggal penting Islam dan hari libur nasional."
+excerpt: "Jadwal lengkap kalender Hijriah 1447–1448 H resmi Kemenag RI untuk tahun 2026. Tanggal Idul Fitri, Idul Adha, Isra Mikraj, dan semua hari libur nasional."
 cover:
   image: ../../../assets/kalender-2026.png
   alt: Kalender Kemenag 2026

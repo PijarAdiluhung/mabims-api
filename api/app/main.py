@@ -53,8 +53,8 @@ from .schemas import (
     YearResponse,
 )
 from .timeutil import (
+    HEALTHZ_HEADERS,
     IMMUTABLE_CACHE_HEADERS,
-    NO_STORE_HEADERS,
     SHORT_CACHE_HEADERS,
     dynamic_cache_headers,
     etag_from_bytes,
@@ -406,7 +406,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
     def healthz(request: Request):
         return JSONResponse(
             content={"status": "ok", "version": APP_VERSION},
-            headers=NO_STORE_HEADERS,
+            headers=HEALTHZ_HEADERS,
         )
 
     @app.get("/favicon.ico", include_in_schema=False)
