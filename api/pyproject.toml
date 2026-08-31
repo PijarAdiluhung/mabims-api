@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mabims-api"
-version = "1.0.0"
+version = "1.2.1"
 description = "MABIMS Gregorian-Hijri date converter API"
 requires-python = ">=3.12"
 dependencies = [
