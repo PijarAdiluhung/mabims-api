@@ -49,6 +49,7 @@ from .schemas import (
     RangeInput,
     RangeItem,
     RangeResponse,
+    TableResponse,
     YearInput,
     YearResponse,
 )
@@ -440,6 +441,23 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             docs_url=settings.docs_url,
         )
         return _json_response(payload.model_dump(), SHORT_CACHE_HEADERS)
+
+    @app.api_route(
+        "/api/v1/table",
+        response_model=TableResponse,
+        tags=["Table"],
+        summary="Full calendar table",
+        description="Returns the complete MABIMS calendar table for offline use.",
+        methods=["GET", "HEAD"],
+    )
+    @limiter.exempt
+    def table(request: Request):
+        payload = TableResponse(
+            version=data_version,
+            gregorian_to_hijri=service.g2h,
+            hijri_to_gregorian=service.h2g,
+        )
+        return _json_response(payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
 
     @app.api_route(
         "/api/v1/convert",

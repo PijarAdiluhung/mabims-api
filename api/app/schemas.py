@@ -165,3 +165,9 @@ class ErrorBody(BaseModel):
 
 class ErrorResponse(BaseModel):
     error: ErrorBody
+
+
+class TableResponse(BaseModel):
+    version: str
+    gregorian_to_hijri: dict[str, str]
+    hijri_to_gregorian: dict[str, str]
