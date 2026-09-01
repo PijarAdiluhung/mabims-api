@@ -168,6 +168,41 @@ due to heavier computation.
 
 No authentication required — all endpoints are public. Rate limits are applied per IP address.
 
+## JavaScript SDK
+
+**[mabims-hijri](https://www.npmjs.com/package/mabims-hijri)** is an offline-first npm package that bundles MABIMS 2024–2026 data directly in the package.
+
+### Why use the SDK over the API directly?
+
+| | REST API | SDK |
+|---|---|---|
+| Network | Required on every call | **Offline** — works without internet |
+| Rate limits | 240 req/min | **None** — data lives in your app |
+| Latency | CDN round-trip | **Instant** — local lookup |
+| Data freshness | Always live | Bundled + auto-syncs when online |
+| Scope | Full API (hilal charts, meta) | `today`, `convert`, `range`, `month`, `year`, `events`, `hilal.info` |
+| Setup | Base URL + headers | `npm install` |
+
+Use the **API** when you need hilal sky charts, the full date range beyond 2024–2026, or server-side webhook verification. Use the **SDK** when you want fast, offline, zero-config Hijri dates in a JS/TS app.
+
+```bash
+npm install mabims-hijri
+```
+
+```typescript
+import { today, convert } from 'mabims-hijri';
+
+const date = await today();
+console.log(`${date.output.day} ${date.output.month_name} ${date.output.year} H`);
+
+const ramadhan = await convert('2026-02-19');
+console.log(ramadhan.output.month_name); // 'Ramadhan'
+```
+
+Works in Node.js (v18+), browsers, Edge Runtime, and React Native. Falls back to the live API when data is outside the bundled range.
+
+GitHub: [PijarAdiluhung/mabims-hijri](https://github.com/PijarAdiluhung/mabims-hijri) · [npm](https://www.npmjs.com/package/mabims-hijri) · [Full docs](https://mabims.dev/en/sdk/)
+
 ## OpenAPI spec
 
 The full OpenAPI 3.1 spec is available at `https://api.mabims.dev/openapi.json`. Use it with
