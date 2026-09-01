@@ -1,0 +1,160 @@
+---
+title: Quickstart
+description: Make your first MABIMS conversion request in under a minute.
+---
+
+import { Tabs, TabItem, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Base URL:
+
+```
+https://api.mabims.dev/api/v1
+```
+
+## Today's Hijri date
+
+The most common use case — what Hijri date is it right now?
+
+```bash
+curl "https://api.mabims.dev/api/v1/today"
+```
+
+```json
+{
+  "input": { "date": "2026-08-24", "calendar": "gregorian", "tz": "Asia/Jakarta" },
+  "output": { "date": "1448-03-11", "calendar": "hijri", "day": 11, "month": 3, "month_name": "Rabiul Akhir", "year": 1448 },
+  "source": "mabims",
+  "warnings": []
+}
+```
+
+`today` defaults to **Asia/Jakarta (UTC+7)**. Override with any IANA zone or UTC offset:
+
+```bash
+curl "https://api.mabims.dev/api/v1/today?tz=Asia/Kuala_Lumpur"
+curl "https://api.mabims.dev/api/v1/today?tz=UTC+8"
+```
+
+## Convert a specific date
+
+```bash
+curl "https://api.mabims.dev/api/v1/convert?date=2025-01-03&calendar=gregorian"
+curl "https://api.mabims.dev/api/v1/convert?date=1446-07-03&calendar=hijri"
+```
+
+## Always check `source`
+
+Every response carries a `source` field:
+
+- `mabims` — authoritative, from the curated table (2024-01-13 to 2026-12-31)
+- `mabims-computed` — computed with Neo MABIMS criteria (after 2026-12-31, up to 2053)
+
+Treat `warnings` as user-facing notices when non-empty.
+
+## Code examples
+
+MABIMS.dev is a standard REST API — works with JavaScript, PHP, Python, Dart, Swift, Kotlin, or any language that can make HTTP requests. No special libraries needed.
+
+<Tabs syncKey="code">
+  <TabItem label="curl">
+    ```bash
+    curl "https://api.mabims.dev/api/v1/today"
+    ```
+  </TabItem>
+  <TabItem label="JavaScript">
+    ```js
+    const res = await fetch("https://api.mabims.dev/api/v1/today");
+    const { day, month_name, year } = (await res.json()).output;
+    console.log(`${day} ${month_name} ${year} H`);
+    // "14 Rabiul Akhir 1448 H"
+    ```
+  </TabItem>
+  <TabItem label="Vue">
+    ```vue
+    <script setup>
+    import { ref, onMounted } from "vue";
+
+    const hijriDate = ref(null);
+
+    onMounted(async () => {
+      const res = await fetch("https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta");
+      hijriDate.value = await res.json();
+    });
+    </script>
+
+    <template>
+      <div v-if="hijriDate">{{ hijriDate.output.date }}</div>
+      <div v-else>Loading Hijri date...</div>
+    </template>
+    ```
+  </TabItem>
+  <TabItem label="React">
+    ```jsx
+    import { useEffect, useState } from "react";
+
+    export default function HijriDate() {
+      const [date, setDate] = useState(null);
+
+      useEffect(() => {
+        fetch("https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta")
+          .then((res) => res.json())
+          .then(setDate);
+      }, []);
+
+      if (!date) return <span>Loading Hijri date...</span>;
+      return <span>{date.output.date}</span>;
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+## What's available
+
+| Endpoint | Function |
+|---|---|
+| `GET /today` | Today's Hijri date (timezone-aware) |
+| `GET /convert` | Single date conversion (Gregorian ↔ Hijri) |
+| `GET /range` | Bulk conversion up to 45 days |
+| `GET /month` | All days in a month |
+| `GET /year` | All days in a year (12 months) |
+| `GET /events` | Islamic events (Ramadan, Eid al-Fitr, Eid al-Adha, 1 Muharram, Maulid Nabi) |
+| `GET /hilal/info` | Hilal visibility data (JSON) |
+| `GET /hilal/viz` | Hilal sky chart (PNG 720×1280) |
+
+### API reference per endpoint
+
+<CardGrid>
+  <LinkCard title="GET /today" href="/en/endpoints/today" description="Today's Hijri date (timezone-aware)" />
+  <LinkCard title="GET /convert & /range" href="/en/endpoints/convert-range" description="Single date conversion and bulk conversion" />
+  <LinkCard title="GET /month & /year" href="/en/endpoints/month-year" description="All days in a month or year" />
+  <LinkCard title="GET /events" href="/en/endpoints/events" description="Islamic events" />
+  <LinkCard title="GET /hilal" href="/en/endpoints/hilal" description="Hilal visibility data and sky chart" />
+  <LinkCard title="GET /meta" href="/en/endpoints/meta" description="Data coverage and computation status" />
+</CardGrid>
+
+## Access & Rate Limits
+
+### Reads are public
+
+Every endpoint under `/api/v1/*` is **public** — no keys, no registration. Calendar dates aren't secrets, and gating them would only push integrators to worse data sources.
+
+### Browser vs server access
+
+| Client | Behaviour |
+|---|---|
+| Server-side (curl, backend, cron) | Always allowed — CORS doesn't apply |
+| Browser | Allowed from any origin |
+
+Responses are served with permissive CORS headers, so client-side apps on any domain can call the API directly.
+
+### Rate limits & caching
+
+- **CDN edge** (Bunny CDN): 4 requests/second sustained per IP, burst of 24. This is the primary rate limit — most requests never reach the origin.
+- **Origin** (FastAPI): 240/min per IP as a fallback if the CDN is bypassed. Hilal endpoints (`/hilal/info`, `/hilal/viz`) are stricter at the origin (60 or 30/hour) due to heavy computation, but their responses are publicly CDN-cached (`s-maxage=86400`) so edges only render once per day.
+- Identical requests are served from CDN cache and never reach the origin. At millions of requests/day the origin sees roughly one request per edge location per cached resource per day.
+- [`/today`](/en/endpoints/today) responses carry a TTL that expires exactly at local midnight, so cached answers are never stale past date rollover.
+
+### Higher limits / commercial use
+
+Need a guaranteed rate, SLA, or want to support the project?
+Contact [halo@pixostudio.id](mailto:halo@pixostudio.id).

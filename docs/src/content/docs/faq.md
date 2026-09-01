@@ -52,7 +52,7 @@ Ya, gratis dan tanpa autentikasi. Cukup panggil endpoint langsung, tanpa registr
 <details>
 <summary>Apakah bisa dipakai langsung dari frontend (client-side)?</summary>
 
-Bisa. CORS bersifat terbuka, jadi bisa dipanggil langsung dari browser di domain manapun. Untuk detail rate limit dan kebijakan penggunaan wajar, lihat halaman [Access & Rate Limits](/access).
+Bisa. CORS bersifat terbuka, jadi bisa dipanggil langsung dari browser di domain manapun. Untuk detail rate limit dan kebijakan penggunaan wajar, lihat bagian [Akses & Batas Rate](/quickstart#aksess--batas-rate) di Quickstart.
 
 </details>
 

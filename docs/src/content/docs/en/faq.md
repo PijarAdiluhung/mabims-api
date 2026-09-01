@@ -52,7 +52,7 @@ Yes, it's free and requires no authentication. Just call the endpoint directly, 
 <details>
 <summary>Can it be used directly from the frontend (client-side)?</summary>
 
-Yes. CORS is open, so it can be called directly from the browser on any domain. For rate limit details and fair use policy, see the [Access & Rate Limits](/en/access) page.
+Yes. CORS is open, so it can be called directly from the browser on any domain. For rate limit details and fair use policy, see the [Access & Rate Limits](/en/quickstart#access--rate-limits) section in Quickstart.
 
 </details>
 

@@ -91,7 +91,6 @@ export default defineConfig({
       sidebar: [
         { label: 'Tentang', link: '/about', translations: { en: 'About' } },
         { label: 'Quickstart', link: '/quickstart', translations: { en: 'Quickstart' } },
-        { label: 'Access & Rate Limits', link: '/access', translations: { en: 'Access & Rate Limits' } },
         {
           label: 'API Reference',
           translations: { en: 'API Reference' },

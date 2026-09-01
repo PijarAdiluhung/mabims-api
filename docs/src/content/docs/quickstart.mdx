@@ -1,0 +1,160 @@
+---
+title: Quickstart
+description: Buat request pertama Anda dalam waktu kurang dari satu menit.
+---
+
+import { Tabs, TabItem, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Base URL:
+
+```
+https://api.mabims.dev/api/v1
+```
+
+## Tanggal Hijriah hari ini
+
+Kasus penggunaan yang paling umum: berapa tanggal Hijriah hari ini?
+
+```bash
+curl "https://api.mabims.dev/api/v1/today"
+```
+
+```json
+{
+  "input": { "date": "2026-08-24", "calendar": "gregorian", "tz": "Asia/Jakarta" },
+  "output": { "date": "1448-03-11", "calendar": "hijri", "day": 11, "month": 3, "month_name": "Rabiul Akhir", "year": 1448 },
+  "source": "mabims",
+  "warnings": []
+}
+```
+
+`today` secara default menggunakan **Asia/Jakarta (UTC+7)**. Anda bisa override dengan zona IANA atau UTC offset apa pun:
+
+```bash
+curl "https://api.mabims.dev/api/v1/today?tz=Asia/Kuala_Lumpur"
+curl "https://api.mabims.dev/api/v1/today?tz=UTC+8"
+```
+
+## Konversi tanggal tertentu
+
+```bash
+curl "https://api.mabims.dev/api/v1/convert?date=2025-01-03&calendar=gregorian"
+curl "https://api.mabims.dev/api/v1/convert?date=1446-07-03&calendar=hijri"
+```
+
+## Selalu periksa `source`
+
+Setiap respons membawa field `source`:
+
+- `mabims` — dari data publik Kemenag
+- `mabims-computed` — dihitung dengan kriteria Neo MABIMS
+
+Perlakukan `warnings` sebagai pemberitahuan kepada pengguna apabila ia mengandung payload (tidak kosong).
+
+## Contoh kode
+
+MABIMS.dev adalah REST API standar — bisa dipakai dari JavaScript, PHP, Python, Dart, Swift, Kotlin, atau bahasa apapun yang bisa melakukan HTTP request. Tidak perlu library khusus.
+
+<Tabs syncKey="code">
+  <TabItem label="curl">
+    ```bash
+    curl "https://api.mabims.dev/api/v1/today"
+    ```
+  </TabItem>
+  <TabItem label="JavaScript">
+    ```js
+    const res = await fetch("https://api.mabims.dev/api/v1/today");
+    const { day, month_name, year } = (await res.json()).output;
+    console.log(`${day} ${month_name} ${year} H`);
+    // "14 Rabiul Akhir 1448 H"
+    ```
+  </TabItem>
+  <TabItem label="Vue">
+    ```vue
+    <script setup>
+    import { ref, onMounted } from "vue";
+
+    const hijriDate = ref(null);
+
+    onMounted(async () => {
+      const res = await fetch("https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta");
+      hijriDate.value = await res.json();
+    });
+    </script>
+
+    <template>
+      <div v-if="hijriDate">{{ hijriDate.output.date }}</div>
+      <div v-else>Memuat tanggal Hijriah...</div>
+    </template>
+    ```
+  </TabItem>
+  <TabItem label="React">
+    ```jsx
+    import { useEffect, useState } from "react";
+
+    export default function HijriDate() {
+      const [date, setDate] = useState(null);
+
+      useEffect(() => {
+        fetch("https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta")
+          .then((res) => res.json())
+          .then(setDate);
+      }, []);
+
+      if (!date) return <span>Memuat tanggal Hijriah...</span>;
+      return <span>{date.output.date}</span>;
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+## Apa saja yang tersedia
+
+| Endpoint | Fungsi |
+|---|---|
+| `GET /today` | Tanggal Hijri hari ini (timezone-aware) |
+| `GET /convert` | Konversi satu tanggal (Masehi ↔ Hijriah) |
+| `GET /range` | Konversi bulk hingga 45 hari |
+| `GET /month` | Semua hari dalam satu bulan |
+| `GET /year` | Semua hari dalam satu tahun (12 bulan) |
+| `GET /events` | Hari besar Islam (Ramadan, Idul Fitri, Idul Adha, 1 Muharram, Maulid Nabi) |
+| `GET /hilal/info` | Data visibilitas hilal (JSON) |
+| `GET /hilal/viz` | Grafik langit hilal (PNG 720×1280) |
+
+### Referensi API per endpoint
+
+<CardGrid>
+  <LinkCard title="GET /today" href="/endpoints/today" description="Tanggal Hijri hari ini (timezone-aware)" />
+  <LinkCard title="GET /convert & /range" href="/endpoints/convert-range" description="Konversi satu tanggal dan konversi massal" />
+  <LinkCard title="GET /month & /year" href="/endpoints/month-year" description="Semua hari dalam satu bulan atau satu tahun" />
+  <LinkCard title="GET /events" href="/endpoints/events" description="Hari besar Islam" />
+  <LinkCard title="GET /hilal" href="/endpoints/hilal" description="Data visibilitas hilal dan grafik langit" />
+  <LinkCard title="GET /meta" href="/endpoints/meta" description="Cakupan data dan status komputasi" />
+</CardGrid>
+
+## Akses & Batas Rate
+
+### Semua reads bersifat publik
+
+Setiap endpoint di `/api/v1/*` bersifat **publik**, tidak perlu API key dan tidak perlu registrasi, untuk memudahkan para developer mengintegrasikannya ke aplikasi / web.
+
+### Akses browser vs server
+
+| Klien | Perilaku |
+|---|---|
+| Server-side (curl, backend, cron) | Selalu diizinkan, CORS tidak berlaku |
+| Browser | Diizinkan dari origin mana pun |
+
+Respons dilayani dengan header CORS yang fleksibel, sehingga aplikasi client-side di domain mana pun dapat memanggil API secara langsung.
+
+### Batas rate & caching
+
+- **CDN edge** (Bunny CDN): 4 request/detik per IP secara terus-menerus, burst 24. Ini adalah batas rate utama — sebagian besar permintaan tidak pernah mencapai origin.
+- **Origin** (FastAPI): 240/menit per IP sebagai cadangan jika CDN dilewati. Endpoint hilal (`/hilal/info`, `/hilal/viz`) lebih ketat di origin (60 atau 30/jam) karena komputasi berat, namun respons-nya di-cache publik di CDN (`s-maxage=86400`) sehingga edges hanya sekali render per hari.
+- Permintaan yang identik dilayani dari cache CDN dan tidak pernah mencapai origin. Dengan jutaan permintaan/hari, origin hanya melihat sekitar satu permintaan per lokasi edge per sumber daya yang di-cache per hari.
+- Respons [`/today`](/endpoints/today) membawa TTL yang kedaluwarsa tepat pada tengah malam waktu lokal, sehingga jawaban yang di-cache tidak pernah basi setelah pergantian hari.
+
+### Batas lebih tinggi / penggunaan komersial
+
+Membutuhkan rate yang dijamin, SLA, atau ingin mendukung proyek ini?
+Hubungi [halo@pixostudio.id](mailto:halo@pixostudio.id).
