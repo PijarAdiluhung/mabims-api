@@ -1,0 +1,154 @@
+---
+title: JavaScript SDK
+description: Offline-first npm package for Indonesian Hijri calendar.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+**mabims-hijri** is a JavaScript/TypeScript npm package that works offline. It bundles MABIMS 2024-2026 data directly in the package. No API key, no registration.
+
+GitHub: [PijarAdiluhung/mabims-hijri](https://github.com/PijarAdiluhung/mabims-hijri) · [npm](https://www.npmjs.com/package/mabims-hijri)
+
+## Install
+
+```bash
+npm install mabims-hijri
+```
+
+## Quick start
+
+<Steps>
+
+1. Import and use
+
+    ```typescript
+    import { today, convert, hilal } from 'mabims-hijri';
+
+    // Today's Hijri date
+    const now = await today();
+    console.log(`${now.day} ${now.month_name} ${now.year} H`);
+
+    // Convert a date
+    const ramadhan = await convert('2026-02-19');
+    console.log(ramadhan.output.month_name); // 'Ramadhan'
+
+    // Hilal visibility data
+    const info = await hilal.info(9, 1447);
+    console.log(info.evening.visible); // true or false
+    ```
+
+2. No API call needed on first use. Data is bundled inside the package.
+
+</Steps>
+
+## How offline works
+
+```
+Bundled MABIMS (2024-2026)  -->  Local cache  -->  Live API (fallback)
+     ~70KB, built-in              TTL 24h          only when out of range
+```
+
+1. MABIMS 2024-2026 data is bundled directly in the package (~70KB)
+2. When online, the SDK checks `/meta` for newer data
+3. If available, it auto-fetches and stores to local cache
+4. If the date is outside the bundle range, it falls back to the live API
+
+All `today()`, `convert()`, and `range()` operations work without internet as long as the date is within the bundle/cache range.
+
+## Error handling
+
+```typescript
+import { today, isBundledDateAvailable } from 'mabims-hijri';
+
+const todayStr = new Date().toISOString().split('T')[0];
+
+if (isBundledDateAvailable(todayStr, 'gregorian')) {
+  // Offline-friendly
+  const date = await today();
+  renderDate(date.output);
+} else {
+  // Needs network
+  try {
+    const date = await today();
+    renderDate(date.output);
+  } catch {
+    renderOfflineMessage();
+  }
+}
+```
+
+## Environments
+
+| Environment | Status |
+|------------|--------|
+| Node.js (v18+) | Working |
+| Browsers (Chrome, Firefox, Safari, Edge) | Working |
+| Edge Runtime (Vercel, Cloudflare Workers) | Working |
+| React Native | Working (needs `setStorageAdapter` for persistent cache) |
+
+Zero runtime dependencies. Only requires `fetch` (available in all modern environments).
+
+## Framework examples
+
+### React
+
+```tsx
+import { useState, useEffect } from 'react';
+import { today, type HijriDate } from 'mabims-hijri';
+
+function HijriDate() {
+  const [date, setDate] = useState<HijriDate | null>(null);
+
+  useEffect(() => {
+    today().then((res) => setDate(res.output));
+  }, []);
+
+  if (!date) return <span>Loading...</span>;
+  return <span>{date.day} {date.month_name} {date.year} H</span>;
+}
+```
+
+### React Native
+
+```typescript
+// App.tsx — call before using mabims-hijri
+import { setStorageAdapter, type StorageAdapter } from 'mabims-hijri';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+class RNStorage implements StorageAdapter {
+  private prefix = 'mabims_';
+  async get(key: string) { return AsyncStorage.getItem(this.prefix + key); }
+  async set(key: string, value: string) { await AsyncStorage.setItem(this.prefix + key, value); }
+  async has(key: string) { return (await AsyncStorage.getItem(this.prefix + key)) !== null; }
+}
+
+setStorageAdapter(new RNStorage());
+```
+
+### Node.js
+
+```typescript
+import { today } from 'mabims-hijri';
+
+const date = await today({ tz: 'Asia/Jakarta' });
+console.log(date.output);
+```
+
+### Edge Runtime
+
+```typescript
+import { today } from 'mabims-hijri';
+
+export default {
+  async fetch(): Promise<Response> {
+    const date = await today();
+    return new Response(JSON.stringify(date), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  },
+};
+```
+
+## API Reference
+
+See the [SDK API Reference](/en/sdk/reference) for full documentation of all functions.

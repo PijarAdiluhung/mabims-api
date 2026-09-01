@@ -1,5 +1,5 @@
 ---
-import { Mosque, Zap, CalendarDays, Code, Globe, RefreshCcw } from '@lucide/astro';
+import { Mosque, Zap, CalendarDays, Code, RefreshCcw, Package } from '@lucide/astro';
 
 const features = [
   {
@@ -27,16 +27,16 @@ const features = [
     color: 'pink',
   },
   {
-    icon: Globe,
-    title: 'Timezone-Aware',
-    description: 'Mendukung semua zona waktu IANA. Default Asia/Jakarta, bisa di-override.',
-    color: 'blue',
-  },
-  {
     icon: RefreshCcw,
     title: 'Kalender Bulanan & Tahunan',
     description: 'Tersedia endpoint /month dan /year. Semua hari dalam satu bulan atau satu tahun penuh.',
     color: 'orange',
+  },
+  {
+    icon: Package,
+    title: 'JavaScript SDK',
+    description: 'Paket npm offline-first. Konversi tanggal, bulan penuh, data hilal, semuanya tanpa API key.',
+    color: 'blue',
   },
 ];
 ---

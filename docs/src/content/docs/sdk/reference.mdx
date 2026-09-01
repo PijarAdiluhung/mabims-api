@@ -1,0 +1,318 @@
+---
+title: Referensi API SDK
+description: Dokumentasi lengkap semua fungsi mabims-hijri.
+---
+
+## `today(options?)`
+
+Kembalikan tanggal Hijri hari ini, timezone-aware.
+
+```typescript
+import { today } from 'mabims-hijri';
+
+// Default: Asia/Jakarta
+const date = await today();
+
+// Timezone berbeda
+const kl = await today({ tz: 'Asia/Kuala_Lumpur' });
+
+// Paksa refresh dari API
+const fresh = await today({ forceRefresh: true });
+```
+
+**Parameter:**
+
+| Param | Tipe | Default | Deskripsi |
+|-------|------|---------|-----------|
+| `tz` | `string` | `'Asia/Jakarta'` | Nama zona waktu IANA |
+| `forceRefresh` | `boolean` | `false` | Lewati cache, ambil dari API |
+
+**Return:** `TodayResponse`
+
+```typescript
+interface TodayResponse {
+  input: { date: string; calendar: string; tz: string };
+  output: HijriDate;
+  source: string;       // 'mabims' atau 'mabims-computed'
+  warnings: string[];
+}
+
+interface HijriDate {
+  date: string;         // '1448-03-18'
+  calendar: 'hijri';
+  day: number;
+  month: number;
+  month_name: string;   // 'Rabiul Awal'
+  year: number;
+}
+```
+
+---
+
+## `convert(date, calendar?, options?)`
+
+Konversi satu tanggal antara Masehi dan Hijriah. Arah konversi otomatis terdeteksi dari parameter `calendar`.
+
+```typescript
+import { convert } from 'mabims-hijri';
+
+// Masehi -> Hijri (default)
+const hijri = await convert('2026-08-31');
+
+// Hijri -> Masehi
+const gregorian = await convert('1448-03-18', 'hijri');
+```
+
+**Parameter:**
+
+| Param | Tipe | Default | Deskripsi |
+|-------|------|---------|-----------|
+| `date` | `string` | wajib | Tanggal ISO format `YYYY-MM-DD` |
+| `calendar` | `'gregorian' \| 'hijri'` | `'gregorian'` | Kalender input |
+| `options.forceRefresh` | `boolean` | `false` | Lewati cache |
+
+**Return:** `ConvertResponse`
+
+```typescript
+interface ConvertResponse {
+  input: { date: string; calendar: string; tz: string | null };
+  output: HijriDate | GregorianDate;
+  source: string;
+  warnings: string[];
+}
+```
+
+---
+
+## `range(start, end, calendar?, options?)`
+
+Konversi rentang tanggal sekaligus. Maksimal 45 hari per request.
+
+```typescript
+import { range } from 'mabims-hijri';
+
+const week = await range('2026-08-31', '2026-09-06');
+console.log(week.count);  // 7
+```
+
+**Parameter:**
+
+| Param | Tipe | Default | Deskripsi |
+|-------|------|---------|-----------|
+| `start` | `string` | wajib | Tanggal awal (`YYYY-MM-DD`) |
+| `end` | `string` | wajib | Tanggal akhir (`YYYY-MM-DD`) |
+| `calendar` | `'gregorian' \| 'hijri'` | `'gregorian'` | Tipe kalender input |
+| `options.forceRefresh` | `boolean` | `false` | Lewati cache |
+
+**Return:**
+
+```typescript
+interface RangeResponse {
+  input: { start: string; end: string; calendar: string };
+  count: number;
+  items: DateItem[];
+  warnings: string[];
+}
+
+interface DateItem {
+  input: string;
+  output: string;
+  calendar: string;
+  day: number;
+  month: number;
+  month_name: string;
+  year: number;
+}
+```
+
+---
+
+## `month(year, month, calendar?)`
+
+Semua hari dalam satu bulan kalender dengan konversi Hijri. Cocok untuk membuat grid kalender bulanan.
+
+```typescript
+import { month } from 'mabims-hijri';
+
+const august = await month(2026, 8);
+console.log(august.count);  // 31
+console.log(august.items[0]);
+// { gregorian: '2026-08-01', hijri: '1448-02-18', source: 'mabims', ... }
+```
+
+---
+
+## `year(year, calendar?)`
+
+Semua hari dalam satu tahun penuh (12 bulan). Memanggil `month()` 12 kali di bawah hood.
+
+```typescript
+import { year } from 'mabims-hijri';
+
+const data = await year(2026);
+console.log(data.count);               // 365
+console.log(Object.keys(data.months)); // ['1', '2', ..., '12']
+```
+
+---
+
+## `events(year, calendar?)`
+
+Tanggal 5 hari besar Islam. Mengembalikan tanggal Hijri dan Masehi untuk setiap event.
+
+```typescript
+import { events } from 'mabims-hijri';
+
+const evts = await events(1446, 'hijri');
+console.log(evts.events);
+// [
+//   { event: '1_muharram',     name: 'Tahun Baru Islam',        hijri: '1446-01-01', gregorian: '2024-07-07' },
+//   { event: 'maulid_nabi',    name: 'Maulid Nabi Muhammad SAW', hijri: '1446-03-12', gregorian: '2024-09-16' },
+//   { event: 'awal_ramadan',   name: 'Awal Ramadan',             hijri: '1446-09-01', gregorian: '2025-03-01' },
+//   { event: 'idul_fitri',     name: 'Idul Fitri',               hijri: '1446-10-01', gregorian: '2025-03-31' },
+//   { event: 'idul_adha',      name: 'Idul Adha',                hijri: '1446-12-10', gregorian: '2025-06-08' },
+// ]
+```
+
+**Events:**
+
+| Slug | Event | Tanggal Hijri |
+|------|-------|---------------|
+| `1_muharram` | Tahun Baru Islam | 1 Muharram |
+| `maulid_nabi` | Maulid Nabi Muhammad SAW | 12 Rabiul Awal |
+| `awal_ramadan` | Awal Ramadan | 1 Ramadhan |
+| `idul_fitri` | Idul Fitri | 1 Syawal |
+| `idul_adha` | Idul Adha | 10 Dzulhijjah |
+
+---
+
+## `hilal.info(month, year)`
+
+Data visibilitas hilal (bulan) untuk menentukan awal bulan Hijri. Menggunakan kriteria MABIMS berdasarkan pengamatan dari Sabang, Indonesia.
+
+```typescript
+import { hilal } from 'mabims-hijri';
+
+const info = await hilal.info(9, 1447); // Ramadhan 1447
+console.log(info.month.name);            // 'Ramadhan'
+console.log(info.month.start);           // '2026-02-19'
+console.log(info.evening.visible);       // true atau false
+console.log(info.evening.moon_alt_deg);  // ketinggian bulan (derajat)
+console.log(info.evening.elongation_deg); // elongasi bulan-matahari
+```
+
+**Return:**
+
+| Field | Deskripsi |
+|-------|-----------|
+| `month.name` | Nama bulan Hijri |
+| `month.start` | Tanggal Masehi awal bulan |
+| `previous_month.name` | Nama bulan Hijri sebelumnya |
+| `previous_month.length` | Panjang bulan sebelumnya |
+| `evening.hijri_date` | Tanggal Hijri malam pengamatan |
+| `evening.gregorian_date` | Tanggal Masehi malam pengamatan |
+| `evening.sunset` | Waktu sunset lokal |
+| `evening.moonset` | Waktu moonset lokal |
+| `evening.moon_alt_deg` | Ketinggian bulan saat sunset (derajat) |
+| `evening.elongation_deg` | Elongasi bulan-matahari (derajat) |
+| `evening.illumination_pct` | Persentase iluminasi bulan |
+| `evening.age_hours` | Usia bulan dalam jam |
+| `evening.visible` | Apakah kriteria MABIMS terpenuhi (`alt_ok` DAN `elong_ok`) |
+| `source` | `'mabims'` (tabel kurasi) atau `'mabims-computed'` (estimasi algoritmik) |
+| `warnings` | Bulan borderline atau fallback komputasi |
+
+---
+
+## Fungsi API Level Rendah
+
+Fungsi-fungsi ini melewati cache dan langsung memanggil API MABIMS. Gunakan saat butuh data terbaru atau ingin mengelola caching sendiri.
+
+| Fungsi | Deskripsi |
+|--------|-----------|
+| `fetchToday(tz?)` | Fetch tanggal Hijri hari ini dari API |
+| `fetchConvert(date, calendar)` | Konversi tanggal via API |
+| `fetchRange(start, end, calendar)` | Konversi bulk via API |
+| `fetchMonth(year, month, calendar)` | Bulan penuh via API |
+| `fetchYear(year, calendar)` | Tahun penuh via API |
+| `fetchEvents(year, calendar)` | Hari besar Islam via API |
+| `fetchHilalInfo(month, year)` | Data visibilitas hilal via API |
+| `fetchMeta()` | Metadata API (cakupan, versi, dll.) |
+| `fetchTable()` | Download tabel kalender penuh (JSON) |
+
+---
+
+## Helper Bundled Data
+
+Akses snapshot data yang di-bundle tanpa menyentuh API atau cache.
+
+```typescript
+import { getBundledDate, getBundledRange } from 'mabims-hijri';
+
+// Cari satu tanggal (null jika di luar 2024-2026)
+const hijri = getBundledDate('2026-08-31');
+// { date: '1448-03-18', month_name: 'Rabiul Awal', ... }
+
+const missing = getBundledDate('2030-01-01');
+// null
+
+// Cek rentang tanggal yang di-cover
+getBundledRange();
+// { start: '2024-01-13', end: '2026-12-31' }
+```
+
+---
+
+## `setCacheTTL()`
+
+Atur durasi cache (default 24 jam).
+
+```typescript
+import { setCacheTTL } from 'mabims-hijri';
+
+// Cache 1 jam
+setCacheTTL(60 * 60 * 1000);
+
+// Cache 7 hari
+setCacheTTL(7 * 24 * 60 * 60 * 1000);
+```
+
+---
+
+## `setStorageAdapter()`
+
+Sediakan storage adapter kustom untuk cache persisten. Berguna untuk React Native atau environment kustom. Harus dipanggil **sebelum** fungsi mabims-hijri lainnya.
+
+```typescript
+import { setStorageAdapter, type StorageAdapter } from 'mabims-hijri';
+
+class MyStorage implements StorageAdapter {
+  async get(key: string): Promise<string | null> { /* ... */ }
+  async set(key: string, value: string): Promise<void> { /* ... */ }
+  async has(key: string): Promise<boolean> { /* ... */ }
+}
+
+setStorageAdapter(new MyStorage());
+```
+
+---
+
+## `resetStorage()`
+
+Kembali ke storage default (auto-detect environment).
+
+```typescript
+import { resetStorage } from 'mabims-hijri';
+resetStorage();
+```
+
+---
+
+## CLI: Sinkronisasi Data
+
+```bash
+# Download tabel terbaru dan cetak statistik
+npx mabims-sync
+
+# Cek apakah ada update (tanpa download)
+npx mabims-sync --check
+```

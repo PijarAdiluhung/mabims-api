@@ -3,6 +3,17 @@ title: Changelog
 description: Riwayat perubahan API dan dokumentasi MABIMS.
 ---
 
+## 1.3.0 — 2026-09-01
+
+### Added
+
+- **JavaScript SDK** — `mabims-hijri` paket npm offline-first. Bundle data MABIMS 2024-2026, `today()`, `convert()`, `range()`, `month()`, `year()`, `events()`, `hilal.info()`. Tanpa dependency, works di Node, browser, edge runtime.
+- **SDK docs** — halaman `/sdk` (instalasi, quick start, error handling, framework examples) dan `/sdk/reference` (dokumentasi lengkap semua fungsi). Bilingual ID+EN.
+- **Landing page** — kartu "JavaScript SDK" menempati posisi terakhir di feature cards.
+- **Quickstart** — callout kuning ke SDK di bawah contoh kode.
+
+---
+
 ## 1.2.1 — 2026-08-29
 
 ### Fixed

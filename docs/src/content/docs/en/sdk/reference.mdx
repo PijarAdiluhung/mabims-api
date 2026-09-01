@@ -1,0 +1,318 @@
+---
+title: SDK API Reference
+description: Full documentation of all mabims-hijri functions.
+---
+
+## `today(options?)`
+
+Return today's Hijri date, timezone-aware.
+
+```typescript
+import { today } from 'mabims-hijri';
+
+// Default: Asia/Jakarta
+const date = await today();
+
+// Different timezone
+const kl = await today({ tz: 'Asia/Kuala_Lumpur' });
+
+// Force refresh from API
+const fresh = await today({ forceRefresh: true });
+```
+
+**Parameters:**
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `tz` | `string` | `'Asia/Jakarta'` | IANA timezone name |
+| `forceRefresh` | `boolean` | `false` | Skip cache, fetch from API |
+
+**Return:** `TodayResponse`
+
+```typescript
+interface TodayResponse {
+  input: { date: string; calendar: string; tz: string };
+  output: HijriDate;
+  source: string;       // 'mabims' or 'mabims-computed'
+  warnings: string[];
+}
+
+interface HijriDate {
+  date: string;         // '1448-03-18'
+  calendar: 'hijri';
+  day: number;
+  month: number;
+  month_name: string;   // 'Rabiul Awal'
+  year: number;
+}
+```
+
+---
+
+## `convert(date, calendar?, options?)`
+
+Convert a single date between Gregorian and Hijri. Direction is auto-detected from the `calendar` parameter.
+
+```typescript
+import { convert } from 'mabims-hijri';
+
+// Gregorian -> Hijri (default)
+const hijri = await convert('2026-08-31');
+
+// Hijri -> Gregorian
+const gregorian = await convert('1448-03-18', 'hijri');
+```
+
+**Parameters:**
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `date` | `string` | required | ISO date `YYYY-MM-DD` |
+| `calendar` | `'gregorian' \| 'hijri'` | `'gregorian'` | Input calendar |
+| `options.forceRefresh` | `boolean` | `false` | Skip cache |
+
+**Return:** `ConvertResponse`
+
+```typescript
+interface ConvertResponse {
+  input: { date: string; calendar: string; tz: string | null };
+  output: HijriDate | GregorianDate;
+  source: string;
+  warnings: string[];
+}
+```
+
+---
+
+## `range(start, end, calendar?, options?)`
+
+Bulk convert a range of dates. Max 45 days per request.
+
+```typescript
+import { range } from 'mabims-hijri';
+
+const week = await range('2026-08-31', '2026-09-06');
+console.log(week.count);  // 7
+```
+
+**Parameters:**
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `start` | `string` | required | Start date (`YYYY-MM-DD`) |
+| `end` | `string` | required | End date (`YYYY-MM-DD`) |
+| `calendar` | `'gregorian' \| 'hijri'` | `'gregorian'` | Input calendar |
+| `options.forceRefresh` | `boolean` | `false` | Skip cache |
+
+**Return:**
+
+```typescript
+interface RangeResponse {
+  input: { start: string; end: string; calendar: string };
+  count: number;
+  items: DateItem[];
+  warnings: string[];
+}
+
+interface DateItem {
+  input: string;
+  output: string;
+  calendar: string;
+  day: number;
+  month: number;
+  month_name: string;
+  year: number;
+}
+```
+
+---
+
+## `month(year, month, calendar?)`
+
+All days in a calendar month with Hijri conversion. Great for building monthly calendar grids.
+
+```typescript
+import { month } from 'mabims-hijri';
+
+const august = await month(2026, 8);
+console.log(august.count);  // 31
+console.log(august.items[0]);
+// { gregorian: '2026-08-01', hijri: '1448-02-18', source: 'mabims', ... }
+```
+
+---
+
+## `year(year, calendar?)`
+
+All days in a full year (12 months). Calls `month()` 12 times under the hood.
+
+```typescript
+import { year } from 'mabims-hijri';
+
+const data = await year(2026);
+console.log(data.count);               // 365
+console.log(Object.keys(data.months)); // ['1', '2', ..., '12']
+```
+
+---
+
+## `events(year, calendar?)`
+
+Dates for the 5 major Islamic observances. Returns both Hijri and Gregorian dates.
+
+```typescript
+import { events } from 'mabims-hijri';
+
+const evts = await events(1446, 'hijri');
+console.log(evts.events);
+// [
+//   { event: '1_muharram',     name: 'Islamic New Year',         hijri: '1446-01-01', gregorian: '2024-07-07' },
+//   { event: 'maulid_nabi',    name: "Prophet Muhammad's Birthday", hijri: '1446-03-12', gregorian: '2024-09-16' },
+//   { event: 'awal_ramadan',   name: 'Start of Ramadan',         hijri: '1446-09-01', gregorian: '2025-03-01' },
+//   { event: 'idul_fitri',     name: 'Eid al-Fitr',              hijri: '1446-10-01', gregorian: '2025-03-31' },
+//   { event: 'idul_adha',      name: 'Eid al-Adha',              hijri: '1446-12-10', gregorian: '2025-06-08' },
+// ]
+```
+
+**Events:**
+
+| Slug | Event | Hijri Date |
+|------|-------|------------|
+| `1_muharram` | Islamic New Year | 1 Muharram |
+| `maulid_nabi` | Prophet Muhammad's Birthday | 12 Rabiul Awal |
+| `awal_ramadan` | Start of Ramadan | 1 Ramadhan |
+| `idul_fitri` | Eid al-Fitr | 1 Shawwal |
+| `idul_adha` | Eid al-Adha | 10 Dhul Hijjah |
+
+---
+
+## `hilal.info(month, year)`
+
+Hilal (moon) visibility data for determining the start of a Hijri month. Uses MABIMS criteria based on observations from Sabang, Indonesia.
+
+```typescript
+import { hilal } from 'mabims-hijri';
+
+const info = await hilal.info(9, 1447); // Ramadhan 1447
+console.log(info.month.name);            // 'Ramadhan'
+console.log(info.month.start);           // '2026-02-19'
+console.log(info.evening.visible);       // true or false
+console.log(info.evening.moon_alt_deg);  // moon altitude (degrees)
+console.log(info.evening.elongation_deg); // moon-sun elongation
+```
+
+**Return:**
+
+| Field | Description |
+|-------|-------------|
+| `month.name` | Hijri month name |
+| `month.start` | Gregorian date of month start |
+| `previous_month.name` | Previous Hijri month name |
+| `previous_month.length` | Length of previous month |
+| `evening.hijri_date` | Hijri date of the evening |
+| `evening.gregorian_date` | Gregorian date of the evening |
+| `evening.sunset` | Local sunset time |
+| `evening.moonset` | Local moonset time |
+| `evening.moon_alt_deg` | Moon altitude at sunset (degrees) |
+| `evening.elongation_deg` | Moon-sun elongation (degrees) |
+| `evening.illumination_pct` | Moon illumination percentage |
+| `evening.age_hours` | Moon age in hours |
+| `evening.visible` | Whether MABIMS criteria are met (`alt_ok` AND `elong_ok`) |
+| `source` | `'mabims'` (curated) or `'mabims-computed'` (algorithmic estimate) |
+| `warnings` | Borderline months or computed fallback info |
+
+---
+
+## Low-Level API Functions
+
+These bypass the cache and call the MABIMS API directly. Use when you need fresh data or want to manage caching yourself.
+
+| Function | Description |
+|----------|-------------|
+| `fetchToday(tz?)` | Fetch today's Hijri date from the API |
+| `fetchConvert(date, calendar)` | Convert a date via the API |
+| `fetchRange(start, end, calendar)` | Bulk range conversion via the API |
+| `fetchMonth(year, month, calendar)` | Full month via the API |
+| `fetchYear(year, calendar)` | Full year via the API |
+| `fetchEvents(year, calendar)` | Islamic events via the API |
+| `fetchHilalInfo(month, year)` | Hilal visibility data via the API |
+| `fetchMeta()` | API metadata (coverage, version, etc.) |
+| `fetchTable()` | Download the full calendar table (JSON) |
+
+---
+
+## Bundled Data Helpers
+
+Access the bundled snapshot directly, without touching the API or cache.
+
+```typescript
+import { getBundledDate, getBundledRange } from 'mabims-hijri';
+
+// Look up a single date (null if outside 2024-2026)
+const hijri = getBundledDate('2026-08-31');
+// { date: '1448-03-18', month_name: 'Rabiul Awal', ... }
+
+const missing = getBundledDate('2030-01-01');
+// null
+
+// Check bundled data range
+getBundledRange();
+// { start: '2024-01-13', end: '2026-12-31' }
+```
+
+---
+
+## `setCacheTTL()`
+
+Set cache duration (default 24 hours).
+
+```typescript
+import { setCacheTTL } from 'mabims-hijri';
+
+// Cache for 1 hour
+setCacheTTL(60 * 60 * 1000);
+
+// Cache for 7 days
+setCacheTTL(7 * 24 * 60 * 60 * 1000);
+```
+
+---
+
+## `setStorageAdapter()`
+
+Provide a custom storage adapter for persistent caching. Useful for React Native or custom environments. Must be called **before** any other mabims-hijri functions.
+
+```typescript
+import { setStorageAdapter, type StorageAdapter } from 'mabims-hijri';
+
+class MyStorage implements StorageAdapter {
+  async get(key: string): Promise<string | null> { /* ... */ }
+  async set(key: string, value: string): Promise<void> { /* ... */ }
+  async has(key: string): Promise<boolean> { /* ... */ }
+}
+
+setStorageAdapter(new MyStorage());
+```
+
+---
+
+## `resetStorage()`
+
+Reset back to default storage (auto-detects environment).
+
+```typescript
+import { resetStorage } from 'mabims-hijri';
+resetStorage();
+```
+
+---
+
+## CLI: Force-Sync Table Data
+
+```bash
+# Download the latest table and print stats
+npx mabims-sync
+
+# Check if an update is available (no download)
+npx mabims-sync --check
+```

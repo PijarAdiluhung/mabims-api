@@ -1,0 +1,154 @@
+---
+title: JavaScript SDK
+description: Paket npm offline-first untuk kalender Hijriah Indonesia.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+**mabims-hijri** adalah paket npm JavaScript/TypeScript yang bekerja offline. Bundle data MABIMS 2024-2026 langsung di package, tidak perlu API key, tidak perlu registrasi.
+
+GitHub: [PijarAdiluhung/mabims-hijri](https://github.com/PijarAdiluhung/mabims-hijri) · [npm](https://www.npmjs.com/package/mabims-hijri)
+
+## Instalasi
+
+```bash
+npm install mabims-hijri
+```
+
+## Mulai cepat
+
+<Steps>
+
+1. Import dan gunakan
+
+    ```typescript
+    import { today, convert, hilal } from 'mabims-hijri';
+
+    // Tanggal hari ini
+    const now = await today();
+    console.log(`${now.day} ${now.month_name} ${now.year} H`);
+
+    // Konversi tanggal
+    const ramadhan = await convert('2026-02-19');
+    console.log(ramadhan.output.month_name); // 'Ramadhan'
+
+    // Data visibilitas hilal
+    const info = await hilal.info(9, 1447);
+    console.log(info.evening.visible); // true atau false
+    ```
+
+2. Tidak perlu API call pertama kali. Data sudah di-bundle di dalam package.
+
+</Steps>
+
+## Cara kerja offline
+
+```
+Bundled MABIMS (2024-2026)  -->  Cache lokal  -->  Live API (fallback)
+     ~70KB, built-in              TTL 24 jam       hanya jika di luar range
+```
+
+1. Data MABIMS 2024-2026 di-bundle langsung di package (~70KB)
+2. Saat online, SDK memeriksa `/meta` apakah ada data lebih baru
+3. Jika ada, otomatis fetch dan simpen ke cache lokal
+4. Jika tanggal di luar jangkauan bundle, fallback ke API langsung
+
+Semua operasi `today()`, `convert()`, dan `range()` tidak perlu koneksi internet selama tanggal masih dalam jangkauan bundle/cache.
+
+## Error handling
+
+```typescript
+import { today, isBundledDateAvailable } from 'mabims-hijri';
+
+const todayStr = new Date().toISOString().split('T')[0];
+
+if (isBundledDateAvailable(todayStr, 'gregorian')) {
+  // Offline-friendly
+  const date = await today();
+  renderDate(date.output);
+} else {
+  // Butuh network
+  try {
+    const date = await today();
+    renderDate(date.output);
+  } catch {
+    renderOfflineMessage();
+  }
+}
+```
+
+## Lingkungan
+
+| Lingkungan | Status |
+|-----------|--------|
+| Node.js (v18+) | Working |
+| Browser (Chrome, Firefox, Safari, Edge) | Working |
+| Edge Runtime (Vercel, Cloudflare Workers) | Working |
+| React Native | Working (butuh `setStorageAdapter` untuk cache persisten) |
+
+Tidak ada dependency runtime. Hanya butuh `fetch` (tersedia di semua environment modern).
+
+## Contoh per framework
+
+### React
+
+```tsx
+import { useState, useEffect } from 'react';
+import { today, type HijriDate } from 'mabims-hijri';
+
+function HijriDate() {
+  const [date, setDate] = useState<HijriDate | null>(null);
+
+  useEffect(() => {
+    today().then((res) => setDate(res.output));
+  }, []);
+
+  if (!date) return <span>Memuat...</span>;
+  return <span>{date.day} {date.month_name} {date.year} H</span>;
+}
+```
+
+### React Native
+
+```typescript
+// App.tsx — panggil sebelum menggunakan mabims-hijri
+import { setStorageAdapter, type StorageAdapter } from 'mabims-hijri';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+class RNStorage implements StorageAdapter {
+  private prefix = 'mabims_';
+  async get(key: string) { return AsyncStorage.getItem(this.prefix + key); }
+  async set(key: string, value: string) { await AsyncStorage.setItem(this.prefix + key, value); }
+  async has(key: string) { return (await AsyncStorage.getItem(this.prefix + key)) !== null; }
+}
+
+setStorageAdapter(new RNStorage());
+```
+
+### Node.js
+
+```typescript
+import { today } from 'mabims-hijri';
+
+const date = await today({ tz: 'Asia/Jakarta' });
+console.log(date.output);
+```
+
+### Edge Runtime
+
+```typescript
+import { today } from 'mabims-hijri';
+
+export default {
+  async fetch(): Promise<Response> {
+    const date = await today();
+    return new Response(JSON.stringify(date), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  },
+};
+```
+
+## API Reference
+
+Lihat halaman [Referensi API SDK](/sdk/reference) untuk dokumentasi lengkap semua fungsi.

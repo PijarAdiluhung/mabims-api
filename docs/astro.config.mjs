@@ -92,6 +92,14 @@ export default defineConfig({
         { label: 'Tentang', link: '/about', translations: { en: 'About' } },
         { label: 'Quickstart', link: '/quickstart', translations: { en: 'Quickstart' } },
         {
+          label: 'JavaScript SDK',
+          translations: { en: 'JavaScript SDK' },
+          items: [
+            { label: 'Instalasi', link: '/sdk', translations: { en: 'Install' } },
+            { label: 'Referensi API', link: '/sdk/reference', translations: { en: 'API Reference' } },
+          ],
+        },
+        {
           label: 'API Reference',
           translations: { en: 'API Reference' },
           items: [
