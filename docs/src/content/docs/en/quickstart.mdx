@@ -51,6 +51,14 @@ Every response carries a `source` field:
 
 Treat `warnings` as user-facing notices when non-empty.
 
+Possible `warnings` values:
+
+| Warning | Meaning |
+|---|---|
+| Date is outside MABIMS table coverage; served from the Umm al-Qura fallback and may differ from MABIMS by around one day. | Outside table coverage, using Umm al-Qura fallback — may differ ±1 day from MABIMS. |
+| Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (hilal altitude >= 3 deg and elongation >= 6.4 deg at Sabang sunset). | Outside table, computed with Neo MABIMS criteria. |
+| Hijri month {'{ym}'} is close to the Neo MABIMS visibility threshold; the officially announced date may shift by one day. | Month is near the visibility threshold — official date may shift ±1 day. |
+
 ## Code examples
 
 MABIMS.dev is a standard REST API — works with JavaScript, PHP, Python, Dart, Swift, Kotlin, or any language that can make HTTP requests. No special libraries needed.
@@ -107,6 +115,13 @@ MABIMS.dev is a standard REST API — works with JavaScript, PHP, Python, Dart, 
     ```
   </TabItem>
 </Tabs>
+
+:::caution[npm package]
+Want offline results without hitting the API? Use **mabims-hijri**. Ships with 2024-2026 data bundled, plus `today()`, `convert()`, `hilal.info()`, and more. [View SDK docs](/en/sdk).
+```
+npm install mabims-hijri
+```
+:::
 
 ## What's available
 

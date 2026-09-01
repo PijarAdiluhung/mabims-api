@@ -51,6 +51,14 @@ Setiap respons membawa field `source`:
 
 Perlakukan `warnings` sebagai pemberitahuan kepada pengguna apabila ia mengandung payload (tidak kosong).
 
+Kemungkinan isi `warnings`:
+
+| Warning | Artinya |
+|---|---|
+| Date is outside MABIMS table coverage; served from the Umm al-Qura fallback and may differ from MABIMS by around one day. | Tanggal di luar cakupan tabel, menggunakan fallback Umm al-Qura — bisa selisih ±1 hari dari MABIMS. |
+| Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (hilal altitude >= 3 deg and elongation >= 6.4 deg at Sabang sunset). | Tanggal di luar tabel, dihitung dengan kriteria Neo MABIMS. |
+| Hijri month {'{ym}'} is close to the Neo MABIMS visibility threshold; the officially announced date may shift by one day. | Bulan Hijri berada di batas ambang kriteria visibilitas — tanggal resmi bisa bergeser ±1 hari. |
+
 ## Contoh kode
 
 MABIMS.dev adalah REST API standar — bisa dipakai dari JavaScript, PHP, Python, Dart, Swift, Kotlin, atau bahasa apapun yang bisa melakukan HTTP request. Tidak perlu library khusus.
@@ -107,6 +115,13 @@ MABIMS.dev adalah REST API standar — bisa dipakai dari JavaScript, PHP, Python
     ```
   </TabItem>
 </Tabs>
+
+:::caution[npm package]
+Ingin hasilnya offline tanpa fetch API? Pakai **mabims-hijri**. Bundle data 2024-2026 langsung di package, ada `today()`, `convert()`, `hilal.info()`, dan lainnya. [Lihat dokumentasi SDK](/sdk).
+```
+npm install mabims-hijri
+```
+:::
 
 ## Apa saja yang tersedia
 
