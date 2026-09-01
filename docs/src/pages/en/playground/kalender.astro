@@ -12,13 +12,7 @@ const gregMonths = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
-const eventShortNames = {
-  '1_muharram': '1 Muharram',
-  maulid_nabi: 'Maulid',
-  awal_ramadan: '1 Ramadhan',
-  idul_fitri: '1 Shawwal',
-  idul_adha: '10 Dhu al-Hijjah',
-};
+
 ---
 
 <StarlightPage
@@ -68,7 +62,7 @@ const eventShortNames = {
 
   <script>
     import {
-      WEEKDAYS, GREG_MONTHS, MONTH_NAMES, EVENT_SHORT,
+      WEEKDAYS, GREG_MONTHS, MONTH_NAMES,
       fetchStatus, fetchToday, fetchYear, fetchHijriEvents, buildWall,
     } from "../../../lib/kalender.core.js";
 
@@ -101,7 +95,7 @@ const eventShortNames = {
             }
           }
           buildWall(wallEl, year, monthsByKey, events, todayHijri, {
-            weekdays: WEEKDAYS, gregMonths: GREG_MONTHS, hijriMonths: MONTH_NAMES, eventShortNames: EVENT_SHORT,
+            weekdays: WEEKDAYS, gregMonths: GREG_MONTHS, hijriMonths: MONTH_NAMES,
           });
           rawEl.textContent = JSON.stringify(
             { year: yearBody, events },

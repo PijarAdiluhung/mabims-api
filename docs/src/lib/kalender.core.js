@@ -9,13 +9,7 @@ export const MONTH_NAMES = [
   "Ramadhan", "Syawal", "Dzulqa'dah", "Dzulhijjah",
 ];
 
-export const EVENT_SHORT = {
-  "1_muharram": "1 Muharram",
-  maulid_nabi: "Maulid",
-  awal_ramadan: "1 Ramadhan",
-  idul_fitri: "1 Syawal",
-  idul_adha: "10 Dzulhijjah",
-};
+
 
 const STATUS_OK_ID =
   "Data kalender MABIMS resmi dari Kemenag saat ini mencakup: {cov} Di luar cakupan ini, menggunakan perhitungan Neo MABIMS.";
@@ -89,9 +83,9 @@ export function weekdayIndex(iso) {
 }
 
 export function buildWall(wallEl, year, monthsByMonth, events, todayHijri, config) {
-  const { weekdays, gregMonths, hijriMonths, eventShortNames } = config;
+  const { weekdays, gregMonths, hijriMonths } = config;
   const eventsByHijri = new Map(
-    (events ?? []).map((e) => [e.hijri, eventShortNames[e.event] ?? e.name])
+    (events ?? []).map((e) => [e.hijri, e.name])
   );
 
   const daysByMonth = new Map();
