@@ -92,14 +92,6 @@ export default defineConfig({
         { label: 'Tentang', link: '/about', translations: { en: 'About' } },
         { label: 'Quickstart', link: '/quickstart', translations: { en: 'Quickstart' } },
         {
-          label: 'JavaScript SDK',
-          translations: { en: 'JavaScript SDK' },
-          items: [
-            { label: 'Instalasi', link: '/sdk', translations: { en: 'Install' } },
-            { label: 'Referensi API', link: '/sdk/reference', translations: { en: 'API Reference' } },
-          ],
-        },
-        {
           label: 'API Reference',
           translations: { en: 'API Reference' },
           items: [
@@ -118,6 +110,14 @@ export default defineConfig({
             { label: 'Konverter', link: '/playground/converter', translations: { en: 'Converter' } },
             { label: 'Kalender', link: '/playground/kalender', translations: { en: 'Calendar' } },
             { label: 'Hilal', link: '/playground/hilal', translations: { en: 'Hilal' } },
+          ],
+        },
+        {
+          label: 'JavaScript SDK',
+          translations: { en: 'JavaScript SDK' },
+          items: [
+            { label: 'Instalasi', link: '/sdk', translations: { en: 'Install' } },
+            { label: 'Referensi API', link: '/sdk/reference', translations: { en: 'API Reference' } },
           ],
         },
         { label: 'Data Coverage', link: '/data-coverage', translations: { en: 'Data Coverage' } },
