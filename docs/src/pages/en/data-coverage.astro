@@ -43,7 +43,8 @@ try {
       <tr><th>Direction</th><th>Limit</th><th>Note</th></tr>
     </thead>
     <tbody>
-      <tr><td>Backward</td><td>{first}</td><td>No conversion before this date</td></tr>
+      <tr><td>Backward (default)</td><td>{first}</td><td>No conversion before this date without <code>retro=true</code></td></tr>
+      <tr><td>Backward (with <code>retro=true</code>)</td><td>1945-01-01</td><td>Absolute retro computation floor</td></tr>
       <tr><td>Forward</td><td>2053-08-01</td><td>No conversion after this date</td></tr>
     </tbody>
   </table>
