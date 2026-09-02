@@ -30,7 +30,7 @@ try {
   <p>Requests after the table end are answered by forward computation:</p>
   <ol>
     <li><strong><code>mabims-computed</code></strong> — the Neo MABIMS criteria evaluated live at Sabang (hilal altitude ≥ 3° and elongation ≥ 6.4° at sunset on day 29). This is the same rule the curated table follows, so it stays on-method into the future. Months decided by a margin under 0.25° carry a borderline warning.</li>
-    <li><strong><code>mabims-retro</code></strong> — dates below the curated table (before 2023) require <code>retro=true</code>: the Neo MABIMS criteria are projected backwards down to 1945-01-01 as retrospective estimates.</li>
+    <li><strong><code>mabims-retro</code></strong> — dates below the curated table (before 2023) require <code>retro=true</code>: the Neo MABIMS criteria are projected backwards down to 1945-01-01 as retrospective estimates. Since the criteria were only introduced in 2022 and curated data starts 2023, all dates below the table are pure extrapolation.</li>
   </ol>
 
   <blockquote>

@@ -20,7 +20,7 @@ GET /api/v1/month?year={Y}&month={M}&calendar={hijri|gregorian}
 | `year` | int | yes | Hijri or Gregorian year |
 | `month` | int | yes | Month 1–12 |
 | `calendar` | string | no (default `hijri`) | Calendar of the `year` input |
-| `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro` |
+| `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro`. [See data coverage for the reason why](/en/data-coverage/) |
 
 ## Example
 
@@ -65,7 +65,7 @@ GET /api/v1/year?year={Y}&calendar={hijri|gregorian}
 |---|---|---|---|
 | `year` | int | yes | Hijri or Gregorian year |
 | `calendar` | string | no (default `hijri`) | Calendar of the `year` input |
-| `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro` |
+| `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro`. [See data coverage for the reason why](/en/data-coverage/) |
 
 ## Example
 

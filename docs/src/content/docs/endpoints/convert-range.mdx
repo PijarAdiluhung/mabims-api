@@ -19,7 +19,7 @@ GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
 |---|---|---|---|
 | `date` | string | ya | Tanggal ISO (`YYYY-MM-DD`) |
 | `calendar` | string | tidak (default `gregorian`) | Kalender dari tanggal input |
-| `retro` | `true` / `false` | tidak (default `false`) | Buka tanggal retro komputasi di bawah tabel kurasi (s.d. 1945-01-01), ditandai `mabims-retro` |
+| `retro` | `true` / `false` | tidak (default `false`) | Buka tanggal retro komputasi di bawah tabel kurasi (s.d. 1945-01-01), ditandai `mabims-retro`. [Lihat cakupan data untuk alasannya](/data-coverage/) |
 
 ## Contoh
 
@@ -106,7 +106,7 @@ GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
 |---|---|---|---|
 | `start` / `end` | string | ya | Tanggal ISO; `start ≤ end`; rentang maks 45 hari |
 | `calendar` | string | tidak (default `gregorian`) | Kalender dari batas input |
-| `retro` | `true` / `false` | tidak (default `false`) | Buka tanggal retro komputasi di bawah tabel kurasi (s.d. 1945-01-01), ditandai `mabims-retro` |
+| `retro` | `true` / `false` | tidak (default `false`) | Buka tanggal retro komputasi di bawah tabel kurasi (s.d. 1945-01-01), ditandai `mabims-retro`. [Lihat cakupan data untuk alasannya](/data-coverage/) |
 
 ## Contoh
 

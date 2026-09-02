@@ -30,7 +30,7 @@ try {
   <p>Permintaan setelah akhir tabel dijawab dengan perhitungan maju (forward-only):</p>
   <ol>
     <li><strong><code>mabims-computed</code></strong> — kriteria Neo MABIMS dihitung langsung di Sabang (tinggi hilal ≥ 3° dan elongasi ≥ 6,4° saat matahari terbenam pada hari ke-29). Aturan sama dengan tabel kurasi, sehingga tetap <em>on-method</em>. Bulan dengan margin keputusan di bawah 0,25° mendapat peringatan borderline.</li>
-    <li><strong><code>mabims-retro</code></strong> — tanggal di bawah tabel kurasi (sebelum 2023) memerlukan <code>retro=true</code>: kriteria Neo MABIMS diproyeksikan ke belakang hingga 1945-01-01 sebagai estimasi retroaktif.</li>
+    <li><strong><code>mabims-retro</code></strong> — tanggal di bawah tabel kurasi (sebelum 2023) memerlukan <code>retro=true</code>: kriteria Neo MABIMS diproyeksikan ke belakang hingga 1945-01-01 sebagai estimasi retroaktif. Karena kriteria baru diperkenalkan pada 2022 dan tabel kurasi baru dimulai 2023, semua tanggal di bawah tabel adalah ekstrapolasi murni.</li>
   </ol>
 
   <h2>Batas keras</h2>
