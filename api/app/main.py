@@ -58,7 +58,6 @@ from .schemas import (
     RangeInput,
     RangeItem,
     RangeResponse,
-    RetroCoverage,
     Source,
     TableResponse,
     YearInput,
@@ -482,12 +481,6 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
     @limiter.exempt
     def meta(request: Request):
         computed_active, computed_months = computed_store.summary() if computed_store else (False, [])
-        retro_info = None
-        if active_computed is not None:
-            retro_info = RetroCoverage(
-                first=bounds.seed_first or bounds.retro_floor,
-                floor=bounds.retro_floor,
-            )
         payload = MetaResponse(
             version=APP_VERSION,
             data_version=data_version,
@@ -495,7 +488,6 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             computed_active=computed_active,
             computed_months=computed_months,
             method=COMPUTED_METHOD if active_computed is not None else None,
-            retro=retro_info,
             docs_url=settings.docs_url,
         )
         return _json_response(payload.model_dump(), SHORT_CACHE_HEADERS)

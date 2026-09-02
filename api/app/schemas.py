@@ -109,14 +109,6 @@ class Coverage(BaseModel):
     last: str
 
 
-class RetroCoverage(BaseModel):
-    """Retro tier: computed projection below the curated table (requires retro=true)."""
-
-    first: str = Field(description="Earliest precomputed (seeded) gregorian date")
-    floor: str = Field(description="Absolute supported floor; below this, dates are unsupported")
-    requires_param: bool = Field(default=True, description="Must pass retro=true on each request")
-
-
 class MetaResponse(BaseModel):
     version: str
     data_version: str
@@ -124,7 +116,6 @@ class MetaResponse(BaseModel):
     computed_active: bool = False
     computed_months: list[str] = Field(default_factory=list)
     method: str | None = None
-    retro: RetroCoverage | None = None
     docs_url: str
 
 

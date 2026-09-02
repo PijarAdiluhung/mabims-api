@@ -120,12 +120,6 @@ class TestRetroEndpoints:
         assert r.status_code == 200
         assert r.json()["count"] == 5
 
-    def test_retro_meta_block(self, retro_client):
-        meta = retro_client.get("/api/v1/meta").json()
-        assert meta["retro"] is not None
-        assert meta["retro"]["floor"] == "1945-01-01"
-        assert meta["retro"]["requires_param"] is True
-
 
 class TestBackwardProvider:
     @staticmethod

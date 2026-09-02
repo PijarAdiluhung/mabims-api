@@ -42,7 +42,6 @@ GET /api/v1/meta
   "coverage": { "first": "2023-01-23", "last": "2026-12-31" },
   "computed_active": false,
   "computed_months": [],
-  "retro": { "first": "1969-12-11", "floor": "1945-01-01", "requires_param": true },
   "method": "neo-mabims-sabang",
   "docs_url": "https://mabims.dev"
 }
@@ -54,7 +53,6 @@ GET /api/v1/meta
 | `coverage` | Gregorian range covered by the authoritative table |
 | `computed_active` | `true` once any request has been served from the computed Neo MABIMS calendar |
 | `computed_months` | Which months have been computed via the Neo MABIMS criteria so far |
-| `retro` | Retro object: backward computed seed coverage, the absolute floor (1945-01-01), and a flag that `retro=true` is required per request. |
 | `method` | Out-of-table computation method (`neo-mabims-sabang`) |
 
 ## Recommended client behaviour
