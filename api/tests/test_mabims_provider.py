@@ -8,6 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.config import Settings
+from app.fallback import FallbackError
 from app.mabims_astro import criteria_on_day29
 from app.mabims_computed import (
     BORDERLINE_MARGIN_DEG,
@@ -54,9 +55,14 @@ class TestMabimsCalcProvider:
         assert pairs["1447-09-01"] == "2026-02-19"
         assert len(pairs) == 30
 
-    def test_months_before_anchor_are_not_computed(self, provider):
-        # Pre-anchor months come from the curated table; the provider only walks forward.
-        assert provider.fetch_by_hijri(1445, 6) == {}
+    def test_months_before_anchor_require_retro(self, provider):
+        # Pre-anchor months come from the curated table; the provider only
+        # walks forward unless the request opts into retro computation.
+        with pytest.raises(FallbackError):
+            provider.fetch_by_hijri(1445, 6)
+        pairs = provider.fetch_by_hijri(1445, 6, retro=True)
+        # The backward rule reproduces the curated Jumadil Akhir 1445 start.
+        assert pairs["1445-06-01"] == "2023-12-14"
 
     def test_roundtrip_g2h_h2g_consistency(self, provider):
         g_pairs = provider.fetch_by_gregorian(2027, 1)
@@ -109,7 +115,13 @@ class TestComputedTierIntegration:
         assert any("Neo MABIMS" in w for w in body["warnings"])
 
     def test_table_wins_over_computed(self, computed_client):
-        response = computed_client.get("/api/v1/convert?date=2024-02-01&calendar=gregorian")
+        # Probe a date from inside the (shrunk) curated table, derived from
+        # the data so the test follows coverage changes.
+        raw = json.loads(DATA_PATH.read_text(encoding="utf-8"))
+        curated_probe = sorted(raw["gregorian_to_hijri"])[40]
+        response = computed_client.get(
+            f"/api/v1/convert?date={curated_probe}&calendar=gregorian"
+        )
         assert response.status_code == 200
         body = response.json()
         assert body["source"] == "mabims"

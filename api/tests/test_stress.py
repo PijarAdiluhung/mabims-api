@@ -17,8 +17,8 @@ API_DIR = Path(__file__).resolve().parent.parent
 DATA_PATH = API_DIR / "data" / "calendar_data.json"
 SEED_PATH = API_DIR / "data" / "computed_seed.json"
 
-ANCHOR_HIJRI = (1445, 7)
-ANCHOR_GREGORIAN = date(2024, 1, 13)
+# Curated table start, derived from the data so tests follow coverage changes.
+TABLE_FIRST = min(json.loads(DATA_PATH.read_text(encoding="utf-8"))["gregorian_to_hijri"])
 
 
 def _make_computed_client(tmp_path: Path, seed_path: Path | None = None) -> TestClient:
@@ -249,12 +249,13 @@ class TestRangeStress:
 class TestBoundary:
     def test_hard_cap_start(self, tmp_path):
         client = _make_computed_client(tmp_path, SEED_PATH)
-        r = client.get("/api/v1/convert?date=2024-01-13&calendar=gregorian")
+        r = client.get(f"/api/v1/convert?date={TABLE_FIRST}&calendar=gregorian")
         assert r.status_code == 200
 
     def test_before_hard_cap_start(self, tmp_path):
         client = _make_computed_client(tmp_path, SEED_PATH)
-        r = client.get("/api/v1/convert?date=2024-01-12&calendar=gregorian")
+        before = (date.fromisoformat(TABLE_FIRST) - timedelta(days=1)).isoformat()
+        r = client.get(f"/api/v1/convert?date={before}&calendar=gregorian")
         assert r.status_code == 400
         body = r.json()
         assert body["error"]["code"] == "date_out_of_supported_range"
