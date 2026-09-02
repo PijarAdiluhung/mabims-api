@@ -21,8 +21,10 @@ MONTH_NAMES_ID = {
     12: "Dzulhijjah",
 }
 
-MIN_HIJRI_YEAR = 1446
+MIN_HIJRI_YEAR = 1444  # curated table starts 1444-07
 MAX_HIJRI_YEAR = 1486
+# Retro floor 1945-01-01 gregorian ≈ Rajab 1364; allow a small margin below.
+RETRO_MIN_HIJRI_YEAR = 1362
 
 
 class MonthNotResolvable(ValueError):
@@ -50,7 +52,7 @@ class SightingEvening:
     evening_label: str  # e.g. "29 Sya'ban 1447 H"
 
 
-def resolve_sighting_evening(service, year: int, month: int) -> SightingEvening:
+def resolve_sighting_evening(service, year: int, month: int, *, retro: bool = False) -> SightingEvening:
     """Resolve target hijri (year, month) to its sighting evening.
 
     The sighting evening is always the **29th** of the previous month — the
@@ -59,12 +61,13 @@ def resolve_sighting_evening(service, year: int, month: int) -> SightingEvening:
     """
     if not 1 <= month <= 12:
         raise MonthNotResolvable(f"bulan harus 1..12, dapat {month}")
-    if not MIN_HIJRI_YEAR <= year <= MAX_HIJRI_YEAR:
+    min_year = RETRO_MIN_HIJRI_YEAR if retro else MIN_HIJRI_YEAR
+    if not min_year <= year <= MAX_HIJRI_YEAR:
         raise MonthNotResolvable(f"tahun hijriah {year} di luar cakupan")
     prev_month, prev_year = (12, year - 1) if month == 1 else (month - 1, year)
 
-    service.ensure_hijri_month(year, month)
-    service.ensure_hijri_month(prev_year, prev_month)
+    service.ensure_hijri_month(year, month, retro=retro)
+    service.ensure_hijri_month(prev_year, prev_month, retro=retro)
 
     d29 = _hijri_date(service, prev_year, prev_month, 29)
     if d29 is None:

@@ -7,6 +7,7 @@ import math
 import re
 from datetime import date, datetime
 from pathlib import Path
+from typing import TypeVar
 
 from fastapi import FastAPI, Query, Request
 from fastapi.responses import JSONResponse, Response
@@ -16,6 +17,14 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from .calendar import SOURCE_MABIMS, CalendarService
 from .config import APP_VERSION, Settings
+from .coverage import (
+    RETRO_SOURCE,
+    RETRO_WARNING,
+    load_coverage,
+)
+from .coverage import (
+    Coverage as CoverageBounds,
+)
 from .events import find_events
 from .fallback import FALLBACK_SOURCE, AladhanProvider, FallbackStore, MemoryFallbackStore
 from .hilal.astro import lunar_age_hours, moonset_local, phase_angle_deg, sunset_utc
@@ -49,6 +58,8 @@ from .schemas import (
     RangeInput,
     RangeItem,
     RangeResponse,
+    RetroCoverage,
+    Source,
     TableResponse,
     YearInput,
     YearResponse,
@@ -78,8 +89,7 @@ BORDERLINE_WARNING_TEMPLATE = (
 )
 COMPUTED_METHOD = "neo-mabims-sabang"
 MAX_RANGE_DAYS = 45
-MIN_SUPPORTED_GREGORIAN = "2024-01-13"
-MAX_SUPPORTED_GREGORIAN = date(2053, 8, 1)
+RETRO_QUERY_DESC = "Set true to allow computed retro dates below the curated table"
 HILAL_CACHE = {"Cache-Control": "public, max-age=86400, s-maxage=86400"}
 HILAL_ALT_MIN_DEG = 3.0
 HILAL_ELONG_MIN_DEG = 6.4
@@ -245,7 +255,10 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         if seed_path.exists():
             try:
                 seed_raw = json.loads(seed_path.read_text(encoding="utf-8"))
-                active_computed.seed_from_pairs(seed_raw["hijri_to_gregorian"])
+                active_computed.seed_from_pairs(
+                    seed_raw["hijri_to_gregorian"],
+                    margins=seed_raw.get("margins"),
+                )
             except (json.JSONDecodeError, KeyError, ValueError):
                 pass
         computed_store = MemoryFallbackStore(settings.fallback_dir or settings.data_dir, active_computed)
@@ -258,6 +271,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         stores.append(aladhan_store)
 
     service = CalendarService(data_path, stores=stores)
+    bounds: CoverageBounds = load_coverage(settings.data_dir)
 
     app = FastAPI(
         title="MABIMS API",
@@ -314,10 +328,20 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         response.headers["X-Content-Type-Options"] = "nosniff"
         return response
 
-    def _resolve_pair(date_iso: str, calendar: str) -> tuple[str, str]:
-        _check_supported(date_iso, calendar)
+    def _parse_retro(raw: str | None) -> bool:
+        if raw is None or raw == "":
+            return False
+        lowered = raw.lower()
+        if lowered == "true":
+            return True
+        if lowered == "false":
+            return False
+        raise ApiError("invalid_retro", "'retro' must be 'true' or 'false'.")
+
+    def _resolve_pair(date_iso: str, calendar: str, retro: bool = False) -> tuple[str, Source]:
+        _check_supported(date_iso, calendar, retro)
         try:
-            result = service.resolve(date_iso, calendar)
+            result = service.resolve(date_iso, calendar, retro=retro)
         except ApiError:
             raise
         except Exception as exc:
@@ -332,44 +356,58 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                 f"No calendar pair exists for {date_iso} ({calendar}). See /api/v1/meta for coverage.",
                 404,
             )
+        source = result.source
+        gregorian_iso = result.value if calendar == "hijri" else date_iso
+        if retro and source == COMPUTED_SOURCE and gregorian_iso < bounds.curated_first:
+            source = RETRO_SOURCE
         if calendar == "hijri":
             resolved_gregorian = result.value
             if (
-                resolved_gregorian < MIN_SUPPORTED_GREGORIAN
-                or resolved_gregorian > _max_supported_gregorian().isoformat()
+                resolved_gregorian < bounds.lower_bound(retro)
+                or resolved_gregorian > bounds.forward_ceil
             ):
-                raise ApiError("date_out_of_supported_range", _supported_range_message())
-        return result.value, result.source
+                raise ApiError("date_out_of_supported_range", _supported_range_message(retro))
+        return result.value, source
 
-    def _max_supported_gregorian() -> date:
-        return MAX_SUPPORTED_GREGORIAN
-
-    def _supported_range_message() -> str:
-        return (
-            f"Supported range is {MIN_SUPPORTED_GREGORIAN} through "
-            f"{_max_supported_gregorian().isoformat()} (gregorian)."
+    def _supported_range_message(retro: bool = False) -> str:
+        message = (
+            f"Supported range is {bounds.lower_bound(retro)} through "
+            f"{bounds.forward_ceil} (gregorian)."
         )
+        if not retro and active_computed is not None:
+            message += (
+                f" Pass retro=true for computed dates back to {bounds.retro_floor}."
+            )
+        return message
 
-    def _check_supported(date_iso: str, calendar: str) -> None:
-        max_g = _max_supported_gregorian().isoformat()
+    def _check_supported(date_iso: str, calendar: str, retro: bool = False) -> None:
+        lower = bounds.lower_bound(retro)
+        upper = bounds.forward_ceil
         if calendar == "gregorian":
-            if date_iso < MIN_SUPPORTED_GREGORIAN or date_iso > max_g:
-                raise ApiError("date_out_of_supported_range", _supported_range_message())
+            if date_iso < lower or date_iso > upper:
+                raise ApiError("date_out_of_supported_range", _supported_range_message(retro))
             return
         if active_computed is None:
             return
         anchor_h = active_computed.anchor_hijri
         anchor_g = active_computed.anchor_gregorian
-        low_year = _hijri_bound_year(anchor_h, anchor_g, int(MIN_SUPPORTED_GREGORIAN[:4])) - 2
-        high_year = _hijri_bound_year(anchor_h, anchor_g, _max_supported_gregorian().year) + 2
+        low_year = _hijri_bound_year(anchor_h, anchor_g, int(lower[:4])) - 2
+        high_year = _hijri_bound_year(anchor_h, anchor_g, int(upper[:4])) + 2
         year = int(date_iso[0:4])
         if year < low_year or year > high_year:
-            raise ApiError("date_out_of_supported_range", _supported_range_message())
+            raise ApiError("date_out_of_supported_range", _supported_range_message(retro))
 
     def _warnings_for(source: str, hijri_value: str | None = None) -> list[str]:
         warnings: list[str] = []
         if source == COMPUTED_SOURCE:
             warnings.append(COMPUTED_WARNING)
+            if hijri_value:
+                ym = hijri_value[0:7]
+                borderline = set(active_computed.borderline_months()) if active_computed else set()
+                if ym in borderline:
+                    warnings.append(BORDERLINE_WARNING_TEMPLATE.format(ym=ym))
+        elif source == RETRO_SOURCE:
+            warnings.append(RETRO_WARNING)
             if hijri_value:
                 ym = hijri_value[0:7]
                 borderline = set(active_computed.borderline_months()) if active_computed else set()
@@ -385,6 +423,8 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             aggregate = FALLBACK_SOURCE
         elif COMPUTED_SOURCE in sources:
             aggregate = COMPUTED_SOURCE
+        elif RETRO_SOURCE in sources:
+            aggregate = RETRO_SOURCE
         else:
             aggregate = SOURCE_MABIMS
         warnings: list[str] = []
@@ -395,6 +435,17 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                     seen.add(warning)
                     warnings.append(warning)
         return aggregate, warnings
+
+    _Relabelable = TypeVar("_Relabelable", RangeItem, EventItem)
+
+    def _relabel_retro(items: list[_Relabelable], retro: bool) -> list[_Relabelable]:
+        """Tag computed items below the curated table as ``mabims-retro``."""
+        if not retro:
+            return items
+        for item in items:
+            if item.source == COMPUTED_SOURCE and item.gregorian < bounds.curated_first:
+                item.source = RETRO_SOURCE
+        return items
 
     @app.api_route(
         "/healthz",
@@ -431,6 +482,12 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
     @limiter.exempt
     def meta(request: Request):
         computed_active, computed_months = computed_store.summary() if computed_store else (False, [])
+        retro_info = None
+        if active_computed is not None:
+            retro_info = RetroCoverage(
+                first=bounds.seed_first or bounds.retro_floor,
+                floor=bounds.retro_floor,
+            )
         payload = MetaResponse(
             version=APP_VERSION,
             data_version=data_version,
@@ -438,6 +495,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             computed_active=computed_active,
             computed_months=computed_months,
             method=COMPUTED_METHOD if active_computed is not None else None,
+            retro=retro_info,
             docs_url=settings.docs_url,
         )
         return _json_response(payload.model_dump(), SHORT_CACHE_HEADERS)
@@ -471,12 +529,14 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         request: Request,
         date_: str | None = Query(default=None, alias="date"),
         calendar: str = Query(default="gregorian"),
+        retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
         if not date_:
             raise ApiError("missing_parameter", "You must provide a 'date' query parameter.")
         cal = _validate_calendar(calendar)
+        is_retro = _parse_retro(retro)
         target_iso = _parse_hijri_date(date_) if cal == "hijri" else _parse_iso_date(date_).isoformat()
-        value, source = _resolve_pair(target_iso, cal)
+        value, source = _resolve_pair(target_iso, cal, is_retro)
         opposite = "hijri" if cal == "gregorian" else "gregorian"
         hijri_value = value if cal == "gregorian" else target_iso
         payload = ConvertResponse(
@@ -518,9 +578,14 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         description="Immutable endpoint — CDN-cacheable forever. Date format: YYYY-MM-DD.",
         methods=["GET", "HEAD"],
     )
-    def today_on(request: Request, target_date: str):
+    def today_on(
+        request: Request,
+        target_date: str,
+        retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
+    ):
+        is_retro = _parse_retro(retro)
         target = _parse_iso_date(target_date)
-        value, source = _resolve_pair(target.isoformat(), "gregorian")
+        value, source = _resolve_pair(target.isoformat(), "gregorian", is_retro)
         payload = ConvertResponse(
             input=ConversionInput(date=target.isoformat(), calendar="gregorian"),
             output=ConversionOutput(date=value, calendar="hijri", **_parse_date_parts(value, "hijri")),
@@ -529,7 +594,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         )
         return _json_response(payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
 
-    def _hijri_month_items(year: int, month: int) -> list[RangeItem]:
+    def _hijri_month_items(year: int, month: int, retro: bool = False) -> list[RangeItem]:
         """All days of a Hijri month, served from whichever tier covers it.
 
         A Hijri month is 29 or 30 days, never 31 — days are probed by exact
@@ -546,6 +611,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             last_day = int(curated[-1][8:10])
             contiguous = len(curated) == last_day
             if contiguous and last_day in (29, 30):
+                # Curated dates are always >= curated_first, never retro.
                 return [
                     RangeItem(
                         gregorian=service.h2g[h_iso],
@@ -554,7 +620,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                     )
                     for h_iso in curated
                 ]
-        service.ensure_hijri_month(year, month)
+        service.ensure_hijri_month(year, month, retro=retro)
         items: list[RangeItem] = []
         for day in range(1, 31):
             h_iso = f"{prefix}{day:02d}"
@@ -564,14 +630,14 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             items.append(
                 RangeItem(gregorian=result.value, hijri=h_iso, source=result.source)
             )
-        return items
+        return _relabel_retro(items, retro)
 
-    def _collect_items(start_iso: str, end_iso: str, cal: str) -> list[RangeItem]:
+    def _collect_items(start_iso: str, end_iso: str, cal: str, retro: bool = False) -> list[RangeItem]:
         if cal == "hijri":
-            return _collect_hijri_items(start_iso, end_iso)
+            return _collect_hijri_items(start_iso, end_iso, retro)
         start = date.fromisoformat(start_iso)
         end = date.fromisoformat(end_iso)
-        service.ensure_range(start.isoformat(), end.isoformat(), cal)
+        service.ensure_range(start.isoformat(), end.isoformat(), cal, retro=retro)
         items: list[RangeItem] = []
         cursor = start
         while cursor <= end:
@@ -591,9 +657,9 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                 )
             )
             cursor = date.fromordinal(cursor.toordinal() + 1)
-        return items
+        return _relabel_retro(items, retro)
 
-    def _collect_hijri_items(start_iso: str, end_iso: str) -> list[RangeItem]:
+    def _collect_hijri_items(start_iso: str, end_iso: str, retro: bool = False) -> list[RangeItem]:
         """Bulk convert a Hijri range by walking whole Hijri months.
 
         Hijri months are 29/30 days, so stepping with ``date.fromordinal``
@@ -611,7 +677,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         clipping the range.
         """
         for bound in (start_iso, end_iso):
-            service.ensure_hijri_month(int(bound[0:4]), int(bound[5:7]))
+            service.ensure_hijri_month(int(bound[0:4]), int(bound[5:7]), retro=retro)
             lookup = service.lookup(bound, "hijri")
             if lookup.value is None:
                 raise ApiError(
@@ -626,7 +692,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         ey = int(end_iso[0:4])
         em = int(end_iso[5:7])
         while (cy, cm) <= (ey, em):
-            month_items = _hijri_month_items(cy, cm)
+            month_items = _hijri_month_items(cy, cm, retro)
             if not month_items:
                 raise ApiError(
                     "out_of_coverage",
@@ -654,8 +720,10 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         end: str = Query(...),
         calendar: str = Query(default="gregorian"),
         step: str = Query(default="day"),
+        retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
         cal = _validate_calendar(calendar)
+        is_retro = _parse_retro(retro)
         if step != "day":
             raise ApiError("invalid_step", "Only step='day' is supported.")
         if cal == "hijri":
@@ -663,9 +731,9 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             end_iso = _parse_hijri_date(end)
             if start_iso > end_iso:
                 raise ApiError("invalid_range", "'start' must be on or before 'end'.")
-            _check_supported(start_iso, cal)
-            _check_supported(end_iso, cal)
-            items = _collect_items(start_iso, end_iso, cal)
+            _check_supported(start_iso, cal, is_retro)
+            _check_supported(end_iso, cal, is_retro)
+            items = _collect_items(start_iso, end_iso, cal, is_retro)
         else:
             start_d = _parse_iso_date(start)
             end_d = _parse_iso_date(end)
@@ -674,9 +742,9 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             span = (end_d - start_d).days + 1
             if span > MAX_RANGE_DAYS:
                 raise ApiError("range_too_large", f"Range is limited to {MAX_RANGE_DAYS} days.")
-            _check_supported(start_d.isoformat(), cal)
-            _check_supported(end_d.isoformat(), cal)
-            items = _collect_items(start_d.isoformat(), end_d.isoformat(), cal)
+            _check_supported(start_d.isoformat(), cal, is_retro)
+            _check_supported(end_d.isoformat(), cal, is_retro)
+            items = _collect_items(start_d.isoformat(), end_d.isoformat(), cal, is_retro)
         aggregate_source, warnings = _aggregate(items)
         payload = RangeResponse(
             input=RangeInput(start=start_iso if cal == "hijri" else start_d.isoformat(),
@@ -700,8 +768,10 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         request: Request,
         year: int = Query(...),
         calendar: str = Query(default="hijri"),
+        retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
         cal = _validate_calendar(calendar)
+        is_retro = _parse_retro(retro)
         if not 1000 <= year <= 3000:
             raise ApiError("invalid_year", "'year' is out of supported bounds.")
         items = [
@@ -712,8 +782,9 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                 hijri=h_iso,
                 source=service.lookup(h_iso, "hijri").source,
             )
-            for definition, g_iso, h_iso in find_events(service, year, cal)
+            for definition, g_iso, h_iso in find_events(service, year, cal, retro=is_retro)
         ]
+        _relabel_retro(items, is_retro)
         aggregate_source, warnings = _aggregate(items)
         payload = EventsResponse(
             input=EventsInput(year=year, calendar=cal),
@@ -736,8 +807,10 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         year: int = Query(...),
         month: int = Query(...),
         calendar: str = Query(default="hijri"),
+        retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
         cal = _validate_calendar(calendar)
+        is_retro = _parse_retro(retro)
         if not 1 <= month <= 12:
             raise ApiError("invalid_month", "'month' must be between 1 and 12.")
         if not 1000 <= year <= 3000:
@@ -747,12 +820,12 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             days_in_month = pycalendar.monthrange(year, month)[1]
             start_d = date(year, month, 1)
             end_d = date(year, month, days_in_month)
-            _check_supported(start_d.isoformat(), cal)
-            _check_supported(end_d.isoformat(), cal)
-            items = _collect_items(start_d.isoformat(), end_d.isoformat(), cal)
+            _check_supported(start_d.isoformat(), cal, is_retro)
+            _check_supported(end_d.isoformat(), cal, is_retro)
+            items = _collect_items(start_d.isoformat(), end_d.isoformat(), cal, is_retro)
         else:
-            _check_supported(f"{year:04d}-{month:02d}-01", cal)
-            items = _hijri_month_items(year, month)
+            _check_supported(f"{year:04d}-{month:02d}-01", cal, is_retro)
+            items = _hijri_month_items(year, month, is_retro)
             if not items:
                 raise ApiError(
                     "out_of_coverage",
@@ -762,10 +835,10 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             start_d = date.fromisoformat(items[0].gregorian)
             end_d = date.fromisoformat(items[-1].gregorian)
             if (
-                start_d.isoformat() < MIN_SUPPORTED_GREGORIAN
-                or end_d.isoformat() > _max_supported_gregorian().isoformat()
+                start_d.isoformat() < bounds.lower_bound(is_retro)
+                or end_d.isoformat() > bounds.forward_ceil
             ):
-                raise ApiError("date_out_of_supported_range", _supported_range_message())
+                raise ApiError("date_out_of_supported_range", _supported_range_message(is_retro))
 
         aggregate_source, warnings = _aggregate(items)
         payload = MonthResponse(
@@ -788,8 +861,10 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         request: Request,
         year: int = Query(...),
         calendar: str = Query(default="hijri"),
+        retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
         cal = _validate_calendar(calendar)
+        is_retro = _parse_retro(retro)
         if not 1 <= year <= 3000:
             raise ApiError("invalid_year", "'year' is out of supported bounds.")
 
@@ -801,12 +876,12 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                 days_in_month = pycalendar.monthrange(year, m)[1]
                 start_d = date(year, m, 1)
                 end_d = date(year, m, days_in_month)
-                _check_supported(start_d.isoformat(), cal)
-                _check_supported(end_d.isoformat(), cal)
-                items = _collect_items(start_d.isoformat(), end_d.isoformat(), cal)
+                _check_supported(start_d.isoformat(), cal, is_retro)
+                _check_supported(end_d.isoformat(), cal, is_retro)
+                items = _collect_items(start_d.isoformat(), end_d.isoformat(), cal, is_retro)
             else:
-                _check_supported(f"{year:04d}-{m:02d}-01", cal)
-                items = _hijri_month_items(year, m)
+                _check_supported(f"{year:04d}-{m:02d}-01", cal, is_retro)
+                items = _hijri_month_items(year, m, is_retro)
                 if not items:
                     raise ApiError(
                         "out_of_coverage",
@@ -816,10 +891,10 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                 start_d = date.fromisoformat(items[0].gregorian)
                 end_d = date.fromisoformat(items[-1].gregorian)
                 if (
-                    start_d.isoformat() < MIN_SUPPORTED_GREGORIAN
-                    or end_d.isoformat() > _max_supported_gregorian().isoformat()
+                    start_d.isoformat() < bounds.lower_bound(is_retro)
+                    or end_d.isoformat() > bounds.forward_ceil
                 ):
-                    raise ApiError("date_out_of_supported_range", _supported_range_message())
+                    raise ApiError("date_out_of_supported_range", _supported_range_message(is_retro))
             months[m] = items
             all_items.extend(items)
 
@@ -832,14 +907,14 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         )
         return _json_response(payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
 
-    def _hilal_context(month: int, year: int):
+    def _hilal_context(month: int, year: int, retro: bool = False):
         try:
-            res = resolve_sighting_evening(service, year, month)
+            res = resolve_sighting_evening(service, year, month, retro=retro)
         except MonthNotResolvable as exc:
             raise ApiError("out_of_coverage", str(exc), 400) from None
         evening_g = res.evening_date.isoformat()
-        if evening_g < MIN_SUPPORTED_GREGORIAN or evening_g > MAX_SUPPORTED_GREGORIAN.isoformat():
-            raise ApiError("date_out_of_supported_range", _supported_range_message())
+        if evening_g < bounds.lower_bound(retro) or evening_g > bounds.forward_ceil:
+            raise ApiError("date_out_of_supported_range", _supported_range_message(retro))
         try:
             sighting = observe_sighting_evening(res.evening_date)
         except Exception as exc:
@@ -852,6 +927,8 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         alt_ok = crit.moon_alt_deg >= HILAL_ALT_MIN_DEG
         elong_ok = crit.elongation_deg >= HILAL_ELONG_MIN_DEG
         source = service.lookup(evening_g, "gregorian").source
+        if retro and source == COMPUTED_SOURCE and evening_g < bounds.curated_first:
+            source = RETRO_SOURCE
         warnings = _warnings_for(
             source, f"{res.prev_year:04d}-{res.prev_month:02d}-15"
         )
@@ -870,8 +947,11 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         request: Request,
         month: int = Query(...),
         year: int = Query(...),
+        retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
-        res, sighting, alt_ok, elong_ok, source, warnings = _hilal_context(month, year)
+        res, sighting, alt_ok, elong_ok, source, warnings = _hilal_context(
+            month, year, _parse_retro(retro)
+        )
         crit = sighting.criteria
         payload = HilalInfoResponse(
             input=HilalInput(month=month, year=year),
@@ -920,8 +1000,11 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         request: Request,
         month: int = Query(...),
         year: int = Query(...),
+        retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
-        res, sighting, alt_ok, elong_ok, _source, _warnings = _hilal_context(month, year)
+        res, sighting, alt_ok, elong_ok, _source, _warnings = _hilal_context(
+            month, year, _parse_retro(retro)
+        )
         crit = sighting.criteria
         data = build_chart_data(
             hijri_label=res.evening_label,

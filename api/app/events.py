@@ -24,7 +24,9 @@ EVENT_DEFINITIONS: tuple[EventDefinition, ...] = (
     EventDefinition(slug="idul_adha", name="Idul Adha", month=12, day=10),
 )
 
-def find_events(service, year: int, calendar: str) -> list[tuple[EventDefinition, str, str]]:
+def find_events(
+    service, year: int, calendar: str, *, retro: bool = False
+) -> list[tuple[EventDefinition, str, str]]:
     found: list[tuple[EventDefinition, str, str]] = []
     months_needed: set[tuple[int, int]] = set()
 
@@ -32,7 +34,10 @@ def find_events(service, year: int, calendar: str) -> list[tuple[EventDefinition
         for definition in EVENT_DEFINITIONS:
             months_needed.add((year, definition.month))
     else:
-        for hijri_year in range(year - 579, year - 576):
+        # A gregorian year can span parts of 3-4 hijri years (e.g. 1975 hosts
+        # events from hijri 1395 = year-580). Scan a wide window; lookups are
+        # cheap and events are filtered to the requested gregorian year below.
+        for hijri_year in range(year - 581, year - 576):
             for definition in EVENT_DEFINITIONS:
                 months_needed.add((hijri_year, definition.month))
 
@@ -41,7 +46,7 @@ def find_events(service, year: int, calendar: str) -> list[tuple[EventDefinition
         if service.covers(probe, "hijri"):
             continue
         try:
-            service.ensure_hijri_month(hy, hm)
+            service.ensure_hijri_month(hy, hm, retro=retro)
         except Exception:
             continue
 
@@ -52,7 +57,7 @@ def find_events(service, year: int, calendar: str) -> list[tuple[EventDefinition
             if result.value is not None:
                 found.append((definition, result.value, h_iso))
     else:
-        for hijri_year in range(year - 579, year - 576):
+        for hijri_year in range(year - 581, year - 576):
             for definition in EVENT_DEFINITIONS:
                 h_iso = f"{hijri_year:04d}-{definition.month:02d}-{definition.day:02d}"
                 result = service.lookup(h_iso, "hijri")
