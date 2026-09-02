@@ -248,7 +248,7 @@ Akses snapshot data yang di-bundle tanpa menyentuh API atau cache.
 ```typescript
 import { getBundledDate, getBundledRange } from 'mabims-hijri';
 
-// Cari satu tanggal (null jika di luar 2024-2026)
+// Cari satu tanggal (null jika di luar 2023-2026)
 const hijri = getBundledDate('2026-08-31');
 // { date: '1448-03-18', month_name: 'Rabiul Awal', ... }
 
@@ -257,7 +257,7 @@ const missing = getBundledDate('2030-01-01');
 
 // Cek rentang tanggal yang di-cover
 getBundledRange();
-// { start: '2024-01-13', end: '2026-12-31' }
+// { start: '2023-01-23', end: '2026-12-31' }
 ```
 
 ---

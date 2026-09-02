@@ -5,7 +5,7 @@ description: Paket npm offline-first untuk kalender Hijriah Indonesia.
 
 import { Steps } from '@astrojs/starlight/components';
 
-**mabims-hijri** adalah paket npm JavaScript/TypeScript yang bekerja offline. Bundle data MABIMS 2024-2026 langsung di package, tidak perlu API key, tidak perlu registrasi.
+**mabims-hijri** adalah paket npm JavaScript/TypeScript yang bekerja offline. Bundle data MABIMS 2023-2026 langsung di package, tidak perlu API key, tidak perlu registrasi.
 
 GitHub: [PijarAdiluhung/mabims-hijri](https://github.com/PijarAdiluhung/mabims-hijri) · [npm](https://www.npmjs.com/package/mabims-hijri)
 
@@ -44,11 +44,11 @@ npm install mabims-hijri
 ## Cara kerja offline
 
 ```
-Bundled MABIMS (2024-2026)  -->  Cache lokal  -->  Live API (fallback)
+Bundled MABIMS (2023-2026)  -->  Cache lokal  -->  Live API (fallback)
      ~70KB, built-in              TTL 24 jam       hanya jika di luar range
 ```
 
-1. Data MABIMS 2024-2026 di-bundle langsung di package (~70KB)
+1. Data MABIMS 2023-2026 di-bundle langsung di package (~70KB)
 2. Saat online, SDK memeriksa `/meta` apakah ada data lebih baru
 3. Jika ada, otomatis fetch dan simpen ke cache lokal
 4. Jika tanggal di luar jangkauan bundle, fallback ke API langsung

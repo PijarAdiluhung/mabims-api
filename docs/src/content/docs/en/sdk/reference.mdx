@@ -248,7 +248,7 @@ Access the bundled snapshot directly, without touching the API or cache.
 ```typescript
 import { getBundledDate, getBundledRange } from 'mabims-hijri';
 
-// Look up a single date (null if outside 2024-2026)
+// Look up a single date (null if outside 2023-2026)
 const hijri = getBundledDate('2026-08-31');
 // { date: '1448-03-18', month_name: 'Rabiul Awal', ... }
 
@@ -257,7 +257,7 @@ const missing = getBundledDate('2030-01-01');
 
 // Check bundled data range
 getBundledRange();
-// { start: '2024-01-13', end: '2026-12-31' }
+// { start: '2023-01-23', end: '2026-12-31' }
 ```
 
 ---
