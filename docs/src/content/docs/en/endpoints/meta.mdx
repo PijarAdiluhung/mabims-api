@@ -63,5 +63,39 @@ GET /api/v1/meta
 
 ## GET /healthz
 
-Liveness probe for uptime monitors. Returns `{"status": "ok", "version": "..."}` with
-`Cache-Control: no-store`.
+Liveness probe for uptime monitors.
+
+```
+GET /healthz
+```
+
+<Tabs syncKey="code">
+  <TabItem label="curl">
+    ```bash
+    curl "https://api.mabims.dev/healthz"
+    ```
+  </TabItem>
+  <TabItem label="JavaScript">
+    ```js
+    const res = await fetch("https://api.mabims.dev/healthz");
+    const data = await res.json();
+    console.log(data.status); // "ok"
+    ```
+  </TabItem>
+  <TabItem label="PHP">
+    ```php
+    $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/healthz');
+    $data = json_decode($response->getBody(), true);
+    echo $data['status']; // "ok"
+    ```
+  </TabItem>
+</Tabs>
+
+```json
+{
+  "status": "ok",
+  "version": "1.4.0"
+}
+```
+
+Returns `Cache-Control: no-store`.
