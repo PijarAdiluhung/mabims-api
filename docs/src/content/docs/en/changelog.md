@@ -3,12 +3,14 @@ title: Changelog
 description: History of changes to the MABIMS API and documentation.
 ---
 
-## 1.2.1 — 2026-08-29
+## 1.4.0 — 2026-09-02
 
 ### Added
 
 - **2023 curated data** — the official Kemenag RI table now starts 2023-01-23 (Rajab 1444 H), adding one year of official coverage.
 - **`mabims-retro` tier** — dates below the curated table are now accessible with `retro=true` (down to 1945-01-01), computed by projecting the Neo MABIMS criteria backwards. The computed seed now extends back to 1970. New error: `invalid_retro`.
+
+## 1.2.1 — 2026-08-29
 
 ### Fixed
 
