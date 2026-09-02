@@ -5,6 +5,11 @@ description: History of changes to the MABIMS API and documentation.
 
 ## 1.2.1 — 2026-08-29
 
+### Added
+
+- **2023 curated data** — the official Kemenag RI table now starts 2023-01-23 (Rajab 1444 H), adding one year of official coverage.
+- **`mabims-retro` tier** — dates below the curated table are now accessible with `retro=true` (down to 1945-01-01), computed by projecting the Neo MABIMS criteria backwards. The computed seed now extends back to 1970. New error: `invalid_retro`.
+
 ### Fixed
 
 - **CORS headers on cached responses** — `Access-Control-Allow-Origin` was only added when the request carried an `Origin` header. BunnyCDN cached the headerless variant and blocked cross-origin `fetch()` in browsers. All responses (OPTIONS, errors, and GET without Origin) now always include CORS headers.

@@ -22,6 +22,7 @@ GET /api/v1/hilal/viz?month={bulan}&year={tahun}    → PNG 720×1280
 |---|---|---|---|
 | `month` | int 1–12 | ya | Bulan Hijriah **target** (grafik menampilkan malam penentuannya) |
 | `year` | int | ya | Tahun Hijriah target |
+| `retro` | `true` / `false` | tidak (default `false`) | Buka tanggal retro komputasi di bawah tabel kurasi (s.d. 1945-01-01), ditandai `mabims-retro` |
 
 Titik hisab tunggal: **Sabang, Indonesia** (5°53′N 95°19′E, WIB). Endpoint ini menggunakan
 kriteria Neo MABIMS yang sama dengan perhitungan tabel computed.
@@ -106,3 +107,4 @@ kriteria `PARAMETER · MIN. MABIMS · STATUS`. Output deterministik per paramete
 | `out_of_coverage` | 400 | Bulan/tahun di luar cakupan tabel (lihat `/meta`) |
 | `computation_unavailable` | 503 | Gagal menghitung astronomi |
 | `render_failed` | 500 | Gagal merender PNG |
+| `invalid_retro` | 400 | Parameter `retro` bukan `true` atau `false` |

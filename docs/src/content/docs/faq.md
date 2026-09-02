@@ -69,7 +69,7 @@ Bisa. CORS bersifat terbuka, jadi bisa dipanggil langsung dari browser di domain
 <details>
 <summary>Data-nya sampai tahun berapa?</summary>
 
-Cek info data terbaru di halaman [Data Coverage](/data-coverage). Di luar rentang itu, API menghitung otomatis (fallback) memakai kriteria Neo MABIMS. Responsnya akan menandai `source: "mabims-computed"` dan bukan `"mabims"`.
+Cek info data terbaru di halaman [Data Coverage](/data-coverage). Di luar rentang itu, API menghitung otomatis (fallback) memakai kriteria Neo MABIMS. Responsnya akan menandai `source: "mabims-computed"` dan bukan `"mabims"`. Tanggal di bawah tabel memerlukan `retro=true` dan ditandai `mabims-retro`.
 
 </details>
 

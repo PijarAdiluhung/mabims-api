@@ -11,7 +11,7 @@ Calendar data is sourced from **data published publicly by the Ministry of Relig
 |---|---|
 | **Source** | Ministry of Religious Affairs of the Republic of Indonesia — Hijri Calendar |
 | **Original format** | PDF |
-| **Table coverage** | 2024-01-13 → 2026-12-31 |
+| **Table coverage** | 2023-01-23 → 2026-12-31 |
 
 ## Computed Tier
 
@@ -23,6 +23,10 @@ Beyond table coverage, the API computes dates using **Neo MABIMS** criteria:
 | Elongation | ≥ 6.4° |
 | Reference location | Sabang (5°53′N 95°19′E) |
 | Reference time | At sunset |
+
+## Retro (below the curated table)
+
+Dates before 2023-01-23 were never produced under the Neo MABIMS criteria (introduced in 2022). Passing `retro=true` unlocks computed dates below the curated table down to 1945-01-01, tagged `source: "mabims-retro"` with a warning that these are a retrospective projection — not official data.
 
 ## Licensing
 

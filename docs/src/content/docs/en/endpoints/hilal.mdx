@@ -27,6 +27,7 @@ same criteria table. Both are public but tightly rate limited
 |---|---|---|---|
 | `month` | int 1–12 | yes | **Target** Hijri month (the chart shows its deciding evening) |
 | `year` | int | yes | Target Hijri year |
+| `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro` |
 
 Single reckoning point: **Sabang, Indonesia** (5°53′N 95°19′E, WIB). These endpoints use the
 same Neo MABIMS criteria as the computed table — they are estimates, not official announcements.
@@ -111,3 +112,4 @@ deliberately not drawn — the sky tells the truth. Output is deterministic per 
 | `out_of_coverage` | 400 | Month/year outside table coverage (see `/meta`) |
 | `computation_unavailable` | 503 | Astronomy computation failed |
 | `render_failed` | 500 | PNG rendering failed |
+| `invalid_retro` | 400 | `retro` param is not `true` or `false` |

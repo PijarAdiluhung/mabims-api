@@ -20,6 +20,7 @@ GET /api/v1/month?year={Y}&month={M}&calendar={hijri|gregorian}
 | `year` | int | yes | Hijri or Gregorian year |
 | `month` | int | yes | Month 1–12 |
 | `calendar` | string | no (default `hijri`) | Calendar of the `year` input |
+| `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro` |
 
 ## Example
 
@@ -64,6 +65,7 @@ GET /api/v1/year?year={Y}&calendar={hijri|gregorian}
 |---|---|---|---|
 | `year` | int | yes | Hijri or Gregorian year |
 | `calendar` | string | no (default `hijri`) | Calendar of the `year` input |
+| `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro` |
 
 ## Example
 
@@ -127,3 +129,4 @@ For `calendar=hijri`, months beyond the public table are still served from the N
 | `invalid_calendar` | 400 | `calendar` param is not `hijri` or `gregorian` |
 | `out_of_coverage` | 400 | Month outside table coverage |
 | `date_out_of_supported_range` | 400 | Date exceeds supported range |
+| `invalid_retro` | 400 | `retro` param is not `true` or `false` |

@@ -61,6 +61,7 @@ The `source` field indicates where the data came from:
 |---|---|
 | `mabims` | Curated from data publik yang dikeluarkan resmi oleh Kementerian Agama RI |
 | `mabims-computed` | Computed with Neo MABIMS criteria (altitude ≥ 3°, elongation ≥ 6.4° at Sabang sunset) — algorithmic estimates, not official data |
+| `mabims-retro` | Below the curated table (pre-2023): the same Neo MABIMS criteria projected backwards. Requires `retro=true`. The criteria did not exist before 2022, so treat these as historical estimates only |
 
 | Endpoint | Purpose | Rate Limit |
 |---|---|---|
@@ -87,6 +88,7 @@ The hilal visibility criteria follow Neo MABIMS: **moon altitude ≥ 3.0°** and
 | `tz` | IANA timezone or UTC offset | Default `Asia/Jakarta` (UTC+7). Examples: `Asia/Kuala_Lumpur`, `UTC+8`, `+08:00`. |
 | `start`, `end` | `YYYY-MM-DD` | Used by `/range`. |
 | `year` | Integer | Hijri or Gregorian year, depending on `calendar`. |
+| `retro` | `true`, `false` | Default `false`. Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro`. |
 | `month` | Integer | Hijri or Gregorian month (1–12). |
 
 ## Events
@@ -119,6 +121,7 @@ All errors follow a consistent JSON shape:
 | 400 | `invalid_timezone` | Unknown timezone string |
 | 400 | `missing_parameter` | Required query param not provided |
 | 400 | `invalid_step` | `step` param is not `day` |
+| 400 | `invalid_retro` | `retro` param is not `true` or `false` |
 | 400 | `invalid_range` | `start` is after `end` |
 | 400 | `invalid_month` | `month` is not between 1 and 12 |
 | 400 | `invalid_year` | `year` is out of supported bounds |
@@ -269,17 +272,22 @@ Follow [DEPLOY.md](DEPLOY.md): Dokploy compose service, two domains, Bunny pull 
 
 ## Data & coverage
 
-`api/data/calendar_data.json` is the authoritative MABIMS table (currently **Hijri 1445–1448**,
-gregorian 2024 → 2026). Beyond it, `api/data/computed_seed.json` carries the same Neo MABIMS
-criteria forward (**through Hijri 1473**, gregorian ~mid-2050), and dates past the seed are
-still computed lazily on request. Both computed tiers flag borderline months (margin < 0.25°)
-via warnings.
+`api/data/calendar_data.json` is the authoritative MABIMS table (currently **Hijri 1444–1448**,
+gregorian 2023-01-23 → 2026). Beyond it, `api/data/computed_seed.json` carries the same Neo MABIMS
+criteria forward (**through Hijri 1473**, gregorian ~mid-2050) and backwards (**to gregorian
+1970**); dates past the seed are still computed lazily on request. Both computed tiers flag
+borderline months (margin < 0.25°) via warnings.
+
+Dates **below the curated table** are gated behind `retro=true` and tagged `mabims-retro`:
+Neo MABIMS was introduced in 2022, so pre-2023 results are a retrospective projection, not
+data the criteria ever produced officially. Supported floor: **1945-01-01** (earlier dates
+return `date_out_of_supported_range` even with `retro=true`).
 
 Regenerate the seed yearly with `api/scripts/generate_seed.py` (verifies curated-table overlap
 before writing); `.github/workflows/regen-computed-table.yml` automates it every January and
 opens a PR with the diff.
 
-`/meta` exposes `method`, `computed_active`, and `computed_months`.
+`/meta` exposes `method`, `computed_active`, `computed_months`, and `retro`.
 
 ## Disclaimer
 

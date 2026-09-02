@@ -7,6 +7,8 @@ description: Riwayat perubahan API dan dokumentasi MABIMS.
 
 ### Added
 
+- **Data kurasi 2023** — tabel resmi Kemenag RI kini dimulai 23 Januari 2023 (Rajab 1444 H), menambah cakupan resmi setahun ke belakang.
+- **Tier retro `mabims-retro`** — tanggal di bawah tabel kurasi kini bisa diakses dengan `retro=true` (hingga 1945-01-01), dihitung dengan memproyeksikan kriteria Neo MABIMS ke belakang. Seed komputasi diperluas mundur sampai 1970. Error baru: `invalid_retro`.
 - **JavaScript SDK** — `mabims-hijri` paket npm offline-first. Bundle data MABIMS 2024-2026, `today()`, `convert()`, `range()`, `month()`, `year()`, `events()`, `hilal.info()`. Tanpa dependency, works di Node, browser, edge runtime.
 - **SDK docs** — halaman `/sdk` (instalasi, quick start, error handling, framework examples) dan `/sdk/reference` (dokumentasi lengkap semua fungsi). Bilingual ID+EN.
 - **Landing page** — kartu "JavaScript SDK" menempati posisi terakhir di feature cards.

@@ -39,9 +39,10 @@ GET /api/v1/meta
 {
   "version": "1.0.0",
   "data_version": "9f2c41aa7b03",
-  "coverage": { "first": "2024-01-13", "last": "2026-12-31" },
+  "coverage": { "first": "2023-01-23", "last": "2026-12-31" },
   "computed_active": false,
   "computed_months": [],
+  "retro": { "first": "1969-12-11", "floor": "1945-01-01", "requires_param": true },
   "method": "neo-mabims-sabang",
   "docs_url": "https://mabims.dev"
 }
@@ -53,6 +54,7 @@ GET /api/v1/meta
 | `coverage` | Rentang Gregorian yang dicakup oleh tabel otoritatif |
 | `computed_active` | `true` setelah ada permintaan yang dilayani dari kalendar hitungan Neo MABIMS |
 | `computed_months` | Bulan-bulan mana yang sudah dihitung via kriteria Neo MABIMS |
+| `retro` | Objek retro: cakupan seed komputasi mundur, batas bawah absolut (1945-01-01), dan penanda bahwa `retro=true` wajib di setiap request. |
 | `method` | Metode perhitungan di luar tabel (`neo-mabims-sabang`) |
 
 ## Perilaku klien yang direkomendasikan

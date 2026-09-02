@@ -21,6 +21,7 @@ GET /api/v1/events?year={Y}&calendar={gregorian|hijri}
 |---|---|---|---|
 | `year` | integer | yes | Year in the requested `calendar` (Hijri: `1446`, Gregorian: `2025`) |
 | `calendar` | string | no (default `hijri`) | `gregorian` or `hijri` |
+| `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro` |
 
 ## Example
 
@@ -102,3 +103,4 @@ Items are sorted by Gregorian date.
 |---|---|---|
 | `invalid_calendar` | 400 | Calendar is not `gregorian` or `hijri` |
 | `invalid_year` | 400 | Year out of supported bounds |
+| `invalid_retro` | 400 | `retro` param is not `true` or `false` |

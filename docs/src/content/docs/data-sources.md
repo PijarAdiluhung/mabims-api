@@ -11,7 +11,7 @@ Data kalender bersumber dari **data publik yang dikeluarkan resmi oleh Kementeri
 |---|---|
 | **Sumber** | Kementerian Agama RI — Kalender Hijriah |
 | **Format asli** | PDF |
-| **Cakupan tabel** | 2024-01-13 → 2026-12-31 |
+| **Cakupan tabel** | 2023-01-23 → 2026-12-31 |
 
 ## Tier Komputasi
 
@@ -23,6 +23,10 @@ Di luar cakupan tabel, API menghitung tanggal menggunakan kriteria **Neo MABIMS*
 | Elongasi | ≥ 6,4° |
 | Lokasi referensi | Sabang (5°53′N 95°19′E) |
 | Waktu referensi | Saat matahari terbenam |
+
+## Retro (di bawah tabel kurasi)
+
+Tanggal sebelum 2023-01-23 tidak pernah dihasilkan oleh kriteria Neo MABIMS (kriteria ini diperkenalkan pada 2022). Membawa `retro=true` akan membuka tanggal komputasi di bawah tabel kurasi hingga 1945-01-01, ditandai `source: "mabims-retro"` dengan peringatan bahwa ini proyeksi retroaktif — bukan data resmi.
 
 ## Lisensi
 

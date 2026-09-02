@@ -1,7 +1,7 @@
 ---
 title: "Tanggal Hijriah, Sekarang Offline: Memperkenalkan mabims-hijri"
 description: "Kenapa saya bikin JavaScript SDK offline-first untuk MABIMS, dan kapan pakai SDK vs REST API."
-date: 2026-08-31
+date: 2026-09-01
 tags:
   - SDK
   - JavaScript

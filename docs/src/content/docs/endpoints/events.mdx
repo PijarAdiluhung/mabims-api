@@ -21,6 +21,7 @@ GET /api/v1/events?year={Y}&calendar={gregorian|hijri}
 |---|---|---|---|
 | `year` | integer | ya | Tahun kalender sesuai `calendar` (Hijriah: `1446`, Gregorian: `2025`) |
 | `calendar` | string | tidak (default `hijri`) | `gregorian` atau `hijri` |
+| `retro` | `true` / `false` | tidak (default `false`) | Buka tanggal retro komputasi di bawah tabel kurasi (s.d. 1945-01-01), ditandai `mabims-retro` |
 
 ## Contoh
 
@@ -102,3 +103,4 @@ Item diurutkan berdasarkan tanggal Gregorian.
 |---|---|---|
 | `invalid_calendar` | 400 | Calendar bukan `gregorian` atau `hijri` |
 | `invalid_year` | 400 | Tahun di luar batas yang didukung |
+| `invalid_retro` | 400 | Parameter `retro` bukan `true` atau `false` |

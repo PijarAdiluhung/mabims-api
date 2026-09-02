@@ -19,6 +19,7 @@ GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
 |---|---|---|---|
 | `date` | string | yes | ISO date (`YYYY-MM-DD`) |
 | `calendar` | string | no (default `gregorian`) | Calendar of the input date |
+| `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro` |
 
 ## Example
 
@@ -74,6 +75,7 @@ GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
 | `invalid_calendar` | `calendar` parameter is not `gregorian` or `hijri` |
 | `missing_parameter` | `date` query parameter is missing |
 | `out_of_coverage` | Date is outside table coverage; see [/meta](/endpoints/meta) |
+| `invalid_retro` | `retro` param is not `true` or `false` |
 
 **404** — `date_not_found`: no pair exists for that date
 
@@ -105,6 +107,7 @@ GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
 |---|---|---|---|
 | `start` / `end` | string | yes | ISO dates; `start ≤ end`; max span 45 days |
 | `calendar` | string | no (default `gregorian`) | Calendar of the input bounds |
+| `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro` |
 
 ## Example
 
@@ -175,3 +178,4 @@ All errors return a standard JSON envelope:
 | `invalid_step` | 400 | Step is not `day` |
 | `range_too_large` | 400 | Range exceeds 45 days |
 | `out_of_coverage` | 400 | Date outside table coverage |
+| `invalid_retro` | 400 | `retro` param is not `true` or `false` |

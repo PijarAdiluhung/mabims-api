@@ -19,6 +19,7 @@ GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
 |---|---|---|---|
 | `date` | string | ya | Tanggal ISO (`YYYY-MM-DD`) |
 | `calendar` | string | tidak (default `gregorian`) | Kalender dari tanggal input |
+| `retro` | `true` / `false` | tidak (default `false`) | Buka tanggal retro komputasi di bawah tabel kurasi (s.d. 1945-01-01), ditandai `mabims-retro` |
 
 ## Contoh
 
@@ -74,6 +75,7 @@ GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
 | `invalid_calendar` | Parameter `calendar` bukan `gregorian` atau `hijri` |
 | `missing_parameter` | Query parameter `date` tidak ada |
 | `out_of_coverage` | Tanggal di luar cakupan tabel; lihat [/meta](/endpoints/meta) |
+| `invalid_retro` | Parameter `retro` bukan `true` atau `false` |
 
 **404** — `date_not_found`: tidak ada pasangan untuk tanggal tersebut
 
@@ -104,6 +106,7 @@ GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
 |---|---|---|---|
 | `start` / `end` | string | ya | Tanggal ISO; `start ≤ end`; rentang maks 45 hari |
 | `calendar` | string | tidak (default `gregorian`) | Kalender dari batas input |
+| `retro` | `true` / `false` | tidak (default `false`) | Buka tanggal retro komputasi di bawah tabel kurasi (s.d. 1945-01-01), ditandai `mabims-retro` |
 
 ## Contoh
 
@@ -170,3 +173,4 @@ Semua kesalahan mengembalikan JSON dengan format standar:
 | `invalid_step` | 400 | Step bukan `day` |
 | `range_too_large` | 400 | Rentang > 45 hari |
 | `out_of_coverage` | 400 | Tanggal di luar cakupan tabel |
+| `invalid_retro` | 400 | Parameter `retro` bukan `true` atau `false` |

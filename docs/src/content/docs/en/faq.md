@@ -62,14 +62,14 @@ Yes. CORS is open, so it can be called directly from the browser on any domain. 
 <summary>What's the difference between <code>source: "mabims"</code> and <code>source: "mabims-computed"</code>?</summary>
 
 - **`mabims`** — date taken directly from Kemenag's publicly available table.
-- **`mabims-computed`** — automatically calculated using Neo MABIMS criteria because the date falls outside the table's coverage (before 2024 or after 2026).
+- **`mabims-computed`** — automatically calculated using Neo MABIMS criteria because the date falls outside the table's coverage (before 2023 or after 2026).
 
 </details>
 
 <details>
 <summary>How far ahead does the data go?</summary>
 
-Official table data is available for 2024–2026. Outside that range, the API calculates automatically (fallback) using Neo MABIMS criteria up to the year 2053 — the response will tag `source: "mabims-computed"` instead of `"mabims"`.
+Official table data is available for 2023–2026. Outside that range, the API calculates automatically (fallback) using Neo MABIMS criteria up to the year 2053 — the response will tag `source: "mabims-computed"` instead of `"mabims"`. Dates below the table additionally require `retro=true` and are tagged `mabims-retro`.
 
 </details>
 

@@ -20,7 +20,7 @@ Built on official MABIMS tables published by Kementerian Agama RI. For dates bey
 - Default timezone: Asia/Jakarta (UTC+7)
 - Rate limit: 240 requests/minute per IP (Bunny CDN + origin fallback)
 - Hilal rate limits: /hilal/info 60/hour, /hilal/viz 30/hour per IP
-- Data coverage: Hijri 1445–1448 (official tables), computed through Hijri 1473 (~mid-2050)
+- Data coverage: Hijri 1444–1448 (official tables), computed forward through Hijri 1473 (~mid-2050), retro projection back to gregorian 1945 via retro=true
 - OpenAPI spec: https://api.mabims.dev/openapi.json
 - Docs: https://mabims.dev
 - Source code: https://github.com/PijarAdiluhung/mabims-api
