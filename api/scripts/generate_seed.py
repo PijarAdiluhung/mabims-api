@@ -1,4 +1,9 @@
-"""Generate a forward-only seed file for the computed provider (2024-2050).
+"""Generate the seed file for the computed provider.
+
+Forward: curated anchor -> 2050-12-31 (Neo MABIMS forward computation).
+Backward (retro): curated anchor -> RETRO_SEED_BACK (1970-01-01), using the
+validated backward rule. Dates below the seed are computed lazily at request
+time down to RETRO_FLOOR (1945-01-01).
 
 Run once: python api/scripts/generate_seed.py
 Outputs: api/data/computed_seed.json
@@ -8,12 +13,14 @@ from __future__ import annotations
 import json
 import sys
 import tempfile
-from datetime import date
+import time
+from datetime import date, timedelta
 from pathlib import Path
 
 API_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(API_DIR))
 
+from app.coverage import RETRO_SEED_BACK  # noqa: E402
 from app.mabims_astro import ALT_MIN_DEG, ELONG_MIN_DEG  # noqa: E402
 from app.mabims_computed import MabimsCalcProvider  # noqa: E402
 
@@ -30,10 +37,25 @@ def main() -> int:
 
     print(f"anchor: {anchor_hijri} = {anchor_gregorian}")
     print(f"target end: {TARGET_END}")
+    print(f"target retro back: {RETRO_SEED_BACK}")
     print("computing...")
 
     provider = MabimsCalcProvider(anchor_hijri, anchor_gregorian)
     provider.fetch_by_gregorian(TARGET_END.year, TARGET_END.month)
+    provider._ensure_anchor_block()
+
+    started = time.time()
+    print("walking backwards (10-year chunks)...", flush=True)
+    while provider._blocks[0].start > RETRO_SEED_BACK:
+        chunk_target = max(
+            provider._blocks[0].start - timedelta(days=3650), RETRO_SEED_BACK
+        )
+        provider._extend_backward_to(chunk_target)
+        print(
+            f"  retro back to {provider._blocks[0].start} "
+            f"({len(provider._blocks)} blocks, {time.time() - started:.0f}s)",
+            flush=True,
+        )
 
     g2h, h2g = provider.snapshot()
 
@@ -52,6 +74,11 @@ def main() -> int:
     print(f"coverage: {first_g} -> {last_g} ({len(g2h)} days)")
     print(f"borderline months: {len(borderline)}")
 
+    margins = {
+        f"{block.hijri[0]:04d}-{block.hijri[1]:02d}": block.margin
+        for block in provider._blocks
+    }
+
     payload = {
         "meta": {
             "back": first_g,
@@ -60,6 +87,7 @@ def main() -> int:
             "criteria": {"alt_min_deg": ALT_MIN_DEG, "elong_min_deg": ELONG_MIN_DEG},
             "borderline_months": borderline,
         },
+        "margins": {k: margins[k] for k in sorted(margins)},
         "gregorian_to_hijri": dict(sorted(g2h.items())),
         "hijri_to_gregorian": dict(sorted(h2g.items())),
     }

@@ -94,6 +94,45 @@ def predict_len(mx: dict[str, float], mode: str) -> int:
     return 29 if ok else 30
 
 
+def validate_retro_seed(curated_first: str) -> int:
+    """Independently verify the retro part of computed_seed.json.
+
+    The seed's retro region was generated with the backward rule; here we
+    re-check every retro month with the FORWARD rule (criteria at sunset of
+    day 29) and require the predicted length to match the seed's actual
+    month length. A mismatch means the backward chain is not consistent
+    with the forward model.
+    """
+    seed_path = DATA_PATH.parent / "computed_seed.json"
+    if not seed_path.exists():
+        print("\nretro seed: computed_seed.json not found, skipped")
+        return 0
+    seed = json.loads(seed_path.read_text(encoding="utf-8"))
+    g2h = seed.get("gregorian_to_hijri", {})
+    starts = sorted(
+        g for g, h in g2h.items() if h.endswith("-01") and g < curated_first
+    )
+    if not starts:
+        print("\nretro seed: no retro months below curated table, skipped")
+        return 0
+
+    print(f"\nretro seed check: {len(starts)} months below curated table")
+    misses = 0
+    for i in range(len(starts) - 1):
+        start = date.fromisoformat(starts[i])
+        actual = (date.fromisoformat(starts[i + 1]) - start).days
+        ss = sunset_on(start + timedelta(days=28))
+        mx = metrics_at(ss)
+        if predict_len(mx, "alt_geo_r") != actual:
+            misses += 1
+            print(
+                f"  RETRO MISS {starts[i]}: len {actual}, "
+                f"alt={mx['alt_geo_r']:.3f} elong={mx['elong']:.3f}"
+            )
+    print(f"retro boundaries tested: {len(starts) - 1}, misses: {misses}")
+    return 1 if misses else 0
+
+
 def main() -> int:
     global LAT_DEG, LON_DEG
     site = "Sabang"
@@ -160,7 +199,10 @@ def main() -> int:
         print("borderline months (margin < 0.25):")
         for b in borderline:
             print(f"  - {b}")
-    return 0 if hit_r == total else 1
+    if hit_r != total:
+        return 1
+    retro_status = validate_retro_seed(starts[0][0].isoformat())
+    return 0 if retro_status == 0 else 1
 
 
 if __name__ == "__main__":
