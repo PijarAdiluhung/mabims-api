@@ -5,9 +5,11 @@ import threading
 from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
-from typing import NamedTuple
+from typing import NamedTuple, cast
 
-SOURCE_MABIMS = "mabims"
+from .schemas import Source
+
+SOURCE_MABIMS: Source = "mabims"
 
 
 class CalendarDataError(RuntimeError):
@@ -38,7 +40,7 @@ def month_key_for(date_iso: str, calendar: str) -> MonthKey:
 
 class LookupResult(NamedTuple):
     value: str | None
-    source: str
+    source: Source
 
 
 class CalendarService:
@@ -75,9 +77,11 @@ class CalendarService:
             hit = store.lookup(date_iso, calendar)
             if hit is not None:
                 return LookupResult(value=hit, source=store.source_name)
-        return LookupResult(value=None, source="not_found")
+        # Sentinel source; every caller branches on ``value is None`` first,
+        # so the source is never read for a miss.
+        return LookupResult(value=None, source=cast(Source, "not_found"))
 
-    def resolve(self, date_iso: str, calendar: str) -> LookupResult:
+    def resolve(self, date_iso: str, calendar: str, *, retro: bool = False) -> LookupResult:
         result = self.lookup(date_iso, calendar)
         if result.value is not None:
             return result
@@ -87,7 +91,7 @@ class CalendarService:
         with self._lock:
             for store in self.stores:
                 try:
-                    store.ensure_month(key)
+                    store.ensure_month(key, retro=retro)
                 except Exception:
                     continue
                 result = self.lookup(date_iso, calendar)
@@ -95,17 +99,17 @@ class CalendarService:
                     return result
         return result
 
-    def ensure_hijri_month(self, year: int, month: int) -> None:
+    def ensure_hijri_month(self, year: int, month: int, *, retro: bool = False) -> None:
         if not self.stores:
             return
         with self._lock:
             for store in self.stores:
                 try:
-                    store.ensure_month(MonthKey(kind="H", year=year, month=month))
+                    store.ensure_month(MonthKey(kind="H", year=year, month=month), retro=retro)
                 except Exception:
                     continue
 
-    def ensure_range(self, start: str, end: str, calendar: str) -> None:
+    def ensure_range(self, start: str, end: str, calendar: str, *, retro: bool = False) -> None:
         if not self.stores:
             return
         keys: dict[str, MonthKey] = {}
@@ -123,7 +127,7 @@ class CalendarService:
                 probe_calendar = "gregorian" if key.kind == "G" else "hijri"
                 for store in self.stores:
                     try:
-                        store.ensure_month(key)
+                        store.ensure_month(key, retro=retro)
                     except Exception:
                         continue
                     if store.lookup(probe, probe_calendar) is not None:

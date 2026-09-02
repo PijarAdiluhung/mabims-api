@@ -11,10 +11,11 @@ from pathlib import Path
 from typing import Protocol
 
 from .calendar import MonthKey
+from .schemas import Source
 
 log = logging.getLogger(__name__)
 
-FALLBACK_SOURCE = "fallback:aladhan-ummalqura"
+FALLBACK_SOURCE: Source = "fallback:aladhan-ummalqura"
 
 _HIJRI_MONTH_RE = re.compile(r"^(\d{4})-(\d{2})")
 
@@ -24,9 +25,9 @@ class FallbackError(RuntimeError):
 
 
 class FallbackProvider(Protocol):
-    def fetch_by_gregorian(self, year: int, month: int) -> dict[str, str]: ...
+    def fetch_by_gregorian(self, year: int, month: int, *, retro: bool = False) -> dict[str, str]: ...
 
-    def fetch_by_hijri(self, hijri_year: int, hijri_month: int) -> dict[str, str]: ...
+    def fetch_by_hijri(self, hijri_year: int, hijri_month: int, *, retro: bool = False) -> dict[str, str]: ...
 
 
 class AladhanProvider:
@@ -73,10 +74,10 @@ class AladhanProvider:
         year = int(part["year"])
         return f"{year:04d}-{month_number:02d}-{day:02d}"
 
-    def fetch_by_gregorian(self, year: int, month: int) -> dict[str, str]:
+    def fetch_by_gregorian(self, year: int, month: int, *, retro: bool = False) -> dict[str, str]:
         return self._fetch_pairs(f"/gToHCalendar/{month}/{year}")
 
-    def fetch_by_hijri(self, hijri_year: int, hijri_month: int) -> dict[str, str]:
+    def fetch_by_hijri(self, hijri_year: int, hijri_month: int, *, retro: bool = False) -> dict[str, str]:
         # ``_fetch_pairs`` keys by gregorian ISO; the store convention expects
         # hijri-keyed output (matching MabimsCalcProvider.fetch_by_hijri).
         return _invert(self._fetch_pairs(f"/hToGCalendar/{hijri_month}/{hijri_year}"))
@@ -123,7 +124,7 @@ class FallbackStore:
                 return hit
         return None
 
-    def ensure_month(self, key: MonthKey) -> None:
+    def ensure_month(self, key: MonthKey, *, retro: bool = False) -> None:
         with self._lock:
             data = self.years.setdefault(
                 key.year,
@@ -135,10 +136,10 @@ class FallbackStore:
                 "%s: fetching %s via HTTP (not preloaded)", self.source_name, key.label
             )
             if key.kind == "G":
-                g2h = self.provider.fetch_by_gregorian(key.year, key.month)
+                g2h = self.provider.fetch_by_gregorian(key.year, key.month, retro=retro)
                 h2g = _invert(g2h)
             else:
-                h2g = self.provider.fetch_by_hijri(key.year, key.month)
+                h2g = self.provider.fetch_by_hijri(key.year, key.month, retro=retro)
                 g2h = _invert(h2g)
             data["months"][key.label] = {
                 "fetched_at": datetime.now(UTC).isoformat(),
