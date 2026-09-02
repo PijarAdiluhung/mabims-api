@@ -121,9 +121,11 @@ def moonset_local(d: date, tz_name: str, lat: float, lon: float) -> str:
         alt = float(_observer(lat, lon).at(t).observe(eph.eph["moon"]).apparent().altaz()[0].degrees)
         if prev_alt is not None and prev_t is not None and prev_alt >= 0 > alt:
             frac = prev_alt / (prev_alt - alt)
-            t0 = prev_t.utc_datetime().timestamp()
-            t1 = t.utc_datetime().timestamp()
-            cross = datetime.fromtimestamp(t0 + (t1 - t0) * frac, tz=tz)
+            t0 = prev_t.utc_datetime()
+            t1 = t.utc_datetime()
+            # Interpolate in datetime space: datetime.fromtimestamp() rejects
+            # negative epochs (pre-1970) on Windows.
+            cross = (t0 + (t1 - t0) * frac).astimezone(tz)
             return cross.strftime("%H:%M")
         prev_alt = alt
         prev_t = t
