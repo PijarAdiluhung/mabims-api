@@ -23,3 +23,6 @@ dist/
 .vscode/
 .DS_Store
 temp/
+
+# Generated census artifact
+api/scripts/seed_divergence.json
