@@ -167,11 +167,11 @@ class HilalEvening(BaseModel):
     )
     illumination_pct: float
     age_hours: float
-    deciding_site: DecidingSite | None = Field(
-        default=None,
+    deciding_site: DecidingSite = Field(
         description=(
-            "Coastal observation site where the criteria were met "
-            "(null when the moon is seen nowhere)"
+            "The coastal observation site whose sunset all reported values describe — "
+            "the deciding site when the hilal is seen, otherwise the site that came "
+            "closest to the criteria"
         ),
     )
     sites_checked: int = Field(

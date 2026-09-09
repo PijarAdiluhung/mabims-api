@@ -15,7 +15,7 @@ description: Riwayat perubahan API dan dokumentasi MABIMS.
 
 ### Added
 
-- **`deciding_site`** di `/hilal/info` — object `{ name, lat, lon, elev_m, tz }` titik yang memutuskan verdict (`null` bila hilal tidak terlihat di titik manapun).
+- **`deciding_site`** di `/hilal/info` — object `{ name, lat, lon, elev_m, tz }` titik yang digambarkan: titik penentu bila terlihat, atau titik dengan margin terbaik bila tidak terpenuhi di manapun (selalu terisi).
 - **`sites_checked`** di `/hilal/info` — jumlah titik pengamatan yang dievaluasi (25).
 - **Daftar titik sebagai data** — [`api/data/hilal_sites.json`](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json): menambah/mengubah titik kini PR data, bukan perubahan kode.
 

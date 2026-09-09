@@ -216,7 +216,7 @@ console.log(info.evening.deciding_site?.name); // titik pengamatan penentu
 | `evening.moonset` | Waktu moonset lokal |
 | `evening.moon_alt_deg` | Ketinggian bulan saat sunset di titik penentu (derajat) |
 | `evening.elongation_deg` | Elongasi bulan-matahari (derajat) |
-| `evening.deciding_site` | Titik pengamatan yang memutuskan verdict — `{ name, lat, lon, elev_m, tz }`, atau `null` bila tidak terlihat di manapun |
+| `evening.deciding_site` | Titik pengamatan yang digambarkan — `{ name, lat, lon, elev_m, tz }`: titik penentu bila terlihat, atau titik dengan margin terbaik bila tidak terpenuhi di manapun |
 | `evening.sites_checked` | Jumlah titik pengamatan yang dievaluasi |
 | `evening.illumination_pct` | Persentase iluminasi bulan |
 | `evening.age_hours` | Usia bulan dalam jam |

@@ -15,7 +15,7 @@ description: History of changes to the MABIMS API and documentation.
 
 ### Added
 
-- **`deciding_site`** on `/hilal/info` — `{ name, lat, lon, elev_m, tz }` object for the site that decided the verdict (`null` when the moon is seen nowhere).
+- **`deciding_site`** on `/hilal/info` — `{ name, lat, lon, elev_m, tz }` object for the site the reported values describe: the decider when visible, the best-margin site otherwise.
 - **`sites_checked`** on `/hilal/info` — number of observation points evaluated (25).
 - **Site list as data** — [`api/data/hilal_sites.json`](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json): adding or moving sites is now a data PR, not a code change.
 

@@ -108,7 +108,8 @@ def test_hilal_info_invisible(hilal_client, monkeypatch):
     assert evening["alt_ok"] is False
     assert evening["elong_ok"] is False
     assert evening["visible"] is False
-    assert evening["deciding_site"] is None
+    # the reported values must still name the site they come from
+    assert evening["deciding_site"]["name"] == "Sabang / Weh Island"
 
 
 def test_hilal_info_invalid_month(hilal_client):

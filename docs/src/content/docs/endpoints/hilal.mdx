@@ -97,9 +97,10 @@ Bila kriteria terpenuhi, respons melaporkan **titik penentu** lewat `deciding_si
 keduanya dievaluasi pada saat **matahari terbenam lokal di titik tersebut** pada hari ke-29.
 Semakin barat sebuah titik, semakin tinggi hilal pada senjanya — sehingga bulan-bulan "aman"
 umumnya diputuskan di pesisir barat (Aceh), sementara bulan-bulan dengan deklinasi bulan
-selatan bisa diputuskan di arc selatan (Jawa → Nusa Tenggara). Saat kriteria tidak terpenuhi
-di titik manapun, `deciding_site` bernilai `null` dan nilai altitud/elongasi berasal dari
-titik dengan margin terbaik (mendekati terpenuhi).
+selatan bisa diputuskan di arc selatan (Jawa → Nusa Tenggara). `deciding_site` selalu
+terisi: bila kriteria tidak terpenuhi di titik manapun, titik yang dilaporkan adalah titik
+dengan margin terbaik (paling mendekati terpenuhi) — seluruh nilai altitud, elongasi, dan
+waktu merujuk titik tersebut.
 
 Waktu matahari/bulan terbenam, azimut, iluminasi, dan umur bulan dihitung **toposentris di
 titik penentu** (bukan Sabang), dan waktu ditampilkan dalam zona waktu lokal titik tersebut

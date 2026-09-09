@@ -986,16 +986,12 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                 elongation_deg=round(ms_site.elong_deg, 2),
                 illumination_pct=round(sighting.illumination_pct, 2),
                 age_hours=round(sighting.age_hours, 1),
-                deciding_site=(
-                    DecidingSite(
-                        name=sighting.site.name,
-                        lat=sighting.site.lat_deg,
-                        lon=sighting.site.lon_deg,
-                        elev_m=sighting.site.elev_m,
-                        tz=sighting.site.tz,
-                    )
-                    if visible
-                    else None
+                deciding_site=DecidingSite(
+                    name=sighting.site.name,
+                    lat=sighting.site.lat_deg,
+                    lon=sighting.site.lon_deg,
+                    elev_m=sighting.site.elev_m,
+                    tz=sighting.site.tz,
                 ),
                 sites_checked=len(sighting.multisite.sites),
                 alt_ok=alt_ok,
@@ -1042,7 +1038,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             sun_az=sky.sun_az_deg,
             elong=ms_site.elong_deg,
             illum=sighting.illumination_pct / 100.0,
-            decider=ms_site.site if visible else None,
+            decider=ms_site.site,
             dec_alt=ms_site.alt_refracted_deg,
             dec_elong=ms_site.elong_deg,
             sites_checked=len(sighting.multisite.sites),

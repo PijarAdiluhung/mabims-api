@@ -104,9 +104,9 @@ reports the **deciding site** via `deciding_site`.
 both evaluated at that site's **local sunset** on day 29. The further west a point sits, the
 higher the hilal stands at its sunset — so comfortable months are usually decided on the
 western coast (Aceh), while months with a southerly lunar declination can be decided along
-the southern arc (Java → Lesser Sunda). When the criteria are met nowhere, `deciding_site`
-is `null` and the altitude/elongation values come from the best-margin site (closest to
-fulfilment).
+the southern arc (Java → Lesser Sunda). `deciding_site` is always present: when the
+criteria are met nowhere, the reported site is the best-margin one (closest to
+fulfilment) — all altitude, elongation and time values refer to that site.
 
 Sunset/moonset times, azimuths, illumination and lunar age are computed **topocentrically at
 the deciding site** (not Sabang), and times are displayed in the site's own timezone
