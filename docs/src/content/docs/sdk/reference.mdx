@@ -199,6 +199,7 @@ console.log(info.month.start);           // '2026-02-19'
 console.log(info.evening.visible);       // true atau false
 console.log(info.evening.moon_alt_deg);  // ketinggian bulan (derajat)
 console.log(info.evening.elongation_deg); // elongasi bulan-matahari
+console.log(info.evening.deciding_site?.name); // titik pengamatan penentu
 ```
 
 **Return:**
@@ -213,11 +214,13 @@ console.log(info.evening.elongation_deg); // elongasi bulan-matahari
 | `evening.gregorian_date` | Tanggal Masehi malam pengamatan |
 | `evening.sunset` | Waktu sunset lokal |
 | `evening.moonset` | Waktu moonset lokal |
-| `evening.moon_alt_deg` | Ketinggian bulan saat sunset (derajat) |
+| `evening.moon_alt_deg` | Ketinggian bulan saat sunset di titik penentu (derajat) |
 | `evening.elongation_deg` | Elongasi bulan-matahari (derajat) |
+| `evening.deciding_site` | Titik pengamatan yang memutuskan verdict — `{ name, lat, lon, elev_m, tz }`, atau `null` bila tidak terlihat di manapun |
+| `evening.sites_checked` | Jumlah titik pengamatan yang dievaluasi |
 | `evening.illumination_pct` | Persentase iluminasi bulan |
 | `evening.age_hours` | Usia bulan dalam jam |
-| `evening.visible` | Apakah kriteria MABIMS terpenuhi (`alt_ok` DAN `elong_ok`) |
+| `evening.visible` | Apakah kriteria MABIMS terpenuhi di titik pengamatan manapun (`alt_ok` DAN `elong_ok`) |
 | `source` | `'mabims'` (tabel kurasi) atau `'mabims-computed'` (estimasi algoritmik) |
 | `warnings` | Bulan borderline atau fallback komputasi |
 
