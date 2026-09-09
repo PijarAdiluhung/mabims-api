@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -10,23 +10,45 @@ from fastapi.testclient import TestClient
 from app.calendar import CalendarService
 from app.config import Settings
 from app.hilal.service import MonthNotResolvable, resolve_sighting_evening
-from app.mabims_astro import EveningObservation, observation_on_sunset
+from app.mabims_astro import observation_on_sunset
+from app.mabims_sites import MultiSiteSighting, SiteSighting, SiteSky, load_sites
 from app.main import SightingObservation, create_app
 
 DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "calendar_data.json"
 
 
-def _fake_sighting(**overrides) -> SightingObservation:
-    criteria = EveningObservation(
-        evaluated_on=date(2026, 2, 17),
-        moon_alt_deg=8.78,
-        moon_az_deg=263.98,
-        sun_alt_deg=-0.83,
-        sun_az_deg=258.30,
-        elongation_deg=11.07,
+def _fake_multisite(
+    visible: bool = True, alt: float = 8.8, elong: float = 11.1
+) -> MultiSiteSighting:
+    row = SiteSighting(
+        site="Sabang / Weh Island",
+        alt_deg=alt,
+        alt_refracted_deg=alt,
+        elong_deg=elong,
     )
+    other = SiteSighting(
+        site="Pangandaran Beach",
+        alt_deg=alt,
+        alt_refracted_deg=alt,
+        elong_deg=elong,
+    )
+    sky = tuple(
+        SiteSky(
+            site=s.site,
+            moon_az_deg=263.98,
+            sun_alt_deg=-0.83,
+            sun_az_deg=258.30,
+            sunset_utc=datetime(2026, 2, 17, 11, 51, tzinfo=UTC),
+        )
+        for s in (row, other)
+    )
+    return MultiSiteSighting(evaluated_on=date(2026, 2, 17), sites=(row, other), sky=sky)
+
+
+def _fake_sighting(**overrides) -> SightingObservation:
     kwargs = dict(
-        criteria=criteria,
+        multisite=_fake_multisite(),
+        site=load_sites()[0],
         sunset_local="18:14",
         moonset_local="18:51",
         illumination_pct=1.07,
@@ -68,6 +90,9 @@ def test_hilal_info_ok(hilal_client):
     assert evening["sunset"] == "18:14"
     assert evening["moonset"] == "18:51"
     assert evening["visible"] is True
+    assert evening["deciding_site"]["name"] == "Sabang / Weh Island"
+    assert evening["deciding_site"]["tz"] == "Asia/Jakarta"
+    assert evening["sites_checked"] == 2
     assert body["source"] == "mabims"
     assert response.headers["Cache-Control"].startswith("public")
 
@@ -75,17 +100,7 @@ def test_hilal_info_ok(hilal_client):
 def test_hilal_info_invisible(hilal_client, monkeypatch):
     monkeypatch.setattr(
         "app.main.observe_sighting_evening",
-        lambda *a, **k: _fake_sighting(
-            criteria=EveningObservation(
-                evaluated_on=date(2026, 2, 17),
-                moon_alt_deg=1.5,
-                moon_az_deg=263.98,
-                sun_alt_deg=-0.83,
-                sun_az_deg=258.30,
-                elongation_deg=5.0,
-            ),
-            illumination_pct=0.2,
-        ),
+        lambda *a, **k: _fake_sighting(multisite=_fake_multisite(False, 1.5, 5.0)),
     )
     response = hilal_client.get("/api/v1/hilal/info?month=9&year=1447")
     assert response.status_code == 200
@@ -93,6 +108,7 @@ def test_hilal_info_invisible(hilal_client, monkeypatch):
     assert evening["alt_ok"] is False
     assert evening["elong_ok"] is False
     assert evening["visible"] is False
+    assert evening["deciding_site"] is None
 
 
 def test_hilal_info_invalid_month(hilal_client):
@@ -119,17 +135,7 @@ def test_hilal_viz_png(hilal_client):
 def test_hilal_viz_below_horizon(hilal_client, monkeypatch):
     monkeypatch.setattr(
         "app.main.observe_sighting_evening",
-        lambda *a, **k: _fake_sighting(
-            criteria=EveningObservation(
-                evaluated_on=date(2026, 2, 17),
-                moon_alt_deg=-2.0,
-                moon_az_deg=263.98,
-                sun_alt_deg=-0.83,
-                sun_az_deg=258.30,
-                elongation_deg=4.0,
-            ),
-            illumination_pct=0.1,
-        ),
+        lambda *a, **k: _fake_sighting(multisite=_fake_multisite(False, -2.0, 4.0)),
     )
     response = hilal_client.get("/api/v1/hilal/viz?month=9&year=1447")
     assert response.status_code == 200

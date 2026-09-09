@@ -50,22 +50,25 @@ def visibility_factor(data: dict) -> float:
     """1.0 = comfortably visible, 0.0 = at/below MABIMS threshold (invisible).
 
     Linear ramp then cube-root curve so borderline sightings are more visible
-    while below-threshold stays at 0.
+    while below-threshold stays at 0. Uses the deciding site's values when
+    present, falling back to the Sabang scene values.
     """
-    f = min((data["moon_alt"] - 3.0) / 4.0, (data["elong"] - 6.4) / 5.0)
+    dec_alt = data.get("dec_alt", data["moon_alt"])
+    dec_elong = data.get("dec_elong", data["elong"])
+    f = min((dec_alt - 3.0) / 4.0, (dec_elong - 6.4) / 5.0)
     f = max(0.0, min(1.0, f))
     return f ** (1.0 / 3.0)
 
 
 def verdict_label(data: dict) -> str:
+    if data["visible"]:
+        bm = data.get("borderline_margins", [])
+        if bm and (bm[0] or bm[1]):
+            return "MENDEKATI BATAS"
+        return "MEMENUHI KRITERIA"
     if data["moon_alt"] < 0:
         return "DI BAWAH HORIZON"
-    if not data["visible"]:
-        return "TIDAK MEMENUHI"
-    bm = data.get("borderline_margins", [])
-    if bm and (bm[0] or bm[1]):
-        return "MENDEKATI BATAS"
-    return "MEMENUHI KRITERIA"
+    return "TIDAK MEMENUHI"
 
 
 # ── primitives ──
@@ -264,9 +267,11 @@ def _criteria_table(img: Image.Image, data: dict, box: tuple, pal: dict) -> None
     _txt(d, (xr, y0), "STATUS", f_head, pal["muted"], anchor="ra")
     d.line([x0, y0 + 40, x1, y0 + 40], fill=pal["border"], width=1)
 
+    dec_alt = data.get("dec_alt", data["moon_alt"])
+    dec_elong = data.get("dec_elong", data["elong"])
     crit = [
-        ("ALT. BULAN", f"{data['moon_alt']:+.1f}\u00b0", "3.0\u00b0", data["alt_ok"]),
-        ("ELONGASI", f"{data['elong']:.1f}\u00b0", "6.4\u00b0", data["elong_ok"]),
+        ("ALT. BULAN", f"{dec_alt:+.1f}\u00b0", "3.0\u00b0", data["alt_ok"]),
+        ("ELONGASI", f"{dec_elong:.1f}\u00b0", "6.4\u00b0", data["elong_ok"]),
     ]
     chips = Image.new("RGBA", img.size, (0, 0, 0, 0))
     cd = ImageDraw.Draw(chips)
@@ -290,7 +295,10 @@ def _criteria_table(img: Image.Image, data: dict, box: tuple, pal: dict) -> None
     yy += 2
     d.line([x0, yy, x1, yy], fill=pal["border"], width=1)
     yy += 14
+    decider = data.get("decider")
+    point = decider.split("/")[0].strip() if decider else "-"
     rows = [
+        ("TITIK PENGAMAT", point),
         ("ILUMINASI", f"{data['illum'] * 100:.1f}%"),
         ("MATAHARI TERBENAM", data["sunset"]),
         ("BULAN TERBENAM", data["moonset"]),
@@ -310,8 +318,10 @@ def _criteria_table(img: Image.Image, data: dict, box: tuple, pal: dict) -> None
 def render_chart(data: dict) -> Image.Image:
     """Render the dusk-vertical chart for a prepared data dict.
 
-    Keys: hijri, greg, loc, label, sunset, moonset, moon_alt, moon_az, sun_alt,
-    sun_az, elong, illum, alt_ok, elong_ok, visible.
+    Keys: hijri, greg, label, sunset, moonset, moon_alt, moon_az, sun_alt,
+    sun_az, elong, illum, decider, dec_alt, dec_elong, alt_ok, elong_ok,
+    visible. The sky scene, criteria values and times all describe the
+    deciding site (TITIK PENGAMAT row in the criteria table).
     """
     pal = _palette()
     img = _vgrad(W, H, [(0.0, (31, 18, 53)), (0.45, (94, 44, 74)),
@@ -338,7 +348,6 @@ def render_chart(data: dict) -> Image.Image:
     vis_year = vl_parts[3] if len(vl_parts) >= 4 else ""
     _txt(d, (40, 32), f"Visibilitas {vis_month} {vis_year}", font(42, bold=True), pal["text"])
     _txt(d, (40, 82), f"{data['greg']}  \u00b7  {data['hijri']}", font(28), pal["muted"])
-    _txt(d, (40, 118), data["loc"], font(24), pal["muted"])
 
     card_y = horizon_y + 30
     card_h = H - card_y - 52
@@ -367,16 +376,22 @@ def chart_png_bytes(data: dict) -> bytes:
     return buf.getvalue()
 
 
-def build_chart_data(*, hijri_label: str, evening_date: date, location_display: str,
+def build_chart_data(*, hijri_label: str, evening_date: date,
                      visibility_label: str, sunset: str, moonset: str, moon_alt: float,
                      moon_az: float, sun_alt: float, sun_az: float, elong: float,
                      illum: float, alt_ok: bool, elong_ok: bool,
-                     alt_margin: float = 0.0, elong_margin: float = 0.0) -> dict:
-    """Assemble the renderer's data dict from typed inputs."""
+                     alt_margin: float = 0.0, elong_margin: float = 0.0,
+                     decider: str | None = None, dec_alt: float | None = None,
+                     dec_elong: float | None = None, sites_checked: int = 0) -> dict:
+    """Assemble the renderer's data dict from typed inputs.
+
+    ``moon_alt``/``moon_az``/``sun_alt``/``sun_az`` are the deciding site's
+    sky scene; ``dec_alt``/``dec_elong`` are its refraction-corrected
+    criteria values shown in the table.
+    """
     return {
         "hijri": hijri_label,
         "greg": f"{evening_date.day} {GREG_MONTHS_ID[evening_date.month]} {evening_date.year}",
-        "loc": location_display,
         "label": visibility_label,
         "sunset": sunset,
         "moonset": moonset,
@@ -386,6 +401,10 @@ def build_chart_data(*, hijri_label: str, evening_date: date, location_display: 
         "sun_az": float(sun_az),
         "elong": float(elong),
         "illum": float(illum),
+        "decider": decider,
+        "dec_alt": float(dec_alt) if dec_alt is not None else None,
+        "dec_elong": float(dec_elong) if dec_elong is not None else None,
+        "sites_checked": int(sites_checked),
         "alt_ok": bool(alt_ok),
         "elong_ok": bool(elong_ok),
         "visible": bool(alt_ok and elong_ok),

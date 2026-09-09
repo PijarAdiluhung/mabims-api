@@ -23,6 +23,7 @@ sys.path.insert(0, str(API_DIR))
 from app.coverage import RETRO_SEED_BACK  # noqa: E402
 from app.mabims_astro import ALT_MIN_DEG, ELONG_MIN_DEG  # noqa: E402
 from app.mabims_computed import MabimsCalcProvider  # noqa: E402
+from app.mabims_sites import load_sites  # noqa: E402
 
 DATA_PATH = API_DIR / "data" / "calendar_data.json"
 OUTPUT_PATH = API_DIR / "data" / "computed_seed.json"
@@ -84,7 +85,12 @@ def main() -> int:
             "back": first_g,
             "forward": last_g,
             "days": len(g2h),
-            "criteria": {"alt_min_deg": ALT_MIN_DEG, "elong_min_deg": ELONG_MIN_DEG},
+            "criteria": {
+                "model": "neo-mabims-multisite",
+                "alt_min_deg": ALT_MIN_DEG,
+                "elong_min_deg": ELONG_MIN_DEG,
+                "sites": len(load_sites()),
+            },
             "borderline_months": borderline,
         },
         "margins": {k: margins[k] for k in sorted(margins)},

@@ -138,24 +138,51 @@ class HilalPrevMonth(BaseModel):
     length: int
 
 
+class DecidingSite(BaseModel):
+    """The coastal observation site whose sunset decided the verdict."""
+
+    name: str
+    lat: float
+    lon: float
+    elev_m: float
+    tz: str = Field(description="IANA timezone used for the site's displayed times")
+
+
 class HilalEvening(BaseModel):
     hijri_date: str
     hijri_day: int
     gregorian_date: str
     sunset: str
     moonset: str
-    moon_alt_deg: float
-    moon_az_deg: float
-    sun_alt_deg: float
-    elongation_deg: float
+    moon_alt_deg: float = Field(
+        description="Topocentric apparent moon altitude (refraction applied) at the "
+        "deciding site's local sunset"
+    )
+    moon_az_deg: float = Field(
+        description="Moon azimuth at the deciding site's sunset, degrees from north clockwise"
+    )
+    sun_alt_deg: float = Field(description="Sun altitude at the deciding site's sunset")
+    elongation_deg: float = Field(
+        description="Geocentric moon-sun elongation at the deciding site's local sunset"
+    )
     illumination_pct: float
     age_hours: float
-    alt_ok: bool = Field(description="Moon altitude >= 3.0 degrees at Sabang sunset")
-    elong_ok: bool = Field(description="Elongation >= 6.4 degrees at Sabang sunset")
+    deciding_site: DecidingSite | None = Field(
+        default=None,
+        description=(
+            "Coastal observation site where the criteria were met "
+            "(null when the moon is seen nowhere)"
+        ),
+    )
+    sites_checked: int = Field(
+        default=0, description="Number of coastal observation sites evaluated"
+    )
+    alt_ok: bool = Field(description="Moon altitude >= 3.0 degrees at the deciding site's sunset")
+    elong_ok: bool = Field(description="Elongation >= 6.4 degrees at the deciding site's sunset")
     visible: bool = Field(
         description=(
-            "True when both alt_ok and elong_ok are true — criteria fulfilled, "
-            "not a claim of actual observation"
+            "True when the criteria are met at any coastal observation site in "
+            "Indonesia — not a claim of actual observation"
         )
     )
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 from datetime import date, timedelta
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
@@ -126,21 +127,24 @@ class TestBackwardProvider:
     def _stub_pattern(monkeypatch, pattern: list[bool]) -> None:
         calls = {"n": 0}
 
-        class FakeResult:
+        class FakeSighting:
             def __init__(self, visible: bool):
-                self.alt_deg = 5.0 if visible else 1.0
-                self.elong_deg = 8.0 if visible else 4.0
+                self._visible = visible
+                self.month_length = 29 if visible else 30
+                self.best_site = SimpleNamespace(margin_deg=0.5)
 
             @property
             def visible(self) -> bool:
-                return self.alt_deg >= 3.0 and self.elong_deg >= 6.4
+                return self._visible
 
-        def fake_criteria(d):
-            result = FakeResult(pattern[calls["n"] % len(pattern)])
+        def fake_sighting(d):
+            result = FakeSighting(pattern[calls["n"] % len(pattern)])
             calls["n"] += 1
             return result
 
-        monkeypatch.setattr(mc, "criteria_on_sunset", fake_criteria)
+        # Only the backward-rule evening is stubbed; anchor and margins use
+        # the real multi-site computation (as in the pre-port test).
+        monkeypatch.setattr(mc, "sighting_on_date", fake_sighting)
 
     def test_backward_extension_matches_pattern(self, monkeypatch):
         # Deciding evenings: 30-day, 29-day, 30-day, 29-day ...

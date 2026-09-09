@@ -6,7 +6,7 @@ from typing import NamedTuple
 
 from .coverage import FORWARD_CEIL, RETRO_FLOOR
 from .fallback import FallbackError
-from .mabims_astro import ALT_MIN_DEG, ELONG_MIN_DEG, criteria_on_day29, criteria_on_sunset
+from .mabims_sites import sighting_on_date, sighting_on_day29
 from .schemas import Source
 
 COMPUTED_SOURCE: Source = "mabims-computed"
@@ -53,35 +53,38 @@ class MabimsCalcProvider:
         return last.start + timedelta(days=last.length - 1)
 
     def _decide(self, hijri: tuple[int, int], start: date) -> _Block:
-        result = criteria_on_day29(start)
-        length = 29 if result.visible else 30
-        margin = min(result.alt_deg - ALT_MIN_DEG, result.elong_deg - ELONG_MIN_DEG)
-        return _Block(hijri=hijri, start=start, length=length, margin=margin)
+        result = sighting_on_day29(start)
+        return _Block(
+            hijri=hijri,
+            start=start,
+            length=result.month_length,
+            margin=result.best_site.margin_deg,
+        )
 
     def _decide_backward(self, next_start: date) -> _Block:
         """Previous month, from a known 1st at ``next_start``.
 
         Validated backward rule (48/48 vs curated 1444-1448): the month
-        before a known 1st is 30 days iff the criteria are met at Sabang
-        sunset on ``next_start - 31`` — the evening before the candidate
-        30-day start. If visible, that evening started the 30-day month;
-        if not, the 1st sits at ``next_start - 29``.
+        before a known 1st is 30 days iff the criteria are met at any of
+        the coastal observation sites on ``next_start - 31`` — the evening
+        before the candidate 30-day start. If visible, that evening
+        started the 30-day month; if not, the 1st sits at ``next_start -
+        29``.
 
         The recorded margin comes from the block's own day-29 evening — the
         same evening a forward decision uses — so borderline flags stay
         consistent across tiers.
         """
-        result = criteria_on_sunset(next_start - timedelta(days=31))
+        result = sighting_on_date(next_start - timedelta(days=31))
         length = 30 if result.visible else 29
         block_start = next_start - timedelta(days=length)
-        forward = criteria_on_day29(block_start)
-        margin = min(forward.alt_deg - ALT_MIN_DEG, forward.elong_deg - ELONG_MIN_DEG)
+        forward = sighting_on_day29(block_start)
         first = self._blocks[0]
         return _Block(
             hijri=prev_hijri_month(*first.hijri),
             start=block_start,
             length=length,
-            margin=margin,
+            margin=forward.best_site.margin_deg,
         )
 
     def _fill(self, block: _Block) -> None:

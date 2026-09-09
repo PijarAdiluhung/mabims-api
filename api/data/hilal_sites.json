@@ -1,0 +1,180 @@
+{
+  "description": "Coastal hilal observation sites for the multi-site 'seen anywhere in Indonesia' criteria. At each site's local sunset on Hijri day 29, the crescent is seen if topocentric apparent moon altitude (refraction applied) >= 3.0 deg and geocentric elongation >= 6.4 deg. Sites span the west coast (earliest moonset at local sunset) and the southern Java / Lesser Sunda arc (southern-declination months). Coordinates are map precision (a few hundred meters).",
+  "sites": [
+    {
+      "name": "Sabang / Weh Island",
+      "lat": 5.8897,
+      "lon": 95.3164,
+      "elev_m": 16,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Lhoknga / Tgk. Chiek Kuta Karang",
+      "lat": 5.4769,
+      "lon": 95.2454,
+      "elev_m": 17,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Meulaboh Coast",
+      "lat": 4.133,
+      "lon": 96.117,
+      "elev_m": 7,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Sinabang / Simeulue Island",
+      "lat": 2.4833,
+      "lon": 96.375,
+      "elev_m": 30,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Binasi Beach / Sorkam Barat",
+      "lat": 1.9,
+      "lon": 98.5,
+      "elev_m": 5,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Gunungsitoli Coast / Nias Island",
+      "lat": 1.1,
+      "lon": 97.533,
+      "elev_m": 10,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Pasia Tiku Beach",
+      "lat": 0.25,
+      "lon": 99.45,
+      "elev_m": 5,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Pasir Baru Beach / Sungai Limau",
+      "lat": 0.12,
+      "lon": 100.52,
+      "elev_m": 5,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Gandoriah Beach",
+      "lat": 0.62,
+      "lon": 100.14,
+      "elev_m": 5,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Gedung Kebudayaan / Padang",
+      "lat": -0.95,
+      "lon": 100.42,
+      "elev_m": 5,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Langkisau Peak / Painan",
+      "lat": -1.38,
+      "lon": 100.58,
+      "elev_m": 30,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Tuapejat / Sipora Island",
+      "lat": -2.18,
+      "lon": 99.63,
+      "elev_m": 10,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Mukomuko Coast",
+      "lat": -2.55,
+      "lon": 101.08,
+      "elev_m": 5,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Lempuing / Pantai Panjang",
+      "lat": -3.8,
+      "lon": 102.1,
+      "elev_m": 5,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Labuhan Jukung Beach / Krui",
+      "lat": -4.95,
+      "lon": 103.98,
+      "elev_m": 5,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Ujung Kulon / Tanjung Layar",
+      "lat": -6.784,
+      "lon": 105.335,
+      "elev_m": 5,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Pelabuhan Ratu / Cimaja",
+      "lat": -6.985,
+      "lon": 106.545,
+      "elev_m": 5,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Pangandaran Beach",
+      "lat": -7.683,
+      "lon": 108.47,
+      "elev_m": 5,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Parangtritis / Bantul",
+      "lat": -8.028,
+      "lon": 110.33,
+      "elev_m": 5,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Pulau Merah / Banyuwangi",
+      "lat": -8.718,
+      "lon": 114.045,
+      "elev_m": 5,
+      "tz": "Asia/Jakarta"
+    },
+    {
+      "name": "Uluwatu / Suluban (Bali)",
+      "lat": -8.815,
+      "lon": 115.088,
+      "elev_m": 5,
+      "tz": "Asia/Makassar"
+    },
+    {
+      "name": "Tanjung Aan / Kuta (Lombok)",
+      "lat": -8.9,
+      "lon": 116.313,
+      "elev_m": 5,
+      "tz": "Asia/Makassar"
+    },
+    {
+      "name": "Lakey Peak / Hu'u (Sumbawa)",
+      "lat": -8.79,
+      "lon": 118.29,
+      "elev_m": 5,
+      "tz": "Asia/Makassar"
+    },
+    {
+      "name": "Pero Beach (SW Sumba)",
+      "lat": -9.615,
+      "lon": 119.145,
+      "elev_m": 5,
+      "tz": "Asia/Makassar"
+    },
+    {
+      "name": "Nemberala (Rote Ndao)",
+      "lat": -10.935,
+      "lon": 123.045,
+      "elev_m": 5,
+      "tz": "Asia/Makassar"
+    }
+  ]
+}

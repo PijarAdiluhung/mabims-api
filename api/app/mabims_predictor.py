@@ -2,11 +2,15 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
-from .mabims_astro import month_length
+from .mabims_sites import sighting_on_day29
 
 
 def next_hijri_month(year: int, month: int) -> tuple[int, int]:
     return (year + 1, 1) if month == 12 else (year, month + 1)
+
+
+def month_length(month_start: date) -> int:
+    return sighting_on_day29(month_start).month_length
 
 
 def predict_month_starts(

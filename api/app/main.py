@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import calendar as pycalendar
 import hashlib
@@ -8,6 +8,7 @@ import re
 from datetime import date, datetime
 from pathlib import Path
 from typing import TypeVar
+from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, Query, Request
 from fastapi.responses import JSONResponse, Response
@@ -27,22 +28,17 @@ from .coverage import (
 )
 from .events import find_events
 from .fallback import FALLBACK_SOURCE, AladhanProvider, FallbackStore, MemoryFallbackStore
-from .hilal.astro import lunar_age_hours, moonset_local, phase_angle_deg, sunset_utc
+from .hilal.astro import lunar_age_hours, moonset_local, phase_angle_deg
 from .hilal.chart import build_chart_data, chart_png_bytes
 from .hilal.service import MONTH_NAMES_ID, MonthNotResolvable, resolve_sighting_evening
-from .mabims_astro import (
-    SABANG_LAT_DEG,
-    SABANG_LON_DEG,
-    WIB,
-    EveningObservation,
-    observation_on_sunset,
-)
 from .mabims_computed import COMPUTED_SOURCE, MabimsCalcProvider, next_hijri_month
+from .mabims_sites import MultiSiteSighting, Site, sighting_on_date, site_by_name
 from .schemas import (
     ConversionInput,
     ConversionOutput,
     ConvertResponse,
     Coverage,
+    DecidingSite,
     EventItem,
     EventsInput,
     EventsResponse,
@@ -80,13 +76,14 @@ FALLBACK_WARNING = (
 )
 COMPUTED_WARNING = (
     "Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria "
-    "(hilal altitude >= 3 deg and elongation >= 6.4 deg at Sabang sunset)."
+    "(moon altitude >= 3 deg and elongation >= 6.4 deg at local sunset, seen anywhere "
+    "across the coastal observation sites of Indonesia)."
 )
 BORDERLINE_WARNING_TEMPLATE = (
     "Hijri month {ym} is close to the Neo MABIMS visibility threshold; the officially "
     "announced date may shift by one day."
 )
-COMPUTED_METHOD = "neo-mabims-sabang"
+COMPUTED_METHOD = "neo-mabims-multisite"
 MAX_RANGE_DAYS = 45
 RETRO_QUERY_DESC = "Set true to allow computed retro dates below the curated table"
 HILAL_CACHE = {"Cache-Control": "public, max-age=86400, s-maxage=86400"}
@@ -94,9 +91,6 @@ HILAL_ALT_MIN_DEG = 3.0
 HILAL_ELONG_MIN_DEG = 6.4
 
 _HIJRI_YEARS_PER_GREGORIAN = 365.2425 / 354.36792
-
-SABANG_TZ = "Asia/Jakarta"
-SABANG_DISPLAY = "Sabang \u00b7 Indonesia"
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
 GREGORIAN_MONTH_NAMES = {
@@ -113,19 +107,28 @@ def _parse_date_parts(iso: str, calendar: str) -> dict:
 
 
 class SightingObservation:
-    """Geocentric MABIMS criteria plus observer-clock facts for one evening."""
+    """Multi-site MABIMS verdict plus decider-site observer facts for one evening."""
 
-    __slots__ = ("criteria", "sunset_local", "moonset_local", "illumination_pct", "age_hours")
+    __slots__ = (
+        "multisite",
+        "site",
+        "sunset_local",
+        "moonset_local",
+        "illumination_pct",
+        "age_hours",
+    )
 
     def __init__(
         self,
-        criteria: EveningObservation,
+        multisite: MultiSiteSighting,
+        site: Site,
         sunset_local: str,
         moonset_local: str,
         illumination_pct: float,
         age_hours: float,
     ) -> None:
-        self.criteria = criteria
+        self.multisite = multisite
+        self.site = site
         self.sunset_local = sunset_local
         self.moonset_local = moonset_local
         self.illumination_pct = illumination_pct
@@ -133,21 +136,27 @@ class SightingObservation:
 
 
 def observe_sighting_evening(evening_date: date) -> SightingObservation:
-    """Compose the full hilal payload for a sighting evening at Sabang.
+    """Compose the full hilal payload for a sighting evening.
 
-    Criteria values (alt/elong/azimuth) come from the geocentric hisab in
-    ``mabims_astro`` — the same function that drives month lengths. Sunset,
-    moonset, illumination and age are observer-clock facts.
+    The verdict (alt/elong/visible) and the whole scene come from the
+    multi-site model in ``mabims_sites``: the deciding site when visible,
+    the closest-miss site otherwise. Sunset, moonset, illumination and age
+    are computed at that same site's sunset instant, displayed in the
+    site's own timezone.
     """
-    criteria = observation_on_sunset(evening_date)
-    sunset_dt = sunset_utc(evening_date, SABANG_TZ, SABANG_LAT_DEG, SABANG_LON_DEG)
-    phase = phase_angle_deg(sunset_dt)
+    ms = sighting_on_date(evening_date)
+    chosen = ms.deciding_site or ms.best_site
+    site = site_by_name(chosen.site)
+    sky = ms.sky_for(chosen.site)
+    tz = ZoneInfo(site.tz)
+    phase = phase_angle_deg(sky.sunset_utc)
     return SightingObservation(
-        criteria=criteria,
-        sunset_local=sunset_dt.astimezone(WIB).strftime("%H:%M"),
-        moonset_local=moonset_local(evening_date, SABANG_TZ, SABANG_LAT_DEG, SABANG_LON_DEG),
+        multisite=ms,
+        site=site,
+        sunset_local=sky.sunset_utc.astimezone(tz).strftime("%H:%M"),
+        moonset_local=moonset_local(evening_date, site.tz, site.lat_deg, site.lon_deg),
         illumination_pct=(1.0 - math.cos(math.radians(phase))) / 2.0 * 100.0,
-        age_hours=lunar_age_hours(sunset_dt),
+        age_hours=lunar_age_hours(sky.sunset_utc),
     )
 
 
@@ -186,10 +195,10 @@ def _parse_hijri_date(value: str) -> str:
     """Validate a Hijri ``YYYY-MM-DD`` string without Gregorian date rules.
 
     ``date.fromisoformat`` validates against the Gregorian calendar, so a
-    legitimate Hijri date like ``1368-02-30`` (30 Safar — a 30-day month) would
-    be rejected as a nonexistent Gregorian Feb 30 — and ``datetime.date`` cannot
+    legitimate Hijri date like ``1368-02-30`` (30 Safar â€” a 30-day month) would
+    be rejected as a nonexistent Gregorian Feb 30 â€” and ``datetime.date`` cannot
     even represent ``February 30`` in any year. Hijri months are 29/30 days, so
-    the syntactically valid day range is 1–30; whether a specific day exists in
+    the syntactically valid day range is 1â€“30; whether a specific day exists in
     a given month is left to the data lookup (``date_not_found``). Returns the
     normalized ISO string and never constructs a ``date`` object.
     """
@@ -567,7 +576,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         response_model=ConvertResponse,
         tags=["Today"],
         summary="Hijri date for a fixed Gregorian date",
-        description="Immutable endpoint — CDN-cacheable forever. Date format: YYYY-MM-DD.",
+        description="Immutable endpoint â€” CDN-cacheable forever. Date format: YYYY-MM-DD.",
         methods=["GET", "HEAD"],
     )
     def today_on(
@@ -589,10 +598,10 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
     def _hijri_month_items(year: int, month: int, retro: bool = False) -> list[RangeItem]:
         """All days of a Hijri month, served from whichever tier covers it.
 
-        A Hijri month is 29 or 30 days, never 31 — days are probed by exact
+        A Hijri month is 29 or 30 days, never 31 â€” days are probed by exact
         Hijri ISO date and the first missing day ends the month, so a
         fabricated ``day 31`` can never be produced. When the curated table
-        fully covers the month it is served as-is (authoritative — a computed
+        fully covers the month it is served as-is (authoritative â€” a computed
         pad could wrongly extend an official 29-day month to 30). When the
         table is absent or truncated mid-month, the computed store is ensured
         and ``lookup`` fills the gap (curated days still win where present).
@@ -915,23 +924,29 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                 f"Could not compute hilal data: {exc.__class__.__name__}",
                 503,
             ) from exc
-        crit = sighting.criteria
-        alt_ok = crit.moon_alt_deg >= HILAL_ALT_MIN_DEG
-        elong_ok = crit.elongation_deg >= HILAL_ELONG_MIN_DEG
+        ms = sighting.multisite
+        ms_site = ms.deciding_site or ms.best_site
+        alt_ok = ms_site.alt_refracted_deg >= HILAL_ALT_MIN_DEG
+        elong_ok = ms_site.elong_deg >= HILAL_ELONG_MIN_DEG
+        visible = ms.visible
         source = service.lookup(evening_g, "gregorian").source
         if retro and source == COMPUTED_SOURCE and evening_g < bounds.curated_first:
             source = RETRO_SOURCE
         warnings = _warnings_for(
             source, f"{res.prev_year:04d}-{res.prev_month:02d}-15"
         )
-        return res, sighting, alt_ok, elong_ok, source, warnings
+        return res, sighting, alt_ok, elong_ok, visible, ms_site, source, warnings
 
     @app.api_route(
         "/api/v1/hilal/info",
         response_model=HilalInfoResponse,
         tags=["Hilal"],
         summary="Hilal visibility data",
-        description="Geocentric hisab data for the evening deciding a Hijri month start (Sabang).",
+        description=(
+            "Hilal criteria data for the evening deciding a Hijri month start: "
+            "topocentric altitude and geocentric elongation at the deciding "
+            "coastal site, with the sky scene at that same site."
+        ),
         methods=["GET", "HEAD"],
     )
     @limiter.limit("60/hour")
@@ -941,10 +956,10 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         year: int = Query(...),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
-        res, sighting, alt_ok, elong_ok, source, warnings = _hilal_context(
+        res, sighting, alt_ok, elong_ok, visible, ms_site, source, warnings = _hilal_context(
             month, year, _parse_retro(retro)
         )
-        crit = sighting.criteria
+        sky = sighting.multisite.sky_for(ms_site.site)
         payload = HilalInfoResponse(
             input=HilalInput(month=month, year=year),
             month=HilalMonth(
@@ -965,15 +980,27 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                 gregorian_date=res.evening_date.isoformat(),
                 sunset=sighting.sunset_local,
                 moonset=sighting.moonset_local,
-                moon_alt_deg=round(crit.moon_alt_deg, 2),
-                moon_az_deg=round(crit.moon_az_deg, 2),
-                sun_alt_deg=round(crit.sun_alt_deg, 2),
-                elongation_deg=round(crit.elongation_deg, 2),
+                moon_alt_deg=round(ms_site.alt_refracted_deg, 2),
+                moon_az_deg=round(sky.moon_az_deg, 2),
+                sun_alt_deg=round(sky.sun_alt_deg, 2),
+                elongation_deg=round(ms_site.elong_deg, 2),
                 illumination_pct=round(sighting.illumination_pct, 2),
                 age_hours=round(sighting.age_hours, 1),
+                deciding_site=(
+                    DecidingSite(
+                        name=sighting.site.name,
+                        lat=sighting.site.lat_deg,
+                        lon=sighting.site.lon_deg,
+                        elev_m=sighting.site.elev_m,
+                        tz=sighting.site.tz,
+                    )
+                    if visible
+                    else None
+                ),
+                sites_checked=len(sighting.multisite.sites),
                 alt_ok=alt_ok,
                 elong_ok=elong_ok,
-                visible=alt_ok and elong_ok,
+                visible=visible,
             ),
             source=source,
             warnings=warnings,
@@ -984,7 +1011,10 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         "/api/v1/hilal/viz",
         tags=["Hilal"],
         summary="Hilal sky chart PNG",
-        description="Renders a 720x1280 PNG chart of hilal visibility with MABIMS criteria table.",
+        description=(
+            "Renders a 720x1280 PNG chart of hilal visibility: sky scene, "
+            "criteria and times at the deciding coastal site."
+        ),
         methods=["GET", "HEAD"],
     )
     @limiter.limit("30/hour")
@@ -994,29 +1024,32 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         year: int = Query(...),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
-        res, sighting, alt_ok, elong_ok, _source, _warnings = _hilal_context(
+        res, sighting, alt_ok, elong_ok, visible, ms_site, _source, _warnings = _hilal_context(
             month, year, _parse_retro(retro)
         )
-        crit = sighting.criteria
+        sky = sighting.multisite.sky_for(ms_site.site)
         data = build_chart_data(
             hijri_label=res.evening_label,
             evening_date=res.evening_date,
-            location_display=SABANG_DISPLAY,
             visibility_label=(
                 f"VISIBILITAS 1 {res.target_name} {res.target_year} H".upper()
             ),
             sunset=sighting.sunset_local,
             moonset=sighting.moonset_local,
-            moon_alt=crit.moon_alt_deg,
-            moon_az=crit.moon_az_deg,
-            sun_alt=crit.sun_alt_deg,
-            sun_az=crit.sun_az_deg,
-            elong=crit.elongation_deg,
+            moon_alt=ms_site.alt_deg,
+            moon_az=sky.moon_az_deg,
+            sun_alt=sky.sun_alt_deg,
+            sun_az=sky.sun_az_deg,
+            elong=ms_site.elong_deg,
             illum=sighting.illumination_pct / 100.0,
+            decider=ms_site.site if visible else None,
+            dec_alt=ms_site.alt_refracted_deg,
+            dec_elong=ms_site.elong_deg,
+            sites_checked=len(sighting.multisite.sites),
             alt_ok=alt_ok,
             elong_ok=elong_ok,
-            alt_margin=crit.moon_alt_deg - HILAL_ALT_MIN_DEG,
-            elong_margin=crit.elongation_deg - HILAL_ELONG_MIN_DEG,
+            alt_margin=ms_site.alt_refracted_deg - HILAL_ALT_MIN_DEG,
+            elong_margin=ms_site.elong_deg - HILAL_ELONG_MIN_DEG,
         )
         try:
             png = chart_png_bytes(data)
@@ -1036,3 +1069,4 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
 
 
 app = create_app()
+
