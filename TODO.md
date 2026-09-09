@@ -31,10 +31,11 @@
 ## Hilal endpoints
 - [x] `/hilal/info` + `/hilal/viz` shipped, Sabang-only geocentric hisab (design tokens in `app/hilal/chart.py`, spec in git history `api/todo/DESIGN.md`)
 - [x] Multi-site criteria overhaul (v1.5.0): topo alt + geo elong at 25 coastal sites, decider-driven `/hilal/*`, regenerated seed (10 boundaries ±1d), 48/48 vs curated
-- [ ] Hilal visibility **map** (future): denser grid beyond the 25 discrete sites — same criteria, sampled continuously across Indonesia; `sites_checked`/`deciding_site` wording chosen to survive this
-- [ ] Rewrite blog `deep-dive-mabims-computed.md` — its "why geocentric" rationale is now outdated by the multi-site model
-- [ ] Rewrite blog `behind-hilal-viz.md` (id+en) as "Di Mana Cari Hilal?" — multi-site edition
-- [ ] Sync `mabims-hijri` SDK (separate repo): bundled data + `hilal.info` docs reference Sabang; re-sync after v1.5.0 ships
+- [ ] **Hilal map — stage 1: expand to ~100 sites.** More granular coastal points (site-list data PR, `api/data/hilal_sites.json` + `seed_divergence.py` census before/after). Evidence that densification matters: 1428-10 (2007-11-10 evening) was a 4-site Java-only rescue, and single-site topocentric loses 4 months that multi-site rescues. Verdicts are robust — 28 narrow months in 80 years, seen-count histogram in `temp/narrow_months.txt` — so additions mainly sharpen `deciding_site` reporting and cover future decades.
+- [ ] **Hilal map — stage 2: continuous grid.** Same criteria sampled across Indonesia (not discrete sites); a `/hilal/map` endpoint or map overlay in `/hilal/viz`; `sites_checked`/`deciding_site` wording already chosen to survive this
+- [x] Rewrite blog `deep-dive-mabims-computed.md` — multi-site rationale + new EN version
+- [x] Rewrite blog `behind-hilal-viz.md` (id+en) as "Di Mana Cari Hilal?" — multi-site edition
+- [x] Sync `mabims-hijri` SDK (v1.2.0): additive `deciding_site`/`sites_checked` types, multi-site docs, pushed (npm publish after v1.5 deploy ✓ API is live)
 - [x] No API keys (dropped M2) — outputs are deterministic per `(month, year)`; CDN caches them via `Cache-Control: public, max-age=86400`, purge-on-push keeps edge fresh
 - [ ] viz precompute 1446–1466 (252 PNGs, build script + immutable cache) only if origin render traffic ever matters
 
