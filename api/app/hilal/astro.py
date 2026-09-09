@@ -1,10 +1,10 @@
-"""Observer-clock astronomy for the Sabang sighting evening.
+"""Observer-clock astronomy for the hilal sighting evening.
 
 Deliberately narrow: sunset/moonset instants (inherently topocentric — a
 geocentric moonset does not exist), lunar illumination and age. The
-*criteria* values (altitude, elongation, azimuth) are NOT computed here;
-they come from the geocentric hisab in ``app.mabims_astro`` so that hilal
-endpoints always agree with the month-length tables.
+*criteria* values (altitude, elongation) and the sky scene come from the
+multi-site model in ``app.mabims_sites`` so that hilal endpoints always
+agree with the month-length tables.
 """
 
 from __future__ import annotations

@@ -19,10 +19,10 @@ Beyond table coverage, the API computes dates using **Neo MABIMS** criteria:
 
 | Parameter | Threshold |
 |---|---|
-| Moon altitude (refraction-corrected) | ≥ 3.0° |
-| Elongation | ≥ 6.4° |
-| Reference location | Sabang (5°53′N 95°19′E) |
-| Reference time | At sunset |
+| Moon altitude (topocentric, refraction-corrected) | ≥ 3.0° |
+| Elongation (geocentric) | ≥ 6.4° |
+| Observation points | 25 coastal sites across Indonesia — fulfilled at **any single point** → 29-day month ([site list](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json)) |
+| Reference time | At each site's local sunset (day 29) |
 
 ## Retro (below the curated table)
 

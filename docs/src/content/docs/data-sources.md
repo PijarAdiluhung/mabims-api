@@ -19,10 +19,10 @@ Di luar cakupan tabel, API menghitung tanggal menggunakan kriteria **Neo MABIMS*
 
 | Parameter | Ambang batas |
 |---|---|
-| Ketinggian bulan (terkoreksi refraksi) | ≥ 3,0° |
-| Elongasi | ≥ 6,4° |
-| Lokasi referensi | Sabang (5°53′N 95°19′E) |
-| Waktu referensi | Saat matahari terbenam |
+| Ketinggian bulan (toposentris, terkoreksi refraksi) | ≥ 3,0° |
+| Elongasi (geosentris) | ≥ 6,4° |
+| Titik pengamatan | 25 titik pesisir di seluruh Indonesia — terpenuhi di **satu titik manapun** → bulan 29 hari ([daftar titik](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json)) |
+| Waktu referensi | Saat matahari terbenam lokal di masing-masing titik (hari ke-29) |
 
 ## Retro (di bawah tabel kurasi)
 

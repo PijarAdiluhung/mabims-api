@@ -3,6 +3,28 @@ title: Changelog
 description: Riwayat perubahan API dan dokumentasi MABIMS.
 ---
 
+## 1.5.0 — 2026-09-09
+
+### Changed
+
+- **Kriteria hilal multi-titik (`neo-mabims-multisite`)** — verdict hilal kini mengikuti konvensi Kemenag: ketinggian hilal **toposentris** (terkoreksi refraksi) ≥ 3,0° dan elongasi **geosentris** ≥ 6,4°, dievaluasi pada matahari terbenam lokal masing-masing titik pada hari ke-29 di **25 titik pengamatan pesisir** dari Sabang sampai Rote (sebelumnya: altitud geosentris di Sabang saja). Terpenuhi di satu titik manapun → bulan 29 hari. Tervalidasi 48/48 terhadap tabel kurasi.
+- **Seed komputasi diregenerasi** dengan model baru — **10 awal bulan bergeser ±1 hari** (7 retro: 1393-02, 1395-03, 1396-03, 1398-02, 1410-03, 1428-11, 1436-10; 3 forward: 1452-05, 1466-07, 1467-11). Tabel kurasi tidak berubah.
+- **Semantik `/hilal/info`** — `moon_alt_deg`, `elongation_deg`, `moon_az_deg`, `sun_alt_deg`, `sunset`, `moonset` kini menggambarkan **titik penentu** (sebelumnya Sabang); waktu ditampilkan dalam zona waktu lokal titik tersebut (WIB/WITA). Bentuk respons tetap sama.
+- **`/hilal/viz`** — adegan langit, tabel kriteria, dan waktu semuanya di titik penentu; baris baru **TITIK PENGAMAT**; lokasi di header diganti baris titik pengamatan.
+- `/meta` — `method` sekarang `neo-mabims-multisite`.
+
+### Added
+
+- **`deciding_site`** di `/hilal/info` — object `{ name, lat, lon, elev_m, tz }` titik yang memutuskan verdict (`null` bila hilal tidak terlihat di titik manapun).
+- **`sites_checked`** di `/hilal/info` — jumlah titik pengamatan yang dievaluasi (25).
+- **Daftar titik sebagai data** — [`api/data/hilal_sites.json`](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json): menambah/mengubah titik kini PR data, bukan perubahan kode.
+
+### Notes
+
+- Perubahan bentuk respons bersifat *additive* (minor), tetapi semantik beberapa field berubah — klien yang mengandalkan nilai altitud/elongasi Sabang sebaiknya membaca `deciding_site`.
+
+---
+
 ## 1.4.0 — 2026-09-02
 
 ### Added

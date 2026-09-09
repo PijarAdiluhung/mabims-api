@@ -2,7 +2,7 @@
 
 > Free, open API for Hijri-Gregorian date conversion using Indonesia's official MABIMS criteria (Kementerian Agama RI). Not Umm al-Qura.
 
-MABIMS API serves Hijri-Gregorian date conversion, Islamic event dates, and hilal visibility data for Indonesia. It uses official MABIMS tables from Kemenag RI and the Neo MABIMS criteria for dates beyond table coverage: moon altitude ≥ 3° and elongation ≥ 6.4° at Sabang sunset.
+MABIMS API serves Hijri-Gregorian date conversion, Islamic event dates, and hilal visibility data for Indonesia. It uses official MABIMS tables from Kemenag RI and the Neo MABIMS criteria for dates beyond table coverage: moon altitude ≥ 3° and elongation ≥ 6.4° at local sunset, evaluated at coastal observation points across Indonesia.
 
 ## Key Facts
 - Base URL: https://api.mabims.dev/api/v1

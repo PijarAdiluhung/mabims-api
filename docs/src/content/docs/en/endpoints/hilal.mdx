@@ -7,10 +7,11 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Two endpoints for **hilal visibility**: the deciding evening is always the **29th** of the
 current month — the night people actually go looking for the crescent. If the criteria are
-not fulfilled, the month completes 30 days and the start shifts a day. Month boundaries come from the
-**data publik yang dikeluarkan resmi oleh Kementerian Agama RI** (publicly available official MABIMS tables) (not Umm al-Qura), and the astronomy uses the **Sabang
-geocentric hisab** — the same reference frame as the tables themselves, so the verdict
-always agrees with month lengths in `/convert`.
+not fulfilled at any observation point, the month completes 30 days and the start shifts a
+day. Month boundaries come from the
+**data publik yang dikeluarkan resmi oleh Kementerian Agama RI** (publicly available official MABIMS tables) (not Umm al-Qura), and the astronomy uses a **multi-site model**: the
+criteria are evaluated at **coastal observation points across Indonesia** (currently 25
+sites, from Sabang to Rote — see [`api/data/hilal_sites.json`](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json)).
 
 ```
 GET /api/v1/hilal/info?month={month}&year={year}   → JSON
@@ -29,27 +30,28 @@ same criteria table. Both are public but tightly rate limited
 | `year` | int | yes | Target Hijri year |
 | `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro`. [See data coverage for the reason why](/en/data-coverage/) |
 
-Single reckoning point: **Sabang, Indonesia** (5°53′N 95°19′E, WIB). These endpoints use the
-same Neo MABIMS criteria as the computed table — they are estimates, not official announcements.
+Model: **"seen anywhere in Indonesia"** — the same Neo MABIMS criteria as the computed
+table, evaluated at each point's own local sunset. When the criteria are met, the response
+reports the **deciding site** via `deciding_site`.
 
 ## Example
 
 <Tabs syncKey="code">
   <TabItem label="curl">
     ```bash
-    curl "https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447"
+    curl "https://api.mabims.dev/api/v1/hilal/info?month=11&year=1447"
     ```
   </TabItem>
   <TabItem label="JavaScript">
     ```js
-    const res = await fetch("https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447");
+    const res = await fetch("https://api.mabims.dev/api/v1/hilal/info?month=11&year=1447");
     const data = await res.json();
-    console.log("Visible:", data.evening.visible);
+    console.log("Visible:", data.evening.visible, "at", data.evening.deciding_site?.name);
     ```
   </TabItem>
   <TabItem label="PHP">
     ```php
-    $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447');
+    $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/hilal/info?month=11&year=1447');
     $data = json_decode($response->getBody(), true);
     echo 'Visible: ' . ($data['evening']['visible'] ? 'true' : 'false') . PHP_EOL;
     ```
@@ -58,21 +60,29 @@ same Neo MABIMS criteria as the computed table — they are estimates, not offic
 
 ```json
 {
-  "input": { "month": 9, "year": 1447 },
-  "month": { "name": "Ramadhan", "number": 9, "year": 1447, "start": "2026-02-19" },
-  "previous_month": { "name": "Sya'ban", "number": 8, "year": 1447, "length": 30 },
+  "input": { "month": 11, "year": 1447 },
+  "month": { "name": "Dzulqa'dah", "number": 11, "year": 1447, "start": "2026-04-19" },
+  "previous_month": { "name": "Syawal", "number": 10, "year": 1447, "length": 29 },
   "evening": {
-    "hijri_date": "29 Sya'ban 1447 H",
+    "hijri_date": "29 Syawal 1447 H",
     "hijri_day": 29,
-    "gregorian_date": "2026-02-17",
-    "sunset": "18:14",
-    "moonset": "18:51",
-    "moon_alt_deg": 8.78,
-    "moon_az_deg": 263.98,
+    "gregorian_date": "2026-04-18",
+    "sunset": "18:46",
+    "moonset": "19:31",
+    "moon_alt_deg": 10.36,
+    "moon_az_deg": 289.16,
     "sun_alt_deg": -0.83,
-    "elongation_deg": 11.07,
-    "illumination_pct": 1.07,
-    "age_hours": 23.2,
+    "elongation_deg": 14.52,
+    "illumination_pct": 1.44,
+    "age_hours": 23.9,
+    "deciding_site": {
+      "name": "Sabang / Weh Island",
+      "lat": 5.8897,
+      "lon": 95.3164,
+      "elev_m": 16.0,
+      "tz": "Asia/Jakarta"
+    },
+    "sites_checked": 25,
     "alt_ok": true,
     "elong_ok": true,
     "visible": true
@@ -84,20 +94,33 @@ same Neo MABIMS criteria as the computed table — they are estimates, not offic
 
 ## Visibility criteria
 
-`visible = alt_ok && elong_ok` follows the same **Neo MABIMS criteria** as the computed
-table: moon altitude (refraction-corrected) ≥ **3.0°** and elongation ≥ **6.4°** at
-Sabang sunset. Altitude/elongation/azimuth values are **geocentric** (the Indonesian
-hisab convention); sunset and moonset times remain topocentric for Sabang since those are
-observer phenomena.
+`visible` is `true` when the criteria are met at **at least one observation point**:
+
+- **Moon altitude ≥ 3.0°** — *topocentric* (the hilal's position relative to the observer),
+  with atmospheric refraction applied (Bennett formula);
+- **Elongation ≥ 6.4°** — *geocentric* (the Indonesian hisab convention), the moon–sun
+  angular separation;
+
+both evaluated at that site's **local sunset** on day 29. The further west a point sits, the
+higher the hilal stands at its sunset — so comfortable months are usually decided on the
+western coast (Aceh), while months with a southerly lunar declination can be decided along
+the southern arc (Java → Lesser Sunda). When the criteria are met nowhere, `deciding_site`
+is `null` and the altitude/elongation values come from the best-margin site (closest to
+fulfilment).
+
+Sunset/moonset times, azimuths, illumination and lunar age are computed **topocentrically at
+the deciding site** (not Sabang), and times are displayed in the site's own timezone
+(WIB/WITA).
 
 ## Chart (`/hilal/viz`)
 
 A 720×1280 vertical PNG: sunset sky with the crescent (bright limb facing the sun), a
-verdict pill (`MEMENUHI` / `TIDAK MEMENUHI` / `MENDEKATI BATAS` / `DI BAWAH HORIZON`) and a
-`PARAMETER · MABIMS MIN · STATUS` criteria table. When the criteria are not fulfilled the moon is
-deliberately not drawn — the sky tells the truth. Output is deterministic per parameter.
+verdict pill (`MEMENUHI KRITERIA` / `TIDAK MEMENUHI` / `MENDEKATI BATAS` / `DI BAWAH HORIZON`) and a
+`PARAMETER · MABIMS MIN · STATUS` criteria table plus a **TITIK PENGAMAT** row — the sky scene,
+criteria values and times all refer to the same deciding site. Output is deterministic per
+parameter.
 
-<img src="/viz.png" alt="Sample hilal visibility chart — 29 Sya'ban 1447 H, Sabang" style="width: 100%; max-width: 480px;" />
+<img src="/viz.png" alt="Sample hilal visibility chart — 29 Syawal 1447 H, decided at Sabang" style="width: 100%; max-width: 480px;" />
 
 ## Caching
 

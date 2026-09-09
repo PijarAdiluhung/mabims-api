@@ -18,7 +18,7 @@ MABIMS.dev adalah API open-source unofficial gratis yang menyediakan ekosistem k
 
 Hampir semua API dan library kalender Hijriah menggunakan Umm al-Qura sebagai default. Umm al-Qura adalah kalender resmi Arab Saudi yang dirancang untuk kebutuhan di sana, bukan untuk Indonesia.
 
-Karena metode rukyah dan lokasi pengamatannya berbeda, hasilnya bisa selisih ±1 hari dari keputusan resmi Kemenag — terutama untuk awal Ramadhan, Idul Fitri, dan Idul Adha. MABIMS.dev menggunakan data tabel publik Kemenag RI dan kriteria Neo MABIMS (ketinggian hilal ≥ 3°, elongasi ≥ 6,4° di Sabang saat matahari terbenam) untuk tanggal di luar cakupan tabel.
+Karena metode rukyah dan lokasi pengamatannya berbeda, hasilnya bisa selisih ±1 hari dari keputusan resmi Kemenag — terutama untuk awal Ramadhan, Idul Fitri, dan Idul Adha. MABIMS.dev menggunakan data tabel publik Kemenag RI dan kriteria Neo MABIMS (ketinggian hilal ≥ 3°, elongasi ≥ 6,4° saat matahari terbenam lokal, dievaluasi di titik-titik pengamatan pesisir di seluruh Indonesia) untuk tanggal di luar cakupan tabel.
 
 ## Dibandingkan dengan Alternatif
 

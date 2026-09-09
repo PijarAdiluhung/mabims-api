@@ -18,7 +18,7 @@ MABIMS.dev is a free open-source API that provides an ecosystem for the Indonesi
 
 Almost all Hijri calendar APIs and libraries default to Umm al-Qura. Umm al-Qura is Saudi Arabia's official calendar, designed for their needs — not Indonesia's.
 
-Because the rukyah method and observation location differ, results can be ±1 day off from Kemenag's official decisions — especially for Ramadan start, Eid al-Fitr, and Eid al-Adha. MABIMS.dev uses public Kemenag RI table data and Neo MABIMS criteria (moon altitude ≥ 3°, elongation ≥ 6.4° at Sabang sunset) for dates beyond table coverage.
+Because the rukyah method and observation location differ, results can be ±1 day off from Kemenag's official decisions — especially for Ramadan start, Eid al-Fitr, and Eid al-Adha. MABIMS.dev uses public Kemenag RI table data and Neo MABIMS criteria (moon altitude ≥ 3°, elongation ≥ 6.4° at local sunset, evaluated at coastal observation points across Indonesia) for dates beyond table coverage.
 
 ## Compared to Alternatives
 

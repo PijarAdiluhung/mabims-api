@@ -3,6 +3,28 @@ title: Changelog
 description: History of changes to the MABIMS API and documentation.
 ---
 
+## 1.5.0 — 2026-09-09
+
+### Changed
+
+- **Multi-site hilal criteria (`neo-mabims-multisite`)** — the hilal verdict now follows the Kemenag convention: **topocentric** moon altitude (refraction applied) ≥ 3.0° and **geocentric** elongation ≥ 6.4°, evaluated at each site's own local sunset on day 29 across **25 coastal observation sites** from Sabang to Rote (previously: geocentric altitude at Sabang only). Met at any single site → 29-day month. Validated 48/48 against the curated table.
+- **Computed seed regenerated** with the new model — **10 month starts shifted ±1 day** (7 retro: 1393-02, 1395-03, 1396-03, 1398-02, 1410-03, 1428-11, 1436-10; 3 forward: 1452-05, 1466-07, 1467-11). The curated table is unchanged.
+- **`/hilal/info` semantics** — `moon_alt_deg`, `elongation_deg`, `moon_az_deg`, `sun_alt_deg`, `sunset`, `moonset` now describe the **deciding site** (previously Sabang); times are shown in the site's own timezone (WIB/WITA). Response shape unchanged.
+- **`/hilal/viz`** — sky scene, criteria table and times all at the deciding site; new **TITIK PENGAMAT** row; the header location line was replaced by that row.
+- `/meta` — `method` is now `neo-mabims-multisite`.
+
+### Added
+
+- **`deciding_site`** on `/hilal/info` — `{ name, lat, lon, elev_m, tz }` object for the site that decided the verdict (`null` when the moon is seen nowhere).
+- **`sites_checked`** on `/hilal/info` — number of observation points evaluated (25).
+- **Site list as data** — [`api/data/hilal_sites.json`](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json): adding or moving sites is now a data PR, not a code change.
+
+### Notes
+
+- Response-shape changes are additive (minor), but several field **semantics** changed — clients relying on Sabang altitude/elongation values should read `deciding_site`.
+
+---
+
 ## 1.4.0 — 2026-09-02
 
 ### Added

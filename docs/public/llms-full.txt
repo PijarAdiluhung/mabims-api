@@ -10,7 +10,7 @@ MABIMS API provides:
 3. Hilal (crescent moon) visibility data and sky charts
 4. Full month/year calendar grids
 
-Built on official MABIMS tables published by Kementerian Agama RI. For dates beyond table coverage, uses Neo MABIMS criteria: moon altitude ≥ 3° and elongation ≥ 6.4° at sunset in Sabang (5°53′N 95°19′E), Indonesia's westernmost point.
+Built on official MABIMS tables published by Kementerian Agama RI. For dates beyond table coverage, uses Neo MABIMS criteria: moon altitude ≥ 3° (topocentric, refraction applied) and elongation ≥ 6.4° (geocentric) at each site's local sunset, evaluated at 25 coastal observation points across Indonesia.
 
 ## Key Facts
 
@@ -281,21 +281,29 @@ curl "https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447"
 
 ```json
 {
-  "input": { "month": 9, "year": 1447 },
-  "month": { "name": "Ramadhan", "number": 9, "year": 1447, "start": "2026-02-19" },
-  "previous_month": { "name": "Sya'ban", "number": 8, "year": 1447, "length": 30 },
+  "input": { "month": 11, "year": 1447 },
+  "month": { "name": "Dzulqa'dah", "number": 11, "year": 1447, "start": "2026-04-19" },
+  "previous_month": { "name": "Syawal", "number": 10, "year": 1447, "length": 29 },
   "evening": {
-    "hijri_date": "29 Sya'ban 1447 H",
+    "hijri_date": "29 Syawal 1447 H",
     "hijri_day": 29,
-    "gregorian_date": "2026-02-17",
-    "sunset": "18:14",
-    "moonset": "18:51",
-    "moon_alt_deg": 8.78,
-    "moon_az_deg": 263.98,
+    "gregorian_date": "2026-04-18",
+    "sunset": "18:46",
+    "moonset": "19:31",
+    "moon_alt_deg": 10.36,
+    "moon_az_deg": 289.16,
     "sun_alt_deg": -0.83,
-    "elongation_deg": 11.07,
-    "illumination_pct": 1.07,
-    "age_hours": 23.2,
+    "elongation_deg": 14.52,
+    "illumination_pct": 1.44,
+    "age_hours": 23.9,
+    "deciding_site": {
+      "name": "Sabang / Weh Island",
+      "lat": 5.8897,
+      "lon": 95.3164,
+      "elev_m": 16.0,
+      "tz": "Asia/Jakarta"
+    },
+    "sites_checked": 25,
     "alt_ok": true,
     "elong_ok": true,
     "visible": true
@@ -307,10 +315,10 @@ curl "https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447"
 
 ### Visibility Criteria
 
-`visible = alt_ok && elong_ok` follows Neo MABIMS:
-- Moon altitude (refraction-corrected) ≥ 3.0°
-- Elongation ≥ 6.4°
-- At sunset in Sabang, Indonesia
+`visible` is true when the criteria are met at any coastal observation point:
+- Moon altitude (topocentric, refraction-corrected) ≥ 3.0°
+- Elongation (geocentric) ≥ 6.4°
+- At each site's local sunset on day 29; 25 coastal sites across Indonesia (Aceh to Rote); the passing site is reported as `deciding_site`
 
 ### Caching
 

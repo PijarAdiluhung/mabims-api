@@ -30,6 +30,11 @@
 - [ ] Docs-site example JSON blocks: verify the payloads printed in `docs/src/content/docs/endpoints/*.md` still match live responses (contract tests cover schema shapes, not the markdown snippets)
 ## Hilal endpoints
 - [x] `/hilal/info` + `/hilal/viz` shipped, Sabang-only geocentric hisab (design tokens in `app/hilal/chart.py`, spec in git history `api/todo/DESIGN.md`)
+- [x] Multi-site criteria overhaul (v1.5.0): topo alt + geo elong at 25 coastal sites, decider-driven `/hilal/*`, regenerated seed (10 boundaries ±1d), 48/48 vs curated
+- [ ] Hilal visibility **map** (future): denser grid beyond the 25 discrete sites — same criteria, sampled continuously across Indonesia; `sites_checked`/`deciding_site` wording chosen to survive this
+- [ ] Rewrite blog `deep-dive-mabims-computed.md` — its "why geocentric" rationale is now outdated by the multi-site model
+- [ ] Rewrite blog `behind-hilal-viz.md` (id+en) as "Di Mana Cari Hilal?" — multi-site edition
+- [ ] Sync `mabims-hijri` SDK (separate repo): bundled data + `hilal.info` docs reference Sabang; re-sync after v1.5.0 ships
 - [x] No API keys (dropped M2) — outputs are deterministic per `(month, year)`; CDN caches them via `Cache-Control: public, max-age=86400`, purge-on-push keeps edge fresh
 - [ ] viz precompute 1446–1466 (252 PNGs, build script + immutable cache) only if origin render traffic ever matters
 

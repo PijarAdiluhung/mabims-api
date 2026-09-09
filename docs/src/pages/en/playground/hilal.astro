@@ -19,13 +19,16 @@ const months = [
 
   <p>
     This page is a sample of the MABIMS API hilal visibility functionality.
-    Try it now and get a hilal visibility chart for Sabang, Indonesia's westernmost point
-    that often determines the start of the month.
+    Try it now and get a hilal visibility chart evaluated at coastal
+    observation points across Indonesia — the chart names the deciding site
+    when the criteria are met.
   </p>
 
   <p>
-    Neo MABIMS criteria: moon altitude ≥ 3.0° and elongation ≥ 6.4° at sunset in Sabang.
-    If both are met, the moon is considered visible and 1 Muharram begins the next day.
+    Neo MABIMS criteria: moon altitude ≥ 3.0° (topocentric, refraction applied)
+    and elongation ≥ 6.4° (geocentric) at each site's local sunset, checked at
+    25 coastal sites across Indonesia. If met anywhere, the moon is considered
+    visible and 1 Muharram begins the next day.
   </p>
 
   <form id="hilal-form" class="pg-form">

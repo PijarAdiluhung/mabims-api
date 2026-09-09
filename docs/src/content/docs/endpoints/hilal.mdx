@@ -5,8 +5,8 @@ description: Visibilitas hilal — data kriteria dan grafik langit untuk malam p
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-Ada dua endpoint untuk **visibilitas hilal**, dan malam penentuan selalu **malam tanggal 29**, malam rukyatul hilal. Bila kriteria tidak terpenuhi, bulan
-lengkap 30 hari dan awal bulan bergeser sehari. Batas bulan diambil dari **data publik yang dikeluarkan resmi oleh Kementerian Agama RI**, dan data astronomis dihitung dengan **perhitungan geosentris di Sabang**, sebagai lokasi paling barat di Indonesia.
+Ada dua endpoint untuk **visibilitas hilal**, dan malam penentuan selalu **malam tanggal 29**, malam rukyatul hilal. Bila kriteria tidak terpenuhi di titik pengamatan manapun, bulan
+lengkap 30 hari dan awal bulan bergeser sehari. Batas bulan diambil dari **data publik yang dikeluarkan resmi oleh Kementerian Agama RI**, dan data astronomis dihitung dengan **model multi titik**: kriteria dievaluasi di **titik-titik pengamatan pesisir di seluruh Indonesia** (saat ini 25 titik, dari Sabang sampai Rote — lihat [`api/data/hilal_sites.json`](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json)).
 
 ```
 GET /api/v1/hilal/info?month={bulan}&year={tahun}   → JSON
@@ -24,27 +24,28 @@ GET /api/v1/hilal/viz?month={bulan}&year={tahun}    → PNG 720×1280
 | `year` | int | ya | Tahun Hijriah target |
 | `retro` | `true` / `false` | tidak (default `false`) | Buka tanggal retro komputasi di bawah tabel kurasi (s.d. 1945-01-01), ditandai `mabims-retro`. [Lihat cakupan data untuk alasannya](/data-coverage/) |
 
-Titik hisab tunggal: **Sabang, Indonesia** (5°53′N 95°19′E, WIB). Endpoint ini menggunakan
-kriteria Neo MABIMS yang sama dengan perhitungan tabel computed.
+Model: **"terlihat di mana saja di Indonesia"** — kriteria Neo MABIMS yang sama dengan
+perhitungan tabel computed, dievaluasi di setiap titik pada senja lokalnya masing-masing.
+Bila kriteria terpenuhi, respons melaporkan **titik penentu** lewat `deciding_site`.
 
 ## Contoh
 
 <Tabs syncKey="code">
   <TabItem label="curl">
     ```bash
-    curl "https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447"
+    curl "https://api.mabims.dev/api/v1/hilal/info?month=11&year=1447"
     ```
   </TabItem>
   <TabItem label="JavaScript">
     ```js
-    const res = await fetch("https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447");
+    const res = await fetch("https://api.mabims.dev/api/v1/hilal/info?month=11&year=1447");
     const data = await res.json();
-    console.log("Visible:", data.evening.visible);
+    console.log("Visible:", data.evening.visible, "at", data.evening.deciding_site?.name);
     ```
   </TabItem>
   <TabItem label="PHP">
     ```php
-    $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447');
+    $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/hilal/info?month=11&year=1447');
     $data = json_decode($response->getBody(), true);
     echo 'Visible: ' . ($data['evening']['visible'] ? 'true' : 'false') . PHP_EOL;
     ```
@@ -53,21 +54,29 @@ kriteria Neo MABIMS yang sama dengan perhitungan tabel computed.
 
 ```json
 {
-  "input": { "month": 9, "year": 1447 },
-  "month": { "name": "Ramadhan", "number": 9, "year": 1447, "start": "2026-02-19" },
-  "previous_month": { "name": "Sya'ban", "number": 8, "year": 1447, "length": 30 },
+  "input": { "month": 11, "year": 1447 },
+  "month": { "name": "Dzulqa'dah", "number": 11, "year": 1447, "start": "2026-04-19" },
+  "previous_month": { "name": "Syawal", "number": 10, "year": 1447, "length": 29 },
   "evening": {
-    "hijri_date": "29 Sya'ban 1447 H",
+    "hijri_date": "29 Syawal 1447 H",
     "hijri_day": 29,
-    "gregorian_date": "2026-02-17",
-    "sunset": "18:14",
-    "moonset": "18:51",
-    "moon_alt_deg": 8.78,
-    "moon_az_deg": 263.98,
+    "gregorian_date": "2026-04-18",
+    "sunset": "18:46",
+    "moonset": "19:31",
+    "moon_alt_deg": 10.36,
+    "moon_az_deg": 289.16,
     "sun_alt_deg": -0.83,
-    "elongation_deg": 11.07,
-    "illumination_pct": 1.07,
-    "age_hours": 23.2,
+    "elongation_deg": 14.52,
+    "illumination_pct": 1.44,
+    "age_hours": 23.9,
+    "deciding_site": {
+      "name": "Sabang / Weh Island",
+      "lat": 5.8897,
+      "lon": 95.3164,
+      "elev_m": 16.0,
+      "tz": "Asia/Jakarta"
+    },
+    "sites_checked": 25,
     "alt_ok": true,
     "elong_ok": true,
     "visible": true
@@ -79,19 +88,31 @@ kriteria Neo MABIMS yang sama dengan perhitungan tabel computed.
 
 ## Kriteria visibilitas
 
-`visible = alt_ok && elong_ok` mengikuti **kriteria Neo MABIMS** yang sama dengan
-tabel computed: ketinggian bulan (terkoreksi refraksi) ≥ **3,0°** dan elongasi ≥ **6,4°**
-pada saat matahari terbenam di Sabang. Nilai altitud/elongasi/azimut bersifat **geosentris**
-(konvensi hisab Indonesia); waktu matahari/bulan terbenam tetap dihitung toposentris untuk
-Sabang karena itu fenomena pengamat.
+`visible` bernilai `true` bila kriteria terpenuhi di **setidaknya satu titik pengamatan**:
+
+- **Altitud bulan ≥ 3,0°** — *toposentris* (posisi hilal relatif terhadap titik pengamat),
+  sudah terkoreksi refraksi atmosfer (formula Bennett);
+- **Elongasi ≥ 6,4°** — *geosentris* (konvensi hisab Indonesia), jarak sudut bulan–matahari;
+
+keduanya dievaluasi pada saat **matahari terbenam lokal di titik tersebut** pada hari ke-29.
+Semakin barat sebuah titik, semakin tinggi hilal pada senjanya — sehingga bulan-bulan "aman"
+umumnya diputuskan di pesisir barat (Aceh), sementara bulan-bulan dengan deklinasi bulan
+selatan bisa diputuskan di arc selatan (Jawa → Nusa Tenggara). Saat kriteria tidak terpenuhi
+di titik manapun, `deciding_site` bernilai `null` dan nilai altitud/elongasi berasal dari
+titik dengan margin terbaik (mendekati terpenuhi).
+
+Waktu matahari/bulan terbenam, azimut, iluminasi, dan umur bulan dihitung **toposentris di
+titik penentu** (bukan Sabang), dan waktu ditampilkan dalam zona waktu lokal titik tersebut
+(WIB/WITA).
 
 ## Grafik (`/hilal/viz`)
 
 PNG vertikal 720×1280 berisi: langit senja dengan bulan sabit (arah cahaya menghadap
-matahari), pil verdict (`MEMENUHI` / `TIDAK MEMENUHI` / `MENDEKATI BATAS` / `DI BAWAH HORIZON`), dan tabel
-kriteria `PARAMETER · MIN. MABIMS · STATUS`. Output deterministik per parameter.
+matahari), pil verdict (`MEMENUHI KRITERIA` / `TIDAK MEMENUHI` / `MENDEKATI BATAS` / `DI BAWAH HORIZON`), dan tabel
+kriteria `PARAMETER · MIN. MABIMS · STATUS` plus baris **TITIK PENGAMAT** — adegan langit,
+angka kriteria, dan waktu semuanya merujuk titik penentu yang sama. Output deterministik per parameter.
 
-<img src="/viz.png" alt="Contoh grafik visibilitas hilal — 29 Sya'ban 1447 H, Sabang" style="width: 100%; max-width: 480px;" />
+<img src="/viz.png" alt="Contoh grafik visibilitas hilal — 29 Syawal 1447 H, diputuskan di Sabang" style="width: 100%; max-width: 480px;" />
 
 ## Perilaku caching
 

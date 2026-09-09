@@ -115,10 +115,11 @@ def _geo_altaz(t, ra_hours: float, dec_deg: float) -> tuple[float, float]:
 
 
 def observation_on_sunset(d: date) -> EveningObservation:
-    """Single source of truth for the hisab of sunset on ``d``.
+    """Legacy Sabang geocentric hisab of sunset on ``d``.
 
-    Used both by the month-length engine (via :func:`criteria_on_sunset`) and
-    by the /hilal endpoints, so a verdict can never contradict the tables.
+    Kept as the geocentric reference frame and for the curated-table
+    regression guard (``tests/test_hilal.py``). The production verdict now
+    comes from the multi-site model in :mod:`app.mabims_sites`.
     """
     sunset = _sunset_utc(d)
     t = eph_ts_from_utc(sunset)

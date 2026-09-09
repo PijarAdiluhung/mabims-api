@@ -26,8 +26,9 @@ FORWARD_CEIL = date(2053, 8, 1)     # absolute supported ceiling
 RETRO_WARNING = (
     "Date is below the curated MABIMS table and predates the Neo MABIMS "
     "criteria (introduced 2022); computed by projecting the same criteria "
-    "(hilal altitude >= 3 deg, elongation >= 6.4 deg at Sabang sunset) "
-    "backwards. Treat as an estimate, not an official date."
+    "(moon altitude >= 3 deg, elongation >= 6.4 deg at local sunset, seen "
+    "anywhere across the coastal observation sites) backwards. Treat as an "
+    "estimate, not an official date."
 )
 
 

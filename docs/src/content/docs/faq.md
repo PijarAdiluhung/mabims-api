@@ -90,7 +90,7 @@ Pakai endpoint `GET /convert?date=YYYY-MM-DD&calendar=gregorian` atau `calendar=
 <details>
 <summary>Bagaimana cara mengecek visibilitas hilal untuk bulan tertentu?</summary>
 
-Gunakan endpoint `/hilal/info` untuk data kriteria, atau `/hilal/viz` untuk grafik visibilitas hilal (720×1280 PNG) yang menampilkan posisi bulan, arah sabit, dan verdict MEMENUHI KRITERIA/TIDAK MEMENUHI dihitung di titik Sabang.
+Gunakan endpoint `/hilal/info` untuk data kriteria, atau `/hilal/viz` untuk grafik visibilitas hilal (720×1280 PNG) yang menampilkan posisi bulan, arah sabit, verdict MEMENUHI KRITERIA/TIDAK MEMENUHI, dan titik pengamatan penentu — kriteria dievaluasi di titik-titik pesisir di seluruh Indonesia, dan respons melaporkan `deciding_site` saat kriteria terpenuhi.
 
 </details>
 

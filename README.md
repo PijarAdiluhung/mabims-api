@@ -60,7 +60,7 @@ The `source` field indicates where the data came from:
 | `source` | Meaning |
 |---|---|
 | `mabims` | Curated from data publik yang dikeluarkan resmi oleh Kementerian Agama RI |
-| `mabims-computed` | Computed with Neo MABIMS criteria (altitude ≥ 3°, elongation ≥ 6.4° at Sabang sunset) — algorithmic estimates, not official data |
+| `mabims-computed` | Computed with the Neo MABIMS multi-site criteria (moon altitude ≥ 3°, elongation ≥ 6.4° at local sunset, seen at any of 25 coastal sites) — algorithmic estimates, not official data |
 | `mabims-retro` | Below the curated table (pre-2023): the same Neo MABIMS criteria projected backwards. Requires `retro=true`. The criteria did not exist before 2022, so treat these as historical estimates only |
 
 | Endpoint | Purpose | Rate Limit |
@@ -72,10 +72,10 @@ The `source` field indicates where the data came from:
 | `GET /api/v1/month?year=&month=&calendar=` | All days in a month. `calendar` must be `hijri` or `gregorian`. Hijri months beyond the table are served from the computed tier. | 240/min |
 | `GET /api/v1/year?year=&calendar=` | All days in a year (12 months). `calendar` must be `hijri` or `gregorian`. | 240/min |
 | `GET /api/v1/events?year=&calendar=` | Islamic observances. | 240/min |
-| `GET /api/v1/hilal/info?month=&year=` | Hilal visibility data for the evening deciding a month start (geocentric hisab, Sabang). | 60/hour |
-| `GET /api/v1/hilal/viz?month=&year=` | Hilal sky chart PNG (720×1280) with MABIMS criteria table. | 30/hour |
+| `GET /api/v1/hilal/info?month=&year=` | Hilal visibility data for the evening deciding a month start (topocentric altitude + geocentric elongation at the deciding site). | 60/hour |
+| `GET /api/v1/hilal/viz?month=&year=` | Hilal sky chart PNG (720×1280) with the criteria table — scene, values and times at the deciding site. | 30/hour |
 
-The hilal visibility criteria follow Neo MABIMS: **moon altitude ≥ 3.0°** and **elongation ≥ 6.4°** at sunset in Sabang (5°53′N 95°19′E), Indonesia's westernmost point. The `visible` field in `/hilal/info` is `true` when both conditions are met.
+The hilal visibility criteria follow Neo MABIMS: **moon altitude ≥ 3.0°** (topocentric, refraction applied) and **elongation ≥ 6.4°** (geocentric), evaluated at each site's local sunset on day 29 across **25 coastal observation sites** around Indonesia (Aceh to Rote — see `api/data/hilal_sites.json`). The month has 29 days when the criteria are met at **any** site; the site that passed is reported as `deciding_site` by `/hilal/info`, which also carries `sites_checked`. `/meta` reports `method: neo-mabims-multisite`.
 | `GET /api/v1/meta` | Coverage, data version, fallback status. | 240/min |
 | `GET /healthz` | Liveness probe. | no limit |
 
@@ -273,8 +273,8 @@ Follow [DEPLOY.md](DEPLOY.md): Dokploy compose service, two domains, Bunny pull 
 ## Data & coverage
 
 `api/data/calendar_data.json` is the authoritative MABIMS table (currently **Hijri 1444–1448**,
-gregorian 2023-01-23 → 2026). Beyond it, `api/data/computed_seed.json` carries the same Neo MABIMS
-criteria forward (**through Hijri 1473**, gregorian ~mid-2050) and backwards (**to gregorian
+gregorian 2023-01-23 → 2026). Beyond it, `api/data/computed_seed.json` carries the same multi-site
+Neo MABIMS criteria forward (**through Hijri 1473**, gregorian ~mid-2050) and backwards (**to gregorian
 1970**); dates past the seed are still computed lazily on request. Both computed tiers flag
 borderline months (margin < 0.25°) via warnings.
 

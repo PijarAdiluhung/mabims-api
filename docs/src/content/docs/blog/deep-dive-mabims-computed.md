@@ -1,6 +1,6 @@
 ---
-title: "Deep Dive: Sebenarnya Apa yang Terjadi di Balik mabims-computed?"
-description: "Bedah teknis fallback kalender MABIMS: dari posisi hilal di Sabang, keputusan 29 atau 30 hari, seed table, sampai kenapa perhitungan geocentric dipertahankan."
+title: "Deep Dive: Di Balik mabims-computed"
+description: "Bedah teknis fallback kalender MABIMS: dari posisi hilal, keputusan 29 atau 30 hari, seed table, sampai kenapa altitudnya toposentris tapi elongasinya geosentris."
 date: 2026-09-09
 tags:
   - MABIMS
@@ -20,7 +20,7 @@ Di MABIMS API ini saya beberapa kali menyebut `source: "mabims-computed"` sebaga
 
 Di post ini kita akan melihat lebih dalam bagaimana seluk beluknya. `mabims-computed` bukan cuma "kalau data tidak ada, pakai perkiraan". Di baliknya ada mesin kecil yang menghitung kapan bulan Hijriah dimulai, berjalan maju atau mundur dari tanggal anchor, menyimpan hasilnya, dan memberi tahu client kalau hasil yang diterima bukan data resmi Kemenag.
 
-Jadi di tulisan ini saya mau membedah bagian yang biasanya tidak kelihatan dari luar: bagaimana satu bulan diputuskan punya 29 atau 30 hari, kenapa lokasi referensinya Sabang, apa bedanya geocentric dan topocentric, dan kenapa saya memilih tetap memakai geocentric meskipun hasilnya sedikit kontraintuitif.
+Jadi di tulisan ini saya mau membedah bagian yang biasanya tidak kelihatan dari luar: bagaimana satu bulan diputuskan punya 29 atau 30 hari, kenapa altitudnya toposentris tapi elongasinya geosentris, dan kenapa kriterianya dievaluasi di 25 titik pengamatan pesisir.
 
 ## Dua jenis data, satu API
 
@@ -60,7 +60,7 @@ Kalau tanggalnya sudah di luar tabel, bentuk responsnya tetap sama, tapi sumbern
   },
   "source": "mabims-computed",
   "warnings": [
-    "Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (hilal altitude >= 3 deg and elongation >= 6.4 deg at Sabang sunset)."
+    "Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (moon altitude >= 3 deg and elongation >= 6.4 deg at local sunset, seen anywhere across the coastal observation sites of Indonesia)."
   ]
 }
 ```
@@ -76,11 +76,11 @@ tinggi hilal   >= 3.0°
 elongasi       >= 6.4°
 ```
 
-Keduanya harus lolos bersamaan. Tinggi hilal lolos tapi elongasi tidak cukup berarti belum lolos. Sebaliknya juga sama.
+Keduanya harus lolos bersamaan, dan cukup lolos di **satu titik manapun**. Tinggi hilal lolos tapi elongasi tidak cukup berarti belum lolos. Sebaliknya juga sama.
 
-Perhitungan dilakukan pada waktu matahari terbenam di Sabang, kurang lebih pada koordinat 5°53′ LU, 95°19′ BT. Sabang dipakai sebagai titik referensi praktis karena merupakan titik paling barat Indonesia. Untuk satu representasi Indonesia, ini masuk akal: wilayah paling barat biasanya mendapat kesempatan melihat hilal paling akhir.
+Kriteria ini dievaluasi pada waktu matahari terbenam **lokal di masing-masing titik pengamatan** — saat ini **25 titik pesisir** dari Sabang sampai Rote (daftarnya terbuka di `api/data/hilal_sites.json`). Pola menariknya: untuk bulan-bulan yang "aman", hampir selalu titik paling barat yang memutuskan, karena semakin barat, matahari terbenam semakin mundur dan hilal semakin tinggi di atas horizon saat senja. Tapi ada bulan-bulan dengan deklinasi bulan selatan di mana arc selatan (selatan Jawa sampai Nusa Tenggara) yang menang. Itu sebabnya titik-titik selatan ikut masuk daftar.
 
-Ini bukan berarti aturan resmi MABIMS berbunyi "semua orang wajib melihat dari Sabang". Sabang adalah titik referensi yang saya gunakan untuk mesin komputasi ini.
+Dan ini bukan jimat "wajib Sabang" — ini persis logika rukyah Kemenag: hilal terlihat di wilayah Indonesia, bulan baru dimulai. Respons API bahkan melaporkan titik yang memutuskan lewat `deciding_site`.
 
 ## Dari hilal ke panjang bulan
 
@@ -154,7 +154,7 @@ Istilahnya:
 - **Topocentric** — dilihat dari permukaan bumi, memperhitungkan posisi observer dan paralaks bulan.
 - **Geocentric** — dilihat dari pusat bumi.
 
-Secara intuisi, topocentric terdengar lebih benar untuk pengamatan hilal karena manusia memang mengamati dari permukaan bumi. Tapi masalahnya tidak berhenti di situ... Ada alasan lain kenapa saya pakai geocentric di API ini. Ah tapi mungkin deep divenya menyusul di lain hari (stay tuned!).
+Secara intuisi, topocentric memang lebih benar untuk pengamatan hilal — manusia mengamati dari permukaan bumi. Setelah saya validasi ulang dari ujung ke ujung: intuisi itu benar. Mesin di atas akhirnya menemukan bentuk yang pas: ketinggian hilal dihitung **topocentric** (terkoreksi refraksi) di **25 titik pengamatan pesisir** dari Sabang sampai Rote, sementara elongasi tetap **geocentric** sesuai konvensi hisab Indonesia — dan kriteria cukup terpenuhi di satu titik manapun. Hasilnya tetap 48/48 terhadap tabel kurasi: semua penjelasan di atas soal keputusan 29/30 hari tidak berubah, yang berubah hanyalah "di mana" dan "bingkai hitung"-nya.
 
 ## Borderline itu nyata
 
@@ -215,9 +215,9 @@ if (data.warnings?.length) {
 
 1. Tabel resmi dipakai kalau tersedia.
 2. Di luar tabel, panjang bulan dihitung dari kriteria Neo MABIMS.
-3. Perhitungan dilakukan pada sunset di Sabang.
+3. Kriteria dievaluasi pada sunset lokal masing-masing dari 25 titik pengamatan pesisir; cukup terpenuhi di satu titik manapun.
 4. Dua ambang, altitude 3° dan elongasi 6,4°, harus lolos bersamaan.
-5. Geocentric dipertahankan karena paling cocok dengan keputusan kalender kurasi yang divalidasi.
+5. Altitud dihitung toposentris (dengan refraksi), elongasi tetap geosentris — modelnya tervalidasi 48/48 terhadap tabel kurasi.
 6. Hasil diberi label dan warning supaya tidak disalahpahami sebagai data resmi.
 
 Kalau kamu cuma memanggil `/today`, semua kerumitan ini memang tidak perlu kelihatan. Tapi saat kamu meminta kalender tahun 2050, atau bertanya kenapa satu bulan punya 29 hari dan bulan lain 30 hari, inilah yang terjadi di belakang layar.
@@ -235,7 +235,7 @@ Perhatikan field `source` dan `warnings` pada responsnya. Dokumentasi endpoint d
   "@context": "https://schema.org",
   "@type": "BlogPosting",
   "headline": "Deep Dive: Sebenarnya Apa yang Terjadi di Balik mabims-computed?",
-  "description": "Bedah teknis fallback kalender MABIMS: dari posisi hilal di Sabang, keputusan 29 atau 30 hari, seed table, sampai kenapa perhitungan geocentric dipertahankan.",
+  "description": "Bedah teknis fallback kalender MABIMS: dari posisi hilal, keputusan 29 atau 30 hari, seed table, sampai kenapa altitudnya toposentris tapi elongasinya geosentris.",
   "datePublished": "2026-09-09",
   "author": {
     "@type": "Person",

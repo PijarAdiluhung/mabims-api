@@ -90,7 +90,7 @@ Use `GET /convert?date=YYYY-MM-DD&calendar=gregorian` or `calendar=hijri` depend
 <details>
 <summary>How do I check hilal visibility for a given month?</summary>
 
-Use the `/hilal/info` endpoint for criterion data, or `/hilal/viz` for a hilal visibility chart (720×1280 PNG) showing moon position, crescent direction, and VISIBLE/NOT VISIBLE verdict — calculated at Sabang point.
+Use the `/hilal/info` endpoint for criterion data, or `/hilal/viz` for a hilal visibility chart (720×1280 PNG) showing moon position, crescent direction, the VISIBLE/NOT VISIBLE verdict, and the deciding observation point — the criteria are evaluated at coastal sites across Indonesia, and the response reports `deciding_site` when they are met.
 
 </details>
 
@@ -143,7 +143,7 @@ Google and most calendar apps use Umm al-Qura (Saudi Arabia's standard), not MAB
 <details>
 <summary>What's the difference between hisab and rukyah?</summary>
 
-**Hisab** is the astronomical calculation to determine the moon's position. **Rukyah** is the direct visual observation of the hilal (crescent moon). Neo MABIMS criteria combine both: using hisab calculations (moon altitude ≥ 3°, elongation ≥ 6.4°) that represent whether the hilal can be visually observed in Sabang.
+**Hisab** is the astronomical calculation to determine the moon's position. **Rukyah** is the direct visual observation of the hilal (crescent moon). Neo MABIMS criteria combine both: using hisab calculations (moon altitude ≥ 3°, elongation ≥ 6.4°) that represent whether the hilal can be visually observed somewhere in Indonesia.
 
 </details>
 
