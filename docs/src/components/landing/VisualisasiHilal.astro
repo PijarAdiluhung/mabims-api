@@ -5,7 +5,14 @@
   <div class="viz-preview">
     <img
       src="/viz.png"
-      alt="Grafik visibilitas hilal — malam penentuan 1 Dzulqa'dah 1447 H, diputuskan di Sabang"
+      alt="Grafik langit visibilitas hilal — malam penentuan 1 Rajab 1448 H, diputuskan di Tuapejat"
+      width="280"
+      height="498"
+      loading="lazy"
+    />
+    <img
+      src="/map.png"
+      alt="Peta wilayah visibilitas hilal Indonesia — malam penentuan 1 Rajab 1448 H"
       width="280"
       height="498"
       loading="lazy"
@@ -16,18 +23,23 @@
     <h2>Visualisasi <span class="accent">Hilal</span></h2>
     <p>
       Bukan hanya sistem tanggal, kami juga menyajikan gambar visibilitas hilal.
-      Endpoint <code>/hilal/viz</code> merender grafik langit 720×1280 untuk
-      malam penentuan: posisi bulan, orientasi sabit menghadap matahari,
-      verdict (MEMENUHI KRITERIA / TIDAK MEMENUHI / MENDEKATI BATAS), dan tabel kriteria.
+      Endpoint <code>/hilal/viz</code> merender grafik langit 720×1280 dan
+      <code>/hilal/map</code> merender peta wilayah visibilitas seluruh Nusantara
+      untuk malam penentuan.
     </p>
     <p>
-      Semua dihitung dengan kriteria MABIMS yang dievaluasi di titik-titik
-      pengamatan pesisir di seluruh Indonesia — kriteria Neo MABIMS yang sama
-      dengan tabel computed, dan grafik menampilkan titik penentunya.
+      Semua dihitung dengan kriteria Neo MABIMS yang dievaluasi di titik-titik
+      pengamatan di seluruh Indonesia.
     </p>
-    <div class="viz-endpoint">
-      <span class="viz-method">GET</span>
-      <code class="viz-url">/api/v1/hilal/viz?month=1&year=1448</code>
+    <div class="viz-endpoints">
+      <div class="viz-endpoint">
+        <span class="viz-method">GET</span>
+        <code class="viz-url">/api/v1/hilal/viz?month=7&year=1448</code>
+      </div>
+      <div class="viz-endpoint">
+        <span class="viz-method">GET</span>
+        <code class="viz-url">/api/v1/hilal/map?month=7&year=1448</code>
+      </div>
     </div>
   </div>
 </section>
@@ -47,7 +59,7 @@
 
   @media (min-width: 64rem) {
     .viz-section {
-      grid-template-columns: 280px 1fr;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
       grid-template-areas: "preview content";
       gap: 4rem;
     }
@@ -87,6 +99,13 @@
     font-size: 0.9em;
   }
 
+  .viz-endpoints {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
   .viz-endpoint {
     display: flex;
     align-items: center;
@@ -95,7 +114,6 @@
     background: rgba(255, 255, 255, 0.03);
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.06);
-    margin-top: 0.5rem;
   }
 
   .viz-method {
@@ -117,13 +135,14 @@
 
   .viz-preview {
     grid-area: preview;
-    display: flex;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
   }
 
   .viz-preview img {
     width: 100%;
-    max-width: 360px;
     height: auto;
     border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.08);

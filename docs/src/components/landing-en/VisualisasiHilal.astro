@@ -5,7 +5,14 @@
   <div class="viz-preview">
     <img
       src="/viz.png"
-      alt="Hilal visibility chart — the evening determining 1 Dzulqa'dah 1447 H, decided at Sabang"
+      alt="Hilal visibility chart — the evening determining 1 Rajab 1448 H, decided at Tuapejat"
+      width="280"
+      height="498"
+      loading="lazy"
+    />
+    <img
+      src="/map.png"
+      alt="Indonesia hilal visibility map — the evening determining 1 Rajab 1448 H"
       width="280"
       height="498"
       loading="lazy"
@@ -16,7 +23,8 @@
     <h2><span class="accent">Hilal</span> Visualization</h2>
     <p>
       Not just data — we also present hilal visibility imagery.
-      The <code>/hilal/viz</code> endpoint renders a 720×1280 sky chart for
+      The <code>/hilal/viz</code> endpoint renders a 720×1280 sky chart and
+      <code>/hilal/map</code> renders an archipelago visibility map for
       the sighting evening: moon position, crescent orientation facing the sun,
       verdict (MEMENUHI KRITERIA / TIDAK MEMENUHI / MENDEKATI BATAS), and criteria table.
     </p>
@@ -25,9 +33,15 @@
       evaluated at coastal observation points across Indonesia, with the chart naming
       the deciding site. These are estimates, not official announcements.
     </p>
-    <div class="viz-endpoint">
-      <span class="viz-method">GET</span>
-      <code class="viz-url">/api/v1/hilal/viz?month=1&year=1448</code>
+    <div class="viz-endpoints">
+      <div class="viz-endpoint">
+        <span class="viz-method">GET</span>
+        <code class="viz-url">/api/v1/hilal/viz?month=7&year=1448</code>
+      </div>
+      <div class="viz-endpoint">
+        <span class="viz-method">GET</span>
+        <code class="viz-url">/api/v1/hilal/map?month=7&year=1448</code>
+      </div>
     </div>
   </div>
 </section>
@@ -47,7 +61,7 @@
 
   @media (min-width: 64rem) {
     .viz-section {
-      grid-template-columns: 280px 1fr;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
       grid-template-areas: "preview content";
       gap: 4rem;
     }
@@ -87,6 +101,13 @@
     font-size: 0.9em;
   }
 
+  .viz-endpoints {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
   .viz-endpoint {
     display: flex;
     align-items: center;
@@ -95,7 +116,6 @@
     background: rgba(255, 255, 255, 0.03);
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.06);
-    margin-top: 0.5rem;
   }
 
   .viz-method {
@@ -117,13 +137,14 @@
 
   .viz-preview {
     grid-area: preview;
-    display: flex;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
   }
 
   .viz-preview img {
     width: 100%;
-    max-width: 360px;
     height: auto;
     border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.08);
