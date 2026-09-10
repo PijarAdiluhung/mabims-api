@@ -5,7 +5,9 @@ import hashlib
 import json
 import math
 import re
+import threading
 from datetime import date, datetime
+from functools import lru_cache
 from pathlib import Path
 from typing import TypeVar
 from zoneinfo import ZoneInfo
@@ -30,6 +32,7 @@ from .events import find_events
 from .fallback import FALLBACK_SOURCE, AladhanProvider, FallbackStore, MemoryFallbackStore
 from .hilal.astro import lunar_age_hours, moonset_local, phase_angle_deg
 from .hilal.chart import build_chart_data, chart_png_bytes
+from .hilal.mapcard import map_png_bytes
 from .hilal.service import MONTH_NAMES_ID, MonthNotResolvable, resolve_sighting_evening
 from .mabims_computed import COMPUTED_SOURCE, MabimsCalcProvider, next_hijri_month
 from .mabims_sites import MultiSiteSighting, Site, sighting_on_date, site_by_name
@@ -89,6 +92,31 @@ RETRO_QUERY_DESC = "Set true to allow computed retro dates below the curated tab
 HILAL_CACHE = {"Cache-Control": "public, max-age=86400, s-maxage=86400"}
 HILAL_ALT_MIN_DEG = 3.0
 HILAL_ELONG_MIN_DEG = 6.4
+
+# The map card renders a 0.25 deg grid (~260 MB peak), so serialize renders to
+# stay inside the container memory cap; results are deterministic per evening.
+_MAP_SEMAPHORE = threading.Semaphore(1)
+
+
+@lru_cache(maxsize=64)
+def _map_png_cached(
+    evening_iso: str,
+    vis_month: str,
+    vis_year: int,
+    hijri_label: str,
+    hero_name: str,
+    hero_lat: float,
+    hero_lon: float,
+    hero_alt: float,
+    hero_elong: float,
+) -> bytes:
+    return map_png_bytes(
+        evening=date.fromisoformat(evening_iso),
+        vis_month=vis_month,
+        vis_year=vis_year,
+        hijri_label=hijri_label,
+        hero=(hero_name, hero_lat, hero_lon, hero_alt, hero_elong),
+    )
 
 _HIJRI_YEARS_PER_GREGORIAN = 365.2425 / 354.36792
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
@@ -1053,6 +1081,50 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             raise ApiError(
                 "render_failed",
                 f"Could not render chart: {exc.__class__.__name__}",
+                500,
+            ) from exc
+        return Response(
+            content=png,
+            media_type="image/png",
+            headers={**HILAL_CACHE, **etag_headers(etag_from_bytes(png))},
+        )
+
+    @app.api_route(
+        "/api/v1/hilal/map",
+        tags=["Hilal"],
+        summary="Hilal visibility map PNG",
+        description=(
+            "Renders a 720x1280 archipelago map of hilal visibility for the "
+            "evening deciding a Hijri month start: the visible region, the "
+            "display points (memenuhi / tidak) and the criteria table."
+        ),
+        methods=["GET", "HEAD"],
+    )
+    @limiter.limit("30/hour")
+    def hilal_map(
+        request: Request,
+        month: int = Query(...),
+        year: int = Query(...),
+        retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
+    ):
+        res, sighting, _alt_ok, _elong_ok, _visible, ms_site, _source, _warnings = _hilal_context(
+            month, year, _parse_retro(retro)
+        )
+        site = sighting.site
+        hero = (site.name, site.lat_deg, site.lon_deg, ms_site.alt_refracted_deg, ms_site.elong_deg)
+        try:
+            with _MAP_SEMAPHORE:
+                png = _map_png_cached(
+                    res.evening_date.isoformat(),
+                    res.target_name,
+                    res.target_year,
+                    res.evening_label,
+                    *hero,
+                )
+        except Exception as exc:
+            raise ApiError(
+                "render_failed",
+                f"Could not render map: {exc.__class__.__name__}",
                 500,
             ) from exc
         return Response(

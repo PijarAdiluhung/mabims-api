@@ -16,6 +16,8 @@ dependencies = [
   "skyfield>=1.49",
   "tzdata>=2024.1",
   "pillow>=10.1",
+  "matplotlib>=3.8",
+  "shapely>=2.0",
 ]
 
 [project.optional-dependencies]
@@ -45,5 +47,5 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
-module = ["skyfield.*", "slowapi.*"]
+module = ["skyfield.*", "slowapi.*", "shapely.*", "matplotlib.*"]
 ignore_missing_imports = true

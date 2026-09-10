@@ -1,0 +1,480 @@
+{
+  "description": "Refined display points for the hilal map card: 126 cities with Java reduced to the 5 MABIMS observation sites + Jakarta/Semarang/Surabaya, and the Bali/NTT cluster trimmed. Source: D:/WebDev/stuff/indonesia_map.py + api/data/hilal_sites.json.",
+  "points": [
+    {
+      "name": "Sabang (Weh Island)",
+      "lat": 5.8897,
+      "lon": 95.32
+    },
+    {
+      "name": "Banda Aceh",
+      "lat": 5.5577,
+      "lon": 95.3222
+    },
+    {
+      "name": "Lhokseumawe",
+      "lat": 5.1796,
+      "lon": 96.9793
+    },
+    {
+      "name": "Langsa",
+      "lat": 4.47,
+      "lon": 97.97
+    },
+    {
+      "name": "Medan",
+      "lat": 3.5952,
+      "lon": 98.6722
+    },
+    {
+      "name": "Tebingtinggi",
+      "lat": 3.3283,
+      "lon": 99.1567
+    },
+    {
+      "name": "Pematangsiantar",
+      "lat": 2.9599,
+      "lon": 99.0689
+    },
+    {
+      "name": "Padangsidempuan",
+      "lat": 1.38,
+      "lon": 99.27
+    },
+    {
+      "name": "Gunungsitoli (Nias)",
+      "lat": 1.1167,
+      "lon": 97.55
+    },
+    {
+      "name": "Padang",
+      "lat": -0.9471,
+      "lon": 100.4172
+    },
+    {
+      "name": "Painan",
+      "lat": -1.3833,
+      "lon": 100.5
+    },
+    {
+      "name": "Bengkulu",
+      "lat": -3.7928,
+      "lon": 102.2608
+    },
+    {
+      "name": "Lahat",
+      "lat": -3.7833,
+      "lon": 103.5452
+    },
+    {
+      "name": "Palembang",
+      "lat": -2.9761,
+      "lon": 104.7754
+    },
+    {
+      "name": "Bandar Lampung",
+      "lat": -5.3971,
+      "lon": 105.2668
+    },
+    {
+      "name": "Pontianak",
+      "lat": -0.0263,
+      "lon": 109.3425
+    },
+    {
+      "name": "Singkawang",
+      "lat": 0.9067,
+      "lon": 108.9867
+    },
+    {
+      "name": "Banjarmasin",
+      "lat": -3.3186,
+      "lon": 114.5944
+    },
+    {
+      "name": "Banjarbaru",
+      "lat": -3.44,
+      "lon": 114.75
+    },
+    {
+      "name": "Marabahan",
+      "lat": -2.9667,
+      "lon": 114.7667
+    },
+    {
+      "name": "Tanah Grogot",
+      "lat": -1.91,
+      "lon": 116.1
+    },
+    {
+      "name": "Balikpapan",
+      "lat": -1.2654,
+      "lon": 116.8311
+    },
+    {
+      "name": "Samarinda",
+      "lat": -0.4948,
+      "lon": 117.1436
+    },
+    {
+      "name": "Bontang",
+      "lat": 0.1333,
+      "lon": 117.5
+    },
+    {
+      "name": "Tarakan",
+      "lat": 3.3,
+      "lon": 117.6333
+    },
+    {
+      "name": "Manado",
+      "lat": 1.4748,
+      "lon": 124.8421
+    },
+    {
+      "name": "Bitung",
+      "lat": 1.4472,
+      "lon": 125.1178
+    },
+    {
+      "name": "Tomohon",
+      "lat": 1.3194,
+      "lon": 124.8378
+    },
+    {
+      "name": "Kotamobagu",
+      "lat": 0.6956,
+      "lon": 123.3097
+    },
+    {
+      "name": "Gorontalo",
+      "lat": 0.5435,
+      "lon": 123.0568
+    },
+    {
+      "name": "Palu",
+      "lat": -0.8917,
+      "lon": 119.8707
+    },
+    {
+      "name": "Luwuk",
+      "lat": -0.9383,
+      "lon": 122.7878
+    },
+    {
+      "name": "Banggai",
+      "lat": -1.05,
+      "lon": 123.55
+    },
+    {
+      "name": "Makassar",
+      "lat": -5.1477,
+      "lon": 119.4327
+    },
+    {
+      "name": "Parepare",
+      "lat": -4.0167,
+      "lon": 119.6333
+    },
+    {
+      "name": "Palopo",
+      "lat": -3.0,
+      "lon": 120.2
+    },
+    {
+      "name": "Kendari",
+      "lat": -3.9984,
+      "lon": 122.5126
+    },
+    {
+      "name": "Denpasar",
+      "lat": -8.65,
+      "lon": 115.2167
+    },
+    {
+      "name": "Mataram",
+      "lat": -8.5833,
+      "lon": 116.1167
+    },
+    {
+      "name": "Labuan Bajo",
+      "lat": -8.4964,
+      "lon": 119.8877
+    },
+    {
+      "name": "Kupang",
+      "lat": -10.1772,
+      "lon": 123.607
+    },
+    {
+      "name": "Ambon",
+      "lat": -3.6954,
+      "lon": 128.1814
+    },
+    {
+      "name": "Ternate",
+      "lat": 0.7833,
+      "lon": 127.3833
+    },
+    {
+      "name": "Tidore",
+      "lat": 0.6833,
+      "lon": 127.4333
+    },
+    {
+      "name": "Sofifi",
+      "lat": 0.7333,
+      "lon": 127.55
+    },
+    {
+      "name": "Tual",
+      "lat": -5.6333,
+      "lon": 132.75
+    },
+    {
+      "name": "Banda Neira",
+      "lat": -4.525,
+      "lon": 129.8714
+    },
+    {
+      "name": "Masohi",
+      "lat": -3.3333,
+      "lon": 129.1167
+    },
+    {
+      "name": "Sanana",
+      "lat": -2.05,
+      "lon": 125.9833
+    },
+    {
+      "name": "Dobo",
+      "lat": -5.65,
+      "lon": 134.2167
+    },
+    {
+      "name": "Saumlaki",
+      "lat": -7.9833,
+      "lon": 131.3
+    },
+    {
+      "name": "Jayapura",
+      "lat": -2.5337,
+      "lon": 140.7183
+    },
+    {
+      "name": "Sorong",
+      "lat": -0.8615,
+      "lon": 131.2535
+    },
+    {
+      "name": "Fakfak",
+      "lat": -2.92,
+      "lon": 132.29
+    },
+    {
+      "name": "Kaimana",
+      "lat": -3.6444,
+      "lon": 133.6953
+    },
+    {
+      "name": "Merauke",
+      "lat": -8.4964,
+      "lon": 140.3956
+    },
+    {
+      "name": "Wamena",
+      "lat": -4.0833,
+      "lon": 138.95
+    },
+    {
+      "name": "Nabire",
+      "lat": -3.36,
+      "lon": 135.49
+    },
+    {
+      "name": "Serui",
+      "lat": -1.88,
+      "lon": 136.24
+    },
+    {
+      "name": "Timika",
+      "lat": -4.5433,
+      "lon": 136.8833
+    },
+    {
+      "name": "Biak",
+      "lat": -1.1615,
+      "lon": 136.0653
+    },
+    {
+      "name": "Mentok (Bangka)",
+      "lat": -2.0667,
+      "lon": 105.15
+    },
+    {
+      "name": "Tanjung Pandan (Belitung)",
+      "lat": -2.7333,
+      "lon": 107.65
+    },
+    {
+      "name": "Natuna (Ranai)",
+      "lat": 3.9667,
+      "lon": 108.3833
+    },
+    {
+      "name": "Anambas (Tarempa)",
+      "lat": 3.0,
+      "lon": 106.2667
+    },
+    {
+      "name": "Melonguane (Sangihe)",
+      "lat": 3.9667,
+      "lon": 126.6167
+    },
+    {
+      "name": "Sarmi",
+      "lat": -2.65,
+      "lon": 138.85
+    },
+    {
+      "name": "Meulaboh Coast (Aceh)",
+      "lat": 4.3,
+      "lon": 96.13
+    },
+    {
+      "name": "Lhoknga Observatory (Aceh)",
+      "lat": 5.48,
+      "lon": 95.27
+    },
+    {
+      "name": "Sinabang (Simeulue Island)",
+      "lat": 2.32,
+      "lon": 96.37
+    },
+    {
+      "name": "Binasi Beach (N. Sumatra)",
+      "lat": 1.5,
+      "lon": 98.7
+    },
+    {
+      "name": "Pasia Tiku Beach (W. Sumatra)",
+      "lat": -0.28,
+      "lon": 100.15
+    },
+    {
+      "name": "Pasir Baru Beach (W. Sumatra)",
+      "lat": -0.18,
+      "lon": 100.55
+    },
+    {
+      "name": "Gandoriah Beach (Padang)",
+      "lat": -0.955,
+      "lon": 100.36
+    },
+    {
+      "name": "Langkisau Peak (Painan)",
+      "lat": -1.4,
+      "lon": 100.53
+    },
+    {
+      "name": "Tuapejat (Sipora, Mentawai)",
+      "lat": -2.0296,
+      "lon": 99.592
+    },
+    {
+      "name": "Siberut (Mentawai)",
+      "lat": -1.383,
+      "lon": 98.9
+    },
+    {
+      "name": "Mukomuko Coast (Bengkulu)",
+      "lat": -2.55,
+      "lon": 101.08
+    },
+    {
+      "name": "Labuhan Jukung Beach (Krui)",
+      "lat": -5.21,
+      "lon": 103.93
+    },
+    {
+      "name": "Batam (Riau Islands)",
+      "lat": 1.13,
+      "lon": 104.053
+    },
+    {
+      "name": "Pekanbaru (Riau)",
+      "lat": 0.5092,
+      "lon": 101.4453
+    },
+    {
+      "name": "Dumai (Riau)",
+      "lat": 1.6667,
+      "lon": 101.45
+    },
+    {
+      "name": "Jambi",
+      "lat": -1.59,
+      "lon": 103.61
+    },
+    {
+      "name": "Palangka Raya (Central Kalimantan)",
+      "lat": -2.21,
+      "lon": 113.92
+    },
+    {
+      "name": "Sampit (Central Kalimantan)",
+      "lat": -2.533,
+      "lon": 112.95
+    },
+    {
+      "name": "Pangkalan Bun (Central Kalimantan)",
+      "lat": -2.683,
+      "lon": 111.617
+    },
+    {
+      "name": "Muara Teweh (North Barito)",
+      "lat": -0.9535,
+      "lon": 114.8981
+    },
+    {
+      "name": "Ujung Kulon / Tanjung Layar",
+      "lat": -6.784,
+      "lon": 105.335
+    },
+    {
+      "name": "Pelabuhan Ratu / Cimaja",
+      "lat": -6.985,
+      "lon": 106.545
+    },
+    {
+      "name": "Pangandaran Beach",
+      "lat": -7.683,
+      "lon": 108.47
+    },
+    {
+      "name": "Parangtritis / Bantul",
+      "lat": -8.028,
+      "lon": 110.33
+    },
+    {
+      "name": "Pulau Merah / Banyuwangi",
+      "lat": -8.718,
+      "lon": 114.045
+    },
+    {
+      "name": "Jakarta",
+      "lat": -6.2088,
+      "lon": 106.8456
+    },
+    {
+      "name": "Semarang",
+      "lat": -6.9666,
+      "lon": 110.4196
+    },
+    {
+      "name": "Surabaya",
+      "lat": -7.2575,
+      "lon": 112.7521
+    }
+  ]
+}

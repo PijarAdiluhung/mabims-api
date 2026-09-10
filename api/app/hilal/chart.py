@@ -12,7 +12,7 @@ import random
 from datetime import date
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 
 W, H = 720, 1280
 AZ_SPAN = 30.0
@@ -35,6 +35,14 @@ def font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.Im
         if bold
         else ["DejaVuSans.ttf", "segoeui.ttf", "arial.ttf"]
     )
+    # Prefer fonts bundled with the app so server output is deterministic.
+    for name in names:
+        candidate = ASSETS / name
+        if candidate.exists():
+            try:
+                return ImageFont.truetype(str(candidate), size)
+            except OSError:
+                pass
     for directory in _FONT_DIRS:
         for name in names:
             try:
@@ -102,7 +110,8 @@ def _vgrad(w: int, h: int, stops: list[tuple[float, tuple[int, int, int]]]) -> I
 
 
 def _starfield(img: Image.Image, box: tuple, n: int, horizon_y: int,
-               seed: int = 11, max_alpha: int = 140) -> None:
+               seed: int = 11, max_alpha: int = 140,
+               keepout: tuple[float, float, float] | None = None) -> None:
     rnd = random.Random(seed)
     x0, y0, x1, y1 = box
     layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
@@ -116,6 +125,14 @@ def _starfield(img: Image.Image, box: tuple, n: int, horizon_y: int,
         if rnd.random() < 0.04:
             d.line([x - 5, y, x + 5, y], fill=(255, 240, 214, a // 2), width=1)
             d.line([x, y - 5, x, y + 5], fill=(255, 240, 214, a // 2), width=1)
+    if keepout is not None:
+        # Fade stars out inside the moon's glow so the bright disc/limb washes
+        # them out — the sky gradient stays visible, no solid disc is painted.
+        cx, cy, kr = keepout
+        mask = Image.new("L", img.size, 0)
+        ImageDraw.Draw(mask).ellipse([cx - kr, cy - kr, cx + kr, cy + kr], fill=255)
+        mask = mask.filter(ImageFilter.GaussianBlur(kr * 0.45))
+        layer.putalpha(ImageChops.multiply(layer.getchannel("A"), ImageChops.invert(mask)))
     img.alpha_composite(layer)
 
 
@@ -327,9 +344,13 @@ def render_chart(data: dict) -> Image.Image:
     img = _vgrad(W, H, [(0.0, (31, 18, 53)), (0.45, (94, 44, 74)),
                         (0.72, (196, 96, 66)), (0.86, (242, 166, 90)), (1.0, (52, 30, 40))])
     horizon_y = int(H * 0.55)
+    box = (40, 190, W - 40, horizon_y)
+    c_az = (data["sun_az"] + data["moon_az"]) / 2
+    mx = _az_to_x(data["moon_az"], c_az, AZ_SPAN, box[0], box[2])
+    my = _alt_to_y(data["moon_alt"], 14.0, horizon_y, box[1] + 30)
     _starfield(img, (0, 190, W, int(H * 0.35)), n=int(W * H / 4400),
-               horizon_y=int(H * 0.35))
-    mx, my = _draw_sky_scene(img, data, (40, 190, W - 40, horizon_y), pal,
+               horizon_y=int(H * 0.35), keepout=(mx, my, 119 * 1.7))
+    mx, my = _draw_sky_scene(img, data, box, pal,
                              moon_size=119, sun_size=36, alt_hi=14.0)
 
     d = ImageDraw.Draw(img)
