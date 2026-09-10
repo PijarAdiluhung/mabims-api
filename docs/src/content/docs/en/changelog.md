@@ -3,6 +3,19 @@ title: Changelog
 description: History of changes to the MABIMS API and documentation.
 ---
 
+## 1.6.0 — 2026-09-10
+
+### Added
+
+- **`/hilal/map`** — a 720×1280 archipelago visibility-map card: the region where the Neo MABIMS criteria are met at local sunset, the altitude-3° / elongation-6.4° boundary lines, and **95 display points** (green = meets the criteria, gray = does not). The deciding point from the 25-site model is marked with a yellow ring. The card's table uses the **same deciding point as `/hilal/viz`**, plus `TITIK MEMENUHI` / `TITIK TIDAK MEMENUHI` counts. Rate limit 30/hour, immutable `Cache-Control`.
+- **Hilal playground** now shows the map and the sky chart side by side, each with a PNG download link.
+
+### Notes
+
+- The 95 map points are a **display** set used to communicate coverage; the month verdict still comes from the 25-site model and is unchanged (0 month-length differences over 1970–2051).
+
+---
+
 ## 1.5.0 — 2026-09-09
 
 ### Changed

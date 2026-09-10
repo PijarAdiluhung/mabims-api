@@ -5,7 +5,7 @@ description: "Visibilitas hilal: data kriteria dan grafik langit untuk malam pen
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-MABIMS API menyediakan dua endpoint untuk **visibilitas hilal**. Malam yang diperiksa selalu
+MABIMS API menyediakan tiga endpoint untuk **visibilitas hilal**. Malam yang diperiksa selalu
 **malam ke-29 bulan Hijriah yang sedang berjalan**, yaitu malam ketika hilal benar-benar diamati.
 Kalau kriteria tidak terpenuhi di satu pun titik pengamatan, bulan tersebut digenapkan menjadi
 30 hari dan awal bulan berikutnya bergeser satu hari. Batas awal bulan menggunakan
@@ -17,12 +17,14 @@ seluruh Indonesia**. Saat ini ada 25 titik, dari Sabang sampai Rote. Lihat dafta
 ```
 GET /api/v1/hilal/info?month={bulan}&year={tahun}   → JSON
 GET /api/v1/hilal/viz?month={bulan}&year={tahun}    → PNG 720×1280
+GET /api/v1/hilal/map?month={bulan}&year={tahun}    → PNG 720×1280
 ```
 
-`info` mengembalikan angka-angka perhitungan beserta status hasilnya, sedangkan `viz` merender
-grafik langit yang membantu menunjukkan ke arah mana pengamatan dilakukan. Keduanya dapat diakses
-secara publik, tetapi memiliki rate limit yang lebih ketat:
-`info` 60 permintaan per jam dan `viz` 30 permintaan per jam untuk setiap IP.
+`info` mengembalikan angka-angka perhitungan beserta status hasilnya; `viz` merender grafik langit
+yang membantu menunjukkan ke arah mana pengamatan dilakukan; `map` merender peta wilayah
+visibilitas seluruh Nusantara. Ketiganya dapat diakses secara publik, tetapi memiliki rate limit
+yang lebih ketat: `info` 60 permintaan per jam, sedangkan `viz` dan `map` masing-masing 30
+permintaan per jam untuk setiap IP.
 
 ## Parameter
 
@@ -126,6 +128,19 @@ Adegan langit, angka kriteria, dan waktu di dalam grafik semuanya merujuk pada t
 sama. Untuk parameter yang sama, output yang dihasilkan selalu konsisten.
 
 <img src="/viz.png" alt="Contoh grafik visibilitas hilal — 29 Syawal 1447 H, ditentukan di Sabang" style="width: 100%; max-width: 480px;" />
+
+## Peta (`/hilal/map`)
+
+Endpoint ini mengembalikan PNG 720×1280 berisi **peta wilayah visibilitas** seluruh Nusantara:
+area tempat kriteria Neo MABIMS terpenuhi saat matahari terbenam, garis batas ketinggian 3° dan
+elongasi 6,4°, serta **95 titik tampilan** (hijau = memenuhi, abu-abu = tidak memenuhi). Titik
+penentu dari model 25 titik ditandai dengan cincin kuning.
+
+Tabel pada kartu memakai angka titik penentu yang **sama dengan `/hilal/viz`**, ditambah rekap
+`TITIK MEMENUHI` dan `TITIK TIDAK MEMENUHI` dari 95 titik. Dengan begitu kedua kartu selalu
+menyebut titik pengamat yang sama. Rate limit: 30 permintaan per jam per IP.
+
+<img src="/map.png" alt="Contoh peta wilayah visibilitas hilal — 29 Syawal 1447 H" style="width: 100%; max-width: 480px;" />
 
 ## Caching
 

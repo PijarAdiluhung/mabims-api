@@ -3,6 +3,19 @@ title: Changelog
 description: Riwayat perubahan API dan dokumentasi MABIMS.
 ---
 
+## 1.6.0 — 2026-09-10
+
+### Added
+
+- **`/hilal/map`** — kartu peta 720×1280 wilayah visibilitas hilal seluruh Nusantara: area yang memenuhi kriteria Neo MABIMS saat matahari terbenam, garis batas ketinggian 3° dan elongasi 6,4°, serta **95 titik tampilan** (hijau = memenuhi, abu-abu = tidak). Titik penentu dari model 25 titik ditandai cincin kuning. Tabel kartu memakai titik penentu yang **sama dengan `/hilal/viz`**, ditambah rekap `TITIK MEMENUHI`/`TITIK TIDAK MEMENUHI`. Rate limit 30/jam, `Cache-Control` imutabel.
+- **Playground hilal** kini menampilkan peta dan grafik langit berdampingan, masing-masing dengan tautan unduh PNG.
+
+### Notes
+
+- 95 titik peta adalah set **tampilan** untuk menunjukkan cakupan; verdict bulan tetap berasal dari model 25 titik pengamatan dan tidak berubah (0 perbedaan panjang bulan pada 1970–2051).
+
+---
+
 ## 1.5.0 — 2026-09-09
 
 ### Changed

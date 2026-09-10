@@ -5,7 +5,7 @@ description: Hilal visibility — criteria data and sky chart for the evening th
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-Two endpoints for **hilal visibility**: the deciding evening is always the **29th** of the
+Three endpoints for **hilal visibility**: the deciding evening is always the **29th** of the
 current month — the night people actually go looking for the crescent. If the criteria are
 not fulfilled at any observation point, the month completes 30 days and the start shifts a
 day. Month boundaries come from the
@@ -16,11 +16,12 @@ sites, from Sabang to Rote — see [`api/data/hilal_sites.json`](https://github.
 ```
 GET /api/v1/hilal/info?month={month}&year={year}   → JSON
 GET /api/v1/hilal/viz?month={month}&year={year}    → PNG 720×1280
+GET /api/v1/hilal/map?month={month}&year={year}    → PNG 720×1280
 ```
 
-`info` carries the numbers + verdict; `viz` renders a "where to look" sky chart with the
-same criteria table. Both are public but tightly rate limited
-(`info` 60/hour, `viz` 30/hour per IP).
+`info` carries the numbers + verdict; `viz` renders a "where to look" sky chart; `map` renders
+the archipelago-wide visibility map. All are public but tightly rate limited
+(`info` 60/hour, `viz` and `map` 30/hour each per IP).
 
 ## Parameters
 
@@ -121,6 +122,19 @@ criteria values and times all refer to the same deciding site. Output is determi
 parameter.
 
 <img src="/viz.png" alt="Sample hilal visibility chart — 29 Syawal 1447 H, decided at Sabang" style="width: 100%; max-width: 480px;" />
+
+## Map (`/hilal/map`)
+
+A 720×1280 PNG of the **archipelago visibility region**: the area where the Neo MABIMS criteria
+are met at local sunset, the altitude-3° and elongation-6.4° boundary lines, and **95 display
+points** (green = meets the criteria, gray = does not). The deciding point from the 25-site model
+is marked with a yellow ring.
+
+The card's table uses the **same deciding point as `/hilal/viz`**, plus the `TITIK MEMENUHI` /
+`TITIK TIDAK MEMENUHI` counts from the 95 points — so both cards always name the same observer.
+Rate limit: 30/hour per IP.
+
+<img src="/map.png" alt="Sample hilal visibility map — 29 Syawal 1447 H" style="width: 100%; max-width: 480px;" />
 
 ## Caching
 
