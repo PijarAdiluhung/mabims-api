@@ -44,6 +44,7 @@
 - [ ] Extend the alt/elong lines outside the Indonesia buffer (to the map edge) so they read as continuous isolines
 - [ ] Fix the `+`/`-` sign formatting bug on the criteria values
 - [ ] Add a world minimap (Indonesia highlighted) for geographic context
+- [ ] Fix hilal-viz text and bold issues
 
 ## Cutover (M5)
 - [x] Repoint malangmengaji.com integrations to new hostnames
