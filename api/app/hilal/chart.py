@@ -85,6 +85,23 @@ def _txt(d: ImageDraw.ImageDraw, xy, s, f, fill, anchor="la") -> None:
     d.text(xy, s, font=f, fill=fill, anchor=anchor)
 
 
+def _fit_text(d: ImageDraw.ImageDraw, s: str, f, max_width: float) -> str:
+    """Truncate ``s`` with an ellipsis so it fits ``max_width`` at font ``f``."""
+    if max_width <= 0:
+        return ""
+    if d.textlength(s, font=f) <= max_width:
+        return s
+    ellipsis = "\u2026"
+    lo, hi = 0, len(s)
+    while lo < hi:
+        mid = (lo + hi + 1) // 2
+        if d.textlength(s[:mid].rstrip() + ellipsis, font=f) <= max_width:
+            lo = mid
+        else:
+            hi = mid - 1
+    return s[:lo].rstrip() + ellipsis
+
+
 def _vgrad(w: int, h: int, stops: list[tuple[float, tuple[int, int, int]]]) -> Image.Image:
     img = Image.new("RGBA", (w, h))
     px = img.load()
@@ -326,8 +343,10 @@ def _criteria_table(img: Image.Image, data: dict, box: tuple, pal: dict) -> None
         if i:
             d.line([x0, ry, x1, ry], fill=(66, 40, 60), width=1)
         cy = ry + simple_h // 2
+        lab_w = d.textlength(lab, font=f_head)
+        max_val_w = xr - (x0 + lab_w + 16)
         _txt(d, (x0, cy), lab, f_head, pal["muted"], anchor="lm")
-        _txt(d, (xr, cy), val, f_value, pal["text"], anchor="rm")
+        _txt(d, (xr, cy), _fit_text(d, val, f_value, max_val_w), f_value, pal["text"], anchor="rm")
 
 
 # ── composition ──
