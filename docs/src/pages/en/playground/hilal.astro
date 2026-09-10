@@ -19,9 +19,10 @@ const months = [
 
   <p>
     This page is a sample of the MABIMS API hilal visibility functionality.
-    Try it now and get a hilal visibility chart evaluated at coastal
-    observation points across Indonesia — the chart names the deciding site
-    when the criteria are met.
+    Pick a month and get two cards for the deciding evening: an
+    <strong>archipelago visibility map</strong> and the <strong>sky chart</strong>
+    at the deciding observation point. The map marks the points that meet the
+    criteria; the chart shows where to look.
   </p>
 
   <p>
@@ -49,21 +50,35 @@ const months = [
     <button type="submit" class="pg-btn">Render chart</button>
   </form>
 
-  <div class="hilal-grid">
+  <div class="hilal-figures">
+    <figure class="hilal-figure" id="map-figure" hidden>
+      <div class="hilal-skeleton" id="map-skeleton">
+        <div class="hilal-spinner" role="status" aria-label="Loading map"></div>
+      </div>
+      <img id="map" alt="Hilal visibility map" width="360" height="640" hidden />
+      <figcaption>
+        <span id="map-cap">Visibility region map</span>
+        · <a id="map-dl" download>Download PNG</a>
+      </figcaption>
+    </figure>
     <figure class="hilal-figure" id="figure" hidden>
       <div class="hilal-skeleton" id="skeleton">
         <div class="hilal-spinner" role="status" aria-label="Loading"></div>
       </div>
       <img id="chart" alt="Hilal visibility chart" width="360" height="640" hidden />
-      <figcaption id="figcap"></figcaption>
+      <figcaption>
+        <span id="figcap"></span>
+        · <a id="chart-dl" download>Download PNG</a>
+      </figcaption>
     </figure>
-    <div class="hilal-data" id="data" hidden>
-      <div class="hilal-verdict" id="verdict"></div>
-      <details>
-        <summary>Full JSON response</summary>
-        <pre class="pg-result" id="raw"></pre>
-      </details>
-    </div>
+  </div>
+
+  <div class="hilal-data" id="data" hidden>
+    <div class="hilal-verdict" id="verdict"></div>
+    <details>
+      <summary>Full JSON response</summary>
+      <pre class="pg-result" id="raw"></pre>
+    </details>
   </div>
 
   <p class="hilal-note" id="error" hidden></p>
@@ -81,6 +96,12 @@ const months = [
     const verdictEl = document.getElementById('verdict');
     const rawEl = document.getElementById('raw');
     const errorEl = document.getElementById('error');
+    const mapFigureEl = document.getElementById('map-figure');
+    const mapEl = document.getElementById('map');
+    const mapSkeletonEl = document.getElementById('map-skeleton');
+    const mapCapEl = document.getElementById('map-cap');
+    const mapDlEl = document.getElementById('map-dl');
+    const chartDlEl = document.getElementById('chart-dl');
 
     async function loadStatus() {
       try {
@@ -125,18 +146,24 @@ const months = [
       skeletonEl.hidden = false;
       chartEl.hidden = true;
       figcapEl.textContent = 'Rendering chart…';
+      mapFigureEl.hidden = false;
+      mapSkeletonEl.hidden = false;
+      mapEl.hidden = true;
+      mapCapEl.textContent = 'Rendering map…';
 
       const params = new URLSearchParams({
         month: bulanEl.value,
         year: tahunEl.value,
       });
       const vizUrl = `${apiBase}/api/v1/hilal/viz?${params}`;
+      const mapUrl = `${apiBase}/api/v1/hilal/map?${params}`;
 
       try {
         const res = await fetch(`${apiBase}/api/v1/hilal/info?${params}`);
         const body = await res.json();
         if (!res.ok) {
           figureEl.hidden = true;
+          mapFigureEl.hidden = true;
           errorEl.hidden = false;
           errorEl.textContent =
             `${res.status} ${body?.error?.code ?? ''}: ${body?.error?.message ?? res.statusText}`;
@@ -153,6 +180,19 @@ const months = [
           figcapEl.textContent = 'Failed to load image.';
         };
         chartEl.src = vizUrl;
+        chartDlEl.href = vizUrl;
+
+        mapEl.onload = () => {
+          mapSkeletonEl.hidden = true;
+          mapEl.hidden = false;
+          mapCapEl.textContent = `Map · ${ev.gregorian_date}`;
+        };
+        mapEl.onerror = () => {
+          mapSkeletonEl.hidden = true;
+          mapCapEl.textContent = 'Failed to load map.';
+        };
+        mapEl.src = mapUrl;
+        mapDlEl.href = mapUrl;
 
         const visible = ev.visible;
         verdictEl.textContent = visible
@@ -164,6 +204,7 @@ const months = [
         dataEl.hidden = false;
       } catch (error) {
         figureEl.hidden = true;
+        mapFigureEl.hidden = true;
         errorEl.hidden = false;
         errorEl.textContent = String(error);
       }
@@ -217,16 +258,20 @@ const months = [
       font-weight: 700;
       cursor: pointer;
     }
-    .hilal-grid {
+    .hilal-figures {
       display: grid;
-      grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 1.5rem;
       align-items: start;
+      margin-bottom: 1.5rem;
     }
     @media (max-width: 42rem) {
-      .hilal-grid {
+      .hilal-figures {
         grid-template-columns: 1fr;
       }
+    }
+    .hilal-data {
+      margin-top: 0.5rem;
     }
     .hilal-figure {
       margin: 0;

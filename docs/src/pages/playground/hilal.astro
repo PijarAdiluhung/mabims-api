@@ -27,9 +27,11 @@ const months = [
 >
   <p>
     Halaman ini adalah sampel dari fungsionalitas API MABIMS untuk menampilkan
-    visibilitas hilal. Coba sekarang dan dapatkan grafik visibilitas hilal
-    yang dievaluasi di titik-titik pengamatan pesisir di seluruh Indonesia —
-    grafik menampilkan titik penentu saat kriteria terpenuhi.
+    visibilitas hilal. Coba sekarang dan dapatkan dua kartu untuk malam
+    penentuan: <strong>peta wilayah visibilitas</strong> seluruh Nusantara dan
+    <strong>grafik langit</strong> di titik pengamat penentu. Peta menandai
+    titik-titik yang memenuhi kriteria; grafik menunjukkan ke arah mana hilal
+    dicari.
   </p>
 
   <div class="pg-status" id="status" role="status">Memeriksa status API…</div>
@@ -52,7 +54,17 @@ const months = [
     <button type="submit" class="pg-btn">Render Grafik</button>
   </form>
 
-  <div class="hilal-grid">
+  <div class="hilal-figures">
+    <figure class="hilal-figure" id="map-figure" hidden>
+      <div class="hilal-skeleton" id="map-skeleton">
+        <div class="hilal-spinner" role="status" aria-label="Memuat peta"></div>
+      </div>
+      <img id="map" alt="Peta wilayah visibilitas hilal" width="360" height="640" hidden />
+      <figcaption>
+        <span id="map-cap">Peta wilayah visibilitas</span>
+        · <a id="map-dl" download>Unduh PNG</a>
+      </figcaption>
+    </figure>
     <figure class="hilal-figure" id="figure" hidden>
       <div class="hilal-skeleton" id="skeleton">
         <div class="hilal-spinner" role="status" aria-label="Memuat"></div>
@@ -64,15 +76,19 @@ const months = [
         height="640"
         hidden
       />
-      <figcaption id="figcap"></figcaption>
+      <figcaption>
+        <span id="figcap"></span>
+        · <a id="chart-dl" download>Unduh PNG</a>
+      </figcaption>
     </figure>
-    <div class="hilal-data" id="data" hidden>
-      <div class="hilal-verdict" id="verdict"></div>
-      <details>
-        <summary>Respons JSON lengkap</summary>
-        <pre class="pg-result" id="raw"></pre>
-      </details>
-    </div>
+  </div>
+
+  <div class="hilal-data" id="data" hidden>
+    <div class="hilal-verdict" id="verdict"></div>
+    <details>
+      <summary>Respons JSON lengkap</summary>
+      <pre class="pg-result" id="raw"></pre>
+    </details>
   </div>
 
   <p class="hilal-note" id="error" hidden></p>
@@ -90,6 +106,12 @@ const months = [
     const verdictEl = document.getElementById("verdict");
     const rawEl = document.getElementById("raw");
     const errorEl = document.getElementById("error");
+    const mapFigureEl = document.getElementById("map-figure");
+    const mapEl = document.getElementById("map");
+    const mapSkeletonEl = document.getElementById("map-skeleton");
+    const mapCapEl = document.getElementById("map-cap");
+    const mapDlEl = document.getElementById("map-dl");
+    const chartDlEl = document.getElementById("chart-dl");
 
     async function loadStatus() {
       try {
@@ -145,18 +167,24 @@ const months = [
       skeletonEl.hidden = false;
       chartEl.hidden = true;
       figcapEl.textContent = "Merender grafik…";
+      mapFigureEl.hidden = false;
+      mapSkeletonEl.hidden = false;
+      mapEl.hidden = true;
+      mapCapEl.textContent = "Merender peta…";
 
       const params = new URLSearchParams({
         month: bulanEl.value,
         year: tahunEl.value,
       });
       const vizUrl = `${apiBase}/api/v1/hilal/viz?${params}`;
+      const mapUrl = `${apiBase}/api/v1/hilal/map?${params}`;
 
       try {
         const res = await fetch(`${apiBase}/api/v1/hilal/info?${params}`);
         const body = await res.json();
         if (!res.ok) {
           figureEl.hidden = true;
+          mapFigureEl.hidden = true;
           errorEl.hidden = false;
           errorEl.textContent = `${res.status} ${body?.error?.code ?? ""}: ${body?.error?.message ?? res.statusText}`;
           return;
@@ -172,6 +200,19 @@ const months = [
           figcapEl.textContent = "Gagal memuat gambar.";
         };
         chartEl.src = vizUrl;
+        chartDlEl.href = vizUrl;
+
+        mapEl.onload = () => {
+          mapSkeletonEl.hidden = true;
+          mapEl.hidden = false;
+          mapCapEl.textContent = `Peta · ${ev.gregorian_date}`;
+        };
+        mapEl.onerror = () => {
+          mapSkeletonEl.hidden = true;
+          mapCapEl.textContent = "Gagal memuat peta.";
+        };
+        mapEl.src = mapUrl;
+        mapDlEl.href = mapUrl;
 
         const visible = ev.visible;
         verdictEl.textContent = visible
@@ -183,6 +224,7 @@ const months = [
         dataEl.hidden = false;
       } catch (error) {
         figureEl.hidden = true;
+        mapFigureEl.hidden = true;
         errorEl.hidden = false;
         errorEl.textContent = String(error);
       }
@@ -254,16 +296,20 @@ const months = [
       font-weight: 700;
       cursor: pointer;
     }
-    .hilal-grid {
+    .hilal-figures {
       display: grid;
-      grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 1.5rem;
       align-items: start;
+      margin-bottom: 1.5rem;
     }
     @media (max-width: 42rem) {
-      .hilal-grid {
+      .hilal-figures {
         grid-template-columns: 1fr;
       }
+    }
+    .hilal-data {
+      margin-top: 0.5rem;
     }
     .hilal-figure {
       margin: 0;
