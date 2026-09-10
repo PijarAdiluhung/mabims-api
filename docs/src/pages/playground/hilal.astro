@@ -59,6 +59,7 @@ const months = [
     <figure class="hilal-figure" id="map-figure" hidden>
       <div class="hilal-skeleton" id="map-skeleton">
         <div class="hilal-spinner" role="status" aria-label="Memuat peta"></div>
+        <p class="hilal-eta" id="map-eta">Merender peta…</p>
       </div>
       <img id="map" alt="Peta wilayah visibilitas hilal" width="360" height="640" hidden />
       <figcaption>
@@ -113,6 +114,25 @@ const months = [
     const mapCapEl = document.getElementById("map-cap");
     const mapDlEl = document.getElementById("map-dl");
     const chartDlEl = document.getElementById("chart-dl");
+    const mapEtaEl = document.getElementById("map-eta");
+
+    // The map is a cold ~30s render on first request; show an estimate while it
+    // loads (and it just disappears early when the month is pre-generated).
+    let mapEtaTimer = null;
+    function startMapEta(seconds) {
+      clearInterval(mapEtaTimer);
+      let remaining = seconds;
+      mapEtaEl.textContent = `Merender peta… ~${remaining}s`;
+      mapEtaTimer = setInterval(() => {
+        remaining -= 1;
+        mapEtaEl.textContent =
+          remaining > 0 ? `Merender peta… ~${remaining}s` : "Menyelesaikan peta…";
+        if (remaining <= 0) clearInterval(mapEtaTimer);
+      }, 1000);
+    }
+    function stopMapEta() {
+      clearInterval(mapEtaTimer);
+    }
 
     async function loadStatus() {
       try {
@@ -172,6 +192,7 @@ const months = [
       mapSkeletonEl.hidden = false;
       mapEl.hidden = true;
       mapCapEl.textContent = "Merender peta…";
+      startMapEta(35);
 
       const params = new URLSearchParams({
         month: bulanEl.value,
@@ -186,6 +207,7 @@ const months = [
         if (!res.ok) {
           figureEl.hidden = true;
           mapFigureEl.hidden = true;
+          stopMapEta();
           errorEl.hidden = false;
           errorEl.textContent = `${res.status} ${body?.error?.code ?? ""}: ${body?.error?.message ?? res.statusText}`;
           return;
@@ -204,11 +226,13 @@ const months = [
         chartDlEl.href = vizUrl;
 
         mapEl.onload = () => {
+          stopMapEta();
           mapSkeletonEl.hidden = true;
           mapEl.hidden = false;
           mapCapEl.textContent = `Peta · ${ev.gregorian_date}`;
         };
         mapEl.onerror = () => {
+          stopMapEta();
           mapSkeletonEl.hidden = true;
           mapCapEl.textContent = "Gagal memuat peta.";
         };
@@ -226,6 +250,7 @@ const months = [
       } catch (error) {
         figureEl.hidden = true;
         mapFigureEl.hidden = true;
+        stopMapEta();
         errorEl.hidden = false;
         errorEl.textContent = String(error);
       }
@@ -319,6 +344,8 @@ const months = [
       aspect-ratio: 9 / 16;
       display: grid;
       place-items: center;
+      align-content: center;
+      gap: 0.75rem;
       border-radius: 0.75rem;
       border: 1px solid var(--sl-color-gray-5);
       background: linear-gradient(
@@ -329,6 +356,12 @@ const months = [
       );
       background-size: 200% 100%;
       animation: hilal-shimmer 1.4s ease-in-out infinite;
+    }
+    .hilal-eta {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--sl-color-gray-3);
+      text-align: center;
     }
     .hilal-spinner {
       width: 44px;
