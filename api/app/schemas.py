@@ -117,6 +117,14 @@ class MetaResponse(BaseModel):
     computed_months: list[str] = Field(default_factory=list)
     method: str | None = None
     docs_url: str
+    hilal_image_range: list[int] | None = Field(
+        default=None,
+        description=(
+            "Inclusive [min, max] Hijri years for which the pre-generated hilal "
+            "image set (/hilal/viz, /hilal/map) is guaranteed; outside this range "
+            "images are still rendered on demand."
+        ),
+    )
 
 
 class HealthResponse(BaseModel):

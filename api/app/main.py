@@ -13,7 +13,7 @@ from typing import TypeVar
 from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, Query, Request
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -32,10 +32,16 @@ from .events import find_events
 from .fallback import FALLBACK_SOURCE, AladhanProvider, FallbackStore, MemoryFallbackStore
 from .hilal.astro import lunar_age_hours, moonset_local, phase_angle_deg
 from .hilal.chart import build_chart_data, chart_png_bytes
+from .hilal.images import image_path, store
 from .hilal.mapcard import map_png_bytes
-from .hilal.service import MONTH_NAMES_ID, MonthNotResolvable, resolve_sighting_evening
+from .hilal.service import (
+    MONTH_NAMES_ID,
+    MonthNotResolvable,
+    SightingEvening,
+    resolve_sighting_evening,
+)
 from .mabims_computed import COMPUTED_SOURCE, MabimsCalcProvider, next_hijri_month
-from .mabims_sites import MultiSiteSighting, Site, sighting_on_date, site_by_name
+from .mabims_sites import MultiSiteSighting, Site, SiteSighting, sighting_on_date, site_by_name
 from .schemas import (
     ConversionInput,
     ConversionOutput,
@@ -93,6 +99,10 @@ HILAL_CACHE = {"Cache-Control": "public, max-age=86400, s-maxage=86400"}
 HILAL_ALT_MIN_DEG = 3.0
 HILAL_ELONG_MIN_DEG = 6.4
 
+# Range covered by the pre-generated image set (bundled core + documented range).
+HILAL_IMAGE_MIN_YEAR = 1445
+HILAL_IMAGE_MAX_YEAR = 1455
+
 # The map card renders a 0.25 deg grid (~260 MB peak), so serialize renders to
 # stay inside the container memory cap; results are deterministic per evening.
 _MAP_SEMAPHORE = threading.Semaphore(1)
@@ -116,6 +126,49 @@ def _map_png_cached(
         vis_year=vis_year,
         hijri_label=hijri_label,
         hero=(hero_name, hero_lat, hero_lon, hero_alt, hero_elong),
+    )
+
+
+def _render_viz_png(
+    res: SightingEvening,
+    sighting: SightingObservation,
+    ms_site: SiteSighting,
+    alt_ok: bool,
+    elong_ok: bool,
+) -> bytes:
+    sky = sighting.multisite.sky_for(ms_site.site)
+    data = build_chart_data(
+        hijri_label=res.evening_label,
+        evening_date=res.evening_date,
+        visibility_label=f"VISIBILITAS 1 {res.target_name} {res.target_year} H".upper(),
+        sunset=sighting.sunset_local,
+        moonset=sighting.moonset_local,
+        moon_alt=ms_site.alt_deg,
+        moon_az=sky.moon_az_deg,
+        sun_alt=sky.sun_alt_deg,
+        sun_az=sky.sun_az_deg,
+        elong=ms_site.elong_deg,
+        illum=sighting.illumination_pct / 100.0,
+        decider=ms_site.site,
+        dec_alt=ms_site.alt_refracted_deg,
+        dec_elong=ms_site.elong_deg,
+        sites_checked=len(sighting.multisite.sites),
+        alt_ok=alt_ok,
+        elong_ok=elong_ok,
+        alt_margin=ms_site.alt_refracted_deg - HILAL_ALT_MIN_DEG,
+        elong_margin=ms_site.elong_deg - HILAL_ELONG_MIN_DEG,
+    )
+    return chart_png_bytes(data)
+
+
+def _render_map_png(res: SightingEvening, sighting: SightingObservation, ms_site: SiteSighting) -> bytes:
+    site = sighting.site
+    return map_png_bytes(
+        evening=res.evening_date,
+        vis_month=res.target_name,
+        vis_year=res.target_year,
+        hijri_label=res.evening_label,
+        hero=(site.name, site.lat_deg, site.lon_deg, ms_site.alt_refracted_deg, ms_site.elong_deg),
     )
 
 _HIJRI_YEARS_PER_GREGORIAN = 365.2425 / 354.36792
@@ -526,6 +579,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
             computed_months=computed_months,
             method=COMPUTED_METHOD if active_computed is not None else None,
             docs_url=settings.docs_url,
+            hilal_image_range=[HILAL_IMAGE_MIN_YEAR, HILAL_IMAGE_MAX_YEAR],
         )
         return _json_response(payload.model_dump(), SHORT_CACHE_HEADERS)
 
@@ -1048,41 +1102,21 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         year: int = Query(...),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
-        res, sighting, alt_ok, elong_ok, visible, ms_site, _source, _warnings = _hilal_context(
+        res, sighting, alt_ok, elong_ok, _visible, ms_site, _source, _warnings = _hilal_context(
             month, year, _parse_retro(retro)
         )
-        sky = sighting.multisite.sky_for(ms_site.site)
-        data = build_chart_data(
-            hijri_label=res.evening_label,
-            evening_date=res.evening_date,
-            visibility_label=(
-                f"VISIBILITAS 1 {res.target_name} {res.target_year} H".upper()
-            ),
-            sunset=sighting.sunset_local,
-            moonset=sighting.moonset_local,
-            moon_alt=ms_site.alt_deg,
-            moon_az=sky.moon_az_deg,
-            sun_alt=sky.sun_alt_deg,
-            sun_az=sky.sun_az_deg,
-            elong=ms_site.elong_deg,
-            illum=sighting.illumination_pct / 100.0,
-            decider=ms_site.site,
-            dec_alt=ms_site.alt_refracted_deg,
-            dec_elong=ms_site.elong_deg,
-            sites_checked=len(sighting.multisite.sites),
-            alt_ok=alt_ok,
-            elong_ok=elong_ok,
-            alt_margin=ms_site.alt_refracted_deg - HILAL_ALT_MIN_DEG,
-            elong_margin=ms_site.elong_deg - HILAL_ELONG_MIN_DEG,
-        )
+        cached = image_path("viz", res.target_year, res.target_month)
+        if cached is not None:
+            return FileResponse(cached, media_type="image/png", headers=HILAL_CACHE)
         try:
-            png = chart_png_bytes(data)
+            png = _render_viz_png(res, sighting, ms_site, alt_ok, elong_ok)
         except Exception as exc:
             raise ApiError(
                 "render_failed",
                 f"Could not render chart: {exc.__class__.__name__}",
                 500,
             ) from exc
+        store("viz", res.target_year, res.target_month, png)
         return Response(
             content=png,
             media_type="image/png",
@@ -1110,8 +1144,10 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         res, sighting, _alt_ok, _elong_ok, _visible, ms_site, _source, _warnings = _hilal_context(
             month, year, _parse_retro(retro)
         )
+        cached = image_path("map", res.target_year, res.target_month)
+        if cached is not None:
+            return FileResponse(cached, media_type="image/png", headers=HILAL_CACHE)
         site = sighting.site
-        hero = (site.name, site.lat_deg, site.lon_deg, ms_site.alt_refracted_deg, ms_site.elong_deg)
         try:
             with _MAP_SEMAPHORE:
                 png = _map_png_cached(
@@ -1119,7 +1155,11 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                     res.target_name,
                     res.target_year,
                     res.evening_label,
-                    *hero,
+                    site.name,
+                    site.lat_deg,
+                    site.lon_deg,
+                    ms_site.alt_refracted_deg,
+                    ms_site.elong_deg,
                 )
         except Exception as exc:
             raise ApiError(
@@ -1127,6 +1167,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                 f"Could not render map: {exc.__class__.__name__}",
                 500,
             ) from exc
+        store("map", res.target_year, res.target_month, png)
         return Response(
             content=png,
             media_type="image/png",

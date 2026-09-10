@@ -31,7 +31,8 @@ const months = [
     penentuan: <strong>peta wilayah visibilitas</strong> seluruh Nusantara dan
     <strong>grafik langit</strong> di titik pengamat penentu. Peta menandai
     titik-titik yang memenuhi kriteria; grafik menunjukkan ke arah mana hilal
-    dicari.
+    dicari. Peta dan grafik tersedia untuk tahun <strong>1445–1455 H</strong>;
+    di luar rentang itu gunakan <a href="/endpoints/hilal">endpoint JSON</a>.
   </p>
 
   <div class="pg-status" id="status" role="status">Memeriksa status API…</div>
@@ -46,7 +47,7 @@ const months = [
     <label>
       Tahun Hijriah
       <select id="tahun">
-        {Array.from({ length: 41 }, (_, i) => 1445 + i).map((y) => (
+        {Array.from({ length: 11 }, (_, i) => 1445 + i).map((y) => (
           <option value={y} selected={y === 1447}>{y}</option>
         ))}
       </select>
