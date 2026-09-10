@@ -37,15 +37,15 @@
 - [x] Rewrite blog `behind-hilal-viz.md` (id+en) as "Di Mana Cari Hilal?" — multi-site edition
 - [x] Sync `mabims-hijri` SDK (v1.2.0): additive `deciding_site`/`sites_checked` types, multi-site docs, pushed (npm publish after v1.5 deploy ✓ API is live)
 - [x] No API keys (dropped M2) — outputs are deterministic per `(month, year)`; CDN caches them via `Cache-Control: public, max-age=86400`, purge-on-push keeps edge fresh
-- [x] Pre-generated hilal image set (`api/scripts/generate_hilal_images.py`): committed core 1444–1448 (`api/data/hilal_images/`), lazy disk cache to the `/data` volume for the rest, `/meta.hilal_image_range = 1445–1455`
+- [x] Pre-generated hilal image set (`api/scripts/generate_hilal_images.py`): committed core 1444–1449 (`api/data/hilal_images/`), lazy disk cache to the `/data` volume for the rest, `/meta.hilal_image_range = 1445–1455`
 
 ### Hilal map card — polish
-- [ ] Fix alt/elong contour-line artefact on the map card
-- [ ] Extend the alt/elong lines outside the Indonesia buffer (to the map edge) so they read as continuous isolines
-- [ ] Fix the `+`/`-` sign formatting bug on the criteria values
-- [ ] Add a world minimap (Indonesia highlighted) for geographic context
-- [ ] Fix hilal-viz text and bold issues
-- [ ] Hilal map header too long
+- [x] Fix alt/elong contour-line artefact on the map card (stray `alt 3°` label — was clabel text left behind by the clip; isolines no longer clipped)
+- [x] Extend the alt/elong lines outside the Indonesia buffer (to the map edge) so they read as continuous isolines
+- [x] Fix the `+`/`-` sign formatting bug on the criteria values (tooltip hardcoded `+`, produced `+-0.8°`; now shared `_fmt_alt`/`_fmt_elong`)
+- [x] Add a world minimap for geographic context (low-res real-sunset alt-3/elong-6.4 region, ~1s/month, cached + pre-generated)
+- [x] Fix hilal-viz text (title was dropping the year for two-word months; header now uniform with the map: month caps, no year)
+- [x] Hilal map header too long (uniform title fits; safety shrink if a month ever overflows)
 
 ## Cutover (M5)
 - [x] Repoint malangmengaji.com integrations to new hostnames

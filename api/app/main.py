@@ -140,7 +140,7 @@ def _render_viz_png(
     data = build_chart_data(
         hijri_label=res.evening_label,
         evening_date=res.evening_date,
-        visibility_label=f"VISIBILITAS 1 {res.target_name} {res.target_year} H".upper(),
+        vis_month=res.target_name,
         sunset=sighting.sunset_local,
         moonset=sighting.moonset_local,
         moon_alt=ms_site.alt_deg,

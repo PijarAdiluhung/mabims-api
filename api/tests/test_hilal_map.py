@@ -65,6 +65,15 @@ def test_map_points_frozen():
         assert expected in names
 
 
+def test_sign_and_header_formatting():
+    from app.hilal.chart import _fmt_alt, _fmt_elong, _header_title
+
+    assert _fmt_alt(4.0) == "+4.0\u00b0"
+    assert _fmt_alt(-0.8) == "-0.8\u00b0"  # never "+-0.8°"
+    assert _fmt_elong(5.2) == "5.2\u00b0"  # elongation is always positive
+    assert _header_title("Jumadil Akhir") == "Visibilitas JUMADIL AKHIR"
+
+
 def test_map_png_bytes_render_and_determinism():
     hero = ("Sabang / Weh Island", 5.8897, 95.3164, 4.0, 7.0)
     png = mapcard.map_png_bytes(

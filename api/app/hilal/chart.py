@@ -102,6 +102,35 @@ def _fit_text(d: ImageDraw.ImageDraw, s: str, f, max_width: float) -> str:
     return s[:lo].rstrip() + ellipsis
 
 
+def _fmt_alt(v: float) -> str:
+    """Moon altitude: always signed, so negatives never lose their ``-``."""
+    return f"{v:+.1f}\u00b0"
+
+
+def _fmt_elong(v: float) -> str:
+    """Elongation: always positive (0-180 deg), so no sign is shown."""
+    return f"{v:.1f}\u00b0"
+
+
+def _header_title(vis_month: str) -> str:
+    """Uniform card title: month in caps, no year (the meta line carries it)."""
+    return f"Visibilitas {vis_month.upper()}"
+
+
+def _draw_header(d: ImageDraw.ImageDraw, vis_month: str, greg: str, hijri: str, pal: dict) -> None:
+    """Shared 720px header for /hilal/viz and /hilal/map.
+
+    Shrinks the title only if a month name would overflow, so the two cards
+    never drift in size, casing or year handling.
+    """
+    title = _header_title(vis_month)
+    size = 42
+    while size > 30 and d.textlength(title, font=font(size, bold=True)) > W - 80:
+        size -= 2
+    _txt(d, (40, 32), title, font(size, bold=True), pal["text"])
+    _txt(d, (40, 82), f"{greg}  \u00b7  {hijri}", font(28), pal["muted"])
+
+
 def _vgrad(w: int, h: int, stops: list[tuple[float, tuple[int, int, int]]]) -> Image.Image:
     img = Image.new("RGBA", (w, h))
     px = img.load()
@@ -304,8 +333,8 @@ def _criteria_table(img: Image.Image, data: dict, box: tuple, pal: dict) -> None
     dec_alt = data.get("dec_alt", data["moon_alt"])
     dec_elong = data.get("dec_elong", data["elong"])
     crit = [
-        ("ALT. BULAN", f"{dec_alt:+.1f}\u00b0", "3.0\u00b0", data["alt_ok"]),
-        ("ELONGASI", f"{dec_elong:.1f}\u00b0", "6.4\u00b0", data["elong_ok"]),
+        ("ALT. BULAN", _fmt_alt(dec_alt), "3.0\u00b0", data["alt_ok"]),
+        ("ELONGASI", _fmt_elong(dec_elong), "6.4\u00b0", data["elong_ok"]),
     ]
     chips = Image.new("RGBA", img.size, (0, 0, 0, 0))
     cd = ImageDraw.Draw(chips)
@@ -382,12 +411,7 @@ def render_chart(data: dict) -> Image.Image:
     d.line([0, horizon_y, W, horizon_y], fill=pal["horizon"], width=2)
     _draw_verdict_pill(img, data, mx, my, 119, pal, horizon_y)
 
-    # visibility_label e.g. "VISIBILITAS 1 RAMADHAN 1447 H"
-    vl_parts = data["label"].split()
-    vis_month = vl_parts[2] if len(vl_parts) >= 3 else ""
-    vis_year = vl_parts[3] if len(vl_parts) >= 4 else ""
-    _txt(d, (40, 32), f"Visibilitas {vis_month} {vis_year}", font(42, bold=True), pal["text"])
-    _txt(d, (40, 82), f"{data['greg']}  \u00b7  {data['hijri']}", font(28), pal["muted"])
+    _draw_header(d, data["vis_month"], data["greg"], data["hijri"], pal)
 
     card_y = horizon_y + 30
     card_h = H - card_y - 52
@@ -417,7 +441,7 @@ def chart_png_bytes(data: dict) -> bytes:
 
 
 def build_chart_data(*, hijri_label: str, evening_date: date,
-                     visibility_label: str, sunset: str, moonset: str, moon_alt: float,
+                     vis_month: str, sunset: str, moonset: str, moon_alt: float,
                      moon_az: float, sun_alt: float, sun_az: float, elong: float,
                      illum: float, alt_ok: bool, elong_ok: bool,
                      alt_margin: float = 0.0, elong_margin: float = 0.0,
@@ -425,14 +449,15 @@ def build_chart_data(*, hijri_label: str, evening_date: date,
                      dec_elong: float | None = None, sites_checked: int = 0) -> dict:
     """Assemble the renderer's data dict from typed inputs.
 
-    ``moon_alt``/``moon_az``/``sun_alt``/``sun_az`` are the deciding site's
-    sky scene; ``dec_alt``/``dec_elong`` are its refraction-corrected
+    ``vis_month`` is the target month name (e.g. ``Jumadil Akhir``) used for
+    the header; ``moon_alt``/``moon_az``/``sun_alt``/``sun_az`` are the deciding
+    site's sky scene; ``dec_alt``/``dec_elong`` are its refraction-corrected
     criteria values shown in the table.
     """
     return {
         "hijri": hijri_label,
         "greg": f"{evening_date.day} {GREG_MONTHS_ID[evening_date.month]} {evening_date.year}",
-        "label": visibility_label,
+        "vis_month": vis_month,
         "sunset": sunset,
         "moonset": moonset,
         "moon_alt": float(moon_alt),
