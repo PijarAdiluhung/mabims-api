@@ -1,6 +1,6 @@
 ---
-title: "Deep Dive: Di Balik mabims-computed"
-description: "Bedah teknis fallback kalender MABIMS: dari posisi hilal, keputusan 29 atau 30 hari, seed table, sampai kenapa altitudnya toposentris tapi elongasinya geosentris."
+title: "Bedah mabims-computed: Apa yang Terjadi di Balik Layar?"
+description: "Bedah teknis fallback kalender MABIMS: dari posisi hilal, keputusan 29 atau 30 hari, seed table, sampai alasan ketinggian hilal dihitung secara toposentris sementara elongasinya tetap geosentris."
 date: 2026-09-09
 tags:
   - MABIMS
@@ -8,28 +8,28 @@ tags:
   - Backend
   - Python
   - Deep Dive
-excerpt: "Kalau tanggal yang kamu minta berada di luar tabel Kemenag, MABIMS API tidak menebak secara acak. Ia menghitung ulang panjang bulan berdasarkan kriteria Neo MABIMS. Tulisan ini membedah mesin di balik source mabims-computed."
+excerpt: "Kalau tanggal yang kamu minta berada di luar tabel Kemenag, MABIMS API tidak menebak secara acak. API menghitung ulang panjang bulan berdasarkan kriteria Neo MABIMS. Tulisan ini membedah mesin di balik source mabims-computed."
 cover:
-  image: ../../../assets/hilal.jpg
+  image: ../../../assets/kalkulator.jpg
   alt: Perhitungan hilal dan kalender MABIMS
 authors:
   - pijar
 ---
 
-Di MABIMS API ini saya beberapa kali menyebut `source: "mabims-computed"` sebagai fallback.
+Di beberapa bagian dokumentasi MABIMS API, saya menyebut `source: "mabims-computed"` sebagai fallback.
 
-Di post ini kita akan melihat lebih dalam bagaimana seluk beluknya. `mabims-computed` bukan cuma "kalau data tidak ada, pakai perkiraan". Di baliknya ada mesin kecil yang menghitung kapan bulan Hijriah dimulai, berjalan maju atau mundur dari tanggal anchor, menyimpan hasilnya, dan memberi tahu client kalau hasil yang diterima bukan data resmi Kemenag.
+Di tulisan ini kita akan melihat cara kerjanya lebih dekat. `mabims-computed` bukan sekadar "kalau datanya tidak ada, pakai perkiraan". Di baliknya ada mesin kecil yang menghitung awal bulan Hijriah, berjalan maju atau mundur dari sebuah tanggal acuan, menyimpan hasil perhitungan, lalu memberi tahu aplikasi bahwa data yang diterima bukan data resmi Kemenag.
 
-Jadi di tulisan ini saya mau membedah bagian yang biasanya tidak kelihatan dari luar: bagaimana satu bulan diputuskan punya 29 atau 30 hari, kenapa altitudnya toposentris tapi elongasinya geosentris, dan kenapa kriterianya dievaluasi di 25 titik pengamatan pesisir.
+Saya akan membahas bagian-bagian yang biasanya tidak terlihat dari luar: bagaimana mesin menentukan sebuah bulan memiliki 29 atau 30 hari, mengapa ketinggian hilal dihitung secara toposentris sementara elongasi tetap geosentris, dan mengapa kriteria tersebut diperiksa di 25 titik pengamatan pesisir.
 
 ## Dua jenis data, satu API
 
-MABIMS API punya dua sumber utama:
+MABIMS API memiliki dua sumber data utama:
 
 - `mabims` — tanggal dari kalender publik Kemenag RI.
-- `mabims-computed` — tanggal yang dihitung dengan kriteria Neo MABIMS ketika berada di luar cakupan tabel.
+- `mabims-computed` — tanggal yang dihitung menggunakan kriteria Neo MABIMS ketika tanggal tersebut berada di luar cakupan tabel.
 
-Misalnya tanggal yang masih ada di tabel:
+Contoh tanggal yang masih tersedia di dalam tabel:
 
 ```json
 {
@@ -46,7 +46,7 @@ Misalnya tanggal yang masih ada di tabel:
 }
 ```
 
-Kalau tanggalnya sudah di luar tabel, bentuk responsnya tetap sama, tapi sumbernya berubah:
+Kalau tanggal yang diminta sudah berada di luar tabel, bentuk responsnya tetap sama. Yang berubah adalah sumber datanya:
 
 ```json
 {
@@ -65,26 +65,26 @@ Kalau tanggalnya sudah di luar tabel, bentuk responsnya tetap sama, tapi sumbern
 }
 ```
 
-Saya sengaja tidak menyamakan dua sumber ini. Hasil komputasi bisa sangat berguna untuk kalender aplikasi, tetapi tidak boleh dibaca sebagai pengumuman resmi atau pengganti sidang isbat.
+Kedua sumber ini sengaja dibedakan. Hasil perhitungan tetap berguna untuk kalender aplikasi, tetapi tidak boleh dianggap sebagai pengumuman resmi atau pengganti sidang isbat.
 
 ## Neo MABIMS dalam dua angka
 
-Versi singkat kriterianya adalah:
+Versi singkat kriteria Neo MABIMS adalah:
 
 ```text
-tinggi hilal   >= 3.0°
-elongasi       >= 6.4°
+ketinggian hilal >= 3.0°
+elongasi         >= 6.4°
 ```
 
-Keduanya harus lolos bersamaan, dan cukup lolos di **satu titik manapun**. Tinggi hilal lolos tapi elongasi tidak cukup berarti belum lolos. Sebaliknya juga sama.
+Kedua syarat tersebut harus terpenuhi secara bersamaan, dan cukup terpenuhi di **satu titik pengamatan saja**. Kalo cuma ketinggian hilal yang memenuhi syarat, tetapi elongasinya belum cukup = kriterianya belum terpenuhi. Begitu juga sebaliknya.
 
-Kriteria ini dievaluasi pada waktu matahari terbenam **lokal di masing-masing titik pengamatan** — saat ini **25 titik pesisir** dari Sabang sampai Rote (daftarnya terbuka di `api/data/hilal_sites.json`). Pola menariknya: untuk bulan-bulan yang "aman", hampir selalu titik paling barat yang memutuskan, karena semakin barat, matahari terbenam semakin mundur dan hilal semakin tinggi di atas horizon saat senja. Tapi ada bulan-bulan dengan deklinasi bulan selatan di mana arc selatan (selatan Jawa sampai Nusa Tenggara) yang menang. Itu sebabnya titik-titik selatan ikut masuk daftar.
+Kriteria ini diperiksa saat **matahari terbenam di masing-masing titik pengamatan**. Saat ini ada **25 titik pengamatan pesisir** dari Sabang sampai Rote; daftar lengkapnya tersedia di [`api/data/hilal_sites.json`](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json). Polanya menarik: pada bulan-bulan yang kondisinya cukup aman, titik paling barat hampir selalu menjadi penentu. Semakin ke barat, matahari terbenam semakin lambat, sehingga hilal berada lebih tinggi di atas horizon saat senja. Namun, pada bulan-bulan ketika deklinasi Bulan berada di selatan, jalur titik-titik di selatan, dari Jawa bagian selatan sampai Nusa Tenggara, bisa menjadi penentu. Itu sebabnya titik-titik selatan juga perlu diperiksa.
 
-Dan ini bukan jimat "wajib Sabang" — ini persis logika rukyah Kemenag: hilal terlihat di wilayah Indonesia, bulan baru dimulai. Respons API bahkan melaporkan titik yang memutuskan lewat `deciding_site`.
+Ini bukan berarti Sabang selalu menjadi patokan. Logikanya sama dengan rukyah Kemenag: selama hilal terlihat di wilayah Indonesia, bulan baru dimulai. API bahkan melaporkan titik yang menjadi penentu melalui field `deciding_site`.
 
 ## Dari hilal ke panjang bulan
 
-Perhitungan kalendernya sebenarnya bisa diringkas menjadi fungsi kecil:
+Perhitungan panjang bulan sebenarnya bisa diringkas dalam fungsi kecil:
 
 ```python
 def month_length(month_start):
@@ -92,82 +92,82 @@ def month_length(month_start):
     return 29 if result.visible else 30
 ```
 
-`criteria_on_day29()` mengevaluasi matahari terbenam pada malam ke-29 bulan berjalan. Kalau dua kriteria terpenuhi, bulan selesai setelah 29 hari. Kalau tidak, bulan berjalan menjadi 30 hari.
+`criteria_on_day29()` memeriksa kondisi saat matahari terbenam pada malam ke-29 bulan yang sedang berjalan. Kalau kedua kriteria terpenuhi, bulan tersebut selesai setelah 29 hari. Kalau tidak, bulan digenapkan menjadi 30 hari.
 
-Dengan kata lain, untuk menentukan awal Ramadhan, yang diperiksa bukan malam pertama Ramadhan. Yang diperiksa adalah malam ke-29 Sya'ban. Kalau hilalnya memenuhi kriteria, besoknya 1 Ramadhan. Kalau tidak, Sya'ban digenapkan menjadi 30 hari.
+Artinya, untuk menentukan awal Ramadan, yang diperiksa bukan malam pertama Ramadan. Yang diperiksa adalah malam ke-29 Sya'ban. Kalau hilal memenuhi kriteria, hari berikutnya adalah 1 Ramadan. Kalau tidak, Sya'ban berlangsung selama 30 hari.
 
-Alur sederhananya kira-kira seperti ini:
+Alurnya kira-kira seperti ini:
 
 ```text
-awal bulan Hijriah yang diketahui
-             ↓
-evaluasi sunset pada malam ke-29
-             ↓
-altitude >= 3° dan elongation >= 6.4°?
-          ↙                      ↘
-       ya                        tidak
-   bulan 29 hari              bulan 30 hari
-          ↓                      ↓
-   awal bulan berikutnya = start + panjang bulan
+awal bulan Hijriah yang sudah diketahui
+                 ↓
+periksa matahari terbenam pada malam ke-29
+                 ↓
+ketinggian >= 3° dan elongasi >= 6.4°?
+             ↙                         ↘
+           ya                          tidak
+       bulan 29 hari                bulan 30 hari
+             ↓                          ↓
+   awal bulan berikutnya = awal + panjang bulan
 ```
 
-Karena setiap bulan berikutnya dimulai dari akhir bulan sebelumnya, mesin ini bisa membangun kalender secara berantai.
+Karena setiap bulan dimulai setelah bulan sebelumnya berakhir, mesin ini dapat menyusun kalender secara berantai.
 
 ## Bukan konversi aritmetika biasa
 
-Kalender Hijriah tabular biasanya bisa dihitung dengan pola aritmetika: bulan-bulan punya susunan panjang tertentu, lalu siklus tahun kabisat menentukan posisi 29 dan 30 hari.
+Kalender Hijriah tabular biasanya dapat dihitung dengan pola aritmetika: setiap bulan memiliki susunan 29 dan 30 hari tertentu, lalu siklus tahun kabisat menentukan penempatannya.
 
-`mabims-computed` tidak bekerja seperti itu. Panjang bulan ditentukan satu per satu dari kondisi astronomis pada malam ke-29. Jadi mesin ini lebih mirip linked list daripada rumus satu baris:
+`mabims-computed` tidak bekerja seperti itu. Panjang bulan ditentukan satu per satu berdasarkan kondisi astronomis pada malam ke-29. Jadi, cara kerjanya lebih mirip linked list daripada rumus satu baris:
 
 ```text
 1449-01-01
-   └─ cek hilal → 29 atau 30 hari
+   └─ periksa hilal → 29 atau 30 hari
        └─ 1449-02-01
-           └─ cek hilal → 29 atau 30 hari
+           └─ periksa hilal → 29 atau 30 hari
                └─ 1449-03-01
 ```
 
-Konsekuensinya, kita butuh satu titik awal yang dipercaya. Di aplikasi, titik itu berasal dari batas tabel resmi Kemenag RI. Untuk tanggal sesudah tabel, mesin berjalan maju dari anchor tersebut.
+Konsekuensinya, mesin ini membutuhkan satu titik awal yang tepercaya. Di aplikasi, titik tersebut berasal dari batas tabel resmi Kemenag RI. Untuk tanggal setelah batas tabel, mesin berjalan maju dari tanggal acuan itu.
 
 ## Bisa berjalan mundur juga
 
-Untuk tanggal sebelum kalender resmi, API tidak langsung mengizinkan komputasi. Request perlu menyertakan `retro=true`.
+Untuk tanggal sebelum kalender resmi, API tidak langsung mengizinkan perhitungan. Request harus menyertakan `retro=true`.
 
-Alasannya sederhana: kriteria Neo MABIMS baru diperkenalkan pada 2022. Kalau kita memproyeksikan kriteria itu ke tahun 1990, hasilnya bukan data historis resmi. Itu adalah rekonstruksi menggunakan aturan masa kini.
+Alasannya sederhana: kriteria Neo MABIMS baru diperkenalkan pada 2022. Kalau kriteria tersebut diterapkan ke tahun 1990, hasilnya bukan data historis resmi. Hasil itu adalah rekonstruksi menggunakan aturan yang berlaku sekarang.
 
-Karena itu ada sumber ketiga:
+Karena itu, ada sumber data ketiga:
 
 ```text
 source: "mabims-retro"
 ```
 
-Label ini berarti hasilnya dihitung mundur menggunakan kriteria yang sama, bukan diambil dari tabel resmi masa lalu. API juga memberi warning supaya perbedaan status ini tidak hilang di sisi client.
+Label ini berarti tanggal tersebut dihitung mundur menggunakan kriteria yang sama, bukan diambil dari tabel resmi masa lalu. API juga memberikan warning agar perbedaan status ini tidak hilang ketika respons diteruskan ke aplikasi.
 
-Secara internal, berjalan mundur sedikit lebih rumit daripada maju. Kalau kita tahu tanggal 1 bulan berikutnya, kita perlu mengecek sunset pada h-31 hari untuk menentukan apakah bulan sebelumnya panjangnya 29 atau 30 hari. Setelah itu tanggal awal bulan sebelumnya bisa ditentukan.
+Secara internal, berjalan mundur sedikit lebih rumit daripada berjalan maju. Kalau kita mengetahui tanggal 1 bulan berikutnya, kita perlu memeriksa waktu matahari terbenam pada hari ke-31 sebelumnya untuk menentukan apakah bulan sebelumnya memiliki 29 atau 30 hari. Setelah itu, awal bulan sebelumnya bisa ditentukan.
 
-## Bagian yang bikin saya harus investigasi ulang
+## Bagian yang membuat saya harus menyelidiki ulang
 
-Awalnya saya mengira pertanyaannya sederhana: untuk menghitung kriteria hilal, seharusnya pakai koordinat pengamat di permukaan bumi atau posisi dari pusat bumi?
+Awalnya saya mengira pertanyaannya sederhana: untuk menghitung kriteria hilal, sebaiknya kita memakai koordinat pengamat di permukaan Bumi atau posisi yang dihitung dari pusat Bumi?
 
 Istilahnya:
 
-- **Topocentric** — dilihat dari permukaan bumi, memperhitungkan posisi observer dan paralaks bulan.
-- **Geocentric** — dilihat dari pusat bumi.
+- **Toposentris** — dilihat dari permukaan Bumi, dengan memperhitungkan posisi pengamat dan paralaks Bulan.
+- **Geosentris** — dilihat dari pusat Bumi.
 
-Secara intuisi, topocentric memang lebih benar untuk pengamatan hilal — manusia mengamati dari permukaan bumi. Setelah saya validasi ulang dari ujung ke ujung: intuisi itu benar. Mesin di atas akhirnya menemukan bentuk yang pas: ketinggian hilal dihitung **topocentric** (terkoreksi refraksi) di **25 titik pengamatan pesisir** dari Sabang sampai Rote, sementara elongasi tetap **geocentric** sesuai konvensi hisab Indonesia — dan kriteria cukup terpenuhi di satu titik manapun. Hasilnya tetap 48/48 terhadap tabel kurasi: semua penjelasan di atas soal keputusan 29/30 hari tidak berubah, yang berubah hanyalah "di mana" dan "bingkai hitung"-nya.
+Secara intuisi, pendekatan toposentris memang lebih masuk akal untuk pengamatan hilal karena manusia mengamati dari permukaan Bumi. Setelah saya validasi ulang dari awal sampai akhir, intuisi itu ternyata benar. Mesin ini menggunakan ketinggian hilal **secara toposentris** (dengan koreksi refraksi) di **25 titik pengamatan pesisir** dari Sabang sampai Rote. Elongasi tetap dihitung **secara geosentris**, sesuai konvensi hisab Indonesia. Kriteria cukup terpenuhi di satu titik mana pun.
 
-## Borderline itu nyata
+## Kondisi borderline itu nyata
 
-Kembali ke topik. Lolos kriteria bukan berarti posisinya jauh di atas ambang.
+Kembali ke perhitungannya. Memenuhi kriteria bukan berarti posisinya jauh di atas ambang batas.
 
-Misalnya hasilnya:
+Misalnya hasilnya seperti ini:
 
 ```text
 altitude  = 3.12°
 elongation = 7.01°
 ```
 
-Secara boolean, ini lolos. Tapi margin terdekatnya hanya 0,12° dari ambang altitude. Karena itu provider menyimpan margin terkecil:
+Secara boolean, hasil tersebut memenuhi kriteria. Namun, jarak terdekatnya dari ambang batas ketinggian hanya 0,12°. Karena itu, provider menyimpan margin terkecil:
 
 ```python
 margin = min(
@@ -176,28 +176,28 @@ margin = min(
 )
 ```
 
-Kalau margin positif tapi kurang dari 0,25°, bulan ditandai borderline. Informasi ini ikut masuk ke `warnings[]` agar aplikasi tidak memperlakukan hasil yang sangat dekat ambang sebagai sesuatu yang pasti.
+Kalau margin tersebut positif tetapi kurang dari 0,25°, bulan ditandai sebagai borderline. Informasi ini dimasukkan ke `warnings[]` agar aplikasi tidak menganggap hasil yang sangat dekat dengan ambang batas sebagai sesuatu yang sepenuhnya pasti.
 
-Catatan penting: borderline bukan berarti hasilnya otomatis salah. Ia hanya berarti perubahan kecil pada lokasi, metode, data ephemeris, atau interpretasi kriteria bisa memengaruhi hasil.
+Catatan penting: borderline bukan berarti hasilnya otomatis salah. Artinya, perubahan kecil pada lokasi, metode, data ephemeris, atau cara menafsirkan kriteria dapat memengaruhi hasil.
 
-## Jadi kapan `mabims-computed` boleh dipakai?
+## Kapan `mabims-computed` boleh digunakan?
 
-Menurut saya, cocok untuk:
+Menurut saya, `mabims-computed` cocok digunakan untuk:
 
 - kalender aplikasi yang membutuhkan cakupan tahun lebih panjang;
-- preview tanggal hari besar di masa depan;
-- fitur konversi tanggal yang tidak punya tabel resmi;
+- pratinjau tanggal hari besar di masa depan;
+- fitur konversi tanggal yang belum memiliki tabel resmi;
 - riset, eksperimen, dan visualisasi hilal;
 - fallback teknis ketika data resmi belum tersedia.
 
-Jangan perlakukan sebagai:
+Jangan memperlakukannya sebagai:
 
-- pengumuman resmi awal Ramadhan atau Idul Fitri;
+- pengumuman resmi awal Ramadan atau Idul Fitri;
 - pengganti sidang isbat;
-- bukti observasi hilal di lokasi tertentu;
-- sumber tunggal untuk keputusan administratif atau keagamaan.
+- bukti bahwa hilal benar-benar diamati di lokasi tertentu;
+- satu-satunya sumber untuk mengambil keputusan administratif atau keagamaan.
 
-Di sisi client, minimal selalu cek dua field ini:
+Di sisi aplikasi, setidaknya selalu periksa dua field berikut:
 
 ```js
 if (data.source === "mabims-computed") {
@@ -211,16 +211,16 @@ if (data.warnings?.length) {
 
 ## Intinya
 
-`mabims-computed` adalah kompromi yang cukup sadar:
+`mabims-computed` adalah sebuah kompromi yang dibuat secara sadar:
 
-1. Tabel resmi dipakai kalau tersedia.
-2. Di luar tabel, panjang bulan dihitung dari kriteria Neo MABIMS.
-3. Kriteria dievaluasi pada sunset lokal masing-masing dari 25 titik pengamatan pesisir; cukup terpenuhi di satu titik manapun.
-4. Dua ambang, altitude 3° dan elongasi 6,4°, harus lolos bersamaan.
-5. Altitud dihitung toposentris (dengan refraksi), elongasi tetap geosentris — modelnya tervalidasi 48/48 terhadap tabel kurasi.
-6. Hasil diberi label dan warning supaya tidak disalahpahami sebagai data resmi.
+1. Tabel resmi digunakan selama datanya tersedia.
+2. Di luar cakupan tabel, panjang bulan dihitung berdasarkan kriteria Neo MABIMS.
+3. Kriteria diperiksa saat matahari terbenam di masing-masing dari 25 titik pengamatan pesisir; cukup satu titik yang memenuhi syarat.
+4. Dua ambang, yaitu ketinggian 3° dan elongasi 6,4°, harus terpenuhi secara bersamaan.
+5. Ketinggian hilal dihitung secara toposentris dengan koreksi refraksi, sedangkan elongasi tetap geosentris. Model ini tervalidasi 48 dari 48 kasus terhadap tabel kurasi.
+6. Hasilnya diberi label dan warning agar tidak disalahartikan sebagai data resmi.
 
-Kalau kamu cuma memanggil `/today`, semua kerumitan ini memang tidak perlu kelihatan. Tapi saat kamu meminta kalender tahun 2050, atau bertanya kenapa satu bulan punya 29 hari dan bulan lain 30 hari, inilah yang terjadi di belakang layar.
+Kalau kamu hanya memanggil `/today`, semua kerumitan ini memang tidak perlu terlihat. Namun, saat kamu meminta kalender untuk tahun 2050 atau bertanya mengapa satu bulan memiliki 29 hari sementara bulan lainnya 30 hari, inilah proses yang berlangsung di balik layar.
 
 Coba sendiri:
 
@@ -228,14 +228,14 @@ Coba sendiri:
 curl "https://api.mabims.dev/api/v1/events?year=2050&calendar=gregorian"
 ```
 
-Perhatikan field `source` dan `warnings` pada responsnya. Dokumentasi endpoint dan status cakupan data ada di [mabims.dev/data-sources](https://mabims.dev/data-sources).
+Perhatikan field `source` dan `warnings` pada responsnya. Dokumentasi endpoint dan status cakupan data tersedia di [mabims.dev/data-sources](https://mabims.dev/data-sources).
 
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
-  "headline": "Deep Dive: Sebenarnya Apa yang Terjadi di Balik mabims-computed?",
-  "description": "Bedah teknis fallback kalender MABIMS: dari posisi hilal, keputusan 29 atau 30 hari, seed table, sampai kenapa altitudnya toposentris tapi elongasinya geosentris.",
+  "headline": "Bedah mabims-computed: Apa yang Terjadi di Balik Layar?",
+  "description": "Bedah teknis fallback kalender MABIMS: dari posisi hilal, keputusan 29 atau 30 hari, seed table, sampai alasan ketinggian hilal dihitung secara toposentris sementara elongasinya tetap geosentris.",
   "datePublished": "2026-09-09",
   "author": {
     "@type": "Person",

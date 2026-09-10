@@ -10,7 +10,7 @@ tags:
   - Deep Dive
 excerpt: "If the date you request falls outside the Kemenag table, the MABIMS API doesn't guess. It recomputes the month length from the Neo MABIMS criteria. This post tears down the engine behind the mabims-computed source."
 cover:
-  image: ../../../../assets/hilal.jpg
+  image: ../../../../assets/kalkulator.jpg
   alt: Hilal computation and the MABIMS calendar
 authors:
   - pijar

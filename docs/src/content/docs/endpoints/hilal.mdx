@@ -1,32 +1,40 @@
 ---
 title: GET /hilal
-description: Visibilitas hilal — data kriteria dan grafik langit untuk malam penentuan awal bulan Hijriah.
+description: "Visibilitas hilal: data kriteria dan grafik langit untuk malam penentuan awal bulan Hijriah."
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-Ada dua endpoint untuk **visibilitas hilal**, dan malam penentuan selalu **malam tanggal 29**, malam rukyatul hilal. Bila kriteria tidak terpenuhi di titik pengamatan manapun, bulan
-lengkap 30 hari dan awal bulan bergeser sehari. Batas bulan diambil dari **data publik yang dikeluarkan resmi oleh Kementerian Agama RI**, dan data astronomis dihitung dengan **model multi titik**: kriteria dievaluasi di **titik-titik pengamatan pesisir di seluruh Indonesia** (saat ini 25 titik, dari Sabang sampai Rote — lihat [`api/data/hilal_sites.json`](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json)).
+MABIMS API menyediakan dua endpoint untuk **visibilitas hilal**. Malam yang diperiksa selalu
+**malam ke-29 bulan Hijriah yang sedang berjalan**, yaitu malam ketika hilal benar-benar diamati.
+Kalau kriteria tidak terpenuhi di satu pun titik pengamatan, bulan tersebut digenapkan menjadi
+30 hari dan awal bulan berikutnya bergeser satu hari. Batas awal bulan menggunakan
+**data publik yang dikeluarkan secara resmi oleh Kementerian Agama RI**, sedangkan data astronominya
+dihitung dengan **model multi-titik**: kriteria diperiksa di **titik-titik pengamatan pesisir di
+seluruh Indonesia**. Saat ini ada 25 titik, dari Sabang sampai Rote. Lihat daftar lengkapnya di
+[`api/data/hilal_sites.json`](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json).
 
 ```
 GET /api/v1/hilal/info?month={bulan}&year={tahun}   → JSON
 GET /api/v1/hilal/viz?month={bulan}&year={tahun}    → PNG 720×1280
 ```
 
-`info` berisi angka + verdict (terlihat atau tidak); `viz` merender grafik langit "ke mana melihat". Keduanya publik namun dibatasi rate limit ketat
-(`info` 60/jam, `viz` 30/jam per IP).
+`info` mengembalikan angka-angka perhitungan beserta status hasilnya, sedangkan `viz` merender
+grafik langit yang membantu menunjukkan ke arah mana pengamatan dilakukan. Keduanya dapat diakses
+secara publik, tetapi memiliki rate limit yang lebih ketat:
+`info` 60 permintaan per jam dan `viz` 30 permintaan per jam untuk setiap IP.
 
 ## Parameter
 
 | Parameter | Tipe | Wajib | Deskripsi |
 |---|---|---|---|
-| `month` | int 1–12 | ya | Bulan Hijriah **target** (grafik menampilkan malam penentuannya) |
-| `year` | int | ya | Tahun Hijriah target |
-| `retro` | `true` / `false` | tidak (default `false`) | Buka tanggal retro komputasi di bawah tabel kurasi (s.d. 1945-01-01), ditandai `mabims-retro`. [Lihat cakupan data untuk alasannya](/data-coverage/) |
+| `month` | int 1–12 | ya | Bulan Hijriah **target**. Grafik menampilkan malam penentuan awal bulan tersebut. |
+| `year` | int | ya | Tahun Hijriah target. |
+| `retro` | `true` / `false` | tidak (default `false`) | Membuka tanggal hasil komputasi retro di bawah tabel kurasi (sampai 1945-01-01), dengan label `mabims-retro`. [Lihat cakupan data untuk penjelasannya](/data-coverage/) |
 
-Model: **"terlihat di mana saja di Indonesia"** — kriteria Neo MABIMS yang sama dengan
-perhitungan tabel computed, dievaluasi di setiap titik pada senja lokalnya masing-masing.
-Bila kriteria terpenuhi, respons melaporkan **titik penentu** lewat `deciding_site`.
+Model yang digunakan adalah **"terlihat di mana saja di Indonesia"**. Kriteria Neo MABIMS yang
+sama dengan perhitungan tabel computed dievaluasi saat matahari terbenam di setiap titik pengamatan.
+Kalau kriteria terpenuhi, respons melaporkan **titik penentu** melalui `deciding_site`.
 
 ## Contoh
 
@@ -88,45 +96,47 @@ Bila kriteria terpenuhi, respons melaporkan **titik penentu** lewat `deciding_si
 
 ## Kriteria visibilitas
 
-`visible` bernilai `true` bila kriteria terpenuhi di **setidaknya satu titik pengamatan**:
+Field `visible` bernilai `true` jika kriteria terpenuhi di **setidaknya satu titik pengamatan**:
 
-- **Altitud bulan ≥ 3,0°** — *toposentris* (posisi hilal relatif terhadap titik pengamat),
-  sudah terkoreksi refraksi atmosfer (formula Bennett);
-- **Elongasi ≥ 6,4°** — *geosentris* (konvensi hisab Indonesia), jarak sudut bulan–matahari;
+- **Ketinggian Bulan ≥ 3,0°** — dihitung secara *toposentris*, yaitu berdasarkan posisi hilal relatif terhadap pengamat, dan sudah dikoreksi dengan refraksi atmosfer menggunakan formula Bennett;
+- **Elongasi ≥ 6,4°** — dihitung secara *geosentris* sesuai konvensi hisab Indonesia, yaitu jarak sudut antara Bulan dan Matahari.
 
-keduanya dievaluasi pada saat **matahari terbenam lokal di titik tersebut** pada hari ke-29.
-Semakin barat sebuah titik, semakin tinggi hilal pada senjanya — sehingga bulan-bulan "aman"
-umumnya diputuskan di pesisir barat (Aceh), sementara bulan-bulan dengan deklinasi bulan
-selatan bisa diputuskan di arc selatan (Jawa → Nusa Tenggara). `deciding_site` selalu
-terisi: bila kriteria tidak terpenuhi di titik manapun, titik yang dilaporkan adalah titik
-dengan margin terbaik (paling mendekati terpenuhi) — seluruh nilai altitud, elongasi, dan
-waktu merujuk titik tersebut.
+Kedua nilai tersebut dievaluasi saat **matahari terbenam di titik pengamatan masing-masing** pada
+hari ke-29. Semakin ke barat lokasi pengamatan, semakin tinggi posisi hilal saat matahari terbenam.
+Karena itu, bulan-bulan dengan kondisi yang cukup aman biasanya ditentukan di pesisir barat,
+terutama Aceh. Namun, ketika deklinasi Bulan berada di selatan, titik-titik di jalur selatan,
+dari Jawa sampai Nusa Tenggara, dapat menjadi penentu.
 
-Waktu matahari/bulan terbenam, azimut, iluminasi, dan umur bulan dihitung **toposentris di
-titik penentu** (bukan Sabang), dan waktu ditampilkan dalam zona waktu lokal titik tersebut
-(WIB/WITA).
+Field `deciding_site` selalu terisi. Jika kriteria tidak terpenuhi di titik mana pun, field ini
+berisi titik dengan margin terbaik, yaitu titik yang paling mendekati batas kriteria. Semua nilai
+ketinggian, elongasi, dan waktu pada respons merujuk pada titik tersebut.
+
+Waktu matahari terbenam dan Bulan terbenam, azimut, iluminasi, serta umur Bulan dihitung
+**secara toposentris di titik penentu**, bukan selalu di Sabang. Waktu ditampilkan dalam zona waktu
+lokal titik tersebut, yaitu WIB atau WITA.
 
 ## Grafik (`/hilal/viz`)
 
-PNG vertikal 720×1280 berisi: langit senja dengan bulan sabit (arah cahaya menghadap
-matahari), pil verdict (`MEMENUHI KRITERIA` / `TIDAK MEMENUHI` / `MENDEKATI BATAS` / `DI BAWAH HORIZON`), dan tabel
-kriteria `PARAMETER · MIN. MABIMS · STATUS` plus baris **TITIK PENGAMAT** — adegan langit,
-angka kriteria, dan waktu semuanya merujuk titik penentu yang sama. Output deterministik per parameter.
+Endpoint ini mengembalikan PNG vertikal berukuran 720×1280 yang berisi langit senja dengan bulan
+sabit, dengan sisi terang menghadap Matahari; label status (`MEMENUHI KRITERIA`, `TIDAK MEMENUHI`,
+`MENDEKATI BATAS`, atau `DI BAWAH HORIZON`); serta tabel kriteria
+`PARAMETER · MIN. MABIMS · STATUS` dan baris **TITIK PENGAMAT**.
 
-<img src="/viz.png" alt="Contoh grafik visibilitas hilal — 29 Syawal 1447 H, diputuskan di Sabang" style="width: 100%; max-width: 480px;" />
+Adegan langit, angka kriteria, dan waktu di dalam grafik semuanya merujuk pada titik penentu yang
+sama. Untuk parameter yang sama, output yang dihasilkan selalu konsisten.
 
-## Perilaku caching
+<img src="/viz.png" alt="Contoh grafik visibilitas hilal — 29 Syawal 1447 H, ditentukan di Sabang" style="width: 100%; max-width: 480px;" />
 
-- `Cache-Control: public, max-age=86400, s-maxage=86400` — hasil deterministik per parameter,
-  di-cache publik di CDN (CDN mendapat satu render per edge location per hari).
-- Render adalah operasi CPU: gunakan parameter minimal yang Anda butuhkan,
-  dan hormati rate limit.
+## Caching
+
+- `Cache-Control: public, max-age=86400, s-maxage=86400` — hasilnya deterministik untuk setiap parameter dan disimpan secara publik di CDN. CDN membuat satu render per lokasi edge setiap hari.
+- Proses rendering menggunakan CPU. Karena itu, gunakan parameter seperlunya dan patuhi rate limit.
 
 ## Error
 
 | Kode | HTTP | Penyebab |
 |---|---|---|
-| `out_of_coverage` | 400 | Bulan/tahun di luar cakupan tabel (lihat `/meta`) |
-| `computation_unavailable` | 503 | Gagal menghitung astronomi |
-| `render_failed` | 500 | Gagal merender PNG |
-| `invalid_retro` | 400 | Parameter `retro` bukan `true` atau `false` |
+| `out_of_coverage` | 400 | Bulan atau tahun berada di luar cakupan tabel (lihat `/meta`). |
+| `computation_unavailable` | 503 | Perhitungan astronomi gagal. |
+| `render_failed` | 500 | Gagal merender PNG. |
+| `invalid_retro` | 400 | Parameter `retro` bukan `true` atau `false`. |
