@@ -37,13 +37,14 @@ GET /api/v1/meta
 
 ```json
 {
-  "version": "1.0.0",
+  "version": "1.6.0",
   "data_version": "9f2c41aa7b03",
   "coverage": { "first": "2023-01-23", "last": "2026-12-31" },
   "computed_active": false,
   "computed_months": [],
   "method": "neo-mabims-multisite",
-  "docs_url": "https://mabims.dev"
+  "docs_url": "https://mabims.dev",
+  "hilal_image_range": [1445, 1455]
 }
 ```
 
@@ -54,6 +55,7 @@ GET /api/v1/meta
 | `computed_active` | `true` setelah ada permintaan yang dilayani dari kalendar hitungan Neo MABIMS |
 | `computed_months` | Bulan-bulan mana yang sudah dihitung via kriteria Neo MABIMS |
 | `method` | Metode perhitungan di luar tabel (`neo-mabims-multisite`) |
+| `hilal_image_range` | Rentang tahun Hijriah `[min, max]` yang kartu `/hilal/viz` + `/hilal/map`-nya sudah dibuat lebih dulu; di luar rentang itu gambar tetap dirender saat diminta |
 
 ## Perilaku klien yang direkomendasikan
 

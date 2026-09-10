@@ -24,6 +24,16 @@ Di luar cakupan tabel, API menghitung tanggal menggunakan kriteria **Neo MABIMS*
 | Titik pengamatan | 25 titik pesisir di seluruh Indonesia — terpenuhi di **satu titik manapun** → bulan 29 hari ([daftar titik](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json)) |
 | Waktu referensi | Saat matahari terbenam lokal di masing-masing titik (hari ke-29) |
 
+## Data Peta
+
+Kartu peta (`/hilal/map`) memakai data geografis berikut:
+
+| Lapisan | Sumber | Lisensi |
+|---|---|---|
+| Daratan Indonesia + batas provinsi | [superpikar/indonesia-geojson](https://github.com/superpikar/indonesia-geojson) | ikuti repo sumber |
+| Negara sekitarnya | [Natural Earth](https://www.naturalearthdata.com/) 1:110m admin-0 | Public domain |
+| Titik tampilan (95) | turunan daftar 126 kota + 25 situs pengamatan MABIMS | — |
+
 ## Retro (di bawah tabel kurasi)
 
 Tanggal sebelum 2023-01-23 tidak pernah dihasilkan oleh kriteria Neo MABIMS (kriteria ini diperkenalkan pada 2022). Membawa `retro=true` akan membuka tanggal komputasi di bawah tabel kurasi hingga 1945-01-01, ditandai `source: "mabims-retro"` dengan peringatan bahwa ini proyeksi retroaktif — bukan data resmi.
