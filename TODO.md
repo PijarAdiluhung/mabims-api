@@ -45,6 +45,7 @@
 - [ ] Fix the `+`/`-` sign formatting bug on the criteria values
 - [ ] Add a world minimap (Indonesia highlighted) for geographic context
 - [ ] Fix hilal-viz text and bold issues
+- [ ] Hilal map header too long
 
 ## Cutover (M5)
 - [x] Repoint malangmengaji.com integrations to new hostnames
