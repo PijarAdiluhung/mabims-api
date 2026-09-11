@@ -30,3 +30,6 @@ api/scripts/seed_divergence.json
 # Astronomy cache build artifact (auto-downloaded on first boot)
 api/data/hilal_astro.sqlite
 api/data/hilal_astro.sqlite.download
+
+api/data/hilal_astro.sqlite-shm
+api/data/hilal_astro.sqlite-wal
