@@ -74,11 +74,11 @@ The `source` field indicates where the data came from:
 | `GET /api/v1/events?year=&calendar=` | Islamic observances. | 240/min |
 | `GET /api/v1/hilal/info?month=&year=` | Hilal visibility data for the evening deciding a month start (topocentric altitude + geocentric elongation at the deciding site). | 60/hour |
 | `GET /api/v1/hilal/viz?month=&year=` | Hilal sky chart PNG (720×1280) with the criteria table — scene, values and times at the deciding site. | 30/hour |
-| `GET /api/v1/hilal/map?month=&year=` | Hilal visibility map PNG (720×1280): the archipelago visible region, 95 display points and the deciding-site table. Available for Hijri 1444–1475 (bundled pre-rendered for 1444–1450, cached renders beyond); outside that range the endpoint refuses. | 30/hour |
+| `GET /api/v1/hilal/map?month=&year=` | Hilal visibility map PNG (720×1280): the archipelago visible region, 95 display points and the all-indonesia min–max gauges. Available for Hijri 1444–1475 (pre-rendered for 1444–1450 via the CDN image pack, cached renders beyond); outside that range the endpoint refuses. | 30/hour |
 
 The hilal visibility criteria follow Neo MABIMS: **moon altitude ≥ 3.0°** (topocentric, refraction applied) and **elongation ≥ 6.4°** (geocentric), evaluated at each site's local sunset on day 29 across **25 coastal observation sites** around Indonesia (Aceh to Rote — see `api/data/hilal_sites.json`). The month has 29 days when the criteria are met at **any** site; the site that passed is reported as `deciding_site` by `/hilal/info`, which also carries `sites_checked`. `/meta` reports `method: neo-mabims-multisite`.
 
-`/hilal/viz` draws the sky scene at the deciding site; `/hilal/map` draws the same criteria as an archipelago map — the visible region, the altitude-3°/elongation-6.4° isolines and **95 display points** (green = meets the criteria, gray = does not), with the deciding site ringed. Both cards share the same deciding point. The PNG endpoints are hard-capped at **Hijri 1444–1475** (`hilal_image_range` on `/meta` — a render cap, not the data cap); 1444–1450 ship pre-rendered, the rest render on demand in seconds from the astronomy cache.
+`/hilal/viz` draws the sky scene at the deciding site; `/hilal/map` draws the same criteria as an archipelago map — the visible region, the altitude-3°/elongation-6.4° isolines and **95 display points** (green = meets the criteria, gray = does not), with the deciding site ringed. Both cards share the same deciding point. The PNG endpoints are hard-capped at **Hijri 1444–1475** (`hilal_image_range` on `/meta` — a render cap, not the data cap); 1444–1450 come from the CDN image pack, the rest render on demand in seconds from the astronomy cache.
 | `GET /api/v1/meta` | Coverage, data version, fallback status. | 240/min |
 | `GET /healthz` | Liveness probe. | no limit |
 
@@ -296,6 +296,17 @@ fingerprint). It is never written at runtime: prime it with
 `api/scripts/prime_astro_cache.py` (`--jobs` for parallel, resumable) and host the file
 on any CDN — in containers it auto-downloads to the `/data` volume on first boot
 (`MABIMS_ASTROCACHE_URL`), the same pattern as the JPL ephemeris.
+
+The pre-rendered PNG cards (Hijri 1444–1450, viz + map) are likewise served from the
+CDN as an **image pack** instead of living in the repo: regenerate locally with
+`api/scripts/generate_hilal_images.py --out <dir> --force`, tar the `viz/` + `map/`
+folders, and upload **a versioned tar (name embeds a `render_version` derived from
+the site lists + renderer sources + criteria) plus `manifest.json`** describing
+range/sha. At runtime the manifest is probed (`MABIMS_IMAGEPACK_URL`,
+`MABIMS_DISABLE_IMAGEPACK=1` to opt out); a changed version triggers a hash-verified
+download that is extracted into the `/data` volume per-file, so lazily rendered
+out-of-range cards survive a pack install. Failures log under `mabims.imagepack`
+and the endpoints fall back to lazy rendering.
 
 `/meta` exposes `method`, `computed_active`, `computed_months`, and `retro`.
 

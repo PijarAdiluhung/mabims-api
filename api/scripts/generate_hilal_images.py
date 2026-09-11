@@ -1,11 +1,14 @@
 """Pre-generate the hilal PNG cards (``viz`` + ``map``) for a Hijri year range.
 
 Usage:
-    python -m scripts.generate_hilal_images --start 1444 --end 1448 --out api/data/hilal_images
-    python -m scripts.generate_hilal_images --start 1451 --end 1455 --out /data/hilal_images --force
+    python -m scripts.generate_hilal_images --start 1444 --end 1450 --out ../mabims-assets/hilal_images
+    python -m scripts.generate_hilal_images --start 1451 --end 1455 --force \
+        --out ../mabims-assets/hilal_images
 
-Idempotent: existing files are skipped unless ``--force``. The API serves these
-directly and lazily caches anything outside the generated range.
+Idempotent: existing files are skipped unless ``--force``. Re-render the 1444–1450
+core after any renderer change, then rebuild the versioned tar + manifest for the
+CDN image pack (see README "Data & coverage"). The API also lazily caches anything
+outside the generated range.
 """
 
 from __future__ import annotations

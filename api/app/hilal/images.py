@@ -1,9 +1,13 @@
 """PNG store for the hilal cards (`/hilal/viz` + `/hilal/map`).
 
-Lookup order:
-  1. bundled ``api/data/hilal_images`` (pre-generated, shipped in the image)
-  2. writable cache dir — ``MABIMS_IMAGES_DIR`` (default ``/data/hilal_images``
-     when the container volume is present, else a temp dir)
+Lookup order — the downloaded CDN image pack (version sidecar present in the
+cache dir) wins first so a design update can never be shadowed by an outdated
+copy:
+  1. writable cache dir — ``MABIMS_IMAGES_DIR`` (default ``/data/hilal_images``
+      when the container volume is present, else a temp dir). Holds the CDN
+      image pack (see ``imagepack.py``) for the pre-rendered 1444–1450 range
+      plus lazily rendered cards beyond it
+  2. bundled ``api/data/hilal_images`` (pre-generated, if present in the image)
 
 Misses are rendered by the caller and written back to the cache dir so a cold
 month is only ever rendered once per deployment.
