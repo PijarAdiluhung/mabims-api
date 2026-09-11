@@ -36,7 +36,6 @@ def retro_client(tmp_path):
         rate_limit="10000/minute",
         enable_fallback=True,
         enable_computed=True,
-        enable_aladhan=False,
     )
     return TestClient(create_app(settings=settings))
 

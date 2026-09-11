@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-Source = Literal["mabims", "mabims-computed", "mabims-retro", "fallback:aladhan-ummalqura"]
+Source = Literal["mabims", "mabims-computed", "mabims-retro"]
 
 
 

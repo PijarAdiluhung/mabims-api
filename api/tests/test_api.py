@@ -274,7 +274,6 @@ class TestComputedFallback:
             data_dir=data_dir,
             enable_fallback=True,
             enable_computed=True,
-            enable_aladhan=False,
             allowed_origins=[],
         )
         app = create_app(settings=settings)

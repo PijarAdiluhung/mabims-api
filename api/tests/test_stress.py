@@ -40,7 +40,6 @@ def _make_computed_client(tmp_path: Path, seed_path: Path | None = None) -> Test
         rate_limit="10000/minute",
         enable_fallback=True,
         enable_computed=True,
-        enable_aladhan=False,
     )
     return TestClient(create_app(settings=settings))
 
@@ -53,7 +52,6 @@ def _make_full_client(tmp_path: Path) -> TestClient:
         rate_limit="10000/minute",
         enable_fallback=True,
         enable_computed=True,
-        enable_aladhan=False,
     )
     return TestClient(create_app(settings=settings))
 
@@ -161,7 +159,6 @@ class TestCorruptSeed:
             rate_limit="10000/minute",
             enable_fallback=True,
             enable_computed=True,
-            enable_aladhan=False,
         )
         client = TestClient(create_app(settings=settings))
         r = client.get("/api/v1/convert?date=2025-06-15&calendar=gregorian")
@@ -189,7 +186,6 @@ class TestCorruptSeed:
             rate_limit="10000/minute",
             enable_fallback=True,
             enable_computed=True,
-            enable_aladhan=False,
         )
         client = TestClient(create_app(settings=settings))
         r = client.get("/api/v1/convert?date=2025-06-15&calendar=gregorian")

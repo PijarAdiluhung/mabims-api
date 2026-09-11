@@ -29,7 +29,7 @@ from .coverage import (
     Coverage as CoverageBounds,
 )
 from .events import find_events
-from .fallback import FALLBACK_SOURCE, AladhanProvider, FallbackStore, MemoryFallbackStore
+from .fallback import MemoryFallbackStore
 from .hilal.astro import lunar_age_hours, moonset_local, phase_angle_deg
 from .hilal.chart import build_chart_data, chart_png_bytes
 from .hilal.images import image_path, store
@@ -79,10 +79,6 @@ from .timeutil import (
     tz_label,
 )
 
-FALLBACK_WARNING = (
-    "Date is outside MABIMS table coverage; served from the Umm al-Qura fallback "
-    "and may differ from MABIMS by around one day."
-)
 COMPUTED_WARNING = (
     "Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria "
     "(moon altitude >= 3 deg and elongation >= 6.4 deg at local sunset, seen anywhere "
@@ -332,7 +328,7 @@ def _origin_allowed(origin: str, settings: Settings) -> bool:
     return False
 
 
-def create_app(settings: Settings | None = None, fallback_provider=None, computed_provider=None) -> FastAPI:
+def create_app(settings: Settings | None = None, computed_provider=None) -> FastAPI:
     settings = settings or Settings()
 
     data_path = settings.data_dir / "calendar_data.json"
@@ -341,7 +337,6 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
 
     stores: list = []
     computed_store: MemoryFallbackStore | None = None
-    aladhan_store: FallbackStore | None = None
     active_computed: MabimsCalcProvider | None = computed_provider
 
     if settings.enable_fallback and settings.enable_computed:
@@ -363,12 +358,6 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                 pass
         computed_store = MemoryFallbackStore(settings.fallback_dir or settings.data_dir, active_computed)
         stores.append(computed_store)
-
-    if settings.enable_fallback and settings.enable_aladhan:
-        provider = fallback_provider or AladhanProvider(settings.aladhan_base_url)
-        aladhan_store = FallbackStore(settings.fallback_dir or settings.data_dir, provider)
-        aladhan_store.load_existing()
-        stores.append(aladhan_store)
 
     service = CalendarService(data_path, stores=stores)
     bounds: CoverageBounds = load_coverage(settings.data_dir)
@@ -513,15 +502,11 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
                 borderline = set(active_computed.borderline_months()) if active_computed else set()
                 if ym in borderline:
                     warnings.append(BORDERLINE_WARNING_TEMPLATE.format(ym=ym))
-        elif source == FALLBACK_SOURCE:
-            warnings.append(FALLBACK_WARNING)
         return warnings
 
     def _aggregate(items: list) -> tuple[str, list[str]]:
         sources = {item.source for item in items}
-        if FALLBACK_SOURCE in sources:
-            aggregate = FALLBACK_SOURCE
-        elif COMPUTED_SOURCE in sources:
+        if COMPUTED_SOURCE in sources:
             aggregate = COMPUTED_SOURCE
         elif RETRO_SOURCE in sources:
             aggregate = RETRO_SOURCE
