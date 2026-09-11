@@ -33,3 +33,6 @@ api/data/hilal_astro.sqlite.download
 
 api/data/hilal_astro.sqlite-shm
 api/data/hilal_astro.sqlite-wal
+
+# Pre-rendered hilal cards — served from the CDN image pack, never committed
+api/data/hilal_images/
