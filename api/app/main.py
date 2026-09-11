@@ -30,6 +30,7 @@ from .coverage import (
 )
 from .events import find_events
 from .fallback import MemoryFallbackStore
+from .hilal import imagepack as _imagepack
 from .hilal.astro import lunar_age_hours, moonset_local, phase_angle_deg
 from .hilal.chart import build_chart_data, chart_png_bytes
 from .hilal.images import image_path, store
@@ -1102,6 +1103,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         res, sighting, alt_ok, elong_ok, _visible, ms_site, _source, _warnings = _hilal_context(
             month, year, _parse_retro(retro)
         )
+        _imagepack.ensure_pack()
         cached = image_path("viz", res.target_year, res.target_month)
         if cached is not None:
             return FileResponse(cached, media_type="image/png", headers=HILAL_CACHE)
@@ -1142,6 +1144,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         res, sighting, _alt_ok, _elong_ok, _visible, ms_site, _source, _warnings = _hilal_context(
             month, year, _parse_retro(retro)
         )
+        _imagepack.ensure_pack()
         cached = image_path("map", res.target_year, res.target_month)
         if cached is not None:
             return FileResponse(cached, media_type="image/png", headers=HILAL_CACHE)

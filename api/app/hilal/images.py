@@ -31,7 +31,14 @@ def cache_dir() -> Path:
 def image_path(kind: str, year: int, month: int) -> Path | None:
     """Return an existing PNG for the Hijri ``(year, month)``, or None."""
     name = f"{year:04d}-{month:02d}.png"
-    for base in (BUNDLED_DIR, cache_dir()):
+    # The downloaded image pack lives in the cache dir and is version-verified;
+    # when present it beats the bundled copy (which may be an older design).
+    cache = cache_dir()
+    if (cache / ".version").is_file():
+        order = (cache, BUNDLED_DIR)
+    else:
+        order = (BUNDLED_DIR, cache)
+    for base in order:
         candidate = base / kind / name
         if candidate.is_file():
             return candidate
