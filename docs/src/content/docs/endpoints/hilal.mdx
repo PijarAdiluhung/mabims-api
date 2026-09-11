@@ -146,7 +146,7 @@ menyebut titik pengamat yang sama. Rate limit: 30 permintaan per jam per IP.
 
 - `Cache-Control: public, max-age=86400, s-maxage=86400` — hasilnya deterministik untuk setiap parameter dan disimpan secara publik di CDN. CDN membuat satu render per lokasi edge setiap hari.
 - Proses rendering menggunakan CPU. Karena itu, gunakan parameter seperlunya dan patuhi rate limit.
-
+- **Kap render: Hijri 1444–1475** — kartu PNG hanya dilayani dalam rentang itu (lihat `hilal_image_range` di `/meta`); di luar rentang endpoint menolak dengan `out_of_coverage`. Kap data tanggal tetap ada di `coverage.forward_ceil`.
 ## Error
 
 | Kode | HTTP | Penyebab |

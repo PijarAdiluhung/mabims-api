@@ -119,7 +119,7 @@ def test_hilal_info_invalid_month(hilal_client):
 
 
 def test_hilal_info_out_of_coverage_year(hilal_client):
-    response = hilal_client.get("/api/v1/hilal/info?month=9&year=1500")
+    response = hilal_client.get("/api/v1/hilal/info?month=9&year=1517")
     assert response.status_code == 400
     assert response.json()["error"]["code"] == "out_of_coverage"
 
@@ -216,4 +216,4 @@ def test_resolve_invalid_month(service):
 
 def test_resolve_out_of_coverage(service):
     with pytest.raises(MonthNotResolvable):
-        resolve_sighting_evening(service, 1500, 9)
+        resolve_sighting_evening(service, 1517, 9)

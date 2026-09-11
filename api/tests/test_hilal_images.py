@@ -68,4 +68,4 @@ def test_viz_served_from_bundle_without_render(client, monkeypatch):
 
 def test_meta_exposes_image_range(client):
     body = client.get("/api/v1/meta").json()
-    assert body["hilal_image_range"] == [1444, 1450]
+    assert body["hilal_image_range"] == [1444, 1475]

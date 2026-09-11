@@ -10,7 +10,7 @@ MABIMS API serves Hijri-Gregorian date conversion, Islamic event dates, and hila
 - Default timezone: Asia/Jakarta (UTC+7)
 - Rate limit: 240 requests/minute per IP
 - Data source: Official Kemenag RI MABIMS tables (Hijri 1444–1448), retro projection back to 1945 with retro=true
-- Computed fallback: Through Hijri 1473 (~mid-2050)
+- Computed coverage: up to 2100-01-01 (demand-computed beyond the seed)
 - OpenAPI spec: https://api.mabims.dev/openapi.json
 - Docs: https://mabims.dev
 - Source: https://github.com/PijarAdiluhung/mabims-api
@@ -47,6 +47,9 @@ Hilal visibility data (JSON) for the evening deciding a month start.
 
 GET /api/v1/hilal/viz?month=9&year=1447
 Hilal sky chart PNG (720×1280) with MABIMS criteria table.
+
+GET /api/v1/hilal/map?month=9&year=1447
+Hilal visibility map PNG (720×1280) of the archipelago with 95 display points.
 
 ### Meta
 GET /api/v1/meta

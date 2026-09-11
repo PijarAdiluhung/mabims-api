@@ -52,6 +52,21 @@ def test_hilal_map_invalid_month(client):
     assert response.json()["error"]["code"] == "out_of_coverage"
 
 
+def test_hilal_map_render_cap(client):
+    """Beyond the image render cap the endpoint refuses instead of rendering."""
+    response = client.get("/api/v1/hilal/map?month=1&year=1476")
+    assert response.status_code == 400
+    body = response.json()
+    assert body["error"]["code"] == "out_of_coverage"
+    assert "1444-1475" in body["error"]["message"]
+
+
+def test_hilal_viz_render_cap(client):
+    response = client.get("/api/v1/hilal/viz?month=1&year=1476")
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "out_of_coverage"
+
+
 def test_hilal_map_in_openapi(client):
     paths = client.get("/openapi.json").json()["paths"]
     assert "/api/v1/hilal/map" in paths

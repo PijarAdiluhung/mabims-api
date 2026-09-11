@@ -120,9 +120,9 @@ class MetaResponse(BaseModel):
     hilal_image_range: list[int] | None = Field(
         default=None,
         description=(
-            "Inclusive [min, max] Hijri years for which the pre-generated hilal "
-            "image set (/hilal/viz, /hilal/map) is guaranteed; outside this range "
-            "images are still rendered on demand."
+            "Inclusive [min, max] Hijri years for which the hilal PNG endpoints"
+            " (/hilal/viz, /hilal/map) serve images. This is a render cap, not the"
+            " data cap: see coverage.forward_ceil for date-conversion limits."
         ),
     )
 

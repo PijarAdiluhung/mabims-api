@@ -22,7 +22,7 @@ MONTH_NAMES_ID = {
 }
 
 MIN_HIJRI_YEAR = 1444  # curated table starts 1444-07
-MAX_HIJRI_YEAR = 1486
+MAX_HIJRI_YEAR = 1516  # ≈ gregorian 2099, matches the 2100-01-01 window
 # Retro floor 1945-01-01 gregorian ≈ Rajab 1364; allow a small margin below.
 RETRO_MIN_HIJRI_YEAR = 1362
 

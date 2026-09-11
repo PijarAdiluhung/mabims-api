@@ -9,7 +9,7 @@ description: Riwayat perubahan API dan dokumentasi MABIMS.
 
 - **Performa hilal 10× lebih cepat** — kartu peta/grafik kini membaca hasil astronomi dari **cache SQLite fakta astronomi** (grid 0,25°, 95 titik, 25 titik pengamatan, minimap dunia), dikunci per malam pengamatan + tag ephemeris + fingerprint daftar titik. Runtime hanya membaca; penulisan dilakukan skrip build (`scripts/prime_astro_cache.py`, resumable + paralel). Cache diunduh otomatis saat boot pertama ke volume `/data` (URL `MABIMS_ASTROCACHE_URL`), pola sama dengan file ephemeris.
 - **Ephemeris de421 → de440s** (cakupan JPL 1849–2150) dan **batas maju 2053-08-01 → 2100-01-01**. Seed komputasi diperpanjang sampai 2099-12-31.
-- **Kartu pra-render rentang 1445–1455 → 1444–1450** (`hilal_image_range` di `/meta`); di luar rentang itu render on-demand yang kini hanya berbiaya beberapa detik.
+- **Kap render kartu PNG: Hijri 1444–1475** — `hilal_image_range` di `/meta` kini adalah batas keras `/hilal/viz`+`/hilal/map` di luar rentang itu endpoint menolak dengan `out_of_coverage` (kap data tanggal tetap `coverage.forward_ceil` = 2100). Kartu pra-render terpaket tetap 1444–1450; bulan lain di dalam kap dirender on-demand beberapa detik dari cache astronomi.
 
 ### Notes
 

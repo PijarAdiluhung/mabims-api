@@ -74,11 +74,11 @@ The `source` field indicates where the data came from:
 | `GET /api/v1/events?year=&calendar=` | Islamic observances. | 240/min |
 | `GET /api/v1/hilal/info?month=&year=` | Hilal visibility data for the evening deciding a month start (topocentric altitude + geocentric elongation at the deciding site). | 60/hour |
 | `GET /api/v1/hilal/viz?month=&year=` | Hilal sky chart PNG (720×1280) with the criteria table — scene, values and times at the deciding site. | 30/hour |
-| `GET /api/v1/hilal/map?month=&year=` | Hilal visibility map PNG (720×1280): the archipelago visible region, 95 display points and the deciding-site table. Pre-generated for 1444–1450 H, rendered on demand outside that range. | 30/hour |
+| `GET /api/v1/hilal/map?month=&year=` | Hilal visibility map PNG (720×1280): the archipelago visible region, 95 display points and the deciding-site table. Available for Hijri 1444–1475 (bundled pre-rendered for 1444–1450, cached renders beyond); outside that range the endpoint refuses. | 30/hour |
 
 The hilal visibility criteria follow Neo MABIMS: **moon altitude ≥ 3.0°** (topocentric, refraction applied) and **elongation ≥ 6.4°** (geocentric), evaluated at each site's local sunset on day 29 across **25 coastal observation sites** around Indonesia (Aceh to Rote — see `api/data/hilal_sites.json`). The month has 29 days when the criteria are met at **any** site; the site that passed is reported as `deciding_site` by `/hilal/info`, which also carries `sites_checked`. `/meta` reports `method: neo-mabims-multisite`.
 
-`/hilal/viz` draws the sky scene at the deciding site; `/hilal/map` draws the same criteria as an archipelago map — the visible region, the altitude-3°/elongation-6.4° isolines and **95 display points** (green = meets the criteria, gray = does not), with the deciding site ringed. Both cards share the same deciding point. Images are pre-generated for **Hijri 1444–1450** (see `hilal_image_range` on `/meta`) and rendered on demand outside that range.
+`/hilal/viz` draws the sky scene at the deciding site; `/hilal/map` draws the same criteria as an archipelago map — the visible region, the altitude-3°/elongation-6.4° isolines and **95 display points** (green = meets the criteria, gray = does not), with the deciding site ringed. Both cards share the same deciding point. The PNG endpoints are hard-capped at **Hijri 1444–1475** (`hilal_image_range` on `/meta` — a render cap, not the data cap); 1444–1450 ship pre-rendered, the rest render on demand in seconds from the astronomy cache.
 | `GET /api/v1/meta` | Coverage, data version, fallback status. | 240/min |
 | `GET /healthz` | Liveness probe. | no limit |
 

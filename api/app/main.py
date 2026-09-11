@@ -99,9 +99,20 @@ HILAL_CACHE = {"Cache-Control": "public, max-age=86400, s-maxage=86400"}
 HILAL_ALT_MIN_DEG = 3.0
 HILAL_ELONG_MIN_DEG = 6.4
 
-# Range covered by the pre-generated image set (bundled core + documented range).
+# Range covered by the pre-generated image set (bundled core + documented range)
+# and the hard render cap for the PNG endpoints: outside it, /hilal/viz and
+# /hilal/map refuse instead of rendering on demand.
 HILAL_IMAGE_MIN_YEAR = 1444
-HILAL_IMAGE_MAX_YEAR = 1450
+HILAL_IMAGE_MAX_YEAR = 1475
+
+
+def _hilal_render_year_check(year: int) -> None:
+    if not HILAL_IMAGE_MIN_YEAR <= year <= HILAL_IMAGE_MAX_YEAR:
+        raise ApiError(
+            "out_of_coverage",
+            f"Hilal images are available for Hijri years "
+            f"{HILAL_IMAGE_MIN_YEAR}-{HILAL_IMAGE_MAX_YEAR}, got {year}.",
+        )
 
 # The map card renders a 0.25 deg grid (~260 MB peak), so serialize renders to
 # stay inside the container memory cap; results are deterministic per evening.
@@ -1102,6 +1113,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         year: int = Query(...),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
+        _hilal_render_year_check(year)
         res, sighting, alt_ok, elong_ok, _visible, ms_site, _source, _warnings = _hilal_context(
             month, year, _parse_retro(retro)
         )
@@ -1141,6 +1153,7 @@ def create_app(settings: Settings | None = None, fallback_provider=None, compute
         year: int = Query(...),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
+        _hilal_render_year_check(year)
         res, sighting, _alt_ok, _elong_ok, _visible, ms_site, _source, _warnings = _hilal_context(
             month, year, _parse_retro(retro)
         )

@@ -37,7 +37,7 @@
 - [x] Rewrite blog `behind-hilal-viz.md` (id+en) as "Di Mana Cari Hilal?" — multi-site edition
 - [x] Sync `mabims-hijri` SDK (v1.2.0): additive `deciding_site`/`sites_checked` types, multi-site docs, pushed (npm publish after v1.5 deploy ✓ API is live)
 - [x] No API keys (dropped M2) — outputs are deterministic per `(month, year)`; CDN caches them via `Cache-Control: public, max-age=86400`, purge-on-push keeps edge fresh
-- [x] Pre-generated hilal image set (`api/scripts/generate_hilal_images.py`): committed core 1444–1449 (`api/data/hilal_images/`), lazy disk cache to the `/data` volume for the rest, `/meta.hilal_image_range = 1445–1455`
+- [x] Pre-generated hilal image set (`api/scripts/generate_hilal_images.py`): committed core 1444–1450 (`api/data/hilal_images/`), lazy disk cache to the `/data` volume for the rest, `/meta.hilal_image_range = 1444–1450`
 
 ### Hilal map card — polish
 - [x] Fix alt/elong contour-line artefact on the map card (stray `alt 3°` label — was clabel text left behind by the clip; isolines no longer clipped)

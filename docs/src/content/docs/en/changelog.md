@@ -9,7 +9,7 @@ description: History of changes to the MABIMS API and documentation.
 
 - **Hilal cards ~10x faster** — the map/chart cards now read their astronomy from a **SQLite cache of astronomy facts** (0.25° grid, 95 display points, 25-site model, world minimap), keyed by sighting evening + ephemeris tag + site-list fingerprint. The runtime only reads; writes come from the build script (`scripts/prime_astro_cache.py`, resumable + parallel). The cache auto-downloads on first boot into the `/data` volume (`MABIMS_ASTROCACHE_URL`), same pattern as the ephemeris file.
 - **Ephemeris de421 → de440s** (JPL coverage 1849–2150) and **forward cap 2053-08-01 → 2100-01-01**. The computed seed now runs through 2099-12-31.
-- **Pre-generated cards range 1445–1455 → 1444–1450** (`hilal_image_range` on `/meta`); months outside it render on demand, now at second-scale cost.
+- **PNG card render cap: Hijri 1444–1475** — `hilal_image_range` on `/meta` is now a hard cap for `/hilal/viz` + `/hilal/map`; outside it the endpoints refuse with `out_of_coverage` (the date data cap stays `coverage.forward_ceil` = 2100). 1444–1450 ship pre-rendered; other months inside the cap render on demand in seconds from the astronomy cache.
 
 ### Notes
 

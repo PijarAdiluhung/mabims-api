@@ -2,7 +2,7 @@
 
 Usage:
     python -m scripts.generate_hilal_images --start 1444 --end 1448 --out api/data/hilal_images
-    python -m scripts.generate_hilal_images --start 1449 --end 1455 --out /data/hilal_images --force
+    python -m scripts.generate_hilal_images --start 1451 --end 1455 --out /data/hilal_images --force
 
 Idempotent: existing files are skipped unless ``--force``. The API serves these
 directly and lazily caches anything outside the generated range.
