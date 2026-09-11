@@ -69,7 +69,7 @@ Yes. CORS is open, so it can be called directly from the browser on any domain. 
 <details>
 <summary>How far ahead does the data go?</summary>
 
-Official table data is available for 2023–2026. Outside that range, the API calculates automatically (fallback) using Neo MABIMS criteria up to the year 2053 — the response will tag `source: "mabims-computed"` instead of `"mabims"`. Dates below the table additionally require `retro=true` and are tagged `mabims-retro`.
+Official table data is available for 2023–2026. Outside that range, the API calculates automatically (fallback) using Neo MABIMS criteria up to 2100 — the response will tag `source: "mabims-computed"` instead of `"mabims"`. Dates below the table additionally require `retro=true` and are tagged `mabims-retro`.
 
 </details>
 

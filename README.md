@@ -278,8 +278,8 @@ Follow [DEPLOY.md](DEPLOY.md): Dokploy compose service, two domains, Bunny pull 
 `api/data/calendar_data.json` is the authoritative MABIMS table (currently **Hijri 1444–1448**,
 gregorian 2023-01-23 → 2026). Beyond it, `api/data/computed_seed.json` carries the same multi-site
 Neo MABIMS criteria forward (**through Hijri 1473**, gregorian ~mid-2050) and backwards (**to gregorian
-1970**); dates past the seed are still computed lazily on request. Both computed tiers flag
-borderline months (margin < 0.25°) via warnings.
+1970**); dates past the seed are still computed lazily on request, up to the supported ceiling
+**2100-01-01** (JPL de440s). Both computed tiers flag borderline months (margin < 0.25°) via warnings.
 
 Dates **below the curated table** are gated behind `retro=true` and tagged `mabims-retro`:
 Neo MABIMS was introduced in 2022, so pre-2023 results are a retrospective projection, not
@@ -289,6 +289,13 @@ return `date_out_of_supported_range` even with `retro=true`).
 Regenerate the seed yearly with `api/scripts/generate_seed.py` (verifies curated-table overlap
 before writing); `.github/workflows/regen-computed-table.yml` automates it every January and
 opens a PR with the diff.
+
+Hilal cards read their astronomy from a SQLite cache of precomputed facts
+(`api/data/hilal_astro.sqlite`, keyed by sighting evening + ephemeris tag + site-list
+fingerprint). It is never written at runtime: prime it with
+`api/scripts/prime_astro_cache.py` (`--jobs` for parallel, resumable) and host the file
+on any CDN — in containers it auto-downloads to the `/data` volume on first boot
+(`MABIMS_ASTROCACHE_URL`), the same pattern as the JPL ephemeris.
 
 `/meta` exposes `method`, `computed_active`, `computed_months`, and `retro`.
 

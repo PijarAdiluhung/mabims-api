@@ -3,6 +3,20 @@ title: Changelog
 description: Riwayat perubahan API dan dokumentasi MABIMS.
 ---
 
+## 1.6.1 — 2026-09-11
+
+### Changed
+
+- **Performa hilal 10× lebih cepat** — kartu peta/grafik kini membaca hasil astronomi dari **cache SQLite fakta astronomi** (grid 0,25°, 95 titik, 25 titik pengamatan, minimap dunia), dikunci per malam pengamatan + tag ephemeris + fingerprint daftar titik. Runtime hanya membaca; penulisan dilakukan skrip build (`scripts/prime_astro_cache.py`, resumable + paralel). Cache diunduh otomatis saat boot pertama ke volume `/data` (URL `MABIMS_ASTROCACHE_URL`), pola sama dengan file ephemeris.
+- **Ephemeris de421 → de440s** (cakupan JPL 1849–2150) dan **batas maju 2053-08-01 → 2100-01-01**. Seed komputasi diperpanjang sampai 2099-12-31.
+- **Kartu pra-render rentang 1445–1455 → 1444–1450** (`hilal_image_range` di `/meta`); di luar rentang itu render on-demand yang kini hanya berbiaya beberapa detik.
+
+### Notes
+
+- Perbaikan iterasi Newton 8→3 pada pencarian matahari terbenam: telah diukur tanpa perbedaan hasil (maks 0,00015°). Tidak ada perubahan nilai atau verdict — hanya kecepatan.
+
+---
+
 ## 1.6.0 — 2026-09-10
 
 ### Added
