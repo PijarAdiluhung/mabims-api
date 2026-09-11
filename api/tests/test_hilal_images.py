@@ -24,6 +24,7 @@ def _png() -> bytes:
 @pytest.fixture()
 def client(monkeypatch, tmp_path):
     monkeypatch.setenv("MABIMS_IMAGES_DIR", str(tmp_path))
+    monkeypatch.setenv("MABIMS_DISABLE_IMAGEPACK", "1")
     app = create_app(
         settings=Settings(
             data_dir=DATA_PATH.parent,
@@ -45,7 +46,8 @@ def test_store_and_lookup(tmp_path, monkeypatch):
     assert found.read_bytes()[:8] == PNG_SIG
 
 
-def test_map_served_from_bundle_without_render(client, monkeypatch):
+def test_map_served_from_cache_without_render(client, monkeypatch):
+    images.store("map", 1445, 1, _png())
     monkeypatch.setattr(
         "app.main._map_png_cached", lambda *a, **k: pytest.fail("cache hit should not render")
     )
@@ -56,7 +58,8 @@ def test_map_served_from_bundle_without_render(client, monkeypatch):
     assert response.content[:8] == PNG_SIG
 
 
-def test_viz_served_from_bundle_without_render(client, monkeypatch):
+def test_viz_served_from_cache_without_render(client, monkeypatch):
+    images.store("viz", 1445, 1, _png())
     monkeypatch.setattr(
         "app.main._render_viz_png", lambda *a, **k: pytest.fail("cache hit should not render")
     )
