@@ -20,10 +20,16 @@ from functools import lru_cache
 from pathlib import Path
 
 import matplotlib
+import matplotlib.font_manager as _fm
 
 matplotlib.use("Agg")
+# Register the bundled Selawik (SIL OFL, Segoe UI-metric-compatible) so map
+# labels match the PIL-rendered text on any OS.
+_LIB_FONT_ASSETS = Path(__file__).resolve().parent / "assets"
+for _asset in ("Selawik.ttf", "Selawik-Bold.ttf"):
+    _fm.fontManager.addfont(str(_LIB_FONT_ASSETS / _asset))
 matplotlib.rcParams["font.family"] = "sans-serif"
-matplotlib.rcParams["font.sans-serif"] = ["DejaVu Sans", "Segoe UI"]
+matplotlib.rcParams["font.sans-serif"] = ["Selawik", "Segoe UI", "DejaVu Sans"]
 
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
@@ -364,8 +370,55 @@ def _legend(img, pal, y, h):
     d.text((x + 28, cy), "elong 6.4\u00b0", font=f, fill=fg, anchor="lm")
 
 
+def _gauge(img, pal, x, y, w, label, vmin, vmax, thr, tickcol, fmt):
+    """Min-max range bar across all display points, tick at the MABIMS minimum.
+
+    The scale is adaptive per month: it hugs the point range but always keeps
+    the threshold tick inside the view, so the bar reads well for both
+    comfortable and borderline months. Green = points that pass,
+    red = points below the minimum.
+    ``fmt`` formats the value text (alt keeps its sign, elongation has none).
+    """
+    pad = max(0.8, (max(vmax, thr) - min(vmin, thr)) * 0.25)
+    dom_lo, dom_hi = min(vmin, thr) - pad, max(vmax, thr) + pad
+
+    def sx(v: float, lo: float, hi: float) -> float:
+        t = (min(max(v, dom_lo), dom_hi) - dom_lo) / (dom_hi - dom_lo)
+        return lo + t * (hi - lo)
+
+    _txt(d := ImageDraw.Draw(img), (x, y + 2), label, font(18), pal["muted"])
+
+    layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    ld = ImageDraw.Draw(layer)
+    ty = y + 34
+    track_h = 14
+    end = x + w
+    ld.rounded_rectangle([x, ty, end, ty + track_h], radius=track_h // 2,
+                         fill=(0, 0, 0, 110))
+    if vmax < vmin:
+        vmin, vmax = vmax, vmin
+    lo_x, hi_x, thr_x = sx(vmin, x, end), sx(vmax, x, end), sx(thr, x, end)
+    pass_from = max(lo_x, min(hi_x, thr_x))
+    if hi_x > pass_from:
+        ld.rounded_rectangle([pass_from, ty, hi_x, ty + track_h],
+                             radius=track_h // 2, fill=pal["good"] + (255,))
+    if pass_from > lo_x:
+        ld.rounded_rectangle([lo_x, ty, pass_from, ty + track_h],
+                             radius=track_h // 2, fill=pal["bad"] + (110,))
+    ld.rectangle([thr_x - 2, ty - 6, thr_x + 2, ty + track_h + 6], fill=tickcol)
+    ld.text((thr_x, ty - 18), f"min. MABIMS {thr:.1f}\u00b0", font=font(11), fill=tickcol, anchor="ma")
+    img.alpha_composite(layer)
+
+    clamp_lo, clamp_hi = x + 22, end - 22
+    d.text((max(min(lo_x, clamp_hi), clamp_lo), ty + track_h + 6),
+           f"min {fmt(vmin)}", font=font(14), fill=pal["muted"], anchor="ma")
+    d.text((max(min(hi_x, clamp_hi), clamp_lo), ty + track_h + 24),
+           f"maks {fmt(vmax)}", font=font(18, True), fill=pal["text"], anchor="ma")
+
+
 def _render_card(map_img, hero, n_total, n_seen,
-                 vis_month, vis_year, greg, hijri):
+                 vis_month, vis_year, greg, hijri,
+                 alt_min, alt_max, elong_min, elong_max):
     pal = _palette()
     card = _vgrad(W, H, [(0.0, (31, 18, 53)), (0.45, (94, 44, 74)),
                          (0.72, (196, 96, 66)), (0.86, (242, 166, 90)), (1.0, (52, 30, 40))])
@@ -404,42 +457,23 @@ def _render_card(map_img, hero, n_total, n_seen,
                         outline=pal["border"], width=1)
 
     x0, y0, x1, y1 = 64, card_y + 26, W - 64, card_y + card_h - 20
-    f_lab = font(18)
+    f_small = font(15)
     f_head = font(28, True)
-    f_min = font(36)
     f_value = font(36, True)
     xr = x1 - 8
-    xm = x0 + (x1 - x0) * 0.46
-    chip_w, chip_h = 116, 44
 
     _txt(d, (x0, y0), "PARAMETER", f_head, pal["muted"])
-    _txt(d, (xm + 56, y0), "MIN. MABIMS", f_head, pal["muted"], anchor="ma")
-    _txt(d, (xr, y0), "STATUS", f_head, pal["muted"], anchor="ra")
+    _txt(d, (xr, y0), "SELURUH TITIK", f_small, pal["muted"], anchor="ra")
     d.line([x0, y0 + 40, x1, y0 + 40], fill=pal["border"], width=1)
 
-    alt_b, elong_b = hero[3], hero[4]
-    crit = [
-        ("ALT. BULAN", _fmt_alt(alt_b), "3.0\u00b0", alt_b >= ALT_MIN),
-        ("ELONGASI", _fmt_elong(elong_b), "6.4\u00b0", elong_b >= ELONG_MIN),
-    ]
-    chips = Image.new("RGBA", card.size, (0, 0, 0, 0))
-    cd = ImageDraw.Draw(chips)
     yy = y0 + 52
     crit_h = 96
-    for lab, val, mn, ok in crit:
-        col = pal["good"] if ok else pal["bad"]
-        _txt(d, (x0, yy + 8), lab, f_lab, pal["muted"])
-        _txt(d, (x0, yy + 32), val, f_value, col)
-        _txt(d, (xm, yy + 34), mn, f_min, pal["muted"])
-        tag = "LOLOS" if ok else "GAGAL"
-        cd.rounded_rectangle([xr - chip_w, yy + 26, xr, yy + 26 + chip_h],
-                             radius=14, fill=col + (52,))
-        tbb = cd.textbbox((0, 0), tag, font=f_head)
-        cd.text((xr - chip_w // 2 - (tbb[2] - tbb[0]) // 2,
-                 yy + 26 + (chip_h - tbb[3]) // 2 - 2), tag, font=f_head, fill=col)
+    for (lab, vmin, vmax, thr, tickcol, fmt) in (
+        ("ALT. BULAN", alt_min, alt_max, ALT_MIN, ORANGE, _fmt_alt),
+        ("ELONGASI", elong_min, elong_max, ELONG_MIN, PURPLE, _fmt_elong),
+    ):
+        _gauge(card, pal, x0, yy, xr - x0, lab, vmin, vmax, thr, tickcol, fmt)
         yy += crit_h
-    card.alpha_composite(chips)
-    d = ImageDraw.Draw(card)
 
     yy += 2
     d.line([x0, yy, x1, yy], fill=pal["border"], width=1)
@@ -500,7 +534,9 @@ def map_png_bytes(*, evening: date, vis_month: str, vis_year: int, hijri_label: 
 
     greg = f"{evening.day} {GREG_MONTHS_ID[evening.month]} {evening.year}"
     card = _render_card(mimg, hero, len(pts), int(seen.sum()),
-                        vis_month, vis_year, greg, hijri_label)
+                        vis_month, vis_year, greg, hijri_label,
+                        float(alt.min()), float(alt.max()),
+                        float(elong.min()), float(elong.max()))
     buf = io.BytesIO()
     card.convert("RGB").save(buf, format="PNG")
     return buf.getvalue()

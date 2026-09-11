@@ -30,23 +30,21 @@ _FONT_DIRS = [
 
 
 def font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
-    names = (
-        ["DejaVuSans-Bold.ttf", "segoeuib.ttf", "arialbd.ttf"]
+    # Selawik is bundled (SIL OFL, Segoe UI-metric-compatible) so Windows and
+    # the Linux server render identically; Segoe is the aesthetic fallback,
+    # DejaVu the last resort.
+    chain = (
+        [("Selawik-Bold.ttf", 0), ("segoeuib.ttf", 1), ("arialbd.ttf", 1),
+         ("DejaVuSans-Bold.ttf", 0)]
         if bold
-        else ["DejaVuSans.ttf", "segoeui.ttf", "arial.ttf"]
+        else [("Selawik.ttf", 0), ("segoeui.ttf", 1), ("arial.ttf", 1),
+              ("DejaVuSans.ttf", 0)]
     )
-    # Prefer fonts bundled with the app so server output is deterministic.
-    for name in names:
-        candidate = ASSETS / name
-        if candidate.exists():
+    pools: list[Path] = [ASSETS] + [Path(directory) for directory in _FONT_DIRS]
+    for name, system_only in chain:
+        for pool in pools[system_only:]:
             try:
-                return ImageFont.truetype(str(candidate), size)
-            except OSError:
-                pass
-    for directory in _FONT_DIRS:
-        for name in names:
-            try:
-                return ImageFont.truetype(directory + name, size)
+                return ImageFont.truetype(str(pool / name), size)
             except OSError:
                 continue
     return ImageFont.load_default(size)
