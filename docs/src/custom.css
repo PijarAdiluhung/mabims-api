@@ -98,3 +98,12 @@ starlight-theme-select {
   object-fit: cover;
   object-position: center;
 }
+
+/* Hilal review images: readable on desktop, full-width on mobile */
+.content img[alt='Peta visibilitas hilal Rabiul Akhir 1448 H'],
+.content img[alt='Gambar langit hilal Rabiul Akhir 1448 H'] {
+  display: block;
+  width: 100%;
+  max-width: 520px;
+  height: auto;
+}
