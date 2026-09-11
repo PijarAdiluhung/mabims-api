@@ -27,7 +27,7 @@ class _Ephemeris:
         path.mkdir(parents=True, exist_ok=True)
         loader = Loader(str(path))
         self.ts = loader.timescale(builtin=True)
-        self.eph = loader("de421.bsp")
+        self.eph = loader("de440s.bsp")
         self._wgs84 = wgs84
 
     def topos(self, lat: float, lon: float):

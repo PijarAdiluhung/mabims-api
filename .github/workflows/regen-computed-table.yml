@@ -26,11 +26,11 @@ jobs:
       - name: Install package
         run: python -m pip install -e .
 
-      - name: Cache JPL ephemeris (de421.bsp)
+      - name: Cache JPL ephemeris (de440s.bsp)
         uses: actions/cache@v4
         with:
           path: api/.ephem
-          key: de421.bsp-v1
+          key: de440s.bsp-v1
 
       - name: Build computed seed (verifies curated overlap before writing)
         run: python scripts/generate_seed.py

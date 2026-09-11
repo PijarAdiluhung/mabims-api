@@ -27,6 +27,7 @@ matplotlib.rcParams["font.sans-serif"] = ["DejaVu Sans", "Segoe UI"]
 
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
+from matplotlib.collections import LineCollection  # noqa: E402
 from matplotlib.colors import ListedColormap, to_rgba  # noqa: E402
 from matplotlib.patches import PathPatch  # noqa: E402
 from matplotlib.path import Path as MplPath  # noqa: E402
@@ -36,6 +37,7 @@ from skyfield.api import wgs84  # noqa: E402
 
 from ..mabims_astro import _eph  # noqa: E402
 from ..mabims_sites import _refraction_deg_arr  # noqa: E402
+from . import astrocache  # noqa: E402
 from .chart import (  # noqa: E402
     GREG_MONTHS_ID,
     LOGO_PATH,
@@ -129,7 +131,7 @@ def _province_rings():
 
 
 # ───────────────────────── astronomy ─────────────────────────
-def _compute(lat: np.ndarray, lon: np.ndarray, evening: date, iters: int = 8):
+def _compute(lat: np.ndarray, lon: np.ndarray, evening: date, iters: int = 3):
     eph = _eph()
     ts, earth, sun, moon = eph.ts, eph._earth, eph._sun, eph._moon
     obs = earth + wgs84.latlon(lat, lon)
@@ -155,21 +157,39 @@ def _grid(evening: date, step: float, lat0: float, lat1: float, lon0: float, lon
     lats = np.linspace(lat0, lat1, int((lat1 - lat0) / step) + 1)
     lons = np.linspace(lon0, lon1, int((lon1 - lon0) / step) + 1)
     lo, la = np.meshgrid(lons, lats)
+
+    # read-through cache: geometry is deterministic, so the kind encodes it
+    kind_base = f"mapgrid{step:g}:{lat0:.3f}:{lat1:.3f}:{lon0:.3f}:{lon1:.3f}"
+    altg_c = astrocache.load(evening, kind_base + ":alt")
+    elongg_c = astrocache.load(evening, kind_base + ":elong")
+    if altg_c is not None and elongg_c is not None:
+        return lo, la, altg_c, elongg_c
+
     alt, elong = _compute(la.ravel(), lo.ravel(), evening)
     nlat, nlon = len(lats), len(lons)
     return lo, la, alt.reshape(nlat, nlon), elong.reshape(nlat, nlon)
 
 
 # ───────────────────────── map band ─────────────────────────
-def _buffer_patch(boundary, deg, ax):
-    buf = boundary.buffer(deg)
+@lru_cache(maxsize=4)
+def _buffered_boundary(deg: float):
+    """The expensive part of the Indonesia clip (shapely buffer, ~8 s).
+    Deterministic per deg — built once per process, reused by every render."""
+    buf = _boundary().buffer(deg)
     parts = buf.geoms if buf.geom_type == "MultiPolygon" else [buf]
-    verts: list = []
-    codes: list = []
+    verts_list: list = []
+    codes_list: list = []
     for p in parts:
         xy = np.asarray(p.exterior.coords)
-        verts.extend(xy)
-        codes.extend([MplPath.MOVETO] + [MplPath.LINETO] * (len(xy) - 2) + [MplPath.CLOSEPOLY])
+        verts_list.append(xy)
+        codes_list.append([MplPath.MOVETO] + [MplPath.LINETO] * (len(xy) - 2) + [MplPath.CLOSEPOLY])
+    return tuple(verts_list), tuple(codes_list)
+
+
+def _buffer_patch(boundary, deg, ax):
+    verts_all, codes_all = _buffered_boundary(deg)
+    verts = [v for pair in verts_all for v in pair]
+    codes = [node for pair in codes_all for node in pair]
     return PathPatch(MplPath(verts, codes), transform=ax.transData, facecolor="none", edgecolor="none")
 
 
@@ -194,11 +214,16 @@ def _global_visibility(evening: date) -> np.ndarray:
     Real sunset solve (3 Newton steps is converged to <0.4 s / <0.001 deg).
     Latitude is clamped to +/-60 so polar day/night cells, which have no
     sunset to evaluate, are never computed. ~1 s for the whole globe; cached
-    per evening and baked into the pre-generated cards.
+    per evening both in-process and in the sqlite astro cache once primed.
     """
     lats = np.arange(-GLOBAL_LAT, GLOBAL_LAT + GLOBAL_STEP, GLOBAL_STEP)
     lons = np.arange(-180.0, 180.0 + GLOBAL_STEP, GLOBAL_STEP)
     lo, la = np.meshgrid(lons, lats)
+
+    verdict_c = astrocache.load(evening, "world3:verdict")
+    if verdict_c is not None:
+        return verdict_c
+
     alt, elong = _compute(la.ravel(), lo.ravel(), evening, iters=3)
     return ((alt >= ALT_MIN) & (elong >= ELONG_MIN)).reshape(la.shape).astype(float)
 
@@ -229,11 +254,11 @@ def _world_minimap(ax, evening: date) -> None:
 
 
 def _render_map(lo, la, altg, elongg, pts, alt, elong, hero, bounds, evening,
-                px=(2160, 1722)):
+                px=(2160, int(2160 * MAP_H / W)), dpi=300):
     lon0, lon1, lat0, lat1 = bounds
     margin = np.minimum(altg - ALT_MIN, elongg - ELONG_MIN)
     Wp, Hp = px
-    fig = plt.figure(figsize=(Wp / 300, Hp / 300), dpi=300)
+    fig = plt.figure(figsize=(Wp / dpi, Hp / dpi), dpi=dpi)
     ax = fig.add_axes((0.0, 0.0, 1.0, 1.0))
     ax.set_xlim(lon0, lon1)
     ax.set_ylim(lat0, lat1)
@@ -248,8 +273,11 @@ def _render_map(lo, la, altg, elongg, pts, alt, elong, hero, bounds, evening,
         _fill_geom(ax, geom, facecolor=WORLD_LAND, edgecolor=WORLD_EDGE, linewidth=0.2, zorder=1)
     _fill_geom(ax, boundary, facecolor=LAND, edgecolor=LAND_EDGE, linewidth=0.25, zorder=2)
 
-    for ring in _province_rings():
-        ax.plot(ring[:, 0], ring[:, 1], color=PROV, lw=0.3, alpha=0.22, zorder=3)
+    if _province_rings():
+        ax.add_collection(
+            LineCollection(list(_province_rings()), colors=[PROV], linewidths=0.3,
+                           alpha=0.22, zorder=3)
+        )
 
     for lon in range(95, 142, 5):
         ax.plot([lon, lon], [lat0, lat1], color=GRAT, lw=0.3, ls=(0, (1, 3)), alpha=0.3, zorder=4)
@@ -453,7 +481,13 @@ def map_png_bytes(*, evening: date, vis_month: str, vis_year: int, hijri_label: 
     pts = _points()
     lat = np.array([p[1] for p in pts])
     lon = np.array([p[2] for p in pts])
-    alt, elong = _compute(lat, lon, evening)
+
+    alt_c = astrocache.load(evening, "map_points:alt")
+    elong_c = astrocache.load(evening, "map_points:elong")
+    if alt_c is not None and elong_c is not None:
+        alt, elong = alt_c, elong_c
+    else:
+        alt, elong = _compute(lat, lon, evening)
     seen = (alt >= ALT_MIN) & (elong >= ELONG_MIN)
 
     lat_span = (LON1 - LON0) * MAP_H / W

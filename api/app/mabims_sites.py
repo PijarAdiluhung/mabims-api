@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
@@ -8,6 +9,7 @@ from pathlib import Path
 
 import numpy as np
 
+from app.hilal import astrocache
 from app.mabims_astro import ALT_MIN_DEG, ELONG_MIN_DEG, _eph, _refraction_deg
 
 H0_SUN_DEG = -0.8333  # sunset convention (refraction + solar radius), as skyfield sunrise_sunset
@@ -243,12 +245,56 @@ def _sighting_from_row(
 
 
 def sightings_on_dates(day29_dates: list[date]) -> list[MultiSiteSighting]:
-    """Batched multi-site sightings for many dates (one vectorized call)."""
+    """Batched multi-site sightings for many dates (one vectorized call).
+
+    Read-through sqlite astro cache: evenings pre-primed by
+    ``scripts/prime_astro_cache.py`` skip the skyfield pass entirely; misses
+    compute live (the runtime never writes).
+    """
     if not day29_dates:
         return []
-    res = _evaluate_batch(day29_dates)
+    site_kinds = sites25_kinds()
     sites = load_sites()
-    return [_sighting_from_row(d, sites, i, res) for i, d in enumerate(day29_dates)]
+    results: list[MultiSiteSighting | None] = [None] * len(day29_dates)
+    missing: list[date] = []
+    for i, d in enumerate(day29_dates):
+        per_date = [astrocache.load(d, k) for k in site_kinds]
+        if all(a is not None for a in per_date):
+            results[i] = _sighting_from_row(d, sites, 0, _res_from_arrays(per_date))
+        else:
+            missing.append(d)
+    if missing:
+        res = _evaluate_batch(missing)
+        for j, d in enumerate(missing):
+            results[day29_dates.index(d)] = _sighting_from_row(d, sites, j, res)
+    return [r for r in results if r is not None]
+
+
+_SITE_KINDS = ("alt", "elong", "moon_az", "sun_alt", "sun_az", "sunset_jd")
+
+
+def _sites_fingerprint() -> str:
+    """Identity of the site set — sqlite keys carry it so a changed site list
+    can never be served stale cached rows (sunset windows, verdicts).
+    Deliberately NOT lru_cached: a monkeypatched/load-reloaded site list must
+    be honored immediately. Cheap by construction (25 sites -> one sha256)."""
+    fp = hashlib.sha256()
+    for s in load_sites():
+        fp.update(f"{s.name}|{s.lat_deg}|{s.lon_deg}|{s.elev_m}".encode())
+    return fp.hexdigest()[:10]
+
+
+def sites25_kinds() -> tuple[str, ...]:
+    fp = _sites_fingerprint()
+    return tuple(f"sites25:{fp}:{k}" for k in _SITE_KINDS)
+
+
+def _res_from_arrays(per_date: list[np.ndarray | None]) -> dict[str, np.ndarray]:
+    """Reshape cached per-date column arrays into the _evaluate_batch dict."""
+    cols = per_date
+    shaped = {k: np.expand_dims(c, 0) for k, c in zip(_SITE_KINDS, cols, strict=True) if c is not None}
+    shaped["sunset_dts"] = _eph().ts.tt_jd(shaped["sunset_jd"].ravel()).utc_datetime()
+    return shaped
 
 
 def sighting_on_date(d: date) -> MultiSiteSighting:

@@ -267,12 +267,12 @@ class TestBoundary:
 
     def test_beyond_hard_cap_end(self, tmp_path):
         client = _make_computed_client(tmp_path, SEED_PATH)
-        r = client.get("/api/v1/convert?date=2053-08-01&calendar=gregorian")
+        r = client.get("/api/v1/convert?date=2100-01-02&calendar=gregorian")
         assert r.status_code in (400, 404, 503)
 
     def test_far_beyond_hard_cap_end(self, tmp_path):
         client = _make_computed_client(tmp_path, SEED_PATH)
-        r = client.get("/api/v1/convert?date=2100-01-01&calendar=gregorian")
+        r = client.get("/api/v1/convert?date=2101-01-01&calendar=gregorian")
         assert r.status_code == 400
 
 

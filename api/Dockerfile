@@ -13,7 +13,7 @@ COPY app ./app
 RUN pip install .
 
 COPY data /app/data
-RUN python -c "from skyfield.api import Loader; Loader('/app/data/ephemeris')('de421.bsp')" \
+RUN python -c "from skyfield.api import Loader; Loader('/app/data/ephemeris')('de440s.bsp')" \
     && mkdir -p /data \
     && chown -R nobody:nogroup /data /app/data/ephemeris
 

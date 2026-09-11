@@ -7,6 +7,7 @@ services:
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
       RATE_LIMIT: ${RATE_LIMIT:-240/minute}
       MABIMS_FALLBACK_DIR: /data
+      MABIMS_ASTROCACHE: /data/hilal_astro.sqlite
     volumes:
       - fallback_data:/data
     expose:

@@ -20,7 +20,7 @@ RETRO_SOURCE: Source = "mabims-retro"
 # --- policy (hand-edited) --------------------------------------------------
 RETRO_FLOOR = date(1945, 1, 1)      # absolute supported floor (requires retro=true)
 RETRO_SEED_BACK = date(1970, 1, 1)  # precomputed retro seed reaches back to here
-FORWARD_CEIL = date(2053, 8, 1)     # absolute supported ceiling
+FORWARD_CEIL = date(2100, 1, 1)     # absolute supported ceiling
 # ----------------------------------------------------------------------------
 
 RETRO_WARNING = (

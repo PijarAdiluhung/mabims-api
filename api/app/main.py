@@ -100,8 +100,8 @@ HILAL_ALT_MIN_DEG = 3.0
 HILAL_ELONG_MIN_DEG = 6.4
 
 # Range covered by the pre-generated image set (bundled core + documented range).
-HILAL_IMAGE_MIN_YEAR = 1445
-HILAL_IMAGE_MAX_YEAR = 1455
+HILAL_IMAGE_MIN_YEAR = 1444
+HILAL_IMAGE_MAX_YEAR = 1450
 
 # The map card renders a 0.25 deg grid (~260 MB peak), so serialize renders to
 # stay inside the container memory cap; results are deterministic per evening.
