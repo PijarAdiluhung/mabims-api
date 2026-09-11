@@ -80,9 +80,15 @@ def _extract(tar_path: Path, base: Path) -> bool:
             if not members:
                 return False
         # Merge, never wipe: lazily rendered out-of-range cards may already
-        # live in the cache dir and must survive a pack install.
+        # live in the cache dir and must survive a pack install. Staging is
+        # on /tmp (a different device from the /data volume), so files are
+        # copied next to their destination and renamed atomically there.
         for staged in staging.rglob("*.png"):
-            os.replace(staged, base / staged.relative_to(staging))
+            dst = base / staged.relative_to(staging)
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            tmp = dst.with_name(dst.name + ".packtmp")
+            shutil.copyfile(staged, tmp)
+            os.replace(tmp, dst)
         return True
     except (tarfile.TarError, OSError) as exc:
         logger.warning("imagepack: extract failed: %s", exc)
