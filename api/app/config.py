@@ -4,7 +4,18 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-APP_VERSION = "1.6.1"
+
+def _version() -> str:
+    import tomllib
+
+    pyproject = Path(__file__).resolve().parents[1] / "pyproject.toml"
+    if pyproject.exists():
+        with open(pyproject, "rb") as fh:
+            return str(tomllib.load(fh)["project"]["version"])
+    return "unknown"
+
+
+APP_VERSION = _version()
 
 DEFAULT_ORIGIN_SUFFIXES = ["malangmengaji.com"]
 

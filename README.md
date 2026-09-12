@@ -242,7 +242,6 @@ api/       FastAPI app, calendar data, tests (pytest)
 docs/      Astro/Starlight documentation site
 docker-compose.yml        production services (internal-only ports)
 docker-compose.dev.yml    local override publishing ports 8000/8080
-DEPLOY.md                 Dokploy + Bunny CDN runbook
 TODO.md                   open work items
 ```
 
@@ -270,8 +269,8 @@ cd api
 
 ## Deployment
 
-Follow [DEPLOY.md](DEPLOY.md): Dokploy compose service, two domains, Bunny pull zones with
-*respect origin headers* (this powers the dynamic midnight-TTL caching on `/today`).
+Shipped on a VPS via Dokploy (compose service) with Bunny CDN pull zones running
+*respect origin headers* — that powers the dynamic midnight-TTL caching on `/today`.
 
 ## Data & coverage
 

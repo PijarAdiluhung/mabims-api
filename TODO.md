@@ -7,15 +7,16 @@
 - [x] Replace all placeholders once domain is live (bought mabims.dev): docs content + `PUBLIC_API_BASE` → `api.mabims.dev`; astro site + `/meta` docs_url → `https://mabims.dev`
 
 ## Ship
-- [x] VPS: Dokploy compose service + domains → DEPLOY.md §2
-- [x] Bunny pull zones, *respect origin headers*, query strings in cache key → DEPLOY.md §3
-- [x] Smoke checklist incl. cache-hit verification (second request must not reach origin) → DEPLOY.md §4
+- [x] VPS: Dokploy compose service + domains
+- [x] Bunny pull zones, *respect origin headers*, query strings in cache key
+- [x] Smoke checklist incl. cache-hit verification (second request must not reach origin)
 - [x] Uptime monitor on `/healthz` + alert (Instatus)
 
-## Data — hard deadline 2027-01-01
-- [ ] 2027 MABIMS table: build the yearly ingest script (source: regional authority announcements), extend `api/data/`
+## Data — curated table ends 2026-12-31
+- [ ] 2027 MABIMS table: Kemenag usually publishes the new-year table mid-October or later (sometimes later still) — watch for the announcement, then run the yearly ingest and extend `api/data/`. Until then the API serves the computed tier past the table edge, so nothing breaks — coverage just reports `mabims-computed` instead of `mabims` for dates past 2026-12-31
 - [x] `/events` endpoint — Islamic observance dates (Ramadan start, Eid al-Fitr/Adha, 1 Muharram, Maulid) from the curated table, extended with computed dates beyond table coverage using Neo MABIMS criteria
-- [ ] Decide long-term data format for yearly tables (versioned files + `/meta.data_version` bump)
+- [ ] Decide long-term data format for yearly tables (versioned files + `/meta.data_version` bump) — do this before the 2027 ingest, since the ingest script's shape depends on it
+- [ ] When the table nears exhaustion with no 2027 update published, surface it via `/meta` so consumers aren't surprised by the `mabims` → `mabims-computed` shift
 
 ## Computed tier (precomputed_table)
 - [x] Computed-seed regeneration on demand → `.github/workflows/regen-computed-table.yml` (`workflow_dispatch`): rebuilds `computed_seed.json`, verifies curated overlap byte-for-byte, opens a PR with the diff. Seed is static through Hijri 1473, so no yearly cron needed; rerun manually after criteria/ephemeris changes
@@ -31,7 +32,7 @@
 ## Hilal endpoints
 - [x] `/hilal/info` + `/hilal/viz` shipped, Sabang-only geocentric hisab (design tokens in `app/hilal/chart.py`, spec in git history `api/todo/DESIGN.md`)
 - [x] Multi-site criteria overhaul (v1.5.0): topo alt + geo elong at 25 coastal sites, decider-driven `/hilal/*`, regenerated seed (10 boundaries ±1d), 48/48 vs curated
-- [ ] **Hilal map — stage 1: expand to ~100 sites.** More granular coastal points (site-list data PR, `api/data/hilal_sites.json` + `seed_divergence.py` census before/after). Evidence that densification matters: 1428-10 (2007-11-10 evening) was a 4-site Java-only rescue, and single-site topocentric loses 4 months that multi-site rescues. Verdicts are robust — 28 narrow months in 80 years, seen-count histogram in `temp/narrow_months.txt` — so additions mainly sharpen `deciding_site` reporting and cover future decades.
+- [x] **Hilal map — stage 1: expand to ~100 sites.** More granular coastal points (site-list data PR, `api/data/hilal_sites.json` + `seed_divergence.py` census before/after). Evidence that densification matters: 1428-10 (2007-11-10 evening) was a 4-site Java-only rescue, and single-site topocentric loses 4 months that multi-site rescues. Verdicts are robust — 28 narrow months in 80 years, seen-count histogram in `temp/narrow_months.txt` — so additions mainly sharpen `deciding_site` reporting and cover future decades.
 - [x] **Hilal map — stage 2: continuous grid.** Shipped as `/hilal/map` (v1.6.0): 720×1280 card with the visible region, alt-3°/elong-6.4° isolines, 95 display points and the 25-site decider ringed. `/meta.hilal_image_range` + pre-generated image set.
 - [x] Rewrite blog `deep-dive-mabims-computed.md` — multi-site rationale + new EN version
 - [x] Rewrite blog `behind-hilal-viz.md` (id+en) as "Di Mana Cari Hilal?" — multi-site edition
