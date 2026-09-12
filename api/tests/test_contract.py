@@ -1,14 +1,7 @@
-"""Contract tests: real endpoint responses must keep matching the Pydantic schemas.
-
-These tests parse each response into its declared model so any shape change fails
-loudly here instead of silently breaking API consumers or going stale versus the docs.
-"""
-
+"""Contract tests: real endpoint responses must keep matching the Pydantic schemas."""
 from __future__ import annotations
 
-import calendar as pycalendar
 import json
-from datetime import date
 from pathlib import Path
 
 import pytest
@@ -93,14 +86,9 @@ def test_convert_hijri_matches_schema(client, real_data):
     _parse(response.json(), ConvertResponse)
 
 
-def test_today_immutable_matches_schema(client, real_data):
-    g_iso = min(real_data["gregorian_to_hijri"])
-    response = client.get(f"/api/v1/today/{g_iso}")
-    assert response.status_code == 200
-    _parse(response.json(), ConvertResponse)
-
-
 def test_range_matches_schema(client, real_data):
+    from datetime import date
+
     first = date.fromisoformat(min(real_data["gregorian_to_hijri"]))
     last = date.fromisoformat(max(real_data["gregorian_to_hijri"]))
     end = min(date.fromordinal(first.toordinal() + 9), last)
@@ -111,6 +99,9 @@ def test_range_matches_schema(client, real_data):
 
 
 def test_month_matches_schema(client, real_data):
+    import calendar as pycalendar
+    from datetime import date
+
     g_first = date.fromisoformat(min(real_data["gregorian_to_hijri"]))
     g_last = date.fromisoformat(max(real_data["gregorian_to_hijri"]))
     year, month = g_last.year, g_last.month

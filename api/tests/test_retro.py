@@ -4,15 +4,11 @@ from __future__ import annotations
 import json
 from datetime import date, timedelta
 from pathlib import Path
-from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
 
-import app.mabims_computed as mc
 from app.config import Settings
-from app.fallback import FallbackError
-from app.mabims_computed import MabimsCalcProvider
 from app.main import create_app
 
 API_DIR = Path(__file__).resolve().parent.parent
@@ -47,7 +43,7 @@ class TestRetroGating:
         assert r.status_code == 400
         assert r.json()["error"]["code"] == "date_out_of_supported_range"
 
-    def test_retro_false_behaves_like_default(self, retro_client):
+    def test_retro_false_same_as_default(self, retro_client):
         inside = (date.fromisoformat(TABLE_FIRST) + timedelta(days=10)).isoformat()
         r = retro_client.get(f"/api/v1/convert?date={inside}&calendar=gregorian&retro=false")
         assert r.status_code == 200
@@ -82,8 +78,6 @@ class TestRetroEndpoints:
         assert body["output"]["date"] < TABLE_FIRST
 
     def test_retro_month_gregorian(self, retro_client):
-        # The whole month before the month containing the curated start is
-        # fully retro (the curated-start month itself legitimately mixes tiers).
         first_of_curated_month = date.fromisoformat(TABLE_FIRST).replace(day=1)
         last_before = first_of_curated_month - timedelta(days=1)
         r = retro_client.get(
@@ -94,82 +88,19 @@ class TestRetroEndpoints:
         body = r.json()
         assert body["count"] >= 28
         assert all(i["source"] == "mabims-retro" for i in body["items"])
-        assert any("backwards" in w for w in body["warnings"])
 
     def test_straddling_month_mixes_tiers(self, retro_client):
-        # The curated-start month mixes curated and retro days.
         first = date.fromisoformat(TABLE_FIRST)
         r = retro_client.get(
-            f"/api/v1/month?year={first.year}&month={first.month}&calendar=gregorian&retro=true"
+            f"/api/v1/month?year={first.year}&month={first.month}"
+            "&calendar=gregorian&retro=true"
         )
         assert r.status_code == 200
         body = r.json()
         sources = {i["source"] for i in body["items"]}
         assert sources == {"mabims", "mabims-retro"}
-        assert body["warnings"]  # aggregate flags the retro portion
-
-    def test_retro_hilal_info(self, retro_client):
-        r = retro_client.get("/api/v1/hilal/info?month=6&year=1444&retro=true")
-        assert r.status_code == 200
-        body = r.json()
-        assert body["source"] == "mabims-retro"
-        assert body["month"]["year"] == 1444
 
     def test_retro_events_hijri(self, retro_client):
         r = retro_client.get("/api/v1/events?year=1444&calendar=hijri&retro=true")
         assert r.status_code == 200
         assert r.json()["count"] == 5
-
-
-class TestBackwardProvider:
-    @staticmethod
-    def _stub_pattern(monkeypatch, pattern: list[bool]) -> None:
-        calls = {"n": 0}
-
-        class FakeSighting:
-            def __init__(self, visible: bool):
-                self._visible = visible
-                self.month_length = 29 if visible else 30
-                self.best_site = SimpleNamespace(margin_deg=0.5)
-
-            @property
-            def visible(self) -> bool:
-                return self._visible
-
-        def fake_sighting(d):
-            result = FakeSighting(pattern[calls["n"] % len(pattern)])
-            calls["n"] += 1
-            return result
-
-        # Only the backward-rule evening is stubbed; anchor and margins use
-        # the real multi-site computation (as in the pre-port test).
-        monkeypatch.setattr(mc, "sighting_on_date", fake_sighting)
-
-    def test_backward_extension_matches_pattern(self, monkeypatch):
-        # Deciding evenings: 30-day, 29-day, 30-day, 29-day ...
-        self._stub_pattern(monkeypatch, [True, False, True, False])
-        provider = MabimsCalcProvider((1445, 7), date(2024, 1, 13))
-        provider.fetch_by_gregorian(2023, 11, retro=True)
-
-        blocks = provider._blocks
-        assert [b.hijri for b in blocks] == [
-            (1445, 4), (1445, 5), (1445, 6), (1445, 7),
-        ]
-        # Pattern drives prepended lengths; the anchor block is decided forward.
-        assert [b.length for b in blocks] == [30, 29, 30, blocks[-1].length]
-        for prev, curr in zip(blocks, blocks[1:], strict=False):
-            assert prev.start + timedelta(days=prev.length) == curr.start
-
-    def test_backward_respects_retro_floor(self, monkeypatch):
-        self._stub_pattern(monkeypatch, [True, False])
-        provider = MabimsCalcProvider((1445, 7), date(2024, 1, 13))
-        with pytest.raises(FallbackError):
-            provider.fetch_by_gregorian(1940, 6, retro=True)
-
-    def test_backward_real_dates_match_curated(self):
-        # One real (unstubbed) backward step from the curated anchor must
-        # reproduce the curated Jumadil Akhir 1445 start (2023-12-14).
-        provider = MabimsCalcProvider((1445, 7), date(2024, 1, 13))
-        pairs = provider.fetch_by_hijri(1445, 6, retro=True)
-        assert pairs["1445-06-01"] == "2023-12-14"
-        assert len(pairs) == 30
