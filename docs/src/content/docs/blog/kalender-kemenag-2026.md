@@ -15,17 +15,17 @@ authors:
   - pijar
 ---
 
-Berikut jadwal lengkap kalender Hijriah tahun 2026 dari **Ditjen Bimbingan Masyarakat Islam, Kementerian Agama RI**. Kalender ini menjadi acuan utama tanggal-tanggal keagamaan Islam di Indonesia, termasuk hari-hari besar nasional dan cuti bersama. Penentuan awal bulannya menggunakan kriteria MABIMS terbaru: tinggi hilal ≥ 3° dan elongasi ≥ 6,4°.
+Berikut jadwal lengkap kalender Hijriah tahun 2026 dari [**Ditjen Bimbingan Masyarakat Islam, Kementerian Agama RI**](https://kemenag.go.id). Kalender ini menjadi acuan utama tanggal-tanggal keagamaan Islam di Indonesia, termasuk hari-hari besar nasional dan cuti bersama. Penentuan awal bulannya menggunakan kriteria [MABIMS](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia) terbaru: tinggi hilal ≥ 3° dan elongasi ≥ 6,4°.
 
 ## Tanggal-tanggal Penting Islam 2026
 
 | Tanggal Masehi | Peristiwa | Tanggal Hijriah |
 |---|---|---|
-| 16 Januari 2026 | Isra Mikraj Nabi Muhammad ﷺ | 27 Rajab 1447 H |
-| 21–22 Maret 2026 | **Hari Raya Idul Fitri** | 1–2 Shawwal 1447 H |
-| 27 Mei 2026 | **Hari Raya Idul Adha** | 10 Dzulhijjah 1447 H |
-| 16 Juni 2026 | **Tahun Baru Islam (1 Muharram)** | 1 Muharram 1448 H |
-| 25 Agustus 2026 | Maulid Nabi Muhammad ﷺ | 12 Rabiul Awal 1448 H |
+| 16 Januari 2026 | [Isra Mikraj](https://en.wikipedia.org/wiki/Isra%27_and_Mi%27raj) Nabi Muhammad ﷺ | 27 Rajab 1447 H |
+| 21–22 Maret 2026 | **[Hari Raya Idul Fitri](https://en.wikipedia.org/wiki/Eid_al-Fitr)** | 1–2 Shawwal 1447 H |
+| 27 Mei 2026 | **[Hari Raya Idul Adha](https://en.wikipedia.org/wiki/Eid_al-Adha)** | 10 Dzulhijjah 1447 H |
+| 16 Juni 2026 | **[Tahun Baru Islam](https://en.wikipedia.org/wiki/Islamic_New_Year) (1 Muharram)** | 1 Muharram 1448 H |
+| 25 Agustus 2026 | [Maulid Nabi](https://en.wikipedia.org/wiki/Mawlid) Muhammad ﷺ | 12 Rabiul Awal 1448 H |
 
 ## Kalender Lengkap
 
@@ -63,16 +63,16 @@ Berikut kalender lengkap yang bisa kamu lihat langsung. Klik tombol download unt
 |---|---|
 | 1 Januari | Tahun Baru 2026 Masehi |
 | 16 Januari | Isra Mikraj Nabi Muhammad ﷺ |
-| 17 Februari | Tahun Baru Imlek 2577 Kongzili |
-| 19 Maret | Hari Suci Nyepi (Tahun Baru Saka 1948) |
+| 17 Februari | [Tahun Baru Imlek](https://en.wikipedia.org/wiki/Chinese_New_Year) 2577 Kongzili |
+| 19 Maret | Hari Suci [Nyepi](https://en.wikipedia.org/wiki/Nyepi) (Tahun Baru Saka 1948) |
 | 21–22 Maret | Idul Fitri 1447 H |
 | 3 April | Wafat Yesus Kristus |
 | 5 April | Kebangkitan Yesus Kristus (Paskah) |
 | 1 Mei | Hari Buruh Internasional |
 | 14 Mei | Kenaikan Yesus Kristus |
 | 27 Mei | Idul Adha 1447 H |
-| 31 Mei | Hari Raya Waisak 2570 BE |
-| 1 Juni | Hari Lahir Pancasila |
+| 31 Mei | Hari Raya [Waisak](https://en.wikipedia.org/wiki/Vesak) 2570 BE |
+| 1 Juni | Hari Lahir [Pancasila](https://en.wikipedia.org/wiki/Pancasila_(politics)) |
 | 16 Juni | Tahun Baru Islam 1448 H |
 | 17 Agustus | Proklamasi Kemerdekaan RI |
 | 25 Agustus | Maulid Nabi Muhammad ﷺ |
@@ -91,7 +91,7 @@ Penentuan awal bulan Hijriah (1 Ramadhan, 1 Syawal, 1 Dzulhijjah, dll.) didasark
 
 Kedua syarat harus terpenuhi secara bersamaan. Kriteria ini diadopsi sejak 2022, menggantikan kriteria lama "2-3-8" (tinggi ≥ 2°, elongasi ≥ 3°, umur bulan ≥ 8 jam) yang digunakan sejak 1992. Perubahan ini didasarkan pada kompilasi data rukyat global yang menunjukkan bahwa pada posisi hilal rendah dengan elongasi kecil, sabit bulan masih sangat tipis dan sulit diamati secara kasat mata.
 
-Kriteria baru ini merupakan hasil Muzakarah Rukyah dan Takwim Islam MABIMS 2016 di Malaysia, diperkuat oleh Seminar Internasional Fikih Falak di Jakarta (Rekomendasi Jakarta 2017), dan ditandatangani melalui surat bersama ad referendum pada 2021.
+Kriteria baru ini merupakan hasil Muzakarah Rukyah dan Takwim Islam MABIMS 2016 di Malaysia, diperkuat oleh Seminar Internasional Fikih Falak di Jakarta (Rekomendasi Jakarta 2017), dan ditandatangani melalui surat bersama ad referendum pada 2021. Pengumuman resmi pemerintah tentang penerapan kriteria ini bisa dilihat di [Setkab](https://setkab.go.id/pemerintah-tetapkan-1-ramadan-1445h-jatuh-pada-selasa-12-maret-2024).
 
 ## Cek Tanggal Hijriah untuk Tanggal Apa Saja
 

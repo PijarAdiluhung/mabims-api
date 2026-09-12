@@ -17,13 +17,13 @@ authors:
 
 Salah satu endpoint yang paling saya suka di mabims.dev bukan `/today` atau `/convert`, tapi `/hilal/viz`. Endpoint ini generate PNG 720×1280 yang nampilin visualisasi langit senja lengkap dengan posisi bulan, status kelolosan kriteria MABIMS, sampai grafik langit dengan bintang-bintang segala.
 
-Nggak ada API kalender Hijriah lain (setidaknya yang saya temukan) yang punya fitur ini. Jadi tulisan ini bahas gimana cara kerjanya, dari astronomi sampai render pixel.
+Nggak ada API kalender Hijriah lain (setidaknya yang saya temukan) yang punya fitur ini. Jadi tulisan ini bahas gimana cara kerjanya, dari [astronomi](https://en.wikipedia.org/wiki/Astronomy) sampai render pixel.
 
-## Di Mana Cari Hilal?
+## Di Mana Cari [Hilal](https://en.wikipedia.org/wiki/Hilal)?
 
 Nah ini pertanyaan yang sering muncul: **Di mana kita mengevaluasi kriteria hilal Neo MABMIS?**
 
-Kriteria Neo MABIMS (ketinggian hilal ≥ 3°, elongasi ≥ 6,4°) itu namanya juga kriteria rukyah, ia harus dievaluasi **dari suatu titik di permukaan bumi**. Dan Indonesia itu luas. Jadi harusnya gak cuma milih satu titik; API ngecek **25 titik pengamatan pesisir** dari Sabang sampai Rote, dan kriteria dianggap terpenuhi kalau lolos **di satu titik manapun**, sama seperti logika rukyah Kemenag: hilal terlihat di wilayah Indonesia, bulan baru dimulai.
+Kriteria [Neo MABIMS](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia) (ketinggian hilal ≥ 3°, elongasi ≥ 6,4°) itu namanya juga kriteria rukyah, ia harus dievaluasi **dari suatu titik di permukaan bumi**. Dan Indonesia itu luas. Jadi harusnya gak cuma milih satu titik; API ngecek **25 titik pengamatan pesisir** dari Sabang sampai Rote, dan kriteria dianggap terpenuhi kalau lolos **di satu titik manapun**, sama seperti logika rukyah Kemenag: hilal terlihat di wilayah Indonesia, bulan baru dimulai. (Lihat juga [Jurnal Astroislamica](https://journal.uinsuna.ac.id/index.php/ASTROISLAMICA/article/view/2735) tentang perspektif Maqāṣid al-Syarī'ah terhadap kriteria ini.)
 
 Pola menariknya: untuk bulan-bulan yang "aman", hampir selalu titik paling barat yang memutuskan. Semakin barat, matahari terbenam semakin mundur, jadi hilalnya semakin tinggi di atas horizon saat senja. Sabang dan pesisir barat Aceh jadi *last chance* sekaligus *first win*. Tapi ada bulan-bulan dengan deklinasi bulan selatan di mana arc selatan (selatan Jawa sampai Nusa Tenggara) yang menang. Data historis 1970–2050 menunjukkan titik-titik Jawa (Ujung Kulon, Pangandaran) ikut memutuskan beberapa bulan. Makanya titik-titik selatan itu ada di daftar, bukan pajangan.
 
@@ -53,7 +53,7 @@ Kalau kamu minta visibilitas untuk bulan Ramadhan, endpoint ini nggak menghitung
 
 Dua kategori data dihitung:
 
-- **Kriteria** — `moon_alt` (ketinggian bulan *toposentris*, terkoreksi refraksi), `moon_az` (azimut), `sun_alt`, dan `elongation` (jarak sudut bulan-matahari, *geosentris* sesuai konvensi hisab Indonesia). Ini angka-angka yang langsung dibandingkan ke ambang batas MABIMS — semuanya milik **satu titik yang sama**, jadi adegan langit, tabel kriteria, dan verdict nggak bisa saling kontradiksi.
+- **Kriteria** — `moon_alt` (ketinggian bulan *[toposentris](https://en.wikipedia.org/wiki/Horizontal_coordinate_system)*, terkoreksi refraksi), `moon_az` (azimut), `sun_alt`, dan `elongation` (jarak sudut bulan-matahari, *[geosentris](https://en.wikipedia.org/wiki/Barycentric_coordinates_(astronomy))* sesuai konvensi hisab Indonesia). Ini angka-angka yang langsung dibandingkan ke ambang batas MABIMS — semuanya milik **satu titik yang sama**, jadi adegan langit, tabel kriteria, dan verdict nggak bisa saling kontradiksi.
 - **Waktu pengamat (observer-clock)** — iluminasi, jam matahari terbenam, dan jam bulan terbenam, semuanya di titik penentu dan ditampilkan dalam zona waktu lokal titik itu (WIB atau WITA).
 
 ### 3. Cek ambang batas Neo MABIMS

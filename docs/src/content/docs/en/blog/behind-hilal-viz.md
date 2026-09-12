@@ -17,13 +17,13 @@ authors:
 
 One of my favorite endpoints on mabims.dev isn't `/today` or `/convert`, but `/hilal/viz`. This endpoint generates a 720×1280 PNG showing a complete evening sky visualization with moon position, MABIMS criteria pass/fail status, and a sky chart with stars.
 
-No other Hijri calendar API (at least that I've found) has this feature. So this post discusses how it works, from astronomy to pixel rendering.
+No other Hijri calendar API (at least that I've found) has this feature. So this post discusses how it works, from [astronomy](https://en.wikipedia.org/wiki/Astronomy) to pixel rendering.
 
-## Where Do You Look for the Hilal?
+## Where Do You Look for the [Hilal](https://en.wikipedia.org/wiki/Hilal)?
 
 The question used to be "why Sabang?". The better question now: **where?**
 
-The Neo MABIMS criteria (hilal altitude ≥ 3°, elongation ≥ 6.4°) are rukyah criteria — they must be evaluated **from a point on the Earth's surface**. And Indonesia is wide. So instead of picking a single point, the API now checks **25 coastal observation sites** from Sabang to Rote, and the criteria count as fulfilled if they pass at **any single site** — the same logic as Kemenag's rukyah: if the hilal is seen anywhere in Indonesia, the month begins.
+The [Neo MABIMS](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia) criteria (hilal altitude ≥ 3°, elongation ≥ 6.4°) are rukyah criteria — they must be evaluated **from a point on the Earth's surface**. And Indonesia is wide. So instead of picking a single point, the API now checks **25 coastal observation sites** from Sabang to Rote, and the criteria count as fulfilled if they pass at **any single site** — the same logic as Kemenag's rukyah: if the hilal is seen anywhere in Indonesia, the month begins. (See also [Jurnal Astroislamica](https://journal.uinsuna.ac.id/index.php/ASTROISLAMICA/article/view/2735) on the Maqāṣid al-Syarī'ah perspective of these criteria.)
 
 The interesting pattern: for "comfortable" months, the westernmost site almost always decides. The further west, the later the sunset, so the higher the hilal stands above the horizon at dusk — Sabang and the west Aceh coast are both the *last chance* and the *first win*. But there are months with a southerly lunar declination where the southern arc wins (southern Java to the Lesser Sundas). Historical data from 1970–2050 shows Java sites (Ujung Kulon, Pangandaran) deciding dozens of months. That's why those southern points are on the list — they're not decoration.
 
@@ -53,7 +53,7 @@ If you request visibility for Ramadan, this endpoint doesn't calculate the 1st o
 
 Two categories of data are computed:
 
-- **Criteria** — `moon_alt` (*topocentric* altitude, refraction applied), `moon_az` (azimuth), `sun_alt`, and `elongation` (moon–sun angular distance, *geocentric* per the Indonesian hisab convention). These are the numbers directly compared against MABIMS thresholds — all of them belonging to **one single site**, so the sky scene, criteria table and verdict can never contradict each other.
+- **Criteria** — `moon_alt` ([*topocentric*](https://en.wikipedia.org/wiki/Horizontal_coordinate_system) altitude, [refraction](https://en.wikipedia.org/wiki/Atmospheric_refraction) applied), `moon_az` (azimuth), `sun_alt`, and `elongation` (moon–sun angular distance, [*geocentric*](https://en.wikipedia.org/wiki/Barycentric_coordinates_(astronomy)) per the Indonesian hisab convention). These are the numbers directly compared against MABIMS thresholds — all of them belonging to **one single site**, so the sky scene, criteria table and verdict can never contradict each other.
 - **Observer-clock times** — illumination, sunset time, and moonset time, all at the deciding site and displayed in that site's own timezone (WIB or WITA).
 
 ### 3. Check Neo MABIMS thresholds

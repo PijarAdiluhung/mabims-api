@@ -5,7 +5,7 @@ description: Dari mana data MABIMS berasal dan status lisensinya.
 
 ## Sumber Utama
 
-Data kalender bersumber dari **data publik yang dikeluarkan resmi oleh Kementerian Agama Republik Indonesia** — tabel penanggalan MABIMS yang diterbitkan setiap tahun untuk satu tahun ke depan.
+Data kalender bersumber dari **data publik yang dikeluarkan resmi oleh [Kementerian Agama Republik Indonesia](https://kemenag.go.id)** — tabel penanggalan MABIMS yang diterbitkan setiap tahun untuk satu tahun ke depan.
 
 | Properti | Nilai |
 |---|---|
@@ -15,7 +15,7 @@ Data kalender bersumber dari **data publik yang dikeluarkan resmi oleh Kementeri
 
 ## Tier Komputasi
 
-Di luar cakupan tabel, API menghitung tanggal menggunakan kriteria **Neo MABIMS**:
+Di luar cakupan tabel, API menghitung tanggal menggunakan kriteria **[Neo MABIMS](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia)** (lihat juga pengumuman resmi [Setkab](https://setkab.go.id/pemerintah-tetapkan-1-ramadan-1445h-jatuh-pada-selasa-12-maret-2024)):
 
 | Parameter | Ambang batas |
 |---|---|

@@ -48,6 +48,195 @@
 - [x] Fix hilal-viz text (title was dropping the year for two-word months; header now uniform with the map: month caps, no year)
 - [x] Hilal map header too long (uniform title fits; safety shrink if a month ever overflows)
 
+## Hilal Explorer — `/hilal` page
+- [ ] **Backend: `/api/v1/hilal/map-data` endpoint** — returns contour polylines + display points as JSON (~15KB)
+- [ ] **Backend: `/api/v1/hilal/minimap` endpoint** — returns small world minimap PNG (~400×200 @2x, ~20KB)
+- [ ] **Frontend: `/hilal` page** — standalone Astro page with Canvas-rendered map + sky scene
+- [ ] **Bundle static GeoJSON** — indonesia_boundary, indonesia_provinces, world countries into `docs/public/geo/`
+
+### `/hilal` page — design
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  ◀  Ramadhan 1447 H  ▶           [Peta] [Langit]            │  ← floating top bar
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│              FULLSCREEN CANVAS                               │
+│              (map or sky, fills viewport)                    │
+│                                                              │
+│  ┌─────────────────────────────────────┐                     │
+│  │  🌙 MEMENUHI KRITERIA               │  ← floating card   │
+│  │  Alt bulan:    +4.8°  ✅           │    bottom-left      │
+│  │  Elongasi:      8.1°  ✅           │    backdrop-blur    │
+│  │  Titik: Sabang                      │                     │
+│  │  ▾ Detail                           │                     │
+│  └─────────────────────────────────────┘                     │
+└──────────────────────────────────────────────────────────────┘
+```
+
+- One month at a time, prev/next arrows, URL params `?month=X&year=Y`
+- Default to next upcoming month (from `/api/v1/today`)
+- Map: Canvas with Indonesia outline + visibility polygon + isolines + dots + minimap PNG
+- Viz: Canvas with gradient sky + stars + sun/moon + crescent + horizon + verdict pill
+- Toggle switches between map and viz
+- Info card: full details from `/hilal/info` (verdict, alt, elong, site, sunset, moonset, illumination, age, sites checked)
+
+### `/hilal` — implementation order
+
+#### Phase 1: Backend endpoints
+
+1. **`api/app/hilal/mapcard.py`** — add `map_data_json()`:
+   - Reuse `_grid()` for 2D alt/elong arrays
+   - Extract contour paths via `ax.contour()` on temp figure
+   - Simplify with shapely `simplify(tolerance=0.1)`
+   - Convert to JSON `[[[lon, lat], ...], ...]`
+   - Return dict with `evening`, `month`, `hero`, `points`, `contours`
+
+2. **`api/app/hilal/mapcard.py`** — add `minimap_png_bytes()`:
+   - Reuse `_global_visibility()` (3° step, cached)
+   - Render at 800×400 (2x current inset)
+   - Return PNG bytes
+
+3. **`api/app/main.py`** — wire up endpoints:
+   - `GET /api/v1/hilal/map-data?month=&year=` → JSON (60/hour)
+   - `GET /api/v1/hilal/minimap?month=&year=` → PNG (60/hour)
+   - Reuse `_hilal_context()` for sighting evening + multi-site result
+
+4. **Test**: `curl /api/v1/hilal/map-data?month=9&year=1447` → verify shape
+
+#### Phase 2: Static assets
+
+5. **Bundle GeoJSON** into `docs/public/geo/`:
+   - `indonesia_boundary.geojson` (~346KB)
+   - `indonesia_provinces_raw.geojson` (~335KB)
+   - `ne_110m_admin_0_countries.geojson` (~819KB)
+   - `map_points.json` (~4KB)
+   - `hilal_sites.json` (~3KB)
+
+#### Phase 3: Frontend page
+
+6. **`docs/src/pages/hilal.astro`** — page skeleton:
+   - Standalone HTML (no StarlightPage)
+   - Floating header bar (month title, nav arrows, map/viz toggle)
+   - Fullscreen canvas element
+   - Floating info card (bottom-left, backdrop-blur)
+   - Loading skeleton
+   - Brand CSS (Poppins, #fecf46 accent, dark bg)
+
+7. **Sky scene renderer** (`<script>` or inline):
+   - Fetch `/api/v1/hilal/info?month=X&year=Y`
+   - Canvas: gradient sky, starfield, sun/moon positions, crescent, horizon, verdict pill
+   - ~150 lines JS, no dependencies
+
+8. **Map renderer**:
+   - Fetch `/api/v1/hilal/map-data?month=X&year=Y`
+   - Fetch static GeoJSON files
+   - Canvas: ocean fill → world land → Indonesia land → province lines → visibility polygon → isolines → dots → hero marker → minimap PNG
+   - Simple Mercator projection
+   - GeoJSON → Canvas path conversion
+
+9. **Navigation + toggle**:
+   - Read `?month=&year=` from URL
+   - Prev/next arrows: increment/decrement month (wrap at 12→1)
+   - `history.replaceState` on navigation
+   - Toggle swaps canvas renderer
+   - Auto-default to next month via `/api/v1/today`
+
+10. **Info card**:
+    - Populate from `/api/v1/hilal/info` response
+    - Verdict badge (green/red)
+    - Grid: moon alt, elongation, deciding site, sunset, moonset, illumination, age, sites checked
+    - Expandable raw JSON (`<details>`)
+
+11. **Responsive**:
+    - Desktop: canvas fills viewport, info card bottom-left
+    - Mobile (≤768px): info card bottom sheet, larger touch targets
+
+#### Phase 4: Polish
+
+12. **SEO**: `<title>`, `<meta description>`, canonical URL, JSON-LD
+13. **Loading states**: skeleton while fetching JSON, spinner while rendering canvas
+14. **Error handling**: invalid month/year, API errors, empty contours
+15. **Canvas resize**: debounced redraw on window resize
+
+### `/hilal` — data flow
+
+```
+Page load
+  │
+  ├─ Read ?month=&year= from URL (or fetch /api/v1/today → next month)
+  │
+  ├─ Fetch /api/v1/hilal/info?month=X&year=Y  ──→ populate info card
+  │
+  ├─ Fetch /api/v1/hilal/map-data?month=X&year=Y  ──→ map contours + points
+  │
+  ├─ Fetch /api/v1/hilal/minimap?month=X&year=Y  ──→ minimap PNG
+  │
+  ├─ Load /geo/indonesia_boundary.geojson  ──→ Indonesia outline
+  │   (cached after first load)
+  │
+  └─ Render canvas (map or sky based on toggle)
+```
+
+### `/hilal` — key technical details
+
+**Map projection** (simple Mercator for Indonesia):
+```js
+function project(lon, lat) {
+  const x = ((lon - LON0) / (LON1 - LON0)) * canvas.width;
+  const y = ((LAT1 - lat) / (LAT1 - LAT0)) * canvas.height;
+  return [x, y];
+}
+```
+
+**Crescent moon** (Canvas arc):
+```js
+ctx.beginPath();
+ctx.arc(cx, cy, r, 0, Math.PI * 2);           // full disc
+ctx.arc(cx + offset, cy, r, 0, Math.PI * 2, true); // shadow punch
+ctx.fill();
+```
+
+**Dashed isolines** (Canvas dash):
+```js
+ctx.setLineDash([8, 4]);
+ctx.strokeStyle = '#ff9f43'; // orange for alt
+ctx.stroke();
+```
+
+**GeoJSON → Canvas**:
+```js
+function drawGeoPolygon(ctx, coords, project) {
+  ctx.beginPath();
+  coords.forEach((ring, i) => {
+    ring.forEach(([lon, lat], j) => {
+      const [x, y] = project(lon, lat);
+      i === 0 && j === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+  });
+  ctx.closePath();
+}
+```
+
+### `/hilal` — file changes
+
+| File | Action | Est. lines |
+|---|---|---|
+| `api/app/hilal/mapcard.py` | Add `map_data_json()` + `minimap_png_bytes()` | ~60 |
+| `api/app/main.py` | Add `/hilal/map-data` + `/hilal/minimap` endpoints | ~40 |
+| `docs/src/pages/hilal.astro` | **New**: standalone page | ~500 |
+| `docs/public/geo/*.json` | Bundle static geographic data | 5 files |
+
+### `/hilal` — estimated payload sizes
+
+| Resource | Size | Cached |
+|---|---|---|
+| `/hilal/info` | ~2KB | CDN 24h |
+| `/hilal/map-data` | ~15KB | CDN 24h |
+| `/hilal/minimap` | ~20KB | CDN 24h |
+| GeoJSON (once) | ~1.5MB (~300KB gzip) | Browser cache |
+| **Total per visit** | ~37KB (+ 300KB first visit) | |
+
 ## Cutover (M5)
 - [x] Repoint malangmengaji.com integrations to new hostnames
 - [x] One week parallel run (old Netlify stays live)

@@ -5,11 +5,11 @@ description: Hilal visibility — criteria data and sky chart for the evening th
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-Three endpoints for **hilal visibility**: the deciding evening is always the **29th** of the
+Three endpoints for **[hilal visibility](https://en.wikipedia.org/wiki/Moon_sighting)**: the deciding evening is always the **29th** of the
 current month — the night people actually go looking for the crescent. If the criteria are
 not fulfilled at any observation point, the month completes 30 days and the start shifts a
 day. Month boundaries come from the
-**data publik yang dikeluarkan resmi oleh Kementerian Agama RI** (publicly available official MABIMS tables) (not Umm al-Qura), and the astronomy uses a **multi-site model**: the
+**data publik yang dikeluarkan resmi oleh [Kementerian Agama RI](https://kemenag.go.id)** (publicly available official MABIMS tables) (not Umm al-Qura), and the astronomy uses a **multi-site model**: the
 criteria are evaluated at **coastal observation points across Indonesia** (currently 25
 sites, from Sabang to Rote — see [`api/data/hilal_sites.json`](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json)).
 
@@ -101,6 +101,8 @@ reports the **deciding site** via `deciding_site`.
   with atmospheric refraction applied (Bennett formula);
 - **Elongation ≥ 6.4°** — *geocentric* (the Indonesian hisab convention), the moon–sun
   angular separation;
+
+(See the [official MUI explainer](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia) and the [government announcement via Setkab](https://setkab.go.id/pemerintah-tetapkan-1-ramadan-1445h-jatuh-pada-selasa-12-maret-2024) for the source of these criteria.)
 
 both evaluated at that site's **local sunset** on day 29. The further west a point sits, the
 higher the hilal stands at its sunset — so comfortable months are usually decided on the

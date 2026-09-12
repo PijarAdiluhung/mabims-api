@@ -76,7 +76,7 @@ const data = await response.json();
 
 Untuk aplikasi yang memang targetnya Indonesia, saya biasanya akan eksplisit menggunakan `Asia/Jakarta`, `Asia/Makassar`, atau `Asia/Jayapura` sesuai kebutuhan.
 
-## Di Vue
+## Di [Vue](https://vuejs.org/guide/introduction.html)
 
 Kalau kamu pakai Vue, konsepnya sama. Bedanya cuma kita simpan hasil API ke state.
 
@@ -112,7 +112,7 @@ Selesai.
 
 Saya justru menyarankan pendekatan seperti ini daripada memasukkan library kalender Hijriah yang ukurannya jauh lebih besar kalau kebutuhan aplikasi kamu cuma **menampilkan tanggal Hijriah**.
 
-## Di React
+## Di [React](https://react.dev/learn)
 
 Di React juga kurang lebih sama:
 
@@ -280,7 +280,7 @@ Jangan maintain tabel sendiri.
 
 Jangan copy-paste tanggal dari kalender PDF ke database.
 
-Dan jangan berharap library kalender yang default-nya Umm al-Qura otomatis cocok untuk kebutuhan Indonesia.
+Dan jangan berharap library kalender yang default-nya [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) otomatis cocok untuk kebutuhan Indonesia.
 
 Cukup:
 

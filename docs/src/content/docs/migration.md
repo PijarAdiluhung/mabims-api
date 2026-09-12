@@ -10,7 +10,7 @@ Panduan ini untuk developer yang sudah menggunakan [Aladhan API](https://aladhan
 | | Aladhan / Umm al-Qura | MABIMS |
 |---|---|---|
 | Sumber data | Pemerintah Saudi | Kemenag RI |
-| Metode | Rukyah Saudi | Neo MABIMS (≥3° hilal, ≥6.4° elongasi) |
+| Metode | Rukyah Saudi | [Neo MABIMS](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia) (≥3° hilal, ≥6.4° elongasi) |
 | Akurasi untuk Indonesia | ±1 hari | Resmi |
 | Autentikasi | Tergantung provider | Tidak perlu |
 | Format tanggal | `DD-MM-YYYY` | `YYYY-MM-DD` |

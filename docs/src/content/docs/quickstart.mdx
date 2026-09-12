@@ -47,7 +47,7 @@ curl "https://api.mabims.dev/api/v1/convert?date=1446-07-03&calendar=hijri"
 Setiap respons membawa field `source`:
 
 - `mabims` — dari data publik Kemenag
-- `mabims-computed` — dihitung dengan kriteria Neo MABIMS
+- `mabims-computed` — dihitung dengan kriteria [Neo MABIMS](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia)
 - `mabims-retro` — di bawah tabel kurasi (butuh `retro=true`): kriteria Neo MABIMS diproyeksikan ke belakang. Kriteria baru diperkenalkan pada 2022 dan data kurasi baru mulai 2023, jadi tanggal sebelum itu adalah ekstrapolasi murni
 
 Kenapa ini penting? Jika `source` = `mabims`, datanya resmi dari Kemenag — bisa dipakai tenang. Data kurasi ini diperbarui setiap tahun, biasanya **pertengahan Oktober**. Untuk tanggal lebih dari itu, respons disajikan dari `mabims-computed` — dihitung dengan kriteria Neo MABIMS, akurat tapi bukan pengumuman resmi.
@@ -126,6 +126,15 @@ Ingin hasilnya offline tanpa fetch API? Pakai **mabims-hijri**. Bundle data 2023
 npm install mabims-hijri
 ```
 :::
+
+## Panduan integrasi lengkap
+
+Butuh panduan step-by-step untuk kasus spesifik?
+
+<CardGrid>
+  <LinkCard title="Tampilkan di Website" href="/blog/cara-tampilkan-tanggal-hijriah" description="Tutorial lengkap: JavaScript, PHP, WordPress — plus cache server & widget kalender bulanan" />
+  <LinkCard title="Integrasikan ke App iOS/Android" href="/blog/integrasi-mabims-ios-android" description="Strategi cache offline-first untuk app native: pola /year + /today, contoh Swift & Kotlin" />
+</CardGrid>
 
 ## Apa saja yang tersedia
 

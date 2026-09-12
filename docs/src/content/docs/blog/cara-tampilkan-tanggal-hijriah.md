@@ -17,7 +17,7 @@ authors:
   - pijar
 ---
 
-Mau nampilin tanggal Hijriah hari ini di website? Misalnya di header, footer, atau widget masjid/pesantren? Ini cara paling gampang, pakai API gratis [mabims.dev](https://mabims.dev), tanpa API key, dan datanya sesuai kriteria MABIMS/Kemenag (bukan Umm al-Qura yang sering beda 1 hari).
+Mau nampilin tanggal Hijriah hari ini di website? Misalnya di header, footer, atau widget masjid/pesantren? Ini cara paling gampang, pakai API gratis [mabims.dev](https://mabims.dev), tanpa API key, dan datanya sesuai kriteria [MABIMS/Kemenag](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia) (bukan [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) yang sering beda 1 hari).
 
 Cukup panggil endpoint ini:
 

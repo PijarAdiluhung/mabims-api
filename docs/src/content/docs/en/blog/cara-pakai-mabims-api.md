@@ -76,7 +76,7 @@ const data = await response.json();
 
 For apps targeting Indonesia, I usually explicitly use `Asia/Jakarta`, `Asia/Makassar`, or `Asia/Jayapura` as needed.
 
-## In Vue
+## In [Vue](https://vuejs.org/guide/introduction.html)
 
 If you use Vue, the concept is the same. The difference is we store the API result in state.
 
@@ -112,7 +112,7 @@ Done.
 
 I actually recommend this approach over including a Hijri calendar library that's much larger, if your app's need is just **displaying the Hijri date**.
 
-## In React
+## In [React](https://react.dev/learn)
 
 React is more or less the same:
 
@@ -280,7 +280,7 @@ Don't maintain your own table.
 
 Don't copy-paste dates from a PDF calendar into a database.
 
-And don't expect a calendar library that defaults to Umm al-Qura to automatically match Indonesia's needs.
+And don't expect a calendar library that defaults to [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) to automatically match Indonesia's needs.
 
 Just:
 

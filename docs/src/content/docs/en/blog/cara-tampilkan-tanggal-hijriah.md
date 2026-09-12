@@ -17,7 +17,7 @@ authors:
   - pijar
 ---
 
-Want to show today's Hijri date on your website? Like in a header, footer, or mosque/pesantren widget? Here's the easiest way: use the free [mabims.dev](https://mabims.dev) API, no API key needed, with data matching MABIMS/Kemenag criteria (not Umm al-Qura which is often 1 day off).
+Want to show today's Hijri date on your website? Like in a header, footer, or mosque/pesantren widget? Here's the easiest way: use the free [mabims.dev](https://mabims.dev) API, no API key needed, with data matching [MABIMS/Kemenag](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia) criteria (not [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) which is often 1 day off).
 
 Just call this endpoint:
 

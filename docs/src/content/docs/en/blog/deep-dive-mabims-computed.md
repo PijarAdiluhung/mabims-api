@@ -20,7 +20,7 @@ In this MABIMS API I've referred to `source: "mabims-computed"` as the fallback 
 
 This post looks at how it actually works. `mabims-computed` is not just "if there's no data, use an estimate". Behind it there's a small engine that computes when a Hijri month starts, walks forward or backward from an anchor date, stores the results, and tells the client that what it received is not official Kemenag data.
 
-So in this post I want to open up the parts that usually stay hidden: how a single month gets decided as 29 or 30 days, why the altitude is topocentric while the elongation stays geocentric, and why the criteria are evaluated at 25 coastal observation sites.
+So in this post I want to open up the parts that usually stay hidden: how a single month gets decided as 29 or 30 days, why the altitude is [topocentric](https://en.wikipedia.org/wiki/Horizontal_coordinate_system) while the elongation stays [geocentric](https://en.wikipedia.org/wiki/Barycentric_coordinates_(astronomy)), and why the criteria are evaluated at 25 coastal observation sites.
 
 ## Two kinds of data, one API
 
@@ -69,16 +69,16 @@ I deliberately keep these two sources distinct. Computed results can be very use
 
 ## Neo MABIMS in two numbers
 
-The short version of the criteria is:
+The short version of the [criteria](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia) is:
 
 ```text
 hilal altitude  >= 3.0°
 elongation      >= 6.4°
 ```
 
-Both must pass at the same time, and passing at **any single site is enough**. Altitude passing but elongation falling short still means failure. The reverse is equally true.
+Both must pass at the same time, and passing at **any single site is enough**. Altitude passing but elongation falling short still means failure. The reverse is equally true. (See also [ANTARA English](https://en.antaranews.com/news/346717/indonesia-sets-march-1-as-first-day-of-ramadan) and [JAT journal](https://ejournal.um.edu.my/index.php/JAT/article/download/45242/17123/144190) on the history of these criteria.)
 
-The criteria are evaluated at the **local sunset of each observation point** — currently **25 coastal sites** from Sabang to Rote (the list is open at `api/data/hilal_sites.json`). The interesting pattern: for "comfortable" months, the westernmost site almost always decides — the further west, the later the sunset, the higher the hilal stands at dusk. But there are months with a southerly lunar declination where the southern arc wins (southern Java to the Lesser Sundas). That's why the southern points are on the list.
+The criteria are evaluated at the **local sunset of each observation point** — currently **25 coastal sites** from Sabang to Rote (the list is open at [`api/data/hilal_sites.json`](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json)). The interesting pattern: for "comfortable" months, the westernmost site almost always decides — the further west, the later the sunset, the higher the hilal stands at dusk. But there are months with a southerly [lunar declination](https://en.wikipedia.org/wiki/Lunar_theory) where the southern arc wins (southern Java to the Lesser Sundas). That's why the southern points are on the list.
 
 And there's no "Sabang rule" fetish here — this is exactly Kemenag's rukyah logic: if the hilal is seen anywhere in Indonesia, the month begins. The API even reports the site that decided via `deciding_site`.
 
@@ -115,7 +115,7 @@ Because each subsequent month starts at the end of the previous one, this engine
 
 ## Not your usual arithmetic conversion
 
-Tabular Hijri calendars can usually be computed with an arithmetic pattern: months have a fixed length arrangement, and leap-year cycles determine where the 29s and 30s land.
+[Tabular Hijri calendars](https://en.wikipedia.org/wiki/Tabular_Islamic_calendar) can usually be computed with an arithmetic pattern: months have a fixed length arrangement, and leap-year cycles determine where the 29s and 30s land.
 
 `mabims-computed` doesn't work like that. Month lengths are decided one by one from the astronomical conditions on the 29th night. So this engine is more like a linked list than a one-line formula:
 
@@ -151,10 +151,10 @@ At first I thought the question was simple: to compute the hilal criteria, shoul
 
 The terms:
 
-- **Topocentric** — seen from the Earth's surface, accounting for the observer's position and lunar parallax.
-- **Geocentric** — seen from the Earth's center.
+- **[Topocentric](https://en.wikipedia.org/wiki/Horizontal_coordinate_system)** — seen from the Earth's surface, accounting for the observer's position and lunar parallax.
+- **[Geocentric](https://en.wikipedia.org/wiki/Barycentric_coordinates_(astronomy))** — seen from the Earth's center.
 
-The topocentric intuition sounded more correct for hilal observation — humans observe from the Earth's surface. And after validating it end to end: the intuition was right. The engine above finally found its proper shape: hilal altitude is computed **topocentrically** (refraction applied) at **25 coastal observation sites** from Sabang to Rote, while elongation stays **geocentric** per the Indonesian hisab convention — and the criteria only need to be met at one site anywhere. The result is still 48/48 against the curated table: everything explained above about the 29/30-day decision is unchanged; what changed is "where" and "which reference frame".
+The topocentric intuition sounded more correct for hilal observation — humans observe from the Earth's surface. And after validating it end to end: the intuition was right. The engine above finally found its proper shape: hilal altitude is computed **topocentrically** ([atmospheric refraction](https://en.wikipedia.org/wiki/Atmospheric_refraction) applied) at **25 coastal observation sites** from Sabang to Rote, while elongation stays **geocentric** per the Indonesian hisab convention — and the criteria only need to be met at one site anywhere. The result is still 48/48 against the curated table: everything explained above about the 29/30-day decision is unchanged; what changed is "where" and "which reference frame".
 
 ## Borderline is real
 
@@ -178,7 +178,7 @@ margin = min(
 
 If the margin is positive but under 0.25°, the month is flagged borderline. This information flows into `warnings[]` so applications don't treat a result hovering at the threshold as something certain.
 
-An important note: borderline does not automatically mean the result is wrong. It only means that small changes in location, method, ephemeris data, or criteria interpretation could affect the outcome.
+An important note: borderline does not automatically mean the result is wrong. It only means that small changes in location, method, [ephemeris](https://ssd.jpl.nasa.gov/planets/eph_export.html) data, or criteria interpretation could affect the outcome.
 
 ## So when can `mabims-computed` be used?
 
@@ -193,7 +193,7 @@ In my opinion, it fits:
 Don't treat it as:
 
 - the official announcement of Ramadan or Eid al-Fitr's start;
-- a replacement for the isbat session;
+- a replacement for the [isbat session](https://en.wikipedia.org/wiki/Moon_sighting);
 - proof of hilal observation at a specific location;
 - a single source for administrative or religious decisions.
 

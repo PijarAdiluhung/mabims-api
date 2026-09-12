@@ -11,7 +11,7 @@ Umm al-Qura-based APIs) who want to switch to MABIMS.
 | | Aladhan / Umm al-Qura | MABIMS |
 |---|---|---|
 | Data source | Saudi government | Kemenag RI |
-| Method | Saudi rukyah | Neo MABIMS (≥3° hilal, ≥6.4° elongation) |
+| Method | Saudi rukyah | [Neo MABIMS](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia) (≥3° hilal, ≥6.4° elongation) |
 | Accuracy for Indonesia | ±1 day | Official |
 | Authentication | Depends on provider | None required |
 | Date format | `DD-MM-YYYY` | `YYYY-MM-DD` |

@@ -22,7 +22,7 @@ Tapi setelah bikin beberapa pakai API itu, saya selalu nemu masalah yang sama:
 
 - **Setiap load page nge-hit API.** Padahal tanggal Hijriah nggak berubah tiap beberapa detik.
 - **Rate limits oke, tapi tetap ada batasnya.** Kalau site-mu lagi traffic naik, atau banyak component yang fetch tanggal yang sama...
-- **Offline nggak ada.** Bikin PWA atau mobile app? Nggak ada tanggal Hijriah tanpa koneksi internet.
+- **Offline nggak ada.** Bikin [PWA](https://web.dev/progressive-web-apps/) atau mobile app? Nggak ada tanggal Hijriah tanpa koneksi internet.
 - **Caching jadi urusanmu.** Kamu harus bikin caching layer sendiri, handle data stale, dan tentuin TTL-nya.
 
 Makanya saya bikin **[mabims-hijri](https://www.npmjs.com/package/mabims-hijri)**, paket npm offline-first yang bundle data MABIMS 2024-2026 langsung di dalamnya.
@@ -113,7 +113,7 @@ Semua ini jalan offline selama tanggal masih di dalam range yang di-bundle.
 
 ## Catatan untuk React Native
 
-Kalau kamu bikin React Native app, kamu perlu set storage adapter biar caching-nya persisten:
+Kalau kamu bikin React Native app, kamu perlu set storage adapter biar caching-nya persisten (pakai [`@react-native-async-storage/async-storage`](https://react-native-async-storage.github.io/async-storage/)):
 
 ```typescript
 import { setStorageAdapter } from 'mabims-hijri';

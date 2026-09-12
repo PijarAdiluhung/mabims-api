@@ -1,6 +1,6 @@
 ---
 title: GET /events
-description: Tanggal hari besar Islam (1 Muharram, Maulid, Awal Ramadan, Idul Fitri, Idul Adha) dari tabel MABIMS, diperluas dengan data komputasi di luar cakupan tabel.
+description: "Tanggal [hari besar Islam](https://en.wikipedia.org/wiki/Islamic_holidays) (1 Muharram, Maulid, Awal Ramadan, Idul Fitri, Idul Adha) dari tabel MABIMS, diperluas dengan data komputasi di luar cakupan tabel."
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
@@ -8,7 +8,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 Mengembalikan tanggal **hari besar Islam** untuk satu tahun kalender. Di dalam cakupan
 tabel MABIMS, tanggal langsung dari tabel publik Kemenag — tabel yang sama dengan
 `/convert`. Di luar cakupan tabel, tanggal dikomputasi secara langsung menggunakan kriteria
-Neo MABIMS (ketinggian hilal ≥ 3° dan elongasi ≥ 6.4° saat matahari terbenam lokal, dievaluasi
+Neo MABIMS ([kriteria resmi](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia)) (ketinggian hilal ≥ 3° dan elongasi ≥ 6.4° saat matahari terbenam lokal, dievaluasi
 di titik-titik pengamatan pesisir di seluruh Indonesia),
 sehingga Anda bisa mendapatkan tanggal hari besar bertahun-tahun ke depan.
 

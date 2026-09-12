@@ -18,7 +18,7 @@ authors:
 
 Ada cerita lucu (dan sedikit menyedihkan) di balik mabims.dev.
 
-Dulu, website Kemenag pernah menampilkan tanggal Hijriah di halamannya. Banyak orang termasuk saya sendiri terbiasa mengandalkannya. Tinggal buka website, lihat pojok atas, jadi tahu deh sekarang tanggal berapa Hijriah.
+Dulu, [website Kemenag](https://kemenag.go.id) pernah menampilkan tanggal [Hijriah](https://en.wikipedia.org/wiki/Islamic_calendar) di halamannya. Banyak orang termasuk saya sendiri terbiasa mengandalkannya. Tinggal buka website, lihat pojok atas, jadi tahu deh sekarang tanggal berapa Hijriah.
 
 Sampai suatu hari, ada postingan viral. Kalender keluaran Kemenag bilang tanggal 30, tapi website Kemenag bilang udah masuk tanggal 1 bulan berikutnya. Selisih sehari.
 
@@ -30,9 +30,9 @@ Saat itu saya nggak tahu detail di baliknya, apakah itu bug, salah kalkulasi, at
 
 ## Beberapa tahun kemudian, saya jadi junior dev
 
-Waktu saya mulai kerja sebagai developer, saya baru ngerti apa yang mungkin terjadi. Kalau mau nampilin kalender Hijriah di web, cara paling gampang ya tinggal pasang library atau panggil API pihak ketiga. Dan hampir semua library/API kalender Hijriah yang gampang ditemukan itu defaultnya pakai kriteria **Umm al-Qura**, kalender resmi Arab Saudi.
+Waktu saya mulai kerja sebagai developer, saya baru ngerti apa yang mungkin terjadi. Kalau mau nampilin kalender Hijriah di web, cara paling gampang ya tinggal pasang library atau panggil API pihak ketiga. Dan hampir semua library/API kalender Hijriah yang gampang ditemukan itu defaultnya pakai kriteria [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar), kalender resmi Arab Saudi.
 
-Masuk akal kalau itu yang dipakai. Dokumentasinya lengkap, gampang diintegrasikan, gratis. Tapi Umm al-Qura itu dirancang untuk kebutuhan Arab Saudi, bukan hasil rukyah atau sidang isbat Kemenag RI. Makanya bisa beda ±1 hari dari yang diumumkan di Indonesia, persis kejadian yang bikin viral itu.
+Masuk akal kalau itu yang dipakai. Dokumentasinya lengkap, gampang diintegrasikan, gratis. Tapi Umm al-Qura itu dirancang untuk kebutuhan Arab Saudi, bukan hasil rukyah atau [sidang isbat](https://en.wikipedia.org/wiki/Moon_sighting) Kemenag RI. Makanya bisa beda ±1 hari dari yang diumumkan di Indonesia, persis kejadian yang bikin viral itu.
 
 Jadi kemungkinan besar itu bukan "bug" dalam arti kesalahan kode. Itu bug karena pakai sumber data yang salah untuk konteks Indonesia.
 
@@ -44,7 +44,7 @@ Makanya saya bikin **mabims.dev**: API kalender Hijriah yang sumbernya dari kale
 
 Realistisnya... saya nggak tahu bakal banyak yang pakai atau nggak. Tapi minimal ada satu aplikasi yang pasti pakai: [kajian.malangmengaji.com](https://kajian.malangmengaji.com), yang saya bangun juga. Kalau nggak ada developer lain yang butuh, ya sudah... API ini akan tetap jalan buat aplikasi saya sendiri.
 
-Tapi kalau kamu develop aplikasi yang butuh kalender Hijriah yang akurat buat Indonesia, silakan pakai. Gratis, open source, dan mudah-mudahan nggak akan pernah perlu dihapus karena ketauan salah tanggal :)
+Tapi kalau kamu develop aplikasi yang butuh kalender Hijriah yang akurat buat Indonesia, silakan pakai. Gratis, [open source](https://github.com/PijarAdiluhung/mabims-api), dan mudah-mudahan nggak akan pernah perlu dihapus karena ketauan salah tanggal :)
 
 ---
 

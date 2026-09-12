@@ -20,7 +20,7 @@ Di beberapa bagian dokumentasi MABIMS API, saya menyebut `source: "mabims-comput
 
 Di tulisan ini kita akan melihat cara kerjanya lebih dekat. `mabims-computed` bukan sekadar "kalau datanya tidak ada, pakai perkiraan". Di baliknya ada mesin kecil yang menghitung awal bulan Hijriah, berjalan maju atau mundur dari sebuah tanggal acuan, menyimpan hasil perhitungan, lalu memberi tahu aplikasi bahwa data yang diterima bukan data resmi Kemenag.
 
-Saya akan membahas bagian-bagian yang biasanya tidak terlihat dari luar: bagaimana mesin menentukan sebuah bulan memiliki 29 atau 30 hari, mengapa ketinggian hilal dihitung secara toposentris sementara elongasi tetap geosentris, dan mengapa kriteria tersebut diperiksa di 25 titik pengamatan pesisir.
+Saya akan membahas bagian-bagian yang biasanya tidak terlihat dari luar: bagaimana mesin menentukan sebuah bulan memiliki 29 atau 30 hari, mengapa ketinggian hilal dihitung secara [toposentris](https://en.wikipedia.org/wiki/Horizontal_coordinate_system) sementara elongasi tetap [geosentris](https://en.wikipedia.org/wiki/Barycentric_coordinates_(astronomy)), dan mengapa kriteria tersebut diperiksa di 25 titik pengamatan pesisir.
 
 ## Dua jenis data, satu API
 
@@ -69,14 +69,14 @@ Kedua sumber ini sengaja dibedakan. Hasil perhitungan tetap berguna untuk kalend
 
 ## Neo MABIMS dalam dua angka
 
-Versi singkat kriteria Neo MABIMS adalah:
+Versi singkat kriteria [Neo MABIMS](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia) adalah:
 
 ```text
 ketinggian hilal >= 3.0°
 elongasi         >= 6.4°
 ```
 
-Kedua syarat tersebut harus terpenuhi secara bersamaan, dan cukup terpenuhi di **satu titik pengamatan saja**. Kalo cuma ketinggian hilal yang memenuhi syarat, tetapi elongasinya belum cukup = kriterianya belum terpenuhi. Begitu juga sebaliknya.
+Kedua syarat tersebut harus terpenuhi secara bersamaan, dan cukup terpenuhi di **satu titik pengamatan saja**. Kalo cuma ketinggian hilal yang memenuhi syarat, tetapi elongasinya belum cukup = kriterianya belum terpenuhi. Begitu juga sebaliknya. (Lihat juga liputan [ANTARA](https://www.antaranews.com/berita/5484670/perkembangan-kriteria-mabims-dalam-penentuan-awal-bulan-hijriah) dan [Jurnal Al-Marshad](https://jurnal.umsu.ac.id/index.php/almarshad/article/download/17139/11526) tentang kriteria ini.)
 
 Kriteria ini diperiksa saat **matahari terbenam di masing-masing titik pengamatan**. Saat ini ada **25 titik pengamatan pesisir** dari Sabang sampai Rote; daftar lengkapnya tersedia di [`api/data/hilal_sites.json`](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json). Polanya menarik: pada bulan-bulan yang kondisinya cukup aman, titik paling barat hampir selalu menjadi penentu. Semakin ke barat, matahari terbenam semakin lambat, sehingga hilal berada lebih tinggi di atas horizon saat senja. Namun, pada bulan-bulan ketika deklinasi Bulan berada di selatan, jalur titik-titik di selatan, dari Jawa bagian selatan sampai Nusa Tenggara, bisa menjadi penentu. Itu sebabnya titik-titik selatan juga perlu diperiksa.
 
@@ -115,7 +115,7 @@ Karena setiap bulan dimulai setelah bulan sebelumnya berakhir, mesin ini dapat m
 
 ## Bukan konversi aritmetika biasa
 
-Kalender Hijriah tabular biasanya dapat dihitung dengan pola aritmetika: setiap bulan memiliki susunan 29 dan 30 hari tertentu, lalu siklus tahun kabisat menentukan penempatannya.
+[Kalender Hijriah tabular](https://en.wikipedia.org/wiki/Tabular_Islamic_calendar) biasanya dapat dihitung dengan pola aritmetika: setiap bulan memiliki susunan 29 dan 30 hari tertentu, lalu siklus tahun kabisat menentukan penempatannya.
 
 `mabims-computed` tidak bekerja seperti itu. Panjang bulan ditentukan satu per satu berdasarkan kondisi astronomis pada malam ke-29. Jadi, cara kerjanya lebih mirip linked list daripada rumus satu baris:
 
@@ -151,10 +151,10 @@ Awalnya saya mengira pertanyaannya sederhana: untuk menghitung kriteria hilal, s
 
 Istilahnya:
 
-- **Toposentris** — dilihat dari permukaan Bumi, dengan memperhitungkan posisi pengamat dan paralaks Bulan.
-- **Geosentris** — dilihat dari pusat Bumi.
+- **[Toposentris](https://en.wikipedia.org/wiki/Horizontal_coordinate_system)** — dilihat dari permukaan Bumi, dengan memperhitungkan posisi pengamat dan paralaks Bulan.
+- **[Geosentris](https://en.wikipedia.org/wiki/Barycentric_coordinates_(astronomy))** — dilihat dari pusat Bumi.
 
-Secara intuisi, pendekatan toposentris memang lebih masuk akal untuk pengamatan hilal karena manusia mengamati dari permukaan Bumi. Setelah saya validasi ulang dari awal sampai akhir, intuisi itu ternyata benar. Mesin ini menggunakan ketinggian hilal **secara toposentris** (dengan koreksi refraksi) di **25 titik pengamatan pesisir** dari Sabang sampai Rote. Elongasi tetap dihitung **secara geosentris**, sesuai konvensi hisab Indonesia. Kriteria cukup terpenuhi di satu titik mana pun.
+Secara intuisi, pendekatan toposentris memang lebih masuk akal untuk pengamatan hilal karena manusia mengamati dari permukaan Bumi. Setelah saya validasi ulang dari awal sampai akhir, intuisi itu ternyata benar. Mesin ini menggunakan ketinggian hilal **secara toposentris** (dengan koreksi [refraksi atmosfer](https://en.wikipedia.org/wiki/Atmospheric_refraction)) di **25 titik pengamatan pesisir** dari Sabang sampai Rote. Elongasi tetap dihitung **secara geosentris**, sesuai konvensi hisab Indonesia. Kriteria cukup terpenuhi di satu titik mana pun.
 
 ## Kondisi borderline itu nyata
 
@@ -178,7 +178,7 @@ margin = min(
 
 Kalau margin tersebut positif tetapi kurang dari 0,25°, bulan ditandai sebagai borderline. Informasi ini dimasukkan ke `warnings[]` agar aplikasi tidak menganggap hasil yang sangat dekat dengan ambang batas sebagai sesuatu yang sepenuhnya pasti.
 
-Catatan penting: borderline bukan berarti hasilnya otomatis salah. Artinya, perubahan kecil pada lokasi, metode, data ephemeris, atau cara menafsirkan kriteria dapat memengaruhi hasil.
+Catatan penting: borderline bukan berarti hasilnya otomatis salah. Artinya, perubahan kecil pada lokasi, metode, data [ephemeris](https://ssd.jpl.nasa.gov/planets/eph_export.html), atau cara menafsirkan kriteria dapat memengaruhi hasil.
 
 ## Kapan `mabims-computed` boleh digunakan?
 
@@ -193,7 +193,7 @@ Menurut saya, `mabims-computed` cocok digunakan untuk:
 Jangan memperlakukannya sebagai:
 
 - pengumuman resmi awal Ramadan atau Idul Fitri;
-- pengganti sidang isbat;
+- pengganti [sidang isbat](https://en.wikipedia.org/wiki/Moon_sighting);
 - bukti bahwa hilal benar-benar diamati di lokasi tertentu;
 - satu-satunya sumber untuk mengambil keputusan administratif atau keagamaan.
 

@@ -18,7 +18,7 @@ authors:
 
 There's a funny (and slightly sad) story behind mabims.dev.
 
-Kemenag's website used to display Hijri dates on its homepage. Many people, including myself, relied on it. Just open the website, check the top corner, and you'd know today's Hijri date.
+Kemenag's [website](https://kemenag.go.id) used to display [Hijri dates](https://en.wikipedia.org/wiki/Islamic_calendar) on its homepage. Many people, including myself, relied on it. Just open the website, check the top corner, and you'd know today's Hijri date.
 
 Until one day, a viral post appeared. The Kemenag calendar said the 30th, but the Kemenag website said the 1st of the next month had already started. Off by one day.
 
@@ -30,9 +30,9 @@ At the time I didn't know the details behind it — whether it was a bug, a misc
 
 ## A few years later, I became a junior dev
 
-When I started working as a developer, I finally understood what probably happened. If you want to display a Hijri calendar on a website, the easiest way is to use a library or call a third-party API. And almost every Hijri calendar library/API you can easily find defaults to **Umm al-Qura** — Saudi Arabia's official calendar.
+When I started working as a developer, I finally understood what probably happened. If you want to display a Hijri calendar on a website, the easiest way is to use a library or call a third-party API. And almost every Hijri calendar library/API you can easily find defaults to [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) — Saudi Arabia's official calendar.
 
-It makes sense that this is what's used. The documentation is thorough, easy to integrate, free. But Umm al-Qura is designed for Saudi Arabia's needs, not for Kemenag RI's moon sighting or isbat session results. That's why it can differ by ±1 day from what's announced in Indonesia — exactly the incident that went viral.
+It makes sense that this is what's used. The documentation is thorough, easy to integrate, free. But Umm al-Qura is designed for Saudi Arabia's needs, not for Kemenag RI's [moon sighting](https://en.wikipedia.org/wiki/Moon_sighting) or isbat session results. That's why it can differ by ±1 day from what's announced in Indonesia — exactly the incident that went viral.
 
 So it was likely not a "bug" in the sense of a code error. It was a bug caused by using the wrong data source for the Indonesian context.
 
@@ -44,7 +44,7 @@ That's why I built **mabims.dev**: a Hijri calendar API sourced from Kemenag RI'
 
 Realistically... I don't know if many people will use it. But at least one app will definitely use it: [kajian.malangmengaji.com](https://kajian.malangmengaji.com), which I also built. If no other developers need it, fine — this API will keep running for my own app.
 
-But if you're developing an app that needs an accurate Hijri calendar for Indonesia, feel free to use it. Free, open source, and hopefully it will never need to be taken down because it was caught showing the wrong date :)
+But if you're developing an app that needs an accurate Hijri calendar for Indonesia, feel free to use it. Free, [open source](https://github.com/PijarAdiluhung/mabims-api), and hopefully it will never need to be taken down because it was caught showing the wrong date :)
 
 ---
 

@@ -5,7 +5,7 @@ description: API open-source gratis untuk kalender Hijriah Indonesia berdasarkan
 
 ## Apa itu MABIMS.dev?
 
-MABIMS.dev adalah API open-source unofficial gratis yang menyediakan ekosistem kalender Hijriah untuk Indonesia. API ini menggunakan data resmi MABIMS yang diterbitkan oleh Kementerian Agama Republik Indonesia, bukan Umm al-Qura (standar Arab Saudi).
+MABIMS.dev adalah API open-source unofficial gratis yang menyediakan ekosistem kalender Hijriah untuk Indonesia. API ini menggunakan data resmi MABIMS yang diterbitkan oleh [Kementerian Agama Republik Indonesia](https://kemenag.go.id), bukan [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) (standar Arab Saudi).
 
 ## Untuk Siapa?
 
@@ -16,13 +16,13 @@ MABIMS.dev adalah API open-source unofficial gratis yang menyediakan ekosistem k
 
 ## Mengapa MABIMS, Bukan Umm al-Qura?
 
-Hampir semua API dan library kalender Hijriah menggunakan Umm al-Qura sebagai default. Umm al-Qura adalah kalender resmi Arab Saudi yang dirancang untuk kebutuhan di sana, bukan untuk Indonesia.
+Hampir semua API dan library kalender Hijriah menggunakan [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) sebagai default. Umm al-Qura adalah kalender resmi Arab Saudi yang dirancang untuk kebutuhan di sana, bukan untuk Indonesia.
 
-Karena metode rukyah dan lokasi pengamatannya berbeda, hasilnya bisa selisih ±1 hari dari keputusan resmi Kemenag — terutama untuk awal Ramadhan, Idul Fitri, dan Idul Adha. MABIMS.dev menggunakan data tabel publik Kemenag RI dan kriteria Neo MABIMS (ketinggian hilal ≥ 3°, elongasi ≥ 6,4° saat matahari terbenam lokal, dievaluasi di titik-titik pengamatan pesisir di seluruh Indonesia) untuk tanggal di luar cakupan tabel.
+Karena metode rukyah dan lokasi pengamatannya berbeda, hasilnya bisa selisih ±1 hari dari keputusan resmi Kemenag — terutama untuk awal Ramadhan, Idul Fitri, dan Idul Adha. MABIMS.dev menggunakan data tabel publik Kemenag RI dan [kriteria Neo MABIMS](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia) (ketinggian hilal ≥ 3°, elongasi ≥ 6,4° saat matahari terbenam lokal, dievaluasi di titik-titik pengamatan pesisir di seluruh Indonesia) untuk tanggal di luar cakupan tabel.
 
 ## Dibandingkan dengan Alternatif
 
-Untuk konteks Indonesia, MABIMS.dev lebih akurat dari Umm al-Qura (standar Saudi yang bisa selisih ±1 hari) dan Aladhan API (yang juga default ke Umm al-Qura). MABIMS.dev menggunakan data resmi Kemenag RI, bukan data dari otoritas negara lain.
+Untuk konteks Indonesia, MABIMS.dev lebih akurat dari [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) (standar Saudi yang bisa selisih ±1 hari) dan [Aladhan API](https://aladhan.com) (yang juga default ke Umm al-Qura). MABIMS.dev menggunakan data resmi Kemenag RI, bukan data dari otoritas negara lain.
 
 Jika Anda saat ini menggunakan Aladhan API, lihat panduan [Migration dari Aladhan](/migration) untuk perbandingan format respons dan contoh kode migrasi.
 

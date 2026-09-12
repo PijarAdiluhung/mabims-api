@@ -8,21 +8,21 @@ description: Frequently asked questions about the MABIMS Calendar API.
 <details>
 <summary>What is MABIMS?</summary>
 
-MABIMS is the rukyah criterion (Ministers of Religious Affairs of Brunei, Indonesia, Malaysia, Singapore) used by Indonesia's Ministry of Religious Affairs (Kemenag RI) to determine the start of the Hijriah month — specifically the beginning of Ramadan, Shawwal, and Dhul Hijjah. The Neo MABIMS criterion requires the hilal to be visible at least 3° with an elongation of at least 6.4° at sunset.
+MABIMS is the rukyah criterion (Ministers of Religious Affairs of Brunei, Indonesia, Malaysia, Singapore) used by Indonesia's [Ministry of Religious Affairs (Kemenag RI)](https://kemenag.go.id) to determine the start of the Hijriah month — specifically the beginning of Ramadan, Shawwal, and Dhul Hijjah. The Neo MABIMS criterion requires the hilal to be visible at least 3° with an elongation of at least 6.4° at sunset. (See the official explainer from [MUI](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia).)
 
 </details>
 
 <details>
 <summary>Why is the Hijriah date in my app different from the Indonesian government announcement?</summary>
 
-Most Hijriah calendar APIs and apps use the Umm al-Qura (Saudi Arabia) criterion as the default. Because the rukyah method and observation location differ, the result can be ±1 day off from Kemenag's official decision — especially for the start of fasting, Eid al-Fitr, and Eid al-Adha.
+Most Hijriah calendar APIs and apps use the [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) (Saudi Arabia) criterion as the default. Because the rukyah method and observation location differ, the result can be ±1 day off from Kemenag's official decision — especially for the start of fasting, Eid al-Fitr, and Eid al-Adha.
 
 </details>
 
 <details>
 <summary>MABIMS vs Umm al-Qura — which is more accurate for Indonesia?</summary>
 
-For use in Indonesia, MABIMS is more accurate because it follows Kemenag RI's official decision through the isbat session, not Saudi authority. Umm al-Qura is designed for Saudi Arabia's needs and does not represent Indonesia's rukyah/hisab results.
+For use in Indonesia, MABIMS is more accurate because it follows Kemenag RI's official decision through the [isbat session](https://en.wikipedia.org/wiki/Moon_sighting), not Saudi authority. [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) is designed for Saudi Arabia's needs and does not represent Indonesia's rukyah/hisab results.
 
 </details>
 
@@ -143,7 +143,7 @@ Google and most calendar apps use Umm al-Qura (Saudi Arabia's standard), not MAB
 <details>
 <summary>What's the difference between hisab and rukyah?</summary>
 
-**Hisab** is the astronomical calculation to determine the moon's position. **Rukyah** is the direct visual observation of the hilal (crescent moon). Neo MABIMS criteria combine both: using hisab calculations (moon altitude ≥ 3°, elongation ≥ 6.4°) that represent whether the hilal can be visually observed somewhere in Indonesia.
+**Hisab** is the astronomical calculation to determine the moon's position. **Rukyah** is the direct visual observation of the hilal (crescent moon). Neo MABIMS criteria combine both: using hisab calculations (moon altitude ≥ 3°, elongation ≥ 6.4°) that represent whether the hilal can be visually observed somewhere in Indonesia. (See also [ANTARA English](https://en.antaranews.com/news/346717/indonesia-sets-march-1-as-first-day-of-ramadan) and [academic research](https://jurnal.umsu.ac.id/index.php/almarshad/article/download/17139/11526) on these criteria.)
 
 </details>
 

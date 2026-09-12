@@ -22,7 +22,7 @@ But after building a few apps with it, I kept running into the same friction:
 
 - **Every page load hits the API.** Even though the Hijri date doesn't change every few seconds.
 - **Rate limits are fine, but they're still limits.** If your site gets traffic spikes, or you have multiple components all fetching the same date...
-- **Offline doesn't exist.** Build a PWA or a mobile app? No Hijri date without a network connection.
+- **Offline doesn't exist.** Build a [PWA](https://web.dev/progressive-web-apps/) or a mobile app? No Hijri date without a network connection.
 - **Caching is your problem.** You have to build your own caching layer, handle stale data, and decide TTLs.
 
 So I built **[mabims-hijri](https://www.npmjs.com/package/mabims-hijri)**, an offline-first npm package that bundles MABIMS 2024-2026 data directly in the package.
@@ -113,7 +113,7 @@ All of these work offline as long as the date is within the bundled range.
 
 ## React Native note
 
-If you're building a React Native app, you'll need to set a storage adapter for persistent caching:
+If you're building a React Native app, you'll need to set a storage adapter for persistent caching (using [`@react-native-async-storage/async-storage`](https://react-native-async-storage.github.io/async-storage/)):
 
 ```typescript
 import { setStorageAdapter } from 'mabims-hijri';

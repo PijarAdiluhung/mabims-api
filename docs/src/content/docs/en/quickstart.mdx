@@ -47,7 +47,7 @@ curl "https://api.mabims.dev/api/v1/convert?date=1446-07-03&calendar=hijri"
 Every response carries a `source` field:
 
 - `mabims` — authoritative, from the curated table (2023-01-23 to 2026-12-31)
-- `mabims-computed` — computed with Neo MABIMS criteria (after 2026-12-31, up to 2100)
+- `mabims-computed` — computed with [Neo MABIMS](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia) criteria (after 2026-12-31, up to 2100)
 - `mabims-retro` — below the curated table (requires `retro=true`): Neo MABIMS criteria projected backwards. The criteria were only introduced in 2022 and curated data starts 2023, so earlier dates are pure extrapolation
 
 Why this matters: when `source` = `mabims`, the data is officially from Kemenag — safe to trust. This curated table is refreshed yearly, usually **mid-October**. Dates beyond it are served from `mabims-computed` — computed with Neo MABIMS criteria, accurate but not an official announcement.
@@ -126,6 +126,15 @@ Want offline results without hitting the API? Use **mabims-hijri**. Ships with 2
 npm install mabims-hijri
 ```
 :::
+
+## Full integration guides
+
+Need a step-by-step walkthrough for a specific use case?
+
+<CardGrid>
+  <LinkCard title="Show on a Website" href="/en/blog/cara-tampilkan-tanggal-hijriah" description="Full tutorial: JavaScript, PHP, WordPress — plus server caching and monthly calendar widgets" />
+  <LinkCard title="Integrate into iOS/Android Apps" href="/en/blog/integrasi-mabims-ios-android" description="Offline-first cache strategy for native apps: /year + /today pattern with Swift & Kotlin examples" />
+</CardGrid>
 
 ## What's available
 

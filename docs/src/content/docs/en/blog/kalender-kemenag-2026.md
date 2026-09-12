@@ -15,17 +15,17 @@ authors:
   - pijar
 ---
 
-Here's the complete Hijri calendar for 2026 from the **Directorate General of Islamic Community Guidance, Ministry of Religious Affairs of Indonesia**. This calendar is the primary reference for Islamic religious dates in Indonesia, including national holidays and collective leave days. The month start dates use the latest MABIMS criteria: moon altitude ≥ 3° and elongation ≥ 6.4°.
+Here's the complete Hijri calendar for 2026 from the [**Directorate General of Islamic Community Guidance, Ministry of Religious Affairs of Indonesia**](https://kemenag.go.id). This calendar is the primary reference for Islamic religious dates in Indonesia, including national holidays and collective leave days. The month start dates use the latest [MABIMS](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia) criteria: moon altitude ≥ 3° and elongation ≥ 6.4°.
 
 ## Key Islamic Dates 2026
 
 | Gregorian Date | Event | Hijri Date |
 |---|---|---|
-| 16 January 2026 | Isra Mi'raj of Prophet Muhammad PBUH | 27 Rajab 1447 AH |
-| 21–22 March 2026 | **Eid al-Fitr** | 1–2 Shawwal 1447 AH |
-| 27 May 2026 | **Eid al-Adha** | 10 Dhu al-Hijjah 1447 AH |
-| 16 June 2026 | **Islamic New Year (1 Muharram)** | 1 Muharram 1448 AH |
-| 25 August 2026 | Prophet Muhammad's Birthday | 12 Rabi' al-Awwal 1448 AH |
+| 16 January 2026 | [Isra Mi'raj](https://en.wikipedia.org/wiki/Isra%27_and_Mi%27raj) of Prophet Muhammad PBUH | 27 Rajab 1447 AH |
+| 21–22 March 2026 | **[Eid al-Fitr](https://en.wikipedia.org/wiki/Eid_al-Fitr)** | 1–2 Shawwal 1447 AH |
+| 27 May 2026 | **[Eid al-Adha](https://en.wikipedia.org/wiki/Eid_al-Adha)** | 10 Dhu al-Hijjah 1447 AH |
+| 16 June 2026 | **[Islamic New Year](https://en.wikipedia.org/wiki/Islamic_New_Year) (1 Muharram)** | 1 Muharram 1448 AH |
+| 25 August 2026 | [Prophet Muhammad's Birthday](https://en.wikipedia.org/wiki/Mawlid) | 12 Rabi' al-Awwal 1448 AH |
 
 ## Full Calendar
 
@@ -63,16 +63,16 @@ Here's the complete calendar you can view directly. Click the download button to
 |---|---|
 | 1 January | New Year 2026 |
 | 16 January | Isra Mi'raj of Prophet Muhammad PBUH |
-| 17 February | Chinese New Year 2577 Kongzili |
-| 19 March | Nyepi (Saka New Year 1948) |
+| 17 February | [Chinese New Year](https://en.wikipedia.org/wiki/Chinese_New_Year) 2577 Kongzili |
+| 19 March | [Nyepi](https://en.wikipedia.org/wiki/Nyepi) (Saka New Year 1948) |
 | 21–22 March | Eid al-Fitr 1447 AH |
 | 3 April | Good Friday |
 | 5 April | Easter Sunday |
 | 1 May | International Workers' Day |
 | 14 May | Ascension of Jesus Christ |
 | 27 May | Eid al-Adha 1447 AH |
-| 31 May | Vesak 2570 BE |
-| 1 June | Pancasila Day |
+| 31 May | [Vesak](https://en.wikipedia.org/wiki/Vesak) 2570 BE |
+| 1 June | [Pancasila](https://en.wikipedia.org/wiki/Pancasila_(politics)) Day |
 | 16 June | Islamic New Year 1448 AH |
 | 17 August | Indonesian Independence Day |
 | 25 August | Prophet Muhammad's Birthday |
@@ -91,7 +91,7 @@ The start of each Hijri month (1 Ramadan, 1 Shawwal, 1 Dhu al-Hijjah, etc.) is d
 
 Both conditions must be met simultaneously. These criteria have been in effect since 2022, replacing the older "2-3-8" criteria (altitude ≥ 2°, elongation ≥ 3°, moon age ≥ 8 hours) used since 1992. The change was based on global rukyah data compilations showing that at low altitudes with small elongations, the crescent is still too thin to be visible to the naked eye.
 
-The new criteria resulted from the MABIMS Rukyah and Takwim Islam Muzakarah in Malaysia (2016), reinforced by the International Fiqh Astronomy Seminar in Jakarta (Jakarta Recommendation 2017), and formalized through a joint ad referendum letter in 2021.
+The new criteria resulted from the MABIMS Rukyah and Takwim Islam Muzakarah in Malaysia (2016), reinforced by the International Fiqh Astronomy Seminar in Jakarta (Jakarta Recommendation 2017), and formalized through a joint ad referendum letter in 2021. The official government announcement can be found at [Setkab](https://setkab.go.id/pemerintah-tetapkan-1-ramadan-1445h-jatuh-pada-selasa-12-maret-2024).
 
 ## Convert Any Date to Hijri
 

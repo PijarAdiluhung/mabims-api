@@ -8,7 +8,7 @@ description: Pertanyaan yang sering ditanyakan tentang API Kalender MABIMS.
 <details>
 <summary>Apa itu MABIMS?</summary>
 
-MABIMS singkatan dari Menteri-menteri Agama Brunei, Indonesia, Malaysia, Singapura. Istilah ini lebih sering dipakai dalam konteks kriteria rukyah yang digunakan Kemenag RI untuk menentukan awal bulan Hijriah, khususnya awal Ramadhan, Syawal, dan Dzulhijjah. Kriteria Neo MABIMS mensyaratkan hilal terlihat minimal 3° dan elongasi minimal 6,4° saat matahari terbenam.
+MABIMS singkatan dari Menteri-menteri Agama Brunei, Indonesia, Malaysia, Singapura. Istilah ini lebih sering dipakai dalam konteks kriteria rukyah yang digunakan [Kemenag RI](https://kemenag.go.id) untuk menentukan awal bulan Hijriah, khususnya awal Ramadhan, Syawal, dan Dzulhijjah. Kriteria Neo MABIMS mensyaratkan hilal terlihat minimal 3° dan elongasi minimal 6,4° saat matahari terbenam. (Lihat penjelasan resminya di [MUI](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia).)
 
 </details>
 
@@ -22,14 +22,14 @@ Mabims.dev adalah API open-source unofficial gratis untuk kalender Hijriah Indon
 <details>
 <summary>Kenapa tanggal Hijriah di aplikasi saya beda dengan yang diumumkan pemerintah Indonesia?</summary>
 
-Kebanyakan API dan aplikasi kalender Hijriah memakai kriteria Umm al-Qura (Arab Saudi) sebagai default. Karena metode rukyah dan lokasi pengamatannya berbeda, hasilnya bisa selisih ±1 hari dari keputusan resmi Kemenag, terutama untuk awal puasa, Idulfitri, dan Idul Adha.
+Kebanyakan API dan aplikasi kalender Hijriah memakai kriteria [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) (Arab Saudi) sebagai default. Karena metode rukyah dan lokasi pengamatannya berbeda, hasilnya bisa selisih ±1 hari dari keputusan resmi Kemenag, terutama untuk awal puasa, Idulfitri, dan Idul Adha.
 
 </details>
 
 <details>
 <summary>MABIMS vs Umm al-Qura, mana yang lebih akurat untuk Indonesia?</summary>
 
-Untuk keperluan di Indonesia, MABIMS lebih akurat karena berdasarkan imkan rukyah, sehingga dapat diverifikasi Kemenag RI melalui sidang isbat. Umm al-Qura dirancang untuk kebutuhan Arab Saudi dan tidak merepresentasikan hasil rukyah Indonesia.
+Untuk keperluan di Indonesia, MABIMS lebih akurat karena berdasarkan imkan rukyah, sehingga dapat diverifikasi Kemenag RI melalui [sidang isbat](https://en.wikipedia.org/wiki/Moon_sighting). [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) dirancang untuk kebutuhan Arab Saudi dan tidak merepresentasikan hasil rukyah Indonesia.
 
 </details>
 
@@ -143,7 +143,7 @@ Google dan kebanyakan aplikasi kalender menggunakan Umm al-Qura (standar Arab Sa
 <details>
 <summary>Hisab dan rukyah, apa bedanya?</summary>
 
-**Hisab** adalah perhitungan astronomi untuk menentukan posisi hilal. **Rukyah** adalah pengamatan langsung hilal di langit. Kriteria Neo MABIMS menggabungkan keduanya: menggunakan perhitungan hisab (ketinggian hilal ≥ 3°, elongasi ≥ 6,4°) yang merepresentasikan apakah hilal bisa dirukyah secara visual. Namun untuk keputusan akhir, rukyah secara riil masih dibutuhkan, bersamaan dengan sidang isbat.
+**Hisab** adalah perhitungan astronomi untuk menentukan posisi hilal. **Rukyah** adalah pengamatan langsung hilal di langit. Kriteria Neo MABIMS menggabungkan keduanya: menggunakan perhitungan hisab (ketinggian hilal ≥ 3°, elongasi ≥ 6,4°) yang merepresentasikan apakah hilal bisa dirukyah secara visual. (Lihat juga [ANTARA](https://www.antaranews.com/berita/5484670/perkembangan-kriteria-mabims-dalam-penentuan-awal-bulan-hijriah) dan [jurnal akademik](https://jurnal.umsu.ac.id/index.php/almarshad/article/download/17139/11526) tentang kriteria ini.) Namun untuk keputusan akhir, rukyah secara riil masih dibutuhkan, bersamaan dengan sidang isbat.
 
 </details>
 

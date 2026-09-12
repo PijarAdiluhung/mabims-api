@@ -5,7 +5,7 @@ description: Where MABIMS data comes from and its licensing status.
 
 ## Primary Source
 
-Calendar data is sourced from **data published publicly by the Ministry of Religious Affairs of the Republic of Indonesia** (Kemenag RI) — the MABIMS calendar tables issued annually.
+Calendar data is sourced from **data published publicly by the [Ministry of Religious Affairs of the Republic of Indonesia](https://kemenag.go.id)** (Kemenag RI) — the MABIMS calendar tables issued annually.
 
 | Property | Value |
 |---|---|
@@ -15,7 +15,7 @@ Calendar data is sourced from **data published publicly by the Ministry of Relig
 
 ## Computed Tier
 
-Beyond table coverage, the API computes dates using **Neo MABIMS** criteria:
+Beyond table coverage, the API computes dates using **[Neo MABIMS](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia)** criteria (see also the official government announcement via [Setkab](https://setkab.go.id/pemerintah-tetapkan-1-ramadan-1445h-jatuh-pada-selasa-12-maret-2024)):
 
 | Parameter | Threshold |
 |---|---|
