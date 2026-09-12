@@ -108,7 +108,17 @@ const description = 'Free open-source API for Hijri dates based on official MABI
         </a>
         <div class="nav-links">
           <a href="/en/quickstart/">Quickstart</a>
-          <a href="/en/playground/converter/">Try</a>
+          <div class="nav-dropdown">
+            <button class="nav-dropdown-trigger">
+              Try
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="nav-dropdown-menu">
+              <a href="/en/playground/converter/">Konverter</a>
+              <a href="/en/playground/kalender/">Kalender</a>
+              <a href="/en/playground/hilal/">Hilal</a>
+            </div>
+          </div>
           <a href="/en/blog/">Blog</a>
           <a href="/en/faq/">FAQ</a>
           <a href="https://github.com/PijarAdiluhung/mabims-api" target="_blank" rel="noopener" class="nav-github">
@@ -124,7 +134,10 @@ const description = 'Free open-source API for Hijri dates based on official MABI
 
     <div class="mobile-menu" id="mobile-menu">
       <a href="/en/quickstart/">Quickstart</a>
-      <a href="/en/playground/converter/">Try</a>
+      <span class="mobile-menu-label">Try</span>
+      <a href="/en/playground/converter/" class="mobile-menu-sub">Konverter</a>
+      <a href="/en/playground/kalender/" class="mobile-menu-sub">Kalender</a>
+      <a href="/en/playground/hilal/" class="mobile-menu-sub">Hilal</a>
       <a href="/en/blog/">Blog</a>
       <a href="/en/faq/">FAQ</a>
       <a href="https://github.com/PijarAdiluhung/mabims-api" target="_blank" rel="noopener">GitHub</a>
@@ -255,6 +268,73 @@ const description = 'Free open-source API for Hijri dates based on official MABI
     color: #fff;
   }
 
+  .nav-dropdown {
+    position: relative;
+  }
+
+  .nav-dropdown-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #999;
+    background: none;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+    font-family: inherit;
+    transition: color 0.2s;
+  }
+
+  .nav-dropdown-trigger svg {
+    width: 14px;
+    height: 14px;
+    transition: transform 0.2s;
+  }
+
+  .nav-dropdown:hover .nav-dropdown-trigger {
+    color: #fff;
+  }
+
+  .nav-dropdown:hover .nav-dropdown-trigger svg {
+    transform: rotate(180deg);
+  }
+
+  .nav-dropdown-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 0.75rem);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(35, 38, 47, 0.97);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 0.5rem 0;
+    min-width: 160px;
+    z-index: 200;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .nav-dropdown:hover .nav-dropdown-menu {
+    display: block;
+  }
+
+  .nav-dropdown-menu a {
+    display: block;
+    padding: 0.5rem 1rem;
+    color: #999;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    transition: color 0.2s, background 0.2s;
+  }
+
+  .nav-dropdown-menu a:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
   .nav-github {
     display: flex;
     align-items: center;
@@ -330,6 +410,19 @@ const description = 'Free open-source API for Hijri dates based on official MABI
 
   .mobile-menu a:hover {
     color: #fff;
+  }
+
+  .mobile-menu-label {
+    display: block;
+    color: #999;
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .mobile-menu-sub {
+    padding-left: 1rem !important;
   }
 
   @media (max-width: 640px) {
