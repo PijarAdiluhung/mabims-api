@@ -89,7 +89,7 @@ Most Hijri calendar libraries and APIs default to Umm al-Qura (Saudi Arabia's ca
 ## Response Format
 
 Every response includes:
-- `source`: "mabims" (from official table) or "mabims-computed" (calculated with Neo MABIMS criteria)
+- `source`: "mabims" (from official table, refreshed yearly ~mid-October), "mabims-computed" (calculated with Neo MABIMS criteria), or "mabims-retro" (pre-2023 projection, requires retro=true). If you cache API responses in your app, refresh the cache at least once a year when the new `mabims` table lands
 - `warnings[]`: Array of warnings, empty when data is clean
 - `input`: Echo of the request parameters
 

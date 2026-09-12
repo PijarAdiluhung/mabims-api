@@ -29,7 +29,7 @@ Built on official MABIMS tables published by Kementerian Agama RI. For dates bey
 ## Response Conventions
 
 Every response includes:
-- `source`: "mabims" (from official Kemenag table) or "mabims-computed" (calculated with Neo MABIMS criteria)
+- `source`: "mabims" (from official Kemenag table), "mabims-computed" (calculated with Neo MABIMS criteria), or "mabims-retro" (pre-2023 projection, requires retro=true). The official table is refreshed yearly, usually mid-October — if you cache API responses in your app, refresh the cache at least once a year when the new `mabims` table lands
 - `warnings[]`: Array of warning strings, empty when data is clean
 - `input`: Echo of the request parameters
 
