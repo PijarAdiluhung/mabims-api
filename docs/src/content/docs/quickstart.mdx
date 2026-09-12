@@ -50,13 +50,16 @@ Setiap respons membawa field `source`:
 - `mabims-computed` — dihitung dengan kriteria Neo MABIMS
 - `mabims-retro` — di bawah tabel kurasi (butuh `retro=true`): kriteria Neo MABIMS diproyeksikan ke belakang. Kriteria baru diperkenalkan pada 2022 dan data kurasi baru mulai 2023, jadi tanggal sebelum itu adalah ekstrapolasi murni
 
+Kenapa ini penting? Jika `source` = `mabims`, datanya resmi dari Kemenag — bisa dipakai tenang. Data kurasi ini diperbarui setiap tahun, biasanya **pertengahan Oktober**. Untuk tanggal lebih dari itu, respons disajikan dari `mabims-computed` — dihitung dengan kriteria Neo MABIMS, akurat tapi bukan pengumuman resmi.
+
+Kalau Anda menyimpan hasil API di cache aplikasi Anda, usahakan refresh cachenya **minimal 1x setahun** — tepat ketika data `mabims` diperbarui untuk tahun baru.
+
 Perlakukan `warnings` sebagai pemberitahuan kepada pengguna apabila ia mengandung payload (tidak kosong).
 
 Kemungkinan isi `warnings`:
 
 | Warning | Artinya |
 |---|---|
-| Date is outside MABIMS table coverage; served from the Umm al-Qura fallback and may differ from MABIMS by around one day. | Tanggal di luar cakupan tabel, menggunakan fallback Umm al-Qura — bisa selisih ±1 hari dari MABIMS. |
 | Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (moon altitude >= 3 deg and elongation >= 6.4 deg at local sunset, seen anywhere across the coastal observation sites of Indonesia). | Tanggal di luar tabel, dihitung dengan kriteria Neo MABIMS. |
 | Hijri month {'{ym}'} is close to the Neo MABIMS visibility threshold; the officially announced date may shift by one day. | Bulan Hijri berada di batas ambang kriteria visibilitas — tanggal resmi bisa bergeser ±1 hari. |
 

@@ -50,13 +50,16 @@ Every response carries a `source` field:
 - `mabims-computed` — computed with Neo MABIMS criteria (after 2026-12-31, up to 2100)
 - `mabims-retro` — below the curated table (requires `retro=true`): Neo MABIMS criteria projected backwards. The criteria were only introduced in 2022 and curated data starts 2023, so earlier dates are pure extrapolation
 
+Why this matters: when `source` = `mabims`, the data is officially from Kemenag — safe to trust. This curated table is refreshed yearly, usually **mid-October**. Dates beyond it are served from `mabims-computed` — computed with Neo MABIMS criteria, accurate but not an official announcement.
+
+If you cache API responses in your app, make sure to refresh the cache **at least once a year** — right when `mabims` data is updated for the new year.
+
 Treat `warnings` as user-facing notices when non-empty.
 
 Possible `warnings` values:
 
 | Warning | Meaning |
 |---|---|
-| Date is outside MABIMS table coverage; served from the Umm al-Qura fallback and may differ from MABIMS by around one day. | Outside table coverage, using Umm al-Qura fallback — may differ ±1 day from MABIMS. |
 | Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (moon altitude >= 3 deg and elongation >= 6.4 deg at local sunset, seen anywhere across the coastal observation sites of Indonesia). | Outside table, computed with Neo MABIMS criteria. |
 | Hijri month {'{ym}'} is close to the Neo MABIMS visibility threshold; the officially announced date may shift by one day. | Month is near the visibility threshold — official date may shift ±1 day. |
 
