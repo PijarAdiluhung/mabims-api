@@ -134,6 +134,71 @@ def test_hilal_info_out_of_coverage_year(client):
     assert r.json()["error"]["code"] == "out_of_coverage"
 
 
+# ── Hilal history endpoint (precomputed index) ────────────────────────────
+
+
+def test_hilal_history_full_range(client):
+    r = client.get("/api/v1/hilal/history")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["range"] == {"first": "1444-08", "last": "1475-12"}
+    assert body["count"] > 300
+    assert body["input"] == {"from": "1444-08", "to": "1475-12"}
+    first = body["months"][0]
+    assert (first["month"]["year"], first["month"]["number"]) == (1444, 8)
+    assert set(first["evening"]) >= {
+        "visible", "moon_alt_deg", "elongation_deg", "deciding_site", "sites_checked"
+    }
+
+
+def test_hilal_history_subrange(client):
+    r = client.get("/api/v1/hilal/history?from=1447-09&to=1447-10")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["count"] == 2
+    assert [m["month"]["number"] for m in body["months"]] == [9, 10]
+
+
+def test_hilal_history_invalid_range(client):
+    r = client.get("/api/v1/hilal/history?from=1448-05&to=1448-01")
+    assert r.status_code == 400
+    assert r.json()["error"]["code"] == "invalid_range"
+
+
+# ── Bare (panel-less) card renderer ───────────────────────────────────────
+
+
+def test_bare_chart_is_hires_and_panel_less():
+    import io
+
+    from PIL import Image
+
+    from app.hilal.chart import bare_chart_png_bytes, build_chart_data
+
+    data = build_chart_data(
+        hijri_label="29 Sya'ban 1447 H",
+        evening_date=date(2026, 2, 17),
+        vis_month="Ramadhan",
+        sunset="18:12",
+        moonset="18:58",
+        moon_alt=5.0,
+        moon_az=260.0,
+        sun_alt=-0.83,
+        sun_az=255.0,
+        elong=9.0,
+        illum=0.008,
+        alt_ok=True,
+        elong_ok=True,
+        decider="Test Site",
+        dec_alt=5.0,
+        dec_elong=9.0,
+        sites_checked=25,
+    )
+    image = Image.open(io.BytesIO(bare_chart_png_bytes(data)))
+    assert image.size == (1440, 1520)
+
+
+
 # ── Month resolution unit tests ───────────────────────────────────────────
 
 

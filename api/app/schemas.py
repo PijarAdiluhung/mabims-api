@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 Source = Literal["mabims", "mabims-computed", "mabims-retro"]
 
@@ -207,6 +207,31 @@ class HilalInfoResponse(BaseModel):
     evening: HilalEvening
     source: Source = Field(description=SOURCE_DESCRIPTION)
     warnings: list[str] = Field(default_factory=list, description=WARNINGS_DESCRIPTION)
+
+
+class HilalHistoryInput(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    from_: str | None = Field(default=None, alias="from", description="First Hijri YYYY-MM (inclusive)")
+    to_: str | None = Field(default=None, alias="to", description="Last Hijri YYYY-MM (inclusive)")
+
+
+class HilalHistoryItem(BaseModel):
+    month: HilalMonth
+    previous_month: HilalPrevMonth
+    evening: HilalEvening
+    source: Source = Field(description=SOURCE_DESCRIPTION)
+    warnings: list[str] = Field(default_factory=list, description=WARNINGS_DESCRIPTION)
+
+
+class HilalHistoryResponse(BaseModel):
+    input: HilalHistoryInput
+    count: int
+    range: Coverage | None = Field(
+        default=None, description="Hijri YYYY-MM span covered by the precomputed index"
+    )
+    months: list[HilalHistoryItem]
+    warnings: list[str] = Field(default_factory=list)
 
 
 class ErrorBody(BaseModel):

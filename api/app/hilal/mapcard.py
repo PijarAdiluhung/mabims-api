@@ -45,9 +45,10 @@ from ..mabims_astro import _eph  # noqa: E402
 from ..mabims_sites import _refraction_deg_arr  # noqa: E402
 from . import astrocache  # noqa: E402
 from .chart import (  # noqa: E402
+    BARE_H,
     GREG_MONTHS_ID,
-    LOGO_PATH,
     _draw_header,
+    _draw_logo,
     _fit_text,
     _fmt_alt,
     _fmt_elong,
@@ -337,37 +338,41 @@ def _render_map(lo, la, altg, elongg, pts, alt, elong, hero, bounds, evening,
 
 
 # ───────────────────────── card ─────────────────────────
-def _legend(img, pal, y, h):
+def _legend(img, pal, y, h, s=1.0):
     band = Image.new("RGBA", (W, h), (0, 0, 0, 0))
     ImageDraw.Draw(band).rectangle([0, 0, W, h], fill=(14, 20, 40, 200))
     img.alpha_composite(band, (0, y))
 
     d = ImageDraw.Draw(img)
-    f = font(15)
+    f = font(int(15 * s))
     fg = pal["muted"]
     cy = y + h // 2
-    x: float = 36
+    x: float = 36 * s
+    dot = 7 * s
+    gap = 34 * s
+    off = 22 * s
 
-    d.ellipse([x, cy - 7, x + 14, cy + 7], fill=GREEN)
-    d.text((x + 22, cy), "memenuhi", font=f, fill=fg, anchor="lm")
-    x += 22 + d.textlength("memenuhi", font=f) + 34
+    d.ellipse([x, cy - dot, x + 2 * dot, cy + dot], fill=GREEN)
+    d.text((x + off, cy), "memenuhi", font=f, fill=fg, anchor="lm")
+    x += off + d.textlength("memenuhi", font=f) + gap
 
-    d.ellipse([x, cy - 7, x + 14, cy + 7], outline=GRAY, width=2)
-    d.text((x + 22, cy), "tidak", font=f, fill=fg, anchor="lm")
-    x += 22 + d.textlength("tidak", font=f) + 34
+    d.ellipse([x, cy - dot, x + 2 * dot, cy + dot], outline=GRAY, width=max(1, int(2 * s)))
+    d.text((x + off, cy), "tidak", font=f, fill=fg, anchor="lm")
+    x += off + d.textlength("tidak", font=f) + gap
 
-    d.rectangle([x, cy - 7, x + 22, cy + 7], fill=YELLOW)
-    d.text((x + 30, cy), "wilayah hilal", font=f, fill=fg, anchor="lm")
-    x += 30 + d.textlength("wilayah hilal", font=f) + 34
+    d.rectangle([x, cy - dot, x + 22 * s, cy + dot], fill=YELLOW)
+    d.text((x + 30 * s, cy), "wilayah hilal", font=f, fill=fg, anchor="lm")
+    x += 30 * s + d.textlength("wilayah hilal", font=f) + gap
 
-    for k in range(0, 20, 6):
-        d.line([(x + k, cy), (x + k + 3, cy)], fill=ORANGE, width=2)
-    d.text((x + 28, cy), "alt 3\u00b0", font=f, fill=fg, anchor="lm")
-    x += 28 + d.textlength("alt 3\u00b0", font=f) + 34
+    dash = max(1, int(6 * s))
+    for k in range(0, int(20 * s), dash):
+        d.line([(x + k, cy), (x + k + dash / 2, cy)], fill=ORANGE, width=max(1, int(2 * s)))
+    d.text((x + 28 * s, cy), "alt 3\u00b0", font=f, fill=fg, anchor="lm")
+    x += 28 * s + d.textlength("alt 3\u00b0", font=f) + gap
 
-    for k in range(0, 20, 6):
-        d.line([(x + k, cy), (x + k + 3, cy)], fill=PURPLE, width=2)
-    d.text((x + 28, cy), "elong 6.4\u00b0", font=f, fill=fg, anchor="lm")
+    for k in range(0, int(20 * s), dash):
+        d.line([(x + k, cy), (x + k + dash / 2, cy)], fill=PURPLE, width=max(1, int(2 * s)))
+    d.text((x + 28 * s, cy), "elong 6.4\u00b0", font=f, fill=fg, anchor="lm")
 
 
 def _gauge(img, pal, x, y, w, label, vmin, vmax, thr, tickcol, fmt):
@@ -494,23 +499,64 @@ def _render_card(map_img, hero, n_total, n_seen,
         _txt(d, (x0, cy), lab, f_head, pal["muted"], anchor="lm")
         _txt(d, (xr, cy), _fit_text(d, val, f_value, max_val_w), f_value, pal["text"], anchor="rm")
 
-    logo = Image.open(LOGO_PATH).convert("RGBA")
-    lh = 40
-    lw = int(logo.width * lh / logo.height)
-    logo = logo.resize((lw, lh), Image.Resampling.LANCZOS)
-    card.alpha_composite(logo, ((W - lw) // 2, H - lh - 10))
+    _draw_logo(card)
+    return card
+
+
+def render_bare_map(map_img, vis_month: str, greg: str, hijri: str,
+                    scale: float = 2.0):
+    """High-resolution map card without the criteria panel (web hero).
+
+    Keeps the header, map band, legend and logo; the criteria values live in
+    the page as HTML. ``scale`` supersamples the 720px card (2.0 -> 1440x1520).
+    """
+    pal = _palette()
+    s = float(scale)
+    w, bare_h = int(W * s), int(BARE_H * s)
+    card = _vgrad(w, bare_h, [(0.0, (31, 18, 53)), (0.45, (94, 44, 74)),
+                              (0.72, (196, 96, 66)), (0.86, (242, 166, 90)), (1.0, (52, 30, 40))])
+    band = np.asarray(
+        map_img.resize((w, int(MAP_H * s)), Image.Resampling.LANCZOS).convert("RGB")
+    ).astype(float)
+    bg = np.asarray(card.convert("RGB")).astype(float)
+    block_top = int(BLOCK_TOP * s)
+    fade = int(140 * s)
+    for i in range(fade):
+        t = i / fade
+        mw = t * t * (3 - 2 * t)
+        band[i] = band[i] * mw + bg[block_top + i] * (1 - mw)
+    card.paste(Image.fromarray(band.astype("uint8")), (0, block_top))
+    d = ImageDraw.Draw(card)
+
+    horizon_y = int(HORIZON_Y * s)
+    pts: list[tuple[float, float]] = [(0, horizon_y + 2 * s)]
+    step = max(1, int(24 * s))
+    for xx in range(0, w + step, step):
+        hh = (20 + 14 * np.sin(xx / (97.0 * s)) + 9 * np.sin(xx / (33.0 * s) + 1.7)) * s
+        pts.append((xx, horizon_y - max(6.0 * s, hh)))
+    pts += [(w, horizon_y + 2 * s), (w, bare_h), (0, bare_h)]
+    d.polygon(pts, fill=pal["ground"])
+    d.line([0, horizon_y, w, horizon_y], fill=pal["horizon"], width=max(1, int(2 * s)))
+
+    _legend(card, pal, horizon_y - int(LEGEND_H * s), int(LEGEND_H * s), s=s)
+    _draw_header(ImageDraw.Draw(card), vis_month, greg, hijri, pal, s=s)
+    _draw_logo(card, s=s)
     return card
 
 
 def map_png_bytes(*, evening: date, vis_month: str, vis_year: int, hijri_label: str,
                   hero: tuple[str, float, float, float, float],
-                  grid_deg: float = 0.25) -> bytes:
+                  grid_deg: float = 0.25,
+                  bare: bool = False, scale: float = 2.0) -> bytes:
     """Render the map card.
 
     ``hero`` is the authoritative deciding point from the 25-site model
     ``(name, lat, lon, alt_refracted_deg, elong_deg)`` — it drives the ringed
     marker, callout, criteria table and the ``TITIK PENGAMAT`` row. The 95
     display points drive only the dots and the memenuhi / tidak counts.
+
+    With ``bare=True`` the criteria panel is omitted and the card is rendered
+    at ``scale`` (web hero); the full criteria card is unchanged.
     """
     pts = _points()
     lat = np.array([p[1] for p in pts])
@@ -533,10 +579,13 @@ def map_png_bytes(*, evening: date, vis_month: str, vis_year: int, hijri_label: 
     mimg = _render_map(lo, la, altg, elongg, pts, alt, elong, hero, bounds, evening, px)
 
     greg = f"{evening.day} {GREG_MONTHS_ID[evening.month]} {evening.year}"
-    card = _render_card(mimg, hero, len(pts), int(seen.sum()),
-                        vis_month, vis_year, greg, hijri_label,
-                        float(alt.min()), float(alt.max()),
-                        float(elong.min()), float(elong.max()))
+    if bare:
+        card = render_bare_map(mimg, vis_month, greg, hijri_label, scale)
+    else:
+        card = _render_card(mimg, hero, len(pts), int(seen.sum()),
+                            vis_month, vis_year, greg, hijri_label,
+                            float(alt.min()), float(alt.max()),
+                            float(elong.min()), float(elong.max()))
     buf = io.BytesIO()
     card.convert("RGB").save(buf, format="PNG")
     return buf.getvalue()

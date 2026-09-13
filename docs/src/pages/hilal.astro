@@ -1,0 +1,981 @@
+---
+import LandingLayout from '../components/LandingLayout.astro';
+import HilalHero from '../components/hilal/HilalHero.astro';
+import SightingFeatured from '../components/hilal/SightingFeatured.astro';
+import SightingHistory from '../components/hilal/SightingHistory.astro';
+import HilalLightbox from '../components/hilal/HilalLightbox.astro';
+
+const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'https://api.mabims.dev';
+
+let fallback: { day: number; month_name: string; year: number; greg: string } | null = null;
+try {
+  const res = await fetch(`${apiBase}/api/v1/today`);
+  if (res.ok) {
+    const body = await res.json();
+    const d = new Date(`${body.input.date}T00:00:00`);
+    const greg = new Intl.DateTimeFormat('id-ID', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(d);
+    fallback = {
+      day: body.output.day,
+      month_name: body.output.month_name,
+      year: body.output.year,
+      greg: `${greg} · ${body.input.tz}`,
+    };
+  }
+} catch {}
+
+const title = 'Hilal — Visibilitas & Riwayat Penentuan Awal Bulan Hijriah';
+const description =
+  'Tanggal Hijriah hari ini, hitung mundur malam penentuan hilal, peta wilayah visibilitas, grafik langit, dan riwayat penentuan hilal sejak 1444 H berdasarkan kriteria Neo MABIMS.';
+---
+
+<LandingLayout title={title} description={description} lang="id" canonical="https://mabims.dev/hilal/">
+  <Fragment slot="head">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Hilal — Visibilitas & Riwayat Penentuan Awal Bulan Hijriah",
+        "url": "https://mabims.dev/hilal/",
+        "inLanguage": "id",
+        "isPartOf": { "@type": "WebSite", "name": "mabims.dev", "url": "https://mabims.dev" },
+        "about": "Visibilitas hilal Neo MABIMS: ketinggian bulan dan elongasi saat matahari terbenam di titik pengamatan pesisir Indonesia."
+      }
+    </script>
+  </Fragment>
+
+  <HilalHero fallback={fallback} />
+  <SightingFeatured />
+  <SightingHistory />
+  <HilalLightbox />
+</LandingLayout>
+
+<style is:global>
+  #sekarang,
+  #berikutnya,
+  #riwayat {
+    scroll-margin-top: 5rem;
+  }
+
+  /* ── Hero ── */
+  .hilal-hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: clamp(2.5rem, 7vw, 4.5rem) 0 clamp(3rem, 7vw, 6rem);
+    align-items: center;
+  }
+
+  @media (min-width: 64rem) {
+    .hilal-hero {
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 4rem;
+    }
+  }
+
+  .hilal-grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1.5px);
+    background-size: 26px 26px;
+    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 38%, #000 20%, transparent 72%);
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 38%, #000 20%, transparent 72%);
+    pointer-events: none;
+  }
+
+  .hilal-hero-copy {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+  }
+
+  @media (min-width: 64rem) {
+    .hilal-hero-copy {
+      text-align: left;
+    }
+  }
+
+  .hilal-eyebrow {
+    margin: 0 0 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--sl-color-gray-3);
+  }
+
+  .hilal-date {
+    margin: 0;
+    font-size: clamp(2.25rem, 7vw, 4.25rem);
+    font-weight: 800;
+    line-height: 1.05;
+    color: var(--sl-color-white);
+    text-wrap: balance;
+  }
+
+  .hilal-date-month {
+    color: var(--sl-color-accent);
+  }
+
+  .hilal-date-year {
+    font-size: 0.45em;
+    font-weight: 600;
+    color: var(--sl-color-gray-2);
+    white-space: nowrap;
+  }
+
+  .hilal-greg {
+    margin: 0.85rem 0 0;
+    font-size: clamp(0.95rem, 2.4vw, 1.1rem);
+    color: var(--sl-color-gray-2);
+  }
+
+  .hilal-countdown {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    padding: clamp(1.75rem, 4vw, 2.75rem);
+    text-align: center;
+    background: linear-gradient(135deg, rgba(254, 207, 70, 0.07), rgba(254, 207, 70, 0.02));
+    border: 1px solid rgba(254, 207, 70, 0.16);
+    border-radius: 20px;
+  }
+
+  .countdown-moon {
+    position: absolute;
+    top: -30px;
+    right: -40px;
+    width: 160px;
+    height: 160px;
+    opacity: 0.09;
+    pointer-events: none;
+  }
+
+  .countdown-moon .moon-disc {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--sl-color-accent);
+  }
+
+  .countdown-moon .moon-mask {
+    position: absolute;
+    inset: 0;
+    top: -12px;
+    left: 44px;
+    border-radius: 50%;
+    background: #17181c;
+  }
+
+  .countdown-eyebrow {
+    position: relative;
+    margin: 0;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--sl-color-gray-3);
+  }
+
+  .countdown-value {
+    position: relative;
+    margin: 0.5rem 0;
+    font-size: clamp(2.5rem, 9vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--sl-color-accent);
+  }
+
+  .countdown-unit {
+    font-size: 0.3em;
+    font-weight: 600;
+    color: var(--sl-color-gray-2);
+  }
+
+  .countdown-target {
+    position: relative;
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--sl-color-gray-2);
+  }
+
+  .countdown-track {
+    position: relative;
+    height: 6px;
+    margin-top: 1.5rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+  }
+
+  .countdown-fill {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    background: var(--sl-color-accent);
+    transition: width 0.6s ease;
+  }
+
+  /* ── Section head ── */
+  .hilal-section-head {
+    margin-bottom: clamp(1.75rem, 4vw, 2.75rem);
+  }
+
+  .hilal-section-head h2 {
+    margin: 0 0 0.6rem;
+    font-size: clamp(1.6rem, 1rem + 3vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--sl-color-white);
+  }
+
+  .hilal-section-head .accent {
+    color: var(--sl-color-accent);
+  }
+
+  .hilal-section-head p {
+    max-width: 52rem;
+    margin: 0;
+    font-size: clamp(0.95rem, 0.5rem + 1vw, 1.05rem);
+    line-height: 1.75;
+    color: var(--sl-color-gray-2);
+  }
+
+  /* ── Featured ── */
+  .hilal-featured {
+    padding: clamp(3rem, 6vw, 6rem) 0;
+  }
+
+  .hilal-featured-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 64rem) {
+    .hilal-featured-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+  }
+
+  .hilal-graphic {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 0;
+  }
+
+  .hilal-zoom {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    background: #1f1235;
+    cursor: zoom-in;
+    line-height: 0;
+  }
+
+  .hilal-zoom img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1440 / 1520;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+
+  .hilal-zoom:hover img {
+    transform: scale(1.02);
+  }
+
+  .hilal-zoom-hint {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1;
+    backdrop-filter: blur(4px);
+  }
+
+  .hilal-graphic figcaption {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--sl-color-gray-3);
+  }
+
+  .hilal-graphic-title {
+    font-weight: 600;
+    color: var(--sl-color-white);
+  }
+
+  .hilal-download {
+    margin-left: auto;
+    color: var(--sl-color-accent);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .hilal-download:hover {
+    text-decoration: underline;
+  }
+
+  /* ── Facts ── */
+  .hilal-facts {
+    margin-top: clamp(1.75rem, 4vw, 2.5rem);
+  }
+
+  .hilal-facts-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .facts-note {
+    font-size: 0.9rem;
+    color: var(--sl-color-gray-3);
+  }
+
+  .facts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .fact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.9rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+  }
+
+  .fact-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sl-color-gray-3);
+  }
+
+  .fact-value {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--sl-color-white);
+  }
+
+  .fact-min {
+    font-size: 0.7rem;
+    color: var(--sl-color-gray-3);
+  }
+
+  .fact-chip {
+    padding: 0.12rem 0.4rem;
+    border-radius: 999px;
+    font-size: 0.64rem;
+    font-weight: 700;
+  }
+
+  /* ── Verdict + chips ── */
+  .verdict-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .verdict-badge::before {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .verdict-badge.is-ok,
+  .fact-chip.is-ok,
+  .mini-chip.is-ok {
+    color: #7ed957;
+    background: rgba(126, 217, 87, 0.12);
+  }
+
+  .verdict-badge.is-bad,
+  .fact-chip.is-bad,
+  .mini-chip.is-bad {
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.12);
+  }
+
+  .verdict-badge.is-borderline {
+    color: var(--sl-color-accent);
+    background: rgba(254, 207, 70, 0.12);
+  }
+
+  /* ── History ── */
+  .hilal-history {
+    padding: clamp(3rem, 6vw, 6rem) 0;
+  }
+
+  .hilal-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .history-item {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    transition: border-color 0.2s;
+  }
+
+  .history-item:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .history-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+    padding: 1rem 1.1rem;
+  }
+
+  @media (min-width: 64rem) {
+    .history-row {
+      grid-template-columns: minmax(9rem, 1.05fr) minmax(10rem, 1.2fr) auto minmax(0, 1.3fr) auto;
+      align-items: center;
+      gap: 1rem;
+    }
+  }
+
+  .history-id {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .history-name {
+    font-weight: 700;
+    color: var(--sl-color-white);
+  }
+
+  .history-year {
+    font-size: 0.8rem;
+    color: var(--sl-color-gray-3);
+  }
+
+  .history-eve {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .history-evedate {
+    font-weight: 600;
+    color: var(--sl-color-gray-2);
+  }
+
+  .history-eyecap {
+    font-size: 0.75rem;
+    color: var(--sl-color-gray-3);
+  }
+
+  .history-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .mini-chip {
+    padding: 0.2rem 0.5rem;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .history-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+  }
+
+  .history-actions a,
+  .history-actions button {
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--sl-color-accent);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .history-actions a:hover,
+  .history-actions button:hover {
+    text-decoration: underline;
+  }
+
+  .history-actions a[download]::before {
+    content: '↓ ';
+    font-weight: 700;
+  }
+
+  .history-panel {
+    padding: 1.1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .history-panel[hidden] {
+    display: none;
+  }
+
+  .hilal-loading {
+    margin: 0;
+    color: var(--sl-color-gray-3);
+  }
+
+  .hilal-history-more {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+  }
+
+  .hilal-loadmore {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 10px;
+    background: var(--sl-color-accent);
+    color: #1a1a2e;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  .hilal-loadmore:hover {
+    background: var(--sl-color-accent-high);
+    transform: translateY(-1px);
+  }
+
+  .hilal-note {
+    margin: 1.5rem 0 0;
+    font-weight: 600;
+    color: #ff8f8f;
+  }
+
+  /* ── Lightbox ── */
+  .hilal-lightbox {
+    width: min(96vw, 900px);
+    max-width: none;
+    padding: 0;
+    border: none;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .hilal-lightbox::backdrop {
+    background: rgba(10, 10, 14, 0.86);
+    backdrop-filter: blur(4px);
+  }
+
+  .hilal-lightbox img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 82vh;
+    object-fit: contain;
+    border-radius: 12px;
+    background: #1f1235;
+  }
+
+  .hilal-lightbox-caption {
+    margin: 0.75rem 0 0;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--sl-color-gray-2);
+  }
+
+  .hilal-lightbox-close {
+    position: absolute;
+    top: -2.6rem;
+    right: 0;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  @media (max-width: 40rem) {
+    .hilal-lightbox-close {
+      top: 0.5rem;
+      right: 0.5rem;
+      background: rgba(0, 0, 0, 0.6);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hilal-zoom img,
+    .countdown-fill,
+    .hilal-loadmore {
+      transition: none !important;
+    }
+  }
+</style>
+
+<script>
+  const API = import.meta.env.PUBLIC_API_BASE ?? 'https://api.mabims.dev';
+  const PAGE = 36;
+
+  const $ = (sel: string, root: ParentNode = document) => root.querySelector<HTMLElement>(sel);
+  const $$ = (sel: string, root: ParentNode = document) =>
+    Array.from(root.querySelectorAll<HTMLElement>(sel));
+
+  type Site = { name: string; lat: number; lon: number; elev_m: number; tz: string };
+  type Evening = {
+    hijri_date: string;
+    hijri_day: number;
+    gregorian_date: string;
+    sunset: string;
+    moonset: string;
+    moon_alt_deg: number;
+    moon_az_deg: number;
+    sun_alt_deg: number;
+    elongation_deg: number;
+    illumination_pct: number;
+    age_hours: number;
+    deciding_site: Site;
+    sites_checked: number;
+    alt_ok: boolean;
+    elong_ok: boolean;
+    visible: boolean;
+  };
+  type Item = {
+    month: { name: string; number: number; year: number; start: string };
+    previous_month: { name: string; number: number; year: number; length: number };
+    evening: Evening;
+    source: string;
+    warnings: string[];
+  };
+
+  const state = { history: [] as Item[], shown: PAGE };
+  let upcoming: Item | null = null;
+
+  const DAY_FMT = new Intl.DateTimeFormat('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+  const SHORT_FMT = new Intl.DateTimeFormat('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+
+  const SOURCE_LABELS: Record<string, string> = {
+    mabims: 'Tabel resmi Kemenag',
+    'mabims-computed': 'Perhitungan Neo MABIMS',
+    'mabims-retro': 'Proyeksi retro',
+  };
+
+  const fmtDate = (iso: string) => DAY_FMT.format(new Date(`${iso}T00:00:00`));
+  const fmtDateShort = (iso: string) => SHORT_FMT.format(new Date(`${iso}T00:00:00`));
+  const fmtNum = (v: number) => v.toFixed(1).replace('.', ',');
+  const fmtAlt = (v: number) => `${v > 0 ? '+' : ''}${fmtNum(v)}°`;
+  const fmtElong = (v: number) => `${fmtNum(v)}°`;
+  const fmtPct = (v: number) => `${v.toFixed(2).replace('.', ',')}%`;
+  const keyOf = (item: Item) => `${item.month.year}-${String(item.month.number).padStart(2, '0')}`;
+
+  async function api(path: string, params?: Record<string, string>): Promise<any> {
+    const url = new URL(`${API}${path}`);
+    if (params) for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+    const res = await fetch(url, { headers: { accept: 'application/json' } });
+    if (!res.ok) throw new Error(`${res.status}`);
+    return res.json();
+  }
+
+  function nextTarget(current: { day: number; month: number; year: number }) {
+    const add = current.day <= 29 ? 1 : 2;
+    let month = current.month + add;
+    let year = current.year;
+    while (month > 12) {
+      month -= 12;
+      year += 1;
+    }
+    return { month, year };
+  }
+
+  function verdictInfo(item: Item) {
+    const borderline = (item.warnings ?? []).some((w) => /threshold|ambang/i.test(w));
+    if (item.evening.visible && borderline) return { cls: 'is-borderline', label: 'Mendekati batas' };
+    if (item.evening.visible) return { cls: 'is-ok', label: 'Terlihat' };
+    return { cls: 'is-bad', label: 'Tidak terlihat' };
+  }
+
+  function fact(label: string, value: string, min = '', ok: boolean | null = null) {
+    const chip = ok == null ? '' : `<span class="fact-chip ${ok ? 'is-ok' : 'is-bad'}">${ok ? 'Lolos' : 'Gagal'}</span>`;
+    const minEl = min ? `<span class="fact-min">${min}</span>` : '';
+    return `<div class="fact"><span class="fact-label">${label}</span><span class="fact-value">${value}${chip}</span>${minEl}</div>`;
+  }
+
+  function factsHTML(item: Item) {
+    const ev = item.evening;
+    const vi = verdictInfo(item);
+    const cells = [
+      fact('Tinggi bulan', fmtAlt(ev.moon_alt_deg), 'min. 3,0°', ev.alt_ok),
+      fact('Elongasi', fmtElong(ev.elongation_deg), 'min. 6,4°', ev.elong_ok),
+      fact('Iluminasi', fmtPct(ev.illumination_pct)),
+      fact('Umur bulan', `${fmtNum(ev.age_hours)} jam`),
+      fact('Matahari terbenam', ev.sunset),
+      fact('Bulan terbenam', ev.moonset),
+      fact('Titik pengamat', ev.deciding_site.name),
+      fact('Titik diperiksa', `${ev.sites_checked} titik`),
+      fact('Sumber data', SOURCE_LABELS[item.source] ?? item.source),
+    ].join('');
+    return (
+      `<div class="hilal-facts-head"><span class="verdict-badge ${vi.cls}">${vi.label}</span>` +
+      `<span class="facts-note">1 ${item.month.name} ${item.month.year} H · malam ${fmtDate(ev.gregorian_date)}</span></div>` +
+      `<div class="facts-grid">${cells}</div>`
+    );
+  }
+
+  function renderToday(today: any) {
+    const o = today.output;
+    const day = $('[data-today-day]');
+    const month = $('[data-today-month]');
+    const year = $('[data-today-year]');
+    const greg = $('[data-today-greg]');
+    if (day) day.textContent = String(o.day);
+    if (month) month.textContent = o.month_name;
+    if (year) year.textContent = String(o.year);
+    if (greg) greg.textContent = `${fmtDate(today.input.date)} · ${today.input.tz}`;
+  }
+
+  function renderCountdown(today: any, item: Item) {
+    const days = Math.round(
+      (Date.parse(`${item.evening.gregorian_date}T00:00:00Z`) -
+        Date.parse(`${today.input.date}T00:00:00Z`)) /
+        86400000
+    );
+    const valueEl = $('[data-count-days]');
+    const unitEl = $('[data-count-unit]');
+    if (valueEl) valueEl.textContent = days <= 0 ? 'Malam ini' : String(days);
+    if (unitEl) unitEl.textContent = days <= 0 ? '' : days === 1 ? 'besok' : 'hari lagi';
+    const target = $('[data-count-target]');
+    if (target) {
+      target.textContent = `1 ${item.month.name} ${item.month.year} H · ${fmtDate(item.evening.gregorian_date)}`;
+    }
+    const bar = $('[data-count-bar]');
+    if (bar) bar.style.width = `${Math.min(100, Math.max(0, (today.output.day / 29) * 100))}%`;
+  }
+
+  function renderFeatured(item: Item) {
+    upcoming = item;
+    const q = `month=${item.month.number}&year=${item.month.year}`;
+    const mapImg = $('[data-map-img]') as HTMLImageElement | null;
+    const vizImg = $('[data-viz-img]') as HTMLImageElement | null;
+    if (mapImg) mapImg.src = `${API}/api/v1/hilal/map?${q}&bare=true`;
+    if (vizImg) vizImg.src = `${API}/api/v1/hilal/viz?${q}&bare=true`;
+    const dateEls = $$('[data-map-date],[data-viz-date]');
+    for (const el of dateEls) el.textContent = fmtDateShort(item.evening.gregorian_date);
+    const mapDl = $('[data-map-dl]') as HTMLAnchorElement | null;
+    const vizDl = $('[data-viz-dl]') as HTMLAnchorElement | null;
+    if (mapDl) {
+      mapDl.href = `${API}/api/v1/hilal/map?${q}`;
+      mapDl.setAttribute('download', `hilal-map-${keyOf(item)}.png`);
+    }
+    if (vizDl) {
+      vizDl.href = `${API}/api/v1/hilal/viz?${q}`;
+      vizDl.setAttribute('download', `hilal-viz-${keyOf(item)}.png`);
+    }
+    const sub = $('[data-featured-sub]');
+    if (sub) {
+      sub.textContent = `Awal 1 ${item.month.name} ${item.month.year} H, ditentukan malam ${fmtDate(item.evening.gregorian_date)}.`;
+    }
+    const facts = $('[data-featured-facts]');
+    if (facts) facts.innerHTML = factsHTML(item);
+  }
+
+  function rowHTML(item: Item) {
+    const ev = item.evening;
+    const vi = verdictInfo(item);
+    const key = keyOf(item);
+    const q = `month=${item.month.number}&year=${item.month.year}`;
+    return (
+      `<article class="history-item" data-key="${key}">` +
+      '<div class="history-row">' +
+      `<div class="history-id"><span class="history-name">${item.month.name}</span><span class="history-year">${item.month.year} H</span></div>` +
+      `<div class="history-eve"><span class="history-evedate">${fmtDateShort(ev.gregorian_date)}</span><span class="history-eyecap">malam ${ev.hijri_date}</span></div>` +
+      `<div class="history-verdict"><span class="verdict-badge ${vi.cls}">${vi.label}</span></div>` +
+      `<div class="history-values"><span class="mini-chip ${ev.alt_ok ? 'is-ok' : 'is-bad'}">Alt ${fmtAlt(ev.moon_alt_deg)}</span>` +
+      `<span class="mini-chip ${ev.elong_ok ? 'is-ok' : 'is-bad'}">Elong ${fmtElong(ev.elongation_deg)}</span></div>` +
+      '<div class="history-actions">' +
+      `<a href="${API}/api/v1/hilal/map?${q}" download="hilal-map-${key}.png">Peta</a>` +
+      `<a href="${API}/api/v1/hilal/viz?${q}" download="hilal-viz-${key}.png">Viz</a>` +
+      '<button type="button" data-info aria-expanded="false">Info</button>' +
+      '</div></div>' +
+      `<div class="history-panel" hidden>${factsHTML(item)}</div>` +
+      '</article>'
+    );
+  }
+
+  function renderHistory() {
+    const list = $('[data-history]');
+    if (!list) return;
+    if (!state.history.length) {
+      list.innerHTML = '<p class="hilal-loading">Riwayat tidak tersedia.</p>';
+      return;
+    }
+    const rows = state.history.slice(0, state.shown);
+    list.innerHTML = rows.map(rowHTML).join('');
+    const more = $('[data-more]');
+    if (more) more.hidden = state.shown >= state.history.length;
+  }
+
+  function openLightbox(src: string, caption: string) {
+    const dlg = $('[data-lightbox]') as HTMLDialogElement | null;
+    const img = $('[data-lightbox-img]') as HTMLImageElement | null;
+    const cap = $('[data-lightbox-caption]');
+    if (!dlg || !img) return;
+    img.src = src;
+    img.alt = caption;
+    if (cap) cap.textContent = caption;
+    if (typeof dlg.showModal === 'function') dlg.showModal();
+    else dlg.setAttribute('open', '');
+  }
+
+  // The `download` attribute is ignored cross-origin, so pull the PNG as a blob
+  // (the API is CORS-open) and save it through an object URL.
+  async function downloadUrl(url: string, filename: string) {
+    try {
+      const res = await fetch(url, { mode: 'cors' });
+      if (!res.ok) throw new Error(String(res.status));
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    } catch {
+      window.open(url, '_blank', 'noopener');
+    }
+  }
+
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+
+    const download = target.closest('a[download]') as HTMLAnchorElement | null;
+    if (download?.href) {
+      event.preventDefault();
+      downloadUrl(download.href, download.getAttribute('download') || 'hilal.png');
+      return;
+    }
+
+    const zoom = target.closest('[data-zoom]') as HTMLElement | null;
+    if (zoom) {
+      const isMap = zoom.dataset.zoom === 'map';
+      const img = (isMap ? $('[data-map-img]') : $('[data-viz-img]')) as HTMLImageElement | null;
+      if (img?.src) {
+        openLightbox(img.src, isMap ? 'Peta wilayah visibilitas' : 'Grafik langit visibilitas');
+      }
+      return;
+    }
+
+    if (target.closest('[data-lightbox-close]')) {
+      ($('[data-lightbox]') as HTMLDialogElement | null)?.close();
+      return;
+    }
+
+    const info = target.closest('[data-info]') as HTMLButtonElement | null;
+    if (info) {
+      const panel = info.closest('.history-item')?.querySelector('.history-panel') as HTMLElement | null;
+      if (!panel) return;
+      const open = info.getAttribute('aria-expanded') === 'true';
+      info.setAttribute('aria-expanded', String(!open));
+      panel.hidden = open;
+      return;
+    }
+
+    if (target.closest('[data-more]')) {
+      state.shown += PAGE;
+      renderHistory();
+    }
+  });
+
+  const lightbox = $('[data-lightbox]') as HTMLDialogElement | null;
+  lightbox?.addEventListener('click', (event) => {
+    if (event.target === lightbox) lightbox.close();
+  });
+
+  async function setup() {
+    try {
+      const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      let today: any;
+      try {
+        today = await api('/api/v1/today', browserTz ? { tz: browserTz } : undefined);
+      } catch {
+        today = await api('/api/v1/today');
+      }
+      renderToday(today);
+
+      const hist = await api('/api/v1/hilal/history');
+      const byKey = new Map<string, Item>(hist.months.map((it: Item) => [keyOf(it), it]));
+
+      const target = nextTarget(today.output);
+      const targetKey = `${target.year}-${String(target.month).padStart(2, '0')}`;
+      const item = byKey.get(targetKey) ?? (await api('/api/v1/hilal/info', { month: String(target.month), year: String(target.year) }));
+
+      renderCountdown(today, item);
+      renderFeatured(item);
+
+      state.history = hist.months
+        .filter((it: Item) => keyOf(it) < targetKey)
+        .sort((a: Item, b: Item) => (keyOf(a) < keyOf(b) ? 1 : -1));
+      renderHistory();
+    } catch (error) {
+      const list = $('[data-history]');
+      if (list) {
+        list.innerHTML = `<p class="hilal-note">Gagal memuat data hilal (${String(error)}). Coba muat ulang halaman.</p>`;
+      }
+    }
+  }
+
+  setup();
+</script>

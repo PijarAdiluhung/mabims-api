@@ -15,6 +15,7 @@ from pathlib import Path
 from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 
 W, H = 720, 1280
+BARE_H = 760  # card minus the criteria panel: header + graphic + horizon + logo strip
 AZ_SPAN = 30.0
 
 ASSETS = Path(__file__).resolve().parent / "assets"
@@ -115,18 +116,20 @@ def _header_title(vis_month: str) -> str:
     return f"Visibilitas {vis_month.upper()}"
 
 
-def _draw_header(d: ImageDraw.ImageDraw, vis_month: str, greg: str, hijri: str, pal: dict) -> None:
-    """Shared 720px header for /hilal/viz and /hilal/map.
+def _draw_header(d: ImageDraw.ImageDraw, vis_month: str, greg: str, hijri: str, pal: dict,
+                 s: float = 1.0) -> None:
+    """Shared header for /hilal/viz and /hilal/map.
 
     Shrinks the title only if a month name would overflow, so the two cards
-    never drift in size, casing or year handling.
+    never drift in size, casing or year handling. ``s`` scales every dimension
+    for the high-resolution bare renders.
     """
     title = _header_title(vis_month)
-    size = 42
-    while size > 30 and d.textlength(title, font=font(size, bold=True)) > W - 80:
-        size -= 2
-    _txt(d, (40, 32), title, font(size, bold=True), pal["text"])
-    _txt(d, (40, 82), f"{greg}  \u00b7  {hijri}", font(28), pal["muted"])
+    size = int(42 * s)
+    while size > int(30 * s) and d.textlength(title, font=font(size, bold=True)) > W * s - 80 * s:
+        size -= max(1, int(2 * s))
+    _txt(d, (40 * s, 32 * s), title, font(size, bold=True), pal["text"])
+    _txt(d, (40 * s, 82 * s), f"{greg}  \u00b7  {hijri}", font(int(28 * s)), pal["muted"])
 
 
 def _vgrad(w: int, h: int, stops: list[tuple[float, tuple[int, int, int]]]) -> Image.Image:
@@ -155,20 +158,23 @@ def _vgrad(w: int, h: int, stops: list[tuple[float, tuple[int, int, int]]]) -> I
 
 def _starfield(img: Image.Image, box: tuple, n: int, horizon_y: int,
                seed: int = 11, max_alpha: int = 140,
-               keepout: tuple[float, float, float] | None = None) -> None:
+               keepout: tuple[float, float, float] | None = None,
+               s: float = 1.0) -> None:
     rnd = random.Random(seed)
     x0, y0, x1, y1 = box
     layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
+    arm = 5 * s
+    width = max(1, int(round(s)))
     for _ in range(n):
-        x, y = rnd.uniform(x0, x1), rnd.uniform(y0, min(y1, horizon_y - 6))
+        x, y = rnd.uniform(x0, x1), rnd.uniform(y0, min(y1, horizon_y - 6 * s))
         fade = max(0.0, (horizon_y - y) / max(1, horizon_y - y0))
         a = int(max_alpha * fade * rnd.uniform(0.3, 1.0))
-        r = rnd.choice([1, 1, 1, 2])
+        r = max(1, int(round(rnd.choice([1, 1, 1, 2]) * s)))
         d.ellipse([x - r, y - r, x + r, y + r], fill=(255, 240, 214, a))
         if rnd.random() < 0.04:
-            d.line([x - 5, y, x + 5, y], fill=(255, 240, 214, a // 2), width=1)
-            d.line([x, y - 5, x, y + 5], fill=(255, 240, 214, a // 2), width=1)
+            d.line([x - arm, y, x + arm, y], fill=(255, 240, 214, a // 2), width=width)
+            d.line([x, y - arm, x, y + arm], fill=(255, 240, 214, a // 2), width=width)
     if keepout is not None:
         # Fade stars out inside the moon's glow so the bright disc/limb washes
         # them out — the sky gradient stays visible, no solid disc is painted.
@@ -215,24 +221,25 @@ def _flat_crescent(size: int, illum: float, tilt: float, color: tuple,
     return layer
 
 
-def _pill(img: Image.Image, x: int, y: int, text: str, fill, fg,
+def _pill(img: Image.Image, x: float, y: float, text: str, fill, fg,
           f: ImageFont.FreeTypeFont | ImageFont.ImageFont,
-          pad_x: int = 18, pad_y: int = 10) -> int:
+          pad_x: float = 18, pad_y: float = 10, s: float = 1.0) -> int:
     d = ImageDraw.Draw(img)
     bb = d.textbbox((0, 0), text, font=f)
     tw, th = bb[2] - bb[0], bb[3] - bb[1]
-    d.rounded_rectangle([x, y, x + tw + pad_x * 2, y + th + pad_y * 2 + 4],
-                        radius=(th + pad_y * 2 + 4) // 2, fill=fill)
+    lip = int(4 * s)
+    d.rounded_rectangle([x, y, x + tw + pad_x * 2, y + th + pad_y * 2 + lip],
+                        radius=(th + pad_y * 2 + lip) // 2, fill=fill)
     d.text((x + pad_x, y + pad_y - bb[1] // 2), text, font=f, fill=fg)
     return int(tw + pad_x * 2)
 
 
-def _az_to_x(az: float, center_az: float, span: float, x0: int, x1: int) -> float:
+def _az_to_x(az: float, center_az: float, span: float, x0: float, x1: float) -> float:
     return x0 + (az - (center_az - span / 2)) / span * (x1 - x0)
 
 
-def _alt_to_y(alt: float, alt_hi: float, horizon_y: int, top_y: int,
-              alt_lo: float = -8.0, bottom_y: int | None = None) -> float:
+def _alt_to_y(alt: float, alt_hi: float, horizon_y: float, top_y: float,
+              alt_lo: float = -8.0, bottom_y: float | None = None) -> float:
     if alt >= 0:
         return horizon_y - (alt / alt_hi) * (horizon_y - top_y)
     bottom = bottom_y if bottom_y is not None else horizon_y + (horizon_y - top_y) * 0.35
@@ -254,25 +261,27 @@ def _palette() -> dict:
 # ── scene ──
 
 def _draw_sky_scene(img: Image.Image, data: dict, box: tuple, pal: dict,
-                    moon_size: int, sun_size: int, alt_hi: float = 14.0) -> tuple[float, float]:
+                    moon_size: int, sun_size: int, alt_hi: float = 14.0,
+                    s: float = 1.0) -> tuple[float, float]:
     x0, y0, x1, horizon_y = box
     d = ImageDraw.Draw(img)
     c_az = (data["sun_az"] + data["moon_az"]) / 2
     mx = _az_to_x(data["moon_az"], c_az, AZ_SPAN, x0, x1)
     sx = _az_to_x(data["sun_az"], c_az, AZ_SPAN, x0, x1)
-    my = _alt_to_y(data["moon_alt"], alt_hi, horizon_y, y0 + 30)
-    sy = _alt_to_y(data["sun_alt"], alt_hi, horizon_y, y0 + 30)
+    my = _alt_to_y(data["moon_alt"], alt_hi, horizon_y, y0 + 30 * s)
+    sy = _alt_to_y(data["sun_alt"], alt_hi, horizon_y, y0 + 30 * s)
 
     if data["sun_alt"] < 0:
-        _glow(img, sx, horizon_y + 4, sun_size * 2.2, pal["sun"], alpha=90)
-        steps = int(min(sy, horizon_y + 90) - horizon_y) // 10
+        _glow(img, sx, horizon_y + 4 * s, sun_size * 2.2, pal["sun"], alpha=90)
+        step = max(1, int(10 * s))
+        steps = int(min(sy, horizon_y + 90 * s) - horizon_y) // step
         for i in range(max(0, steps)):
-            yy = horizon_y + 6 + i * 10
-            d.line([sx, yy, sx, yy + 5], fill=pal["sun_dim"], width=2)
+            yy = horizon_y + 6 * s + i * 10 * s
+            d.line([sx, yy, sx, yy + 5 * s], fill=pal["sun_dim"], width=max(1, int(2 * s)))
     else:
         d.ellipse([sx - sun_size, sy - sun_size, sx + sun_size, sy + sun_size],
                   fill=pal["sun"])
-    d.line([x0, horizon_y, x1, horizon_y], fill=pal["horizon"], width=2)
+    d.line([x0, horizon_y, x1, horizon_y], fill=pal["horizon"], width=max(1, int(2 * s)))
 
     f = visibility_factor(data)
     if f > 0:
@@ -282,33 +291,42 @@ def _draw_sky_scene(img: Image.Image, data: dict, box: tuple, pal: dict,
             moon_size, data["illum"], tilt=tilt, color=pal["moon"],
             limb_scale=0.5 + 0.5 * f,
             alpha=int(255 * f),
-            blur=(1.0 - f) * 3.0,
+            blur=(1.0 - f) * 3.0 * s,
         )
         img.alpha_composite(cres, (int(mx - moon_size / 2), int(my - moon_size / 2)))
-    _txt(d, (sx - 8, horizon_y + 12), "B", font(20, bold=True), pal["horizon"], anchor="ra")
+    _txt(d, (sx - 8 * s, horizon_y + 12 * s), "B", font(int(20 * s), bold=True), pal["horizon"], anchor="ra")
     return mx, my
 
 
 def _draw_verdict_pill(img: Image.Image, data: dict, mx: float, my: float,
-                       moon_size: int, pal: dict, horizon_y: int) -> None:
+                       moon_size: int, pal: dict, horizon_y: int, s: float = 1.0) -> None:
     d = ImageDraw.Draw(img)
     vt = verdict_label(data)
-    pf = font(22, bold=True)
+    pf = font(int(22 * s), bold=True)
     bb = d.textbbox((0, 0), vt, font=pf)
-    pw = bb[2] - bb[0] + 40
-    px = mx + moon_size / 2 + 24
-    if px + pw > W - 40:
-        px = mx - moon_size / 2 - 24 - pw
-    py = min(int(my) - 23, horizon_y - 70)
+    pw = bb[2] - bb[0] + 40 * s
+    px = mx + moon_size / 2 + 24 * s
+    if px + pw > W * s - 40 * s:
+        px = mx - moon_size / 2 - 24 * s - pw
+    py = min(int(my) - 23 * s, horizon_y - 70 * s)
     if vt == "MENDEKATI BATAS":
         pill_col = pal["accent"]
     elif data["visible"]:
         pill_col = pal["good"]
     else:
         pill_col = pal["bad"]
-    _pill(img, int(max(40, px)), py, vt,
+    _pill(img, int(max(40 * s, px)), py, vt,
           pill_col, (30, 16, 24), pf,
-          pad_x=20, pad_y=10)
+          pad_x=20 * s, pad_y=10 * s, s=s)
+
+
+def _draw_logo(img: Image.Image, s: float = 1.0) -> None:
+    """Centered mabims.dev watermark near the bottom edge."""
+    logo = Image.open(LOGO_PATH).convert("RGBA")
+    lh = int(40 * s)
+    lw = int(logo.width * lh / logo.height)
+    logo = logo.resize((lw, lh), Image.Resampling.LANCZOS)
+    img.alpha_composite(logo, ((img.width - lw) // 2, img.height - lh - int(10 * s)))
 
 
 def _criteria_table(img: Image.Image, data: dict, box: tuple, pal: dict) -> None:
@@ -422,11 +440,46 @@ def render_chart(data: dict) -> Image.Image:
                         outline=pal["border"], width=1)
     _criteria_table(img, data, (64, card_y + 26, W - 64, card_y + card_h - 20), pal)
 
-    logo = Image.open(LOGO_PATH).convert("RGBA")
-    lh = 40
-    lw = int(logo.width * lh / logo.height)
-    logo = logo.resize((lw, lh), Image.Resampling.LANCZOS)
-    img.alpha_composite(logo, ((W - lw) // 2, H - lh - 10))
+    _draw_logo(img)
+    return img
+
+
+def render_bare_chart(data: dict, scale: float = 2.0) -> Image.Image:
+    """High-resolution card without the criteria panel.
+
+    Keeps the header, sky scene, verdict pill and logo; used as the web hero
+    image, where the criteria values are rendered as HTML instead. ``scale``
+    is the supersampling factor (2.0 -> 1440x1520).
+    """
+    pal = _palette()
+    s = float(scale)
+    w, bare_h = int(W * s), int(BARE_H * s)
+    img = _vgrad(w, bare_h, [(0.0, (31, 18, 53)), (0.45, (94, 44, 74)),
+                             (0.72, (196, 96, 66)), (0.86, (242, 166, 90)), (1.0, (52, 30, 40))])
+    horizon_y = int(H * 0.55 * s)
+    box = (40 * s, 190 * s, w - 40 * s, horizon_y)
+    c_az = (data["sun_az"] + data["moon_az"]) / 2
+    mx = _az_to_x(data["moon_az"], c_az, AZ_SPAN, box[0], box[2])
+    my = _alt_to_y(data["moon_alt"], 14.0, horizon_y, box[1] + 30 * s)
+    moon_size = int(119 * s)
+    _starfield(img, (0, 190 * s, w, int(H * 0.35 * s)), n=int(W * H / 4400 * s * s),
+               horizon_y=int(H * 0.35 * s), keepout=(mx, my, 119 * s * 1.7), s=s)
+    mx, my = _draw_sky_scene(img, data, box, pal,
+                             moon_size=moon_size, sun_size=int(36 * s), alt_hi=14.0, s=s)
+
+    d = ImageDraw.Draw(img)
+    pts: list[tuple[float, float]] = [(0, horizon_y + 2 * s)]
+    step = max(1, int(24 * s))
+    for xx in range(0, w + step, step):
+        hh = (20 + 14 * math.sin(xx / (97.0 * s)) + 9 * math.sin(xx / (33.0 * s) + 1.7)) * s
+        pts.append((xx, horizon_y - max(6.0 * s, hh)))
+    pts += [(w, horizon_y + 2 * s), (w, bare_h), (0, bare_h)]
+    d.polygon(pts, fill=pal["ground"])
+    d.line([0, horizon_y, w, horizon_y], fill=pal["horizon"], width=max(1, int(2 * s)))
+    _draw_verdict_pill(img, data, mx, my, moon_size, pal, horizon_y, s=s)
+    _draw_header(d, data["vis_month"], data["greg"], data["hijri"], pal, s=s)
+
+    _draw_logo(img, s=s)
     return img
 
 
@@ -435,6 +488,14 @@ def chart_png_bytes(data: dict) -> bytes:
 
     buf = io.BytesIO()
     render_chart(data).convert("RGB").save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def bare_chart_png_bytes(data: dict, scale: float = 2.0) -> bytes:
+    import io
+
+    buf = io.BytesIO()
+    render_bare_chart(data, scale).convert("RGB").save(buf, format="PNG")
     return buf.getvalue()
 
 

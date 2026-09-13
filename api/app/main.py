@@ -30,9 +30,10 @@ from .coverage import (
 )
 from .events import find_events
 from .fallback import MemoryFallbackStore
+from .hilal import history as _history
 from .hilal import imagepack as _imagepack
 from .hilal.astro import lunar_age_hours, moonset_local, phase_angle_deg
-from .hilal.chart import build_chart_data, chart_png_bytes
+from .hilal.chart import bare_chart_png_bytes, build_chart_data, chart_png_bytes
 from .hilal.images import image_path, store
 from .hilal.mapcard import map_png_bytes
 from .hilal.service import (
@@ -54,6 +55,9 @@ from .schemas import (
     EventsResponse,
     HealthResponse,
     HilalEvening,
+    HilalHistoryInput,
+    HilalHistoryItem,
+    HilalHistoryResponse,
     HilalInfoResponse,
     HilalInput,
     HilalMonth,
@@ -92,9 +96,15 @@ BORDERLINE_WARNING_TEMPLATE = (
 COMPUTED_METHOD = "neo-mabims-multisite"
 MAX_RANGE_DAYS = 45
 RETRO_QUERY_DESC = "Set true to allow computed retro dates below the curated table"
+BARE_QUERY_DESC = (
+    "Set true to omit the criteria panel and return the high-resolution bare "
+    "card (header + graphic + logo) used as the web hero image."
+)
 HILAL_CACHE = {"Cache-Control": "public, max-age=86400, s-maxage=86400"}
 HILAL_ALT_MIN_DEG = 3.0
 HILAL_ELONG_MIN_DEG = 6.4
+# Supersampling factor for the bare (panel-less) web hero cards.
+HILAL_BARE_SCALE = 2.0
 
 # Range covered by the pre-generated image set (bundled core + documented range)
 # and the hard render cap for the PNG endpoints: outside it, /hilal/viz and
@@ -127,6 +137,7 @@ def _map_png_cached(
     hero_lon: float,
     hero_alt: float,
     hero_elong: float,
+    bare: bool = False,
 ) -> bytes:
     return map_png_bytes(
         evening=date.fromisoformat(evening_iso),
@@ -134,6 +145,8 @@ def _map_png_cached(
         vis_year=vis_year,
         hijri_label=hijri_label,
         hero=(hero_name, hero_lat, hero_lon, hero_alt, hero_elong),
+        bare=bare,
+        scale=HILAL_BARE_SCALE,
     )
 
 
@@ -143,6 +156,7 @@ def _render_viz_png(
     ms_site: SiteSighting,
     alt_ok: bool,
     elong_ok: bool,
+    bare: bool = False,
 ) -> bytes:
     sky = sighting.multisite.sky_for(ms_site.site)
     data = build_chart_data(
@@ -166,10 +180,17 @@ def _render_viz_png(
         alt_margin=ms_site.alt_refracted_deg - HILAL_ALT_MIN_DEG,
         elong_margin=ms_site.elong_deg - HILAL_ELONG_MIN_DEG,
     )
+    if bare:
+        return bare_chart_png_bytes(data, HILAL_BARE_SCALE)
     return chart_png_bytes(data)
 
 
-def _render_map_png(res: SightingEvening, sighting: SightingObservation, ms_site: SiteSighting) -> bytes:
+def _render_map_png(
+    res: SightingEvening,
+    sighting: SightingObservation,
+    ms_site: SiteSighting,
+    bare: bool = False,
+) -> bytes:
     site = sighting.site
     return map_png_bytes(
         evening=res.evening_date,
@@ -177,6 +198,8 @@ def _render_map_png(res: SightingEvening, sighting: SightingObservation, ms_site
         vis_year=res.target_year,
         hijri_label=res.evening_label,
         hero=(site.name, site.lat_deg, site.lon_deg, ms_site.alt_refracted_deg, ms_site.elong_deg),
+        bare=bare,
+        scale=HILAL_BARE_SCALE,
     )
 
 _HIJRI_YEARS_PER_GREGORIAN = 365.2425 / 354.36792
@@ -1083,6 +1106,45 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         return _json_response(payload.model_dump(), HILAL_CACHE)
 
     @app.api_route(
+        "/api/v1/hilal/history",
+        response_model=HilalHistoryResponse,
+        tags=["Hilal"],
+        summary="Hilal history (precomputed)",
+        description=(
+            "Per-month hilal summary for a Hijri range (defaults to the whole "
+            "precomputed index, 1444-08 through 1475-12), served as a lookup so "
+            "the website's history list needs a single request."
+        ),
+        methods=["GET", "HEAD"],
+    )
+    @limiter.limit("240/minute")
+    def hilal_history(
+        request: Request,
+        start: str | None = Query(default=None, alias="from"),
+        end: str | None = Query(default=None, alias="to"),
+    ):
+        span = _history.index_range()
+        if span is None:
+            raise ApiError(
+                "computation_unavailable",
+                "Hilal history index is not available on this deployment.",
+                503,
+            )
+        first, last = span
+        start = start or first
+        end = end or last
+        if start > end:
+            raise ApiError("invalid_range", "'from' must not be after 'to'.")
+        months = [HilalHistoryItem.model_validate(item) for item in _history.items(start, end)]
+        payload = HilalHistoryResponse(
+            input=HilalHistoryInput.model_validate({"from": start, "to": end}),
+            count=len(months),
+            range=Coverage(first=first, last=last),
+            months=months,
+        )
+        return _json_response(payload.model_dump(by_alias=True), HILAL_CACHE)
+
+    @app.api_route(
         "/api/v1/hilal/viz",
         tags=["Hilal"],
         summary="Hilal sky chart PNG",
@@ -1098,24 +1160,26 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         month: int = Query(...),
         year: int = Query(...),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
+        bare: bool = Query(default=False, description=BARE_QUERY_DESC),
     ):
         _hilal_render_year_check(year)
         res, sighting, alt_ok, elong_ok, _visible, ms_site, _source, _warnings = _hilal_context(
             month, year, _parse_retro(retro)
         )
         _imagepack.ensure_pack()
-        cached = image_path("viz", res.target_year, res.target_month)
+        kind = "viz-bare" if bare else "viz"
+        cached = image_path(kind, res.target_year, res.target_month)
         if cached is not None:
             return FileResponse(cached, media_type="image/png", headers=HILAL_CACHE)
         try:
-            png = _render_viz_png(res, sighting, ms_site, alt_ok, elong_ok)
+            png = _render_viz_png(res, sighting, ms_site, alt_ok, elong_ok, bare=bare)
         except Exception as exc:
             raise ApiError(
                 "render_failed",
                 f"Could not render chart: {exc.__class__.__name__}",
                 500,
             ) from exc
-        store("viz", res.target_year, res.target_month, png)
+        store(kind, res.target_year, res.target_month, png)
         return Response(
             content=png,
             media_type="image/png",
@@ -1139,13 +1203,15 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         month: int = Query(...),
         year: int = Query(...),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
+        bare: bool = Query(default=False, description=BARE_QUERY_DESC),
     ):
         _hilal_render_year_check(year)
         res, sighting, _alt_ok, _elong_ok, _visible, ms_site, _source, _warnings = _hilal_context(
             month, year, _parse_retro(retro)
         )
         _imagepack.ensure_pack()
-        cached = image_path("map", res.target_year, res.target_month)
+        kind = "map-bare" if bare else "map"
+        cached = image_path(kind, res.target_year, res.target_month)
         if cached is not None:
             return FileResponse(cached, media_type="image/png", headers=HILAL_CACHE)
         site = sighting.site
@@ -1161,6 +1227,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
                     site.lon_deg,
                     ms_site.alt_refracted_deg,
                     ms_site.elong_deg,
+                    bare,
                 )
         except Exception as exc:
             raise ApiError(
@@ -1168,7 +1235,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
                 f"Could not render map: {exc.__class__.__name__}",
                 500,
             ) from exc
-        store("map", res.target_year, res.target_month, png)
+        store(kind, res.target_year, res.target_month, png)
         return Response(
             content=png,
             media_type="image/png",

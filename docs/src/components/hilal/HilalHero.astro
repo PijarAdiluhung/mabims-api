@@ -1,0 +1,37 @@
+---
+interface Props {
+  fallback:
+    | { day: number; month_name: string; year: number; greg: string }
+    | null;
+}
+
+const { fallback } = Astro.props;
+---
+
+<section class="hilal-hero" id="sekarang">
+  <div class="hilal-grid-bg" aria-hidden="true"></div>
+
+  <div class="hilal-hero-copy">
+    <p class="hilal-eyebrow">Hari ini</p>
+    <h1 class="hilal-date">
+      <span class="hilal-date-num" data-today-day>{fallback?.day ?? '—'}</span>
+      <span class="hilal-date-month" data-today-month>{fallback?.month_name ?? 'Memuat…'}</span>
+      <span class="hilal-date-year"><span data-today-year>{fallback?.year ?? ''}</span> H</span>
+    </h1>
+    <p class="hilal-greg" data-today-greg>{fallback?.greg ?? 'Memuat tanggal…'}</p>
+  </div>
+
+  <div class="hilal-countdown">
+    <div class="countdown-moon" aria-hidden="true">
+      <span class="moon-disc"></span>
+      <span class="moon-mask"></span>
+    </div>
+    <p class="countdown-eyebrow">Malam penentuan berikutnya</p>
+    <p class="countdown-value">
+      <span data-count-days>—</span>
+      <span class="countdown-unit" data-count-unit>hari lagi</span>
+    </p>
+    <p class="countdown-target" data-count-target>Menghitung…</p>
+    <div class="countdown-track" aria-hidden="true"><span class="countdown-fill" data-count-bar></span></div>
+  </div>
+</section>

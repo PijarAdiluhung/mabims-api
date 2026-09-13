@@ -18,6 +18,7 @@ seluruh Indonesia**. Saat ini ada 25 titik, dari Sabang sampai Rote. Lihat dafta
 GET /api/v1/hilal/info?month={bulan}&year={tahun}   → JSON
 GET /api/v1/hilal/viz?month={bulan}&year={tahun}    → PNG 720×1280
 GET /api/v1/hilal/map?month={bulan}&year={tahun}    → PNG 720×1280
+GET /api/v1/hilal/history?from={YYYY-MM}&to={YYYY-MM} → JSON (riwayat)
 ```
 
 `info` mengembalikan angka-angka perhitungan beserta status hasilnya; `viz` merender grafik langit
@@ -33,6 +34,7 @@ permintaan per jam untuk setiap IP.
 | `month` | int 1–12 | ya | Bulan Hijriah **target**. Grafik menampilkan malam penentuan awal bulan tersebut. |
 | `year` | int | ya | Tahun Hijriah target. |
 | `retro` | `true` / `false` | tidak (default `false`) | Membuka tanggal hasil komputasi retro di bawah tabel kurasi (sampai 1945-01-01), dengan label `mabims-retro`. [Lihat cakupan data untuk penjelasannya](/data-coverage/) |
+| `bare` | `true` / `false` | tidak (default `false`) | Hanya untuk `viz` dan `map`: menghilangkan panel kriteria dan mengembalikan kartu resolusi tinggi **1440×1520** (header + grafik + logo) untuk dipakai sebagai gambar hero di web. |
 
 Model yang digunakan adalah **"terlihat di mana saja di Indonesia"**. Kriteria Neo MABIMS yang
 sama dengan perhitungan tabel computed dievaluasi saat matahari terbenam di setiap titik pengamatan.
@@ -143,6 +145,36 @@ Tabel pada kartu memakai angka titik penentu yang **sama dengan `/hilal/viz`**, 
 menyebut titik pengamat yang sama. Rate limit: 30 permintaan per jam per IP.
 
 <img src="/map.png" alt="Contoh peta wilayah visibilitas hilal — 29 Syawal 1447 H" style="width: 100%; max-width: 480px;" />
+
+## Riwayat (`/hilal/history`)
+
+`/hilal/history` mengembalikan ringkasan per bulan untuk rentang Hijriah `from`–`to` (format
+`YYYY-MM`, default seluruh indeks **1444-08 → 1475-12**). Datanya diambil dari indeks
+terhitung `api/data/hilal_index.json`, sehingga satu permintaan cukup untuk menampilkan
+seluruh daftar riwayat tanpa memanggil `/hilal/info` berkali-kali. Setiap entri memiliki
+bentuk yang sama dengan `/hilal/info` (bulan target, bulan sebelumnya, `evening`, `source`,
+`warnings`).
+
+```json
+{
+  "input": { "from": "1444-08", "to": "1475-12" },
+  "count": 377,
+  "range": { "first": "1444-08", "last": "1475-12" },
+  "months": [
+    {
+      "month": { "name": "Sya'ban", "number": 8, "year": 1444, "start": "2023-02-22" },
+      "previous_month": { "name": "Rajab", "number": 7, "year": 1444, "length": 30 },
+      "evening": { "hijri_date": "29 Rajab 1444 H", "gregorian_date": "2023-02-20", "visible": false, "moon_alt_deg": 2.32, "elongation_deg": 5.26, "deciding_site": { "name": "Lhoknga / Tgk. Chiek Kuta Karang" } },
+      "source": "mabims",
+      "warnings": []
+    }
+  ],
+  "warnings": []
+}
+```
+
+Indeks dibangun dengan `python -m scripts.generate_hilal_index`; jalankan ulang setelah
+kriteria, daftar titik, atau ephemeris berubah, atau setelah tabel kurasi Kemenag diperluas.
 
 ## Caching
 

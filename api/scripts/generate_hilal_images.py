@@ -2,13 +2,16 @@
 
 Usage:
     python -m scripts.generate_hilal_images --start 1444 --end 1450 --out ../mabims-assets/hilal_images
+    python -m scripts.generate_hilal_images --start 1444 --end 1450 --variants bare \
+        --out ../mabims-assets/hilal_images
     python -m scripts.generate_hilal_images --start 1451 --end 1455 --force \
         --out ../mabims-assets/hilal_images
 
 Idempotent: existing files are skipped unless ``--force``. Re-render the 1444–1450
 core after any renderer change, then rebuild the versioned tar + manifest for the
-CDN image pack (see README "Data & coverage"). The API also lazily caches anything
-outside the generated range.
+CDN image pack (see README "Data & coverage"). ``--variants bare`` writes the
+panel-less hires web cards into ``viz-bare/`` and ``map-bare/``. The API also
+lazily caches anything outside the generated range.
 """
 
 from __future__ import annotations
@@ -67,11 +70,14 @@ def _render_month(year: int, month: int, out: str, kinds: tuple[str, ...], force
     for kind, target in targets.items():
         if target.exists() and not force:
             continue
-        png = (
-            _render_viz_png(res, sighting, ms_site, alt_ok, elong_ok)
-            if kind == "viz"
-            else _render_map_png(res, sighting, ms_site)
-        )
+        if kind == "viz":
+            png = _render_viz_png(res, sighting, ms_site, alt_ok, elong_ok)
+        elif kind == "viz-bare":
+            png = _render_viz_png(res, sighting, ms_site, alt_ok, elong_ok, bare=True)
+        elif kind == "map":
+            png = _render_map_png(res, sighting, ms_site)
+        else:
+            png = _render_map_png(res, sighting, ms_site, bare=True)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(png)
         written.append(str(target))
@@ -84,11 +90,24 @@ def main() -> int:
     parser.add_argument("--end", type=int, required=True, help="last Hijri year (inclusive)")
     parser.add_argument("--out", type=str, required=True, help="output directory")
     parser.add_argument("--kind", choices=["viz", "map", "both"], default="both")
+    parser.add_argument(
+        "--variants",
+        choices=["card", "bare", "both"],
+        default="card",
+        help="card = full criteria card, bare = panel-less hires web image",
+    )
     parser.add_argument("--jobs", type=int, default=0, help="worker processes (0 = cpu count)")
     parser.add_argument("--force", action="store_true", help="re-render existing files")
     args = parser.parse_args()
 
-    kinds = ("viz", "map") if args.kind == "both" else (args.kind,)
+    base_kinds: tuple[str, ...] = ("viz", "map") if args.kind == "both" else (args.kind,)
+    kinds: tuple[str, ...]
+    if args.variants == "card":
+        kinds = base_kinds
+    elif args.variants == "bare":
+        kinds = tuple(f"{kind}-bare" for kind in base_kinds)
+    else:
+        kinds = base_kinds + tuple(f"{kind}-bare" for kind in base_kinds)
     jobs = args.jobs or (os.cpu_count() or 1)
     months = [(y, m) for y in range(args.start, args.end + 1) for m in range(1, 13)]
     print(f"{len(months)} months x {len(kinds)} image(s) -> {args.out} ({jobs} jobs)", flush=True)
