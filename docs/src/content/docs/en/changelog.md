@@ -8,6 +8,7 @@ description: History of changes to the MABIMS API and documentation.
 ### Added
 
 - **Bare cards (/hilal/viz + /hilal/map `?bare=true`)** — drops the criteria panel and returns a high-resolution **1440×1520** card (header + graphic + callout/verdict + logo) for use as a web hero image. The full 720×1280 card is unchanged. Bare variants are pre-rendered into the CDN image pack (one tar with `viz/` + `map/` + `viz-bare/` + `map-bare/`).
+- **`download=true` (/hilal/viz + /hilal/map)** — sends `Content-Disposition: attachment` so download links work cross-origin (the HTML `download` attribute is ignored for cross-origin URLs).
 - **`GET /api/v1/hilal/history?from=&to=`** — per-month summaries for a whole Hijri range (default **1444-08 → 1475-12**) from the precomputed `api/data/hilal_index.json` (`scripts/generate_hilal_index.py`), so the history list needs a single request. Rate limit 240/min.
 - **`scripts/build_imagepack.py`** — one-command image-pack builder: render (or `--skip-render`), then write a deterministic tar + `manifest.json` whose `render_version` derives from the site lists + display points + renderer sources.
 - **Public `/hilal` page** — today's Hijri date, countdown to the next deciding evening, zoomable bare map + sky chart, and a history list with inline info panels. The site now shares `LandingLayout.astro` between the landing page and `/hilal`.

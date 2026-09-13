@@ -35,6 +35,7 @@ permintaan per jam untuk setiap IP.
 | `year` | int | ya | Tahun Hijriah target. |
 | `retro` | `true` / `false` | tidak (default `false`) | Membuka tanggal hasil komputasi retro di bawah tabel kurasi (sampai 1945-01-01), dengan label `mabims-retro`. [Lihat cakupan data untuk penjelasannya](/data-coverage/) |
 | `bare` | `true` / `false` | tidak (default `false`) | Hanya untuk `viz` dan `map`: menghilangkan panel kriteria dan mengembalikan kartu resolusi tinggi **1440×1520** (header + grafik + logo) untuk dipakai sebagai gambar hero di web. |
+| `download` | `true` / `false` | tidak (default `false`) | Hanya untuk `viz` dan `map`: mengirim `Content-Disposition: attachment` sehingga browser mengunduh PNG alih-alih membukanya. Berguna karena atribut `download` HTML diabaikan untuk URL lintas-origin. |
 
 Model yang digunakan adalah **"terlihat di mana saja di Indonesia"**. Kriteria Neo MABIMS yang
 sama dengan perhitungan tabel computed dievaluasi saat matahari terbenam di setiap titik pengamatan.

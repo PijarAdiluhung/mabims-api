@@ -105,6 +105,10 @@ HILAL_ALT_MIN_DEG = 3.0
 HILAL_ELONG_MIN_DEG = 6.4
 # Supersampling factor for the bare (panel-less) web hero cards.
 HILAL_BARE_SCALE = 2.0
+DOWNLOAD_QUERY_DESC = (
+    "Set true to return Content-Disposition: attachment so the browser "
+    "downloads the PNG instead of navigating to it."
+)
 
 # Range covered by the pre-generated image set (bundled core + documented range)
 # and the hard render cap for the PNG endpoints: outside it, /hilal/viz and
@@ -148,6 +152,13 @@ def _map_png_cached(
         bare=bare,
         scale=HILAL_BARE_SCALE,
     )
+
+
+def _attachment_headers(kind: str, year: int, month: int, enabled: bool) -> dict[str, str]:
+    """Force a browser download (cross-origin `download` attrs are ignored)."""
+    if not enabled:
+        return {}
+    return {"Content-Disposition": f'attachment; filename="hilal-{kind}-{year:04d}-{month:02d}.png"'}
 
 
 def _render_viz_png(
@@ -1161,6 +1172,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         year: int = Query(...),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
         bare: bool = Query(default=False, description=BARE_QUERY_DESC),
+        download: bool = Query(default=False, description=DOWNLOAD_QUERY_DESC),
     ):
         _hilal_render_year_check(year)
         res, sighting, alt_ok, elong_ok, _visible, ms_site, _source, _warnings = _hilal_context(
@@ -1168,9 +1180,10 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         )
         _imagepack.ensure_pack()
         kind = "viz-bare" if bare else "viz"
+        attach = _attachment_headers("viz", res.target_year, res.target_month, download)
         cached = image_path(kind, res.target_year, res.target_month)
         if cached is not None:
-            return FileResponse(cached, media_type="image/png", headers=HILAL_CACHE)
+            return FileResponse(cached, media_type="image/png", headers={**HILAL_CACHE, **attach})
         try:
             png = _render_viz_png(res, sighting, ms_site, alt_ok, elong_ok, bare=bare)
         except Exception as exc:
@@ -1183,7 +1196,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         return Response(
             content=png,
             media_type="image/png",
-            headers={**HILAL_CACHE, **etag_headers(etag_from_bytes(png))},
+            headers={**HILAL_CACHE, **etag_headers(etag_from_bytes(png)), **attach},
         )
 
     @app.api_route(
@@ -1204,6 +1217,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         year: int = Query(...),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
         bare: bool = Query(default=False, description=BARE_QUERY_DESC),
+        download: bool = Query(default=False, description=DOWNLOAD_QUERY_DESC),
     ):
         _hilal_render_year_check(year)
         res, sighting, _alt_ok, _elong_ok, _visible, ms_site, _source, _warnings = _hilal_context(
@@ -1211,9 +1225,10 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         )
         _imagepack.ensure_pack()
         kind = "map-bare" if bare else "map"
+        attach = _attachment_headers("map", res.target_year, res.target_month, download)
         cached = image_path(kind, res.target_year, res.target_month)
         if cached is not None:
-            return FileResponse(cached, media_type="image/png", headers=HILAL_CACHE)
+            return FileResponse(cached, media_type="image/png", headers={**HILAL_CACHE, **attach})
         site = sighting.site
         try:
             with _MAP_SEMAPHORE:
@@ -1239,7 +1254,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         return Response(
             content=png,
             media_type="image/png",
-            headers={**HILAL_CACHE, **etag_headers(etag_from_bytes(png))},
+            headers={**HILAL_CACHE, **etag_headers(etag_from_bytes(png)), **attach},
         )
 
     return app

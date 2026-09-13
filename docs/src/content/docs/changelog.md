@@ -8,6 +8,7 @@ description: Riwayat perubahan API dan dokumentasi MABIMS.
 ### Added
 
 - **Kartu bare (/hilal/viz + /hilal/map `?bare=true`)** — menghilangkan panel kriteria dan mengembalikan kartu resolusi tinggi **1440×1520** (header + grafik + callout/verdict + logo) untuk dipakai sebagai gambar hero di web. Kartu penuh 720×1280 tidak berubah. Varian bare ikut dipra-render ke image pack CDN (satu tar dengan `viz/` + `map/` + `viz-bare/` + `map-bare/`).
+- **`download=true` (/hilal/viz + /hilal/map)** — mengirim `Content-Disposition: attachment` sehingga tautan unduh bekerja lintas-origin (atribut `download` HTML diabaikan untuk URL lintas-origin).
 - **`GET /api/v1/hilal/history?from=&to=`** — ringkasan per bulan untuk seluruh rentang Hijriah (default **1444-08 → 1475-12**) dari indeks terhitung `api/data/hilal_index.json` (`scripts/generate_hilal_index.py`), sehingga daftar riwayat cukup satu permintaan. Rate limit 240/menit.
 - **`scripts/build_imagepack.py`** — pembangun image pack satu perintah: render (atau `--skip-render`) lalu tulis tar deterministik + `manifest.json` dengan `render_version` dari daftar titik + display points + sumber renderer.
 - **Halaman publik `/hilal`** — tanggal Hijriah hari ini, hitung mundur malam penentuan, peta + grafik bare yang bisa di-zoom, dan daftar riwayat dengan panel info inline. Situs kini memakai `LandingLayout.astro` bersama untuk landing dan `/hilal`.

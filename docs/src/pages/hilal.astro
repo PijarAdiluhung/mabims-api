@@ -290,11 +290,62 @@ const description =
     height: auto;
     aspect-ratio: 1440 / 1520;
     object-fit: cover;
-    transition: transform 0.4s ease;
+    opacity: 0;
+    transition: transform 0.4s ease, opacity 0.4s ease;
+  }
+
+  .hilal-zoom.is-loaded img {
+    opacity: 1;
   }
 
   .hilal-zoom:hover img {
     transform: scale(1.02);
+  }
+
+  .hilal-skeleton {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    line-height: 1.4;
+    background: linear-gradient(110deg, rgba(255, 255, 255, 0.04) 30%, rgba(255, 255, 255, 0.09) 45%, rgba(255, 255, 255, 0.04) 60%);
+    background-size: 200% 100%;
+    animation: hilal-shimmer 1.4s ease-in-out infinite;
+  }
+
+  .hilal-zoom.is-loaded .hilal-skeleton {
+    display: none;
+  }
+
+  .hilal-spinner {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.12);
+    border-top-color: var(--sl-color-accent);
+    animation: hilal-spin 0.9s linear infinite;
+  }
+
+  .hilal-eta {
+    font-size: 0.85rem;
+    color: var(--sl-color-gray-3);
+    text-align: center;
+  }
+
+  @keyframes hilal-shimmer {
+    to {
+      background-position: -200% 0;
+    }
+  }
+
+  @keyframes hilal-spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   .hilal-zoom-hint {
@@ -462,20 +513,48 @@ const description =
 
   .history-row {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.6rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "id verdict"
+      "eve eve"
+      "values actions";
+    gap: 0.5rem 1rem;
+    align-items: center;
     padding: 1rem 1.1rem;
+  }
+
+  .history-verdict {
+    grid-area: verdict;
+    justify-self: end;
+  }
+
+  .history-eve {
+    grid-area: eve;
+  }
+
+  .history-values {
+    grid-area: values;
+  }
+
+  .history-actions {
+    grid-area: actions;
+    justify-self: end;
   }
 
   @media (min-width: 64rem) {
     .history-row {
-      grid-template-columns: minmax(9rem, 1.05fr) minmax(10rem, 1.2fr) auto minmax(0, 1.3fr) auto;
-      align-items: center;
+      grid-template-columns: 12rem 13rem 10rem minmax(0, 1fr) auto;
+      grid-template-areas: "id eve verdict values actions";
       gap: 1rem;
+    }
+
+    .history-verdict {
+      justify-self: start;
     }
   }
 
   .history-id {
+    grid-area: id;
     display: flex;
     align-items: baseline;
     gap: 0.5rem;
@@ -654,6 +733,11 @@ const description =
     .hilal-loadmore {
       transition: none !important;
     }
+
+    .hilal-skeleton,
+    .hilal-spinner {
+      animation: none !important;
+    }
   }
 </style>
 
@@ -740,11 +824,13 @@ const description =
     return { month, year };
   }
 
-  function verdictInfo(item: Item) {
+  function verdictInfo(item: Item, upcoming = false) {
     const borderline = (item.warnings ?? []).some((w) => /threshold|ambang/i.test(w));
     if (item.evening.visible && borderline) return { cls: 'is-borderline', label: 'Mendekati batas' };
-    if (item.evening.visible) return { cls: 'is-ok', label: 'Terlihat' };
-    return { cls: 'is-bad', label: 'Tidak terlihat' };
+    if (item.evening.visible) {
+      return { cls: 'is-ok', label: upcoming ? 'Memenuhi kriteria' : 'Terlihat' };
+    }
+    return { cls: 'is-bad', label: upcoming ? 'Tidak memenuhi kriteria' : 'Tidak terlihat' };
   }
 
   function fact(label: string, value: string, min = '', ok: boolean | null = null) {
@@ -753,9 +839,9 @@ const description =
     return `<div class="fact"><span class="fact-label">${label}</span><span class="fact-value">${value}${chip}</span>${minEl}</div>`;
   }
 
-  function factsHTML(item: Item) {
+  function factsHTML(item: Item, upcoming = false) {
     const ev = item.evening;
-    const vi = verdictInfo(item);
+    const vi = verdictInfo(item, upcoming);
     const cells = [
       fact('Tinggi bulan', fmtAlt(ev.moon_alt_deg), 'min. 3,0°', ev.alt_ok),
       fact('Elongasi', fmtElong(ev.elongation_deg), 'min. 6,4°', ev.elong_ok),
@@ -804,31 +890,60 @@ const description =
     if (bar) bar.style.width = `${Math.min(100, Math.max(0, (today.output.day / 29) * 100))}%`;
   }
 
+  function wireImage(
+    zoom: HTMLElement,
+    img: HTMLImageElement,
+    etaEl: HTMLElement | null,
+    label: string,
+    etaStart: number
+  ) {
+    let timer: number | null = null;
+    if (etaEl && etaStart > 0) {
+      let remaining = etaStart;
+      const tick = () => {
+        etaEl.textContent =
+          remaining > 0 ? `${label}… ~${remaining}s` : `Menyelesaikan ${label.toLowerCase()}…`;
+      };
+      tick();
+      timer = window.setInterval(() => {
+        remaining -= 1;
+        tick();
+        if (remaining <= -5 && timer !== null) window.clearInterval(timer);
+      }, 1000);
+    }
+    img.addEventListener('load', () => {
+      if (timer !== null) window.clearInterval(timer);
+      zoom.classList.add('is-loaded');
+    });
+    img.addEventListener('error', () => {
+      if (timer !== null) window.clearInterval(timer);
+      if (etaEl) etaEl.textContent = 'Gagal memuat gambar — coba muat ulang.';
+    });
+  }
+
   function renderFeatured(item: Item) {
     upcoming = item;
     const q = `month=${item.month.number}&year=${item.month.year}`;
     const mapImg = $('[data-map-img]') as HTMLImageElement | null;
     const vizImg = $('[data-viz-img]') as HTMLImageElement | null;
+    const mapZoom = $('[data-zoom="map"]');
+    const vizZoom = $('[data-zoom="viz"]');
+    if (mapImg && mapZoom) wireImage(mapZoom, mapImg, $('[data-map-eta]'), 'Merender peta', 35);
+    if (vizImg && vizZoom) wireImage(vizZoom, vizImg, $('[data-viz-eta]'), 'Merender grafik', 0);
     if (mapImg) mapImg.src = `${API}/api/v1/hilal/map?${q}&bare=true`;
     if (vizImg) vizImg.src = `${API}/api/v1/hilal/viz?${q}&bare=true`;
     const dateEls = $$('[data-map-date],[data-viz-date]');
     for (const el of dateEls) el.textContent = fmtDateShort(item.evening.gregorian_date);
     const mapDl = $('[data-map-dl]') as HTMLAnchorElement | null;
     const vizDl = $('[data-viz-dl]') as HTMLAnchorElement | null;
-    if (mapDl) {
-      mapDl.href = `${API}/api/v1/hilal/map?${q}`;
-      mapDl.setAttribute('download', `hilal-map-${keyOf(item)}.png`);
-    }
-    if (vizDl) {
-      vizDl.href = `${API}/api/v1/hilal/viz?${q}`;
-      vizDl.setAttribute('download', `hilal-viz-${keyOf(item)}.png`);
-    }
+    if (mapDl) mapDl.href = `${API}/api/v1/hilal/map?${q}&download=true`;
+    if (vizDl) vizDl.href = `${API}/api/v1/hilal/viz?${q}&download=true`;
     const sub = $('[data-featured-sub]');
     if (sub) {
       sub.textContent = `Awal 1 ${item.month.name} ${item.month.year} H, ditentukan malam ${fmtDate(item.evening.gregorian_date)}.`;
     }
     const facts = $('[data-featured-facts]');
-    if (facts) facts.innerHTML = factsHTML(item);
+    if (facts) facts.innerHTML = factsHTML(item, true);
   }
 
   function rowHTML(item: Item) {
@@ -845,8 +960,8 @@ const description =
       `<div class="history-values"><span class="mini-chip ${ev.alt_ok ? 'is-ok' : 'is-bad'}">Alt ${fmtAlt(ev.moon_alt_deg)}</span>` +
       `<span class="mini-chip ${ev.elong_ok ? 'is-ok' : 'is-bad'}">Elong ${fmtElong(ev.elongation_deg)}</span></div>` +
       '<div class="history-actions">' +
-      `<a href="${API}/api/v1/hilal/map?${q}" download="hilal-map-${key}.png">Peta</a>` +
-      `<a href="${API}/api/v1/hilal/viz?${q}" download="hilal-viz-${key}.png">Viz</a>` +
+      `<a href="${API}/api/v1/hilal/map?${q}&download=true" download="hilal-map-${key}.png">Peta</a>` +
+      `<a href="${API}/api/v1/hilal/viz?${q}&download=true" download="hilal-viz-${key}.png">Viz</a>` +
       '<button type="button" data-info aria-expanded="false">Info</button>' +
       '</div></div>' +
       `<div class="history-panel" hidden>${factsHTML(item)}</div>` +
@@ -879,34 +994,8 @@ const description =
     else dlg.setAttribute('open', '');
   }
 
-  // The `download` attribute is ignored cross-origin, so pull the PNG as a blob
-  // (the API is CORS-open) and save it through an object URL.
-  async function downloadUrl(url: string, filename: string) {
-    try {
-      const res = await fetch(url, { mode: 'cors' });
-      if (!res.ok) throw new Error(String(res.status));
-      const blob = await res.blob();
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    } catch {
-      window.open(url, '_blank', 'noopener');
-    }
-  }
-
   document.addEventListener('click', (event) => {
     const target = event.target as HTMLElement;
-
-    const download = target.closest('a[download]') as HTMLAnchorElement | null;
-    if (download?.href) {
-      event.preventDefault();
-      downloadUrl(download.href, download.getAttribute('download') || 'hilal.png');
-      return;
-    }
 
     const zoom = target.closest('[data-zoom]') as HTMLElement | null;
     if (zoom) {
