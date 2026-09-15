@@ -5,13 +5,12 @@ on:
     branches: [main]
   pull_request:
 
-defaults:
-  run:
-    working-directory: api
-
 jobs:
   ci:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
     env:
       MABIMS_EPHEMERIS_DIR: ${{ github.workspace }}/api/.ephem
     steps:
