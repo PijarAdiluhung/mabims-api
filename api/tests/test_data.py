@@ -89,10 +89,28 @@ def test_computed_seed_is_contiguous():
     if not SEED_PATH.exists():
         pytest.skip("No seed file")
     seed = json.loads(SEED_PATH.read_text(encoding="utf-8"))
-    g2h = seed.get("g2h", {})
+    g2h = seed.get("gregorian_to_hijri", {})
     if not g2h:
         pytest.skip("Empty seed")
     dates = sorted(date.fromisoformat(g) for g in g2h)
     for i in range(1, len(dates)):
         gap = (dates[i] - dates[i - 1]).days
         assert gap == 1, f"Seed gap of {gap} days between {dates[i-1]} and {dates[i]}"
+
+
+def test_computed_seed_reverse_mapping_is_consistent():
+    if not SEED_PATH.exists():
+        pytest.skip("No seed file")
+    seed = json.loads(SEED_PATH.read_text(encoding="utf-8"))
+    g2h = seed.get("gregorian_to_hijri", {})
+    h2g = seed.get("hijri_to_gregorian", {})
+    if not g2h or not h2g:
+        pytest.skip("Empty seed")
+    failures = []
+    for g, h in g2h.items():
+        if h2g.get(h) != g:
+            failures.append(f"G→H: {g} → {h}, but H→G: {h} → {h2g.get(h)}")
+    for h, g in h2g.items():
+        if g2h.get(g) != h:
+            failures.append(f"H→G: {h} → {g}, but G→H: {g} → {g2h.get(g)}")
+    assert not failures, "Inconsistent mappings:\n" + "\n".join(failures[:20])
