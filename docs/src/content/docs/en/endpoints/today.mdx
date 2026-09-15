@@ -18,6 +18,7 @@ GET /api/v1/today?tz={timezone}
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `tz` | string | no (default `Asia/Jakarta`, UTC+7) | [IANA](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) zone name (`Asia/Kuala_Lumpur`) or UTC offset (`UTC+7`, `+08:00`) |
+| `next` | boolean | no (default `false`) | Set `true` to also return the Hijri date that becomes current after this evening's maghrib (the next civil day's mapping) |
 
 ## Example
 
@@ -56,6 +57,28 @@ GET /api/v1/today?tz={timezone}
 
 The `input.tz` field echoes the *resolved* timezone so clients can confirm what was used.
 
+## The date after maghrib (`next`)
+
+The Hijri day begins at maghrib, so the date rolls over before midnight. With `next=true` the response also carries a `next` object: the Hijri date that becomes current **after this evening's maghrib**.
+
+```bash
+curl "https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta&next=true"
+```
+
+```json
+{
+  "input": { "date": "2026-08-24", "calendar": "gregorian", "tz": "Asia/Jakarta" },
+  "output": { "date": "1448-03-11", "calendar": "hijri", "day": 11, "month": 3, "month_name": "Rabiul Akhir", "year": 1448 },
+  "next": { "date": "1448-03-12", "calendar": "hijri", "day": 12, "month": 3, "month_name": "Rabiul Akhir", "year": 1448, "source": "mabims" },
+  "source": "mabims",
+  "warnings": []
+}
+```
+
+Switch your display to `next` once your local maghrib has passed. The API does **not** compute sunset — gate the flip on your own prayer-time clock. Without `next=true` the field is absent and the response is unchanged.
+
+`next.source` is reported separately because it may differ from the top-level `source` when the rollover crosses the curated-table edge.
+
 ## Errors
 
 ```json
@@ -70,6 +93,7 @@ The `input.tz` field echoes the *resolved* timezone so clients can confirm what 
 | `code` | HTTP | Cause |
 |---|---|---|
 | `invalid_timezone` | 400 | Unrecognized timezone |
+| `invalid_next` | 400 | `next` param is not `true` or `false` |
 
 ## Immutable variant
 

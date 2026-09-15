@@ -65,7 +65,7 @@ The `source` field indicates where the data came from:
 
 | Endpoint | Purpose | Rate Limit |
 |---|---|---|
-| `GET /api/v1/today?tz=` | Today's Hijri date, timezone-aware (default `Asia/Jakarta`). Accepts any IANA timezone (e.g. `Asia/Kuala_Lumpur`, `Asia/Singapore`). | 240/min |
+| `GET /api/v1/today?tz=&next=` | Today's Hijri date, timezone-aware (default `Asia/Jakarta`). Add `next=true` for the Hijri date that begins after this evening's maghrib. Accepts any IANA timezone (e.g. `Asia/Kuala_Lumpur`, `Asia/Singapore`). | 240/min |
 | `GET /api/v1/today/{date}` | Same as above for a fixed `YYYY-MM-DD` date. Immutable, CDN-cacheable forever. | 240/min |
 | `GET /api/v1/convert?date=&calendar=` | Single date conversion, either direction. `calendar` must be `hijri` or `gregorian`. | 240/min |
 | `GET /api/v1/range?start=&end=&calendar=` | Bulk conversion (≤45 days). `calendar` must be `hijri` or `gregorian`. Beyond table coverage, hijri ranges are served from the computed tier. | 240/min |
@@ -95,6 +95,7 @@ The hilal visibility criteria follow Neo MABIMS: **moon altitude ≥ 3.0°** (to
 | `start`, `end` | `YYYY-MM-DD` | Used by `/range`. |
 | `year` | Integer | Hijri or Gregorian year, depending on `calendar`. |
 | `retro` | `true`, `false` | Default `false`. Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro`. |
+| `next` | `true`, `false` | Default `false`. On `/today`, also returns the Hijri date that begins after this evening's maghrib (the next civil day's mapping) as `next`, with its own `source`. The API does not compute sunset — the client gates the flip on its own maghrib time. |
 | `month` | Integer | Hijri or Gregorian month (1–12). |
 
 ## Events
@@ -128,6 +129,7 @@ All errors follow a consistent JSON shape:
 | 400 | `missing_parameter` | Required query param not provided |
 | 400 | `invalid_step` | `step` param is not `day` |
 | 400 | `invalid_retro` | `retro` param is not `true` or `false` |
+| 400 | `invalid_next` | `next` param is not `true` or `false` |
 | 400 | `invalid_range` | `start` is after `end` |
 | 400 | `invalid_month` | `month` is not between 1 and 12 |
 | 400 | `invalid_year` | `year` is out of supported bounds |

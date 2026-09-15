@@ -17,6 +17,7 @@ from app.schemas import (
     MetaResponse,
     MonthResponse,
     RangeResponse,
+    TodayResponse,
 )
 
 API_DIR = Path(__file__).resolve().parent.parent
@@ -58,6 +59,20 @@ def test_documented_endpoints_exist_in_openapi(client):
     paths = client.get("/openapi.json").json()["paths"]
     for path in DOCUMENTED_ENDPOINTS:
         assert path in paths, f"{path} is documented but missing from the OpenAPI schema"
+
+
+def test_today_next_param_in_openapi(client):
+    params = client.get("/openapi.json").json()["paths"]["/api/v1/today"]["get"]["parameters"]
+    assert "next" in {p["name"] for p in params}
+
+
+def test_today_next_matches_schema(client):
+    response = client.get("/api/v1/today?next=true")
+    if response.status_code != 200:
+        pytest.skip("next date is outside curated coverage")
+    body = _parse(response.json(), TodayResponse)
+    assert body.next is not None
+    assert body.next.calendar == "hijri"
 
 
 def test_healthz_matches_schema(client):

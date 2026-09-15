@@ -12,6 +12,7 @@ Mengembalikan tanggal Hijriah untuk "sekarang" di zona waktu yang diminta. Ini a
 | Parameter | Tipe | Wajib | Deskripsi |
 |---|---|---|---|
 | `tz` | string | tidak (default `Asia/Jakarta`, UTC+7) | Nama zona [IANA](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (`Asia/Kuala_Lumpur`) atau UTC offset (`UTC+7`, `+08:00`) |
+| `next` | boolean | tidak (default `false`) | Set `true` untuk juga mengembalikan tanggal Hijriah yang mulai berlaku setelah magrib malam ini (setara pemetaan hari sipil berikutnya) |
 
 ## Contoh
 
@@ -50,6 +51,28 @@ Mengembalikan tanggal Hijriah untuk "sekarang" di zona waktu yang diminta. Ini a
 
 Field `input.tz` menampilkan zona waktu yang *terdeteksi sistem* sehingga klien dapat memastikan zona yang digunakan.
 
+## Tanggal setelah magrib (`next`)
+
+Hari Hijriah dimulai saat magrib, jadi tanggal berganti sebelum tengah malam. Dengan `next=true`, respons juga menyertakan objek `next`: tanggal Hijriah yang berlaku **setelah magrib malam ini**.
+
+```bash
+curl "https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta&next=true"
+```
+
+```json
+{
+  "input": { "date": "2026-08-24", "calendar": "gregorian", "tz": "Asia/Jakarta" },
+  "output": { "date": "1448-03-11", "calendar": "hijri", "day": 11, "month": 3, "month_name": "Rabiul Akhir", "year": 1448 },
+  "next": { "date": "1448-03-12", "calendar": "hijri", "day": 12, "month": 3, "month_name": "Rabiul Akhir", "year": 1448, "source": "mabims" },
+  "source": "mabims",
+  "warnings": []
+}
+```
+
+Cukup ganti tampilan ke `next` begitu waktu magrib terlewati. API **tidak** menghitung waktu matahari terbenam, jadi tentukan momen magrib di sisi klien Anda. Tanpa `next=true`, field ini tidak ada dan respons tidak berubah.
+
+`next.source` dilaporkan terpisah karena bisa berbeda dari `source` utama bila pergantian hari melewati batas tabel kurasi.
+
 ## Error
 
 ```json
@@ -64,6 +87,7 @@ Field `input.tz` menampilkan zona waktu yang *terdeteksi sistem* sehingga klien 
 | `code` | HTTP | Penyebab |
 |---|---|---|
 | `invalid_timezone` | 400 | Zona waktu tidak dikenal |
+| `invalid_next` | 400 | Parameter `next` bukan `true` atau `false` |
 
 ## Varian immutable
 
