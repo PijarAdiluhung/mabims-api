@@ -260,6 +260,16 @@ const description =
     letter-spacing: 0.01em;
   }
 
+  .hilal-tz {
+    display: none;
+  }
+
+  @media (min-width: 54rem) {
+    .hilal-greg .hilal-tz {
+      display: inline;
+    }
+  }
+
   .hilal-countdown-card {
     position: absolute;
     bottom: 0;
@@ -359,13 +369,6 @@ const description =
     transform: translateY(-50%);
   }
 
-  .hilal-method {
-    margin: 0.85rem 0 0;
-    font-size: 0.72rem;
-    color: var(--sl-color-gray-3);
-    letter-spacing: 0.02em;
-  }
-
   .hilal-hero-text .btn {
     display: none;
     align-items: center;
@@ -378,6 +381,20 @@ const description =
     cursor: pointer;
     margin-top: clamp(1.5rem, 2.5vw, 2rem);
     transition: gap 0.2s ease, transform 0.2s ease;
+  }
+
+  .hilal-method {
+    display: none;
+    margin: 0.85rem 0 0;
+    font-size: 0.72rem;
+    color: var(--sl-color-gray-3);
+    letter-spacing: 0.02em;
+  }
+
+  @media (min-width: 54rem) {
+    .hilal-method {
+      display: block;
+    }
   }
 
   @media (min-width: 64rem) {
@@ -1193,7 +1210,7 @@ const description =
     if (day) day.textContent = String(o.day);
     if (month) month.textContent = o.month_name;
     if (year) year.textContent = String(o.year);
-    if (greg) greg.textContent = `${fmtDate(today.input.date)} · ${today.input.tz}`;
+    if (greg) greg.innerHTML = `${fmtDate(today.input.date)} <span class="hilal-tz">· ${today.input.tz}</span>`;
   }
 
   const MOON_R = 70;
