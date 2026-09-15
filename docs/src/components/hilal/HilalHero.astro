@@ -6,6 +6,30 @@ interface Props {
 }
 
 const { fallback } = Astro.props;
+
+// Flat 2D moon: crisp crescent geometry + flat mare blobs, no gradients.
+const MOON_R = 70;
+function litPath(phase: number): string {
+  if (phase <= 0.001) return '';
+  const r = MOON_R;
+  if (phase >= 0.999) {
+    return `M 0 ${-r} A ${r} ${r} 0 1 1 0 ${r} A ${r} ${r} 0 1 1 0 ${-r} Z`;
+  }
+  const cosPhase = Math.cos(2 * Math.PI * phase);
+  const minor = Math.abs(cosPhase) * r;
+  const waxing = phase < 0.5;
+  const outerSweep = waxing ? 1 : 0;
+  const innerSweep = (cosPhase < 0) === waxing ? 1 : 0;
+  return (
+    `M 0 ${-r}` +
+    ` A ${r} ${r} 0 0 ${outerSweep} 0 ${r}` +
+    ` A ${minor} ${r} 0 0 ${innerSweep} 0 ${-r}` +
+    ' Z'
+  );
+}
+const initD = fallback?.day
+  ? litPath(Math.min(0.999, Math.max(0.02, (fallback.day - 0.5) / 29.53)))
+  : '';
 ---
 
 <section class="hilal-hero" id="sekarang">
@@ -32,26 +56,36 @@ const { fallback } = Astro.props;
     </div>
 
     <div class="hilal-moon-stage">
-      <div class="hilal-moon-glow" aria-hidden="true"></div>
-      <div class="hilal-moon-aura" aria-hidden="true"></div>
       <svg viewBox="0 0 240 240" class="hilal-moon" role="img" aria-label="Fase bulan saat ini">
         <defs>
-          <radialGradient id="hilal-moon-g" cx="35%" cy="28%" r="78%">
-            <stop offset="0%" stop-color="#fff8d4"></stop>
-            <stop offset="35%" stop-color="#fecf46"></stop>
-            <stop offset="75%" stop-color="#d49424"></stop>
-            <stop offset="100%" stop-color="#8a5814"></stop>
-          </radialGradient>
-          <radialGradient id="hilal-moon-halo" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#fecf46" stop-opacity="0.45"></stop>
-            <stop offset="40%" stop-color="#fecf46" stop-opacity="0.12"></stop>
-            <stop offset="100%" stop-color="#fecf46" stop-opacity="0"></stop>
-          </radialGradient>
+          <clipPath id="hilal-moon-disc"><circle cx="120" cy="120" r="70"></circle></clipPath>
+          <clipPath id="hilal-moon-litclip"><path data-moon-litclip transform="translate(120,120)" d={initD}></path></clipPath>
         </defs>
-        <circle cx="120" cy="120" r="118" fill="url(#hilal-moon-halo)"></circle>
-        <circle cx="120" cy="120" r="70" fill="#13141c"></circle>
-        <g transform="translate(120,120)">
-          <path data-moon-lit fill="url(#hilal-moon-g)" d=""></path>
+        <circle cx="120" cy="120" r="78" fill="none" stroke="#fecf46" stroke-width="1" opacity="0.15"></circle>
+        <circle cx="120" cy="120" r="70" fill="#1d2029"></circle>
+        <g clip-path="url(#hilal-moon-disc)">
+          <path data-moon-lit transform="translate(120,120)" fill="#f6cf4e" d={initD}></path>
+          <g clip-path="url(#hilal-moon-litclip)">
+            <!-- Mares, flat gold-darker organic blobs (rough nearside layout) -->
+            <g fill="#dfb23c">
+              <path d="M 72 72 C 70 62 80 54 94 53 C 110 52 121 59 122 69 C 123 79 113 86 99 88 C 85 90 74 83 72 72 Z"></path>
+              <path d="M 128 62 C 136 56 148 57 154 64 C 160 71 158 82 150 87 C 142 92 132 89 128 81 C 124 73 122 67 128 62 Z"></path>
+              <path d="M 146 96 C 156 92 166 97 168 105 C 170 113 163 121 153 122 C 143 123 138 116 139 108 C 140 102 142 98 146 96 Z"></path>
+              <path d="M 170 86 C 175 84 180 88 180 93 C 180 98 176 102 171 101 C 166 100 164 94 166 90 C 167 88 168 87 170 86 Z"></path>
+              <path d="M 156 132 C 163 129 169 133 169 139 C 169 145 163 149 157 148 C 151 147 149 141 151 136 C 152 134 154 133 156 132 Z"></path>
+              <path d="M 104 140 C 112 136 122 139 124 146 C 126 153 119 158 111 157 C 103 156 100 149 102 143 C 102 142 103 141 104 140 Z"></path>
+              <path d="M 84 142 C 89 139 95 141 96 146 C 97 151 93 155 88 154 C 83 153 81 148 83 144 C 83 143 83 142 84 142 Z"></path>
+              <path d="M 64 88 C 58 98 56 114 60 128 C 64 142 74 150 86 147 C 94 145 96 136 92 128 C 86 116 84 102 86 92 C 88 84 78 80 72 84 C 68 86 66 86 64 88 Z"></path>
+            </g>
+            <!-- Craters: flat outline circles only -->
+            <g fill="none" stroke="#c99a2b" stroke-width="2">
+              <circle cx="100" cy="104" r="7"></circle>
+              <circle cx="128" cy="132" r="9"></circle>
+              <circle cx="152" cy="112" r="4.5"></circle>
+              <circle cx="86" cy="126" r="3.5"></circle>
+              <circle cx="140" cy="84" r="5"></circle>
+            </g>
+          </g>
         </g>
       </svg>
 

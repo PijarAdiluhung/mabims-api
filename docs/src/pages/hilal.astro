@@ -69,7 +69,7 @@ const description =
     isolation: isolate;
   }
 
-  @media (min-width: 48rem) {
+  @media (min-width: 54rem) {
     .hilal-hero {
       padding-top: clamp(2rem, 4vw, 3rem);
     }
@@ -171,9 +171,16 @@ const description =
     align-items: center;
   }
 
-  @media (min-width: 64rem) {
+  @media (min-width: 54rem) {
     .hilal-hero-grid {
       grid-template-columns: 1fr 1fr;
+      min-height: min(64svh, 540px);
+      gap: 2rem;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .hilal-hero-grid {
       min-height: min(72svh, 580px);
       gap: 2.5rem;
     }
@@ -191,7 +198,7 @@ const description =
     }
   }
 
-  @media (min-width: 64rem) {
+  @media (min-width: 54rem) {
     .hilal-hero-text {
       margin-inline: 0;
     }
@@ -398,22 +405,18 @@ const description =
     }
   }
 
-  .hilal-moon-glow {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at 50% 50%, rgba(254, 207, 70, 0.22) 0%, rgba(254, 207, 70, 0.08) 35%, transparent 70%);
-    filter: blur(28px);
-    z-index: -2;
-    pointer-events: none;
+  @media (min-width: 54rem) {
+    .hilal-moon-stage {
+      padding-top: 2%;
+      min-height: clamp(380px, 44vw, 480px);
+    }
   }
 
-  .hilal-moon-aura {
-    position: absolute;
-    inset: -8%;
-    background: radial-gradient(circle, rgba(254, 207, 70, 0.22) 0%, rgba(254, 207, 70, 0.06) 40%, transparent 70%);
-    filter: blur(12px);
-    z-index: -1;
-    pointer-events: none;
+  @media (min-width: 64rem) {
+    .hilal-moon-stage {
+      padding-top: 4%;
+      min-height: clamp(440px, 52vw, 540px);
+    }
   }
 
   .hilal-moon {
@@ -421,6 +424,12 @@ const description =
     height: auto;
     filter: drop-shadow(0 24px 60px rgba(254, 207, 70, 0.15));
     animation: hilal-moon-breathe 6s ease-in-out infinite;
+  }
+
+  @media (min-width: 54rem) {
+    .hilal-moon {
+      width: clamp(280px, 42vw, 420px);
+    }
   }
 
   @keyframes hilal-moon-breathe {
@@ -1197,8 +1206,11 @@ const description =
     // Symodic phase centered mid-day: day 1 → thin waxing sliver, day ~15 →
     // full, day 29 → near-conjunction dark, day 30 → new moon.
     const phase = Math.min(0.999, Math.max(0.02, (moonDay - 0.5) / 29.53));
+    const d = moonLitPath(phase);
     const lit = $('[data-moon-lit]');
-    if (lit) lit.setAttribute('d', moonLitPath(phase));
+    if (lit) lit.setAttribute('d', d);
+    const litClip = $('[data-moon-litclip]');
+    if (litClip) litClip.setAttribute('d', d);
 
     const setGauge = (
       valSel: string,
