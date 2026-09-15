@@ -1064,14 +1064,11 @@ const description =
     if (unitEl) unitEl.textContent = days <= 0 ? '' : days === 1 ? 'besok' : 'hari lagi';
     const ev = item.evening;
     const sunset = ev.sunset.split(':').slice(0, 2).join(':');
-    const eveLabel = ev.hijri_day === 29
-      ? `Malam 29 ${item.previous_month.name} ${item.previous_month.year} H`
-      : `Malam ${ev.hijri_day} ${item.previous_month.name} ${item.previous_month.year} H`;
     const target = $('[data-count-target]');
     if (target) {
       target.textContent = days <= 0
-        ? `${eveLabel} · matahari terbenam ${sunset}`
-        : `${eveLabel} · ${fmtDate(ev.gregorian_date)}`;
+        ? `${fmtDate(ev.gregorian_date)} · matahari terbenam ${sunset}`
+        : fmtDate(ev.gregorian_date);
     }
 
     const pct = Math.min(100, Math.max(0, (today.output.day / 29) * 100));
@@ -1282,8 +1279,6 @@ const description =
       } catch {
         today = await api('/api/v1/today');
       }
-      const testDay = Number(new URLSearchParams(location.search).get('day'));
-      if (testDay >= 1 && testDay <= 30) today.output.day = testDay;
       renderToday(today);
 
       const hist = await api('/api/v1/hilal/history');
