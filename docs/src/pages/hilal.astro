@@ -64,96 +64,298 @@ const description =
   /* ── Hero ── */
   .hilal-hero {
     position: relative;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
-    padding: clamp(2.5rem, 7vw, 4.5rem) 0 clamp(3.5rem, 8vw, 6.5rem);
-    align-items: center;
-    overflow: hidden;
+    padding: clamp(5rem, 22vw, 7rem) 0 clamp(5rem, 10vw, 7rem);
+    overflow: visible;
+    isolation: isolate;
   }
 
-  @media (min-width: 64rem) {
+  @media (min-width: 48rem) {
     .hilal-hero {
-      grid-template-columns: 1.05fr 0.95fr;
-      gap: 4rem;
-      min-height: min(calc(100svh - 6rem), 52rem);
+      padding-top: clamp(2rem, 4vw, 3rem);
     }
   }
 
-  .hilal-grid-bg {
+  .hilal-atmos {
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1.5px);
-    background-size: 28px 28px;
-    -webkit-mask-image: radial-gradient(ellipse 95% 75% at 50% 40%, #000 35%, transparent 80%);
-    mask-image: radial-gradient(ellipse 95% 75% at 50% 40%, #000 35%, transparent 80%);
     pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+    border-radius: inherit;
   }
 
-  .hilal-hero-copy {
+  .hilal-stars {
+    position: absolute;
+    inset: 0;
+    background-repeat: no-repeat;
+    background-image:
+      radial-gradient(1px at 2.9% 9.9%, rgba(255, 255, 255, 0.7) 99%, transparent),
+      radial-gradient(1.5px at 13.8% 31.8%, rgba(255, 255, 255, 0.9) 99%, transparent),
+      radial-gradient(1px at 24.6% 53.7%, rgba(255, 255, 255, 0.5) 99%, transparent),
+      radial-gradient(1px at 35.4% 75.6%, rgba(255, 255, 255, 0.6) 99%, transparent),
+      radial-gradient(1.2px at 46.2% 8.6%, rgba(255, 255, 255, 0.8) 99%, transparent),
+      radial-gradient(1px at 57% 30.4%, rgba(255, 255, 255, 0.5) 99%, transparent),
+      radial-gradient(1px at 67.8% 52.3%, rgba(255, 255, 255, 0.7) 99%, transparent),
+      radial-gradient(1.5px at 78.6% 74.2%, rgba(255, 255, 255, 0.9) 99%, transparent),
+      radial-gradient(1px at 89.4% 7.2%, rgba(255, 255, 255, 0.6) 99%, transparent),
+      radial-gradient(1px at 0.3% 29.1%, rgba(255, 255, 255, 0.5) 99%, transparent),
+      radial-gradient(1.4px at 11.1% 51%, rgba(255, 255, 255, 0.8) 99%, transparent),
+      radial-gradient(1px at 21.9% 72.9%, rgba(255, 255, 255, 0.6) 99%, transparent),
+      radial-gradient(1px at 32.7% 5.9%, rgba(255, 255, 255, 0.7) 99%, transparent),
+      radial-gradient(1.2px at 43.5% 27.8%, rgba(255, 255, 255, 0.75) 99%, transparent),
+      radial-gradient(1px at 54.3% 49.7%, rgba(255, 255, 255, 0.5) 99%, transparent),
+      radial-gradient(1.1px at 65.1% 71.6%, rgba(255, 255, 255, 0.8) 99%, transparent),
+      radial-gradient(1px at 75.9% 4.6%, rgba(255, 255, 255, 0.6) 99%, transparent),
+      radial-gradient(1.3px at 86.8% 26.4%, rgba(255, 255, 255, 0.85) 99%, transparent),
+      radial-gradient(1px at 97.6% 48.3%, rgba(255, 255, 255, 0.5) 99%, transparent),
+      radial-gradient(1px at 8.4% 70.2%, rgba(255, 255, 255, 0.6) 99%, transparent),
+      radial-gradient(1.2px at 19.2% 3.2%, rgba(255, 255, 255, 0.8) 99%, transparent),
+      radial-gradient(1px at 30% 25.1%, rgba(255, 255, 255, 0.5) 99%, transparent),
+      radial-gradient(1px at 40.8% 47%, rgba(255, 255, 255, 0.7) 99%, transparent),
+      radial-gradient(1px at 51.6% 68.9%, rgba(255, 255, 255, 0.5) 99%, transparent),
+      radial-gradient(1.4px at 62.4% 1.9%, rgba(255, 255, 255, 0.9) 99%, transparent),
+      radial-gradient(1px at 73.3% 23.8%, rgba(255, 255, 255, 0.6) 99%, transparent),
+      radial-gradient(1px at 84.1% 45.7%, rgba(255, 255, 255, 0.7) 99%, transparent),
+      radial-gradient(1.5px at 94.9% 67.6%, rgba(255, 255, 255, 0.85) 99%, transparent),
+      radial-gradient(1px at 5.7% 0.6%, rgba(255, 255, 255, 0.5) 99%, transparent),
+      radial-gradient(1px at 16.5% 22.4%, rgba(255, 255, 255, 0.6) 99%, transparent),
+      radial-gradient(1.2px at 27.3% 44.3%, rgba(255, 255, 255, 0.8) 99%, transparent),
+      radial-gradient(1px at 38.1% 66.2%, rgba(255, 255, 255, 0.5) 99%, transparent),
+      radial-gradient(1px at 48.9% 88.1%, rgba(255, 255, 255, 0.6) 99%, transparent),
+      radial-gradient(1.3px at 59.8% 21.1%, rgba(255, 255, 255, 0.9) 99%, transparent),
+      radial-gradient(1px at 70.6% 43%, rgba(255, 255, 255, 0.5) 99%, transparent),
+      radial-gradient(1.1px at 81.4% 64.9%, rgba(255, 255, 255, 0.8) 99%, transparent),
+      radial-gradient(1px at 92.2% 86.8%, rgba(255, 255, 255, 0.6) 99%, transparent),
+      radial-gradient(1px at 3% 19.8%, rgba(255, 255, 255, 0.5) 99%, transparent),
+      radial-gradient(1px at 13.8% 41.7%, rgba(255, 255, 255, 0.6) 99%, transparent);
+    opacity: 0.85;
+  }
+
+  .hilal-stars::before,
+  .hilal-stars::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-repeat: no-repeat;
+    animation: hilal-twinkle 4s ease-in-out infinite;
+  }
+
+  .hilal-stars::before {
+    background-image:
+      radial-gradient(2px at 13.8% 31.8%, #fff 99%, transparent),
+      radial-gradient(1.8px at 67.8% 52.3%, #fff 99%, transparent),
+      radial-gradient(1.5px at 35.4% 75.6%, #fff 99%, transparent);
+    animation-delay: -1s;
+    animation-duration: 3.5s;
+  }
+
+  .hilal-stars::after {
+    background-image:
+      radial-gradient(1.6px at 89.4% 7.2%, #fff 99%, transparent),
+      radial-gradient(1.4px at 43.5% 27.8%, #fff 99%, transparent);
+    animation-delay: -2.5s;
+    animation-duration: 4.8s;
+  }
+
+  @keyframes hilal-twinkle {
+    0%, 100% { opacity: 0.18; }
+    50% { opacity: 1; }
+  }
+
+  .hilal-hero-grid {
     position: relative;
     z-index: 1;
-    text-align: center;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    align-items: center;
   }
 
   @media (min-width: 64rem) {
-    .hilal-hero-copy {
-      text-align: left;
+    .hilal-hero-grid {
+      grid-template-columns: 1fr 1fr;
+      min-height: min(72svh, 580px);
+      gap: 2.5rem;
+    }
+  }
+
+  .hilal-hero-text {
+    max-width: 36rem;
+    margin-inline: auto;
+    text-align: left;
+  }
+
+  @media (min-width: 48rem) {
+    .hilal-hero-text {
+      padding-inline-start: clamp(1.25rem, 4vw, 3rem);
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .hilal-hero-text {
+      margin-inline: 0;
     }
   }
 
   .hilal-eyebrow {
-    margin: 0 0 0.75rem;
+    margin: 0 0 0.85rem;
     text-transform: uppercase;
-    letter-spacing: 0.18em;
-    font-size: 0.75rem;
+    letter-spacing: 0.22em;
+    font-size: 0.78rem;
     font-weight: 600;
     color: var(--sl-color-gray-3);
   }
 
   .hilal-date {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
     margin: 0;
-    font-size: clamp(2.25rem, 7vw, 4.25rem);
     font-weight: 800;
-    line-height: 1.05;
+    line-height: 0.95;
+    text-shadow: 0 2px 30px rgba(0, 0, 0, 0.4);
+  }
+
+  .hilal-date-rest {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .hilal-date-num {
+    font-size: clamp(4rem, 10vw, 7.5rem);
+    line-height: 1;
     color: var(--sl-color-white);
-    text-wrap: balance;
-    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
+    font-variant-numeric: tabular-nums;
   }
 
   .hilal-date-month {
+    font-size: clamp(2.25rem, 5.5vw, 3.75rem);
+    line-height: 1;
     color: var(--sl-color-accent);
-  }
-
-  .hilal-date-year {
-    font-size: 0.45em;
-    font-weight: 600;
-    color: var(--sl-color-gray-2);
     white-space: nowrap;
   }
 
-  .hilal-greg {
-    margin: 0.85rem 0 0;
-    font-size: clamp(0.95rem, 2.4vw, 1.1rem);
+  .hilal-date-year {
+    font-size: clamp(1rem, 1.5vw, 1.4rem);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
     color: var(--sl-color-gray-2);
+    margin-top: 0.45em;
   }
 
-  .hilal-hero-actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.875rem;
-    margin-top: 1.75rem;
+  .hilal-greg {
+    margin: 1rem 0 0;
+    font-size: clamp(0.95rem, 1.4vw, 1.1rem);
+    color: var(--sl-color-gray-2);
+    letter-spacing: 0.01em;
+  }
+
+  .hilal-countdown-card {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: clamp(240px, 90%, 360px);
+    padding: clamp(1rem, 2vw, 1.4rem);
+    text-align: center;
+    background: rgba(18, 20, 28, 0.78);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    z-index: 5;
   }
 
   @media (min-width: 64rem) {
-    .hilal-hero-actions {
-      justify-content: flex-start;
+    .hilal-countdown-card {
+      bottom: 12%;
+      width: clamp(260px, 70%, 360px);
     }
   }
 
-  .hilal-btn {
-    display: inline-flex;
+  .countdown-eyebrow {
+    margin: 0 0 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--sl-color-gray-3);
+  }
+
+  .countdown-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.6rem;
+  }
+
+  .countdown-value {
+    font-size: clamp(2rem, 3.6vw, 2.65rem);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--sl-color-accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .countdown-unit {
+    font-size: clamp(0.85rem, 1.1vw, 1rem);
+    font-weight: 500;
+    color: var(--sl-color-gray-2);
+  }
+
+  .countdown-target {
+    margin: 0.35rem 0 0.85rem;
+    font-size: 0.88rem;
+    color: var(--sl-color-gray-2);
+  }
+
+  .lunation-track {
+    position: relative;
+    height: 3px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+    border-radius: 999px;
+  }
+
+  .lunation-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    background: linear-gradient(90deg, rgba(254, 207, 70, 0.25), var(--sl-color-accent) 60%, #fff3c4);
+    border-radius: 999px;
+    transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: 0 0 14px rgba(254, 207, 70, 0.5);
+  }
+
+  .lunation-fill::after {
+    content: '';
+    position: absolute;
+    right: -4px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #fff3c4;
+    box-shadow: 0 0 10px rgba(254, 207, 70, 0.8);
+    transform: translateY(-50%);
+  }
+
+  .hilal-method {
+    margin: 0.85rem 0 0;
+    font-size: 0.72rem;
+    color: var(--sl-color-gray-3);
+    letter-spacing: 0.02em;
+  }
+
+  .hilal-hero-text .btn {
+    display: none;
     align-items: center;
     gap: 0.5rem;
     padding: 0.875rem 1.5rem;
@@ -161,172 +363,79 @@ const description =
     font-weight: 600;
     font-size: var(--sl-text-sm);
     text-decoration: none;
-    transition: all 0.2s;
+    cursor: pointer;
+    margin-top: clamp(1.5rem, 2.5vw, 2rem);
+    transition: gap 0.2s ease, transform 0.2s ease;
   }
 
-  .hilal-btn-primary {
-    background: var(--sl-color-accent);
-    color: #1a1a2e !important;
+  @media (min-width: 64rem) {
+    .hilal-hero-text .btn {
+      display: inline-flex;
+    }
+  }
+
+  .hilal-hero-text .btn-primary {
     font-weight: 700;
   }
 
-  .hilal-btn-primary:hover {
-    background: var(--sl-color-accent-high);
-    transform: translateY(-1px);
+  .hilal-hero-text .btn-primary:hover {
+    gap: 0.8rem;
   }
 
-  .hilal-btn-ghost {
-    background: rgba(255, 255, 255, 0.07);
-    color: var(--sl-color-white) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(4px);
-  }
-
-  .hilal-btn-ghost:hover {
-    background: rgba(255, 255, 255, 0.13);
-    border-color: rgba(255, 255, 255, 0.25);
-  }
-
-  .hilal-method {
+  .hilal-moon-stage {
     position: relative;
-    margin: 1.25rem 0 0;
-    font-size: 0.78rem;
-    color: var(--sl-color-gray-3);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 0.25rem;
+    min-height: clamp(340px, 62vw, 400px);
   }
 
-  .hilal-countdown {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.25rem;
-    padding: clamp(1.75rem, 4vw, 2.25rem);
-    text-align: center;
-    background: rgba(35, 38, 47, 0.92);
-    border: 1px solid rgba(254, 207, 70, 0.2);
-    border-radius: 20px;
-    box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(6px);
-  }
-
-  @media (min-width: 28rem) {
-    .hilal-countdown {
-      grid-template-columns: auto 1fr;
-      align-items: center;
-      text-align: left;
-      gap: 1.75rem;
+  @media (min-width: 64rem) {
+    .hilal-moon-stage {
+      padding-top: 4%;
+      min-height: clamp(440px, 52vw, 540px);
     }
   }
 
-  .countdown-arc {
-    justify-self: center;
+  .hilal-moon-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(254, 207, 70, 0.22) 0%, rgba(254, 207, 70, 0.08) 35%, transparent 70%);
+    filter: blur(28px);
+    z-index: -2;
+    pointer-events: none;
   }
 
-  @media (min-width: 28rem) {
-    .countdown-arc {
-      justify-self: start;
-    }
+  .hilal-moon-aura {
+    position: absolute;
+    inset: -8%;
+    background: radial-gradient(circle, rgba(254, 207, 70, 0.22) 0%, rgba(254, 207, 70, 0.06) 40%, transparent 70%);
+    filter: blur(12px);
+    z-index: -1;
+    pointer-events: none;
   }
 
-  .countdown-arc svg {
-    display: block;
-    width: clamp(104px, 26vw, 140px);
+  .hilal-moon {
+    width: clamp(280px, 62vw, 420px);
     height: auto;
+    filter: drop-shadow(0 24px 60px rgba(254, 207, 70, 0.15));
+    animation: hilal-moon-breathe 6s ease-in-out infinite;
   }
 
-  .arc-track {
-    fill: none;
-    stroke: rgba(255, 255, 255, 0.09);
-    stroke-width: 6;
+  @keyframes hilal-moon-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.015); }
   }
 
-  .arc-fill {
-    fill: none;
-    stroke: var(--sl-color-accent);
-    stroke-width: 6;
-    stroke-linecap: round;
-    stroke-dasharray: 100;
-    stroke-dashoffset: 100;
-    transition: stroke-dashoffset 0.8s ease;
-    filter: drop-shadow(0 0 6px rgba(254, 207, 70, 0.45));
-  }
-
-  .moon-dark {
-    fill: rgba(255, 255, 255, 0.1);
-  }
-
-  .countdown-eyebrow {
-    position: relative;
-    margin: 0;
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--sl-color-gray-3);
-  }
-
-  .countdown-value {
-    position: relative;
-    margin: 0.35rem 0;
-    font-size: clamp(2.25rem, 7vw, 3.5rem);
-    font-weight: 800;
-    line-height: 1;
-    color: var(--sl-color-accent);
-  }
-
-  .countdown-unit {
-    font-size: 0.32em;
-    font-weight: 600;
-    color: var(--sl-color-gray-2);
-  }
-
-  .countdown-target {
-    position: relative;
-    margin: 0 0 1rem;
-    font-size: 0.95rem;
-    color: var(--sl-color-gray-2);
-  }
-
-  .countdown-gauges {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-
-  .gauge-row {
-    display: flex;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-    padding: 0.55rem 0.75rem;
-    background: rgba(0, 0, 0, 0.22);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 10px;
-    font-size: 0.85rem;
-  }
-
-  .gauge-label {
-    color: var(--sl-color-gray-3);
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-
-  .gauge-value {
-    font-weight: 700;
-    color: var(--sl-color-white);
-  }
-
-  .gauge-threshold {
-    font-size: 0.72rem;
-    color: var(--sl-color-gray-3);
-  }
-
-  .countdown-site {
-    position: relative;
-    margin: 0.75rem 0 0;
-    font-size: 0.8rem;
-    color: var(--sl-color-gray-3);
+  @media (prefers-reduced-motion: reduce) {
+    .hilal-moon,
+    .hilal-stars::before,
+    .hilal-stars::after,
+    .lunation-fill {
+      animation: none !important;
+      transition: none !important;
+    }
   }
 
   /* ── Section head ── */
@@ -886,7 +995,7 @@ const description =
 
   @media (prefers-reduced-motion: reduce) {
     .hilal-zoom img,
-    .arc-fill,
+    .lunation-fill,
     .hilal-loadmore {
       transition: none !important;
     }
@@ -935,6 +1044,15 @@ const description =
 
   const state = { history: [] as Item[], shown: PAGE };
   let upcoming: Item | null = null;
+
+  const urlParams = new URL(window.location.href).searchParams;
+  const rawDay = urlParams.get('day');
+  const previewDay = (() => {
+    if (rawDay == null || rawDay === '') return null;
+    const n = parseInt(rawDay, 10);
+    if (!Number.isFinite(n)) return null;
+    return Math.max(1, Math.min(30, n));
+  })();
 
   const DAY_FMT = new Intl.DateTimeFormat('id-ID', {
     weekday: 'long',
@@ -1021,13 +1139,13 @@ const description =
     const month = $('[data-today-month]');
     const year = $('[data-today-year]');
     const greg = $('[data-today-greg]');
-    if (day) day.textContent = String(o.day);
+    if (day) day.textContent = String(previewDay ?? o.day);
     if (month) month.textContent = o.month_name;
     if (year) year.textContent = String(o.year);
     if (greg) greg.textContent = `${fmtDate(today.input.date)} · ${today.input.tz}`;
   }
 
-  const MOON_R = 40;
+  const MOON_R = 70;
 
   // Correct moon phase: lit disc = half-circle outer arc + half-ellipse
   // terminator (semi-minor axis r*|cos(2π·phase)|). phase: 0=new, 0.5=full.
@@ -1071,13 +1189,14 @@ const description =
         : fmtDate(ev.gregorian_date);
     }
 
-    const pct = Math.min(100, Math.max(0, (today.output.day / 29) * 100));
-    const arc = $('[data-moon-arc]') as SVGGeometryElement | null;
-    if (arc) arc.style.strokeDashoffset = String(100 - pct);
+    const moonDay = previewDay ?? today.output.day;
+    const pct = Math.min(100, Math.max(0, (moonDay / 29) * 100));
+    const arc = $('[data-moon-arc]') as HTMLElement | null;
+    if (arc) arc.style.width = `${pct}%`;
 
     // Symodic phase centered mid-day: day 1 → thin waxing sliver, day ~15 →
     // full, day 29 → near-conjunction dark, day 30 → new moon.
-    const phase = Math.min(0.999, Math.max(0.02, (today.output.day - 0.5) / 29.53));
+    const phase = Math.min(0.999, Math.max(0.02, (moonDay - 0.5) / 29.53));
     const lit = $('[data-moon-lit]');
     if (lit) lit.setAttribute('d', moonLitPath(phase));
 

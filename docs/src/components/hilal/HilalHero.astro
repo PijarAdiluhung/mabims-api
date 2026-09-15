@@ -9,71 +9,65 @@ const { fallback } = Astro.props;
 ---
 
 <section class="hilal-hero" id="sekarang">
-  <div class="hilal-grid-bg" aria-hidden="true"></div>
-
-  <div class="hilal-hero-copy">
-    <p class="hilal-eyebrow">Hari ini</p>
-    <h1 class="hilal-date">
-      <span class="hilal-date-num" data-today-day>{fallback?.day ?? '—'}</span>
-      <span class="hilal-date-month" data-today-month>{fallback?.month_name ?? 'Memuat…'}</span>
-      <span class="hilal-date-year"><span data-today-year>{fallback?.year ?? ''}</span> H</span>
-    </h1>
-    <p class="hilal-greg" data-today-greg>{fallback?.greg ?? 'Memuat tanggal…'}</p>
-    <div class="hilal-hero-actions">
-      <a href="#berikutnya" class="hilal-btn hilal-btn-primary">
-        Lihat visibilitas
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
-      </a>
-      <a href="#riwayat" class="hilal-btn hilal-btn-ghost">
-        Riwayat penentuan
-      </a>
-    </div>
-    <p class="hilal-method">Kriteria Neo MABIMS · altitude ≥ 3° · elongasi ≥ 6,4°</p>
+  <div class="hilal-atmos" aria-hidden="true">
+    <div class="hilal-stars"></div>
   </div>
 
-  <div class="hilal-countdown">
-    <div class="countdown-arc" aria-hidden="true">
-      <svg viewBox="0 0 140 140" width="140" height="140" focusable="false">
+  <div class="hilal-hero-grid">
+    <div class="hilal-hero-text">
+      <p class="hilal-eyebrow">Hari ini</p>
+      <h1 class="hilal-date">
+        <span class="hilal-date-num" data-today-day>{fallback?.day ?? '—'}</span>
+        <span class="hilal-date-rest">
+          <span class="hilal-date-month" data-today-month>{fallback?.month_name ?? 'Memuat…'}</span>
+          <span class="hilal-date-year"><span data-today-year>{fallback?.year ?? ''}</span> H</span>
+        </span>
+      </h1>
+      <p class="hilal-greg" data-today-greg>{fallback?.greg ?? 'Memuat tanggal…'}</p>
+      <p class="hilal-method">Kriteria Neo MABIMS · altitude ≥ 3° · elongasi ≥ 6,4°</p>
+      <a href="#berikutnya" class="btn btn-primary">
+        Lihat visibilitas
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+    </div>
+
+    <div class="hilal-moon-stage">
+      <div class="hilal-moon-glow" aria-hidden="true"></div>
+      <div class="hilal-moon-aura" aria-hidden="true"></div>
+      <svg viewBox="0 0 240 240" class="hilal-moon" role="img" aria-label="Fase bulan saat ini">
         <defs>
-          <radialGradient id="hilal-moon-g" cx="38%" cy="30%" r="80%">
-            <stop offset="0%" stop-color="#fff3c4"></stop>
-            <stop offset="55%" stop-color="#fecf46"></stop>
-            <stop offset="100%" stop-color="#b97f14"></stop>
+          <radialGradient id="hilal-moon-g" cx="35%" cy="28%" r="78%">
+            <stop offset="0%" stop-color="#fff8d4"></stop>
+            <stop offset="35%" stop-color="#fecf46"></stop>
+            <stop offset="75%" stop-color="#d49424"></stop>
+            <stop offset="100%" stop-color="#8a5814"></stop>
+          </radialGradient>
+          <radialGradient id="hilal-moon-halo" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#fecf46" stop-opacity="0.45"></stop>
+            <stop offset="40%" stop-color="#fecf46" stop-opacity="0.12"></stop>
+            <stop offset="100%" stop-color="#fecf46" stop-opacity="0"></stop>
           </radialGradient>
         </defs>
-        <circle class="arc-track" cx="70" cy="70" r="62" pathLength="100"></circle>
-        <circle class="arc-fill" data-moon-arc cx="70" cy="70" r="62" pathLength="100" transform="rotate(-90 70 70)"></circle>
-        <circle class="moon-dark" cx="70" cy="70" r="40"></circle>
-        <g transform="translate(70,70)">
+        <circle cx="120" cy="120" r="118" fill="url(#hilal-moon-halo)"></circle>
+        <circle cx="120" cy="120" r="70" fill="#13141c"></circle>
+        <g transform="translate(120,120)">
           <path data-moon-lit fill="url(#hilal-moon-g)" d=""></path>
         </g>
       </svg>
-    </div>
 
-    <div class="countdown-body">
-      <p class="countdown-eyebrow">Malam penentuan berikutnya</p>
-      <p class="countdown-value">
-        <span data-count-days>—</span>
-        <span class="countdown-unit" data-count-unit>hari lagi</span>
-      </p>
-      <p class="countdown-target" data-count-target>Menghitung…</p>
-
-      <div class="countdown-gauges">
-        <div class="gauge-row">
-          <span class="gauge-label">Ketinggian bulan</span>
-          <span class="gauge-value" data-gauge-alt>—</span>
-          <span class="gauge-threshold" data-gauge-alt-min>min. 3,0°</span>
-          <span class="fact-chip" data-gauge-alt-chip hidden></span>
+      <div class="hilal-countdown-card">
+        <p class="countdown-eyebrow">Malam penentuan berikutnya</p>
+        <div class="countdown-row">
+          <span class="countdown-value"><span data-count-days>—</span></span>
+          <span class="countdown-unit" data-count-unit>hari lagi</span>
         </div>
-        <div class="gauge-row">
-          <span class="gauge-label">Elongasi</span>
-          <span class="gauge-value" data-gauge-elong>—</span>
-          <span class="gauge-threshold" data-gauge-elong-min>min. 6,4°</span>
-          <span class="fact-chip" data-gauge-elong-chip hidden></span>
+        <p class="countdown-target" data-count-target>Menghitung…</p>
+        <div class="lunation" aria-hidden="true">
+          <div class="lunation-track">
+            <div class="lunation-fill" data-moon-arc></div>
+          </div>
         </div>
       </div>
-
-      <p class="countdown-site" data-count-site></p>
     </div>
   </div>
 </section>
