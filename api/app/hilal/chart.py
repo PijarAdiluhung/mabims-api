@@ -18,6 +18,26 @@ W, H = 720, 1280
 BARE_H = 760  # card minus the criteria panel: header + graphic + horizon + logo strip
 AZ_SPAN = 30.0
 
+# Vertical dusk gradient shared by the viz card, the map card and their bare
+# variants. (position, (r, g, b)) stops; (1.0) lands behind the horizon.
+SKY_STOPS: list[tuple[float, tuple[int, int, int]]] = [
+    (0.0, (31, 18, 53)),
+    (0.45, (94, 44, 74)),
+    (0.72, (196, 96, 66)),
+    (0.86, (242, 166, 90)),
+    (1.0, (52, 30, 40)),
+]
+
+# Calmer dusk used only by the panel-less bare viz card, where the criteria
+# panel no longer grounds the horizon and the warm band felt too strong.
+BARE_SKY_STOPS: list[tuple[float, tuple[int, int, int]]] = [
+    (0.0, (31, 18, 53)),
+    (0.5, (78, 40, 70)),
+    (0.78, (110, 60, 70)),
+    (0.9, (140, 95, 80)),
+    (1.0, (34, 20, 34)),
+]
+
 ASSETS = Path(__file__).resolve().parent / "assets"
 LOGO_PATH = ASSETS / "mabims-long.png"
 
@@ -117,12 +137,13 @@ def _header_title(vis_month: str) -> str:
 
 
 def _draw_header(d: ImageDraw.ImageDraw, vis_month: str, greg: str, hijri: str, pal: dict,
-                 s: float = 1.0) -> None:
+                 s: float = 1.0, site: str | None = None) -> None:
     """Shared header for /hilal/viz and /hilal/map.
 
     Shrinks the title only if a month name would overflow, so the two cards
     never drift in size, casing or year handling. ``s`` scales every dimension
-    for the high-resolution bare renders.
+    for the high-resolution bare renders; ``site`` adds a powered-by line for
+    the deciding observation site below the date.
     """
     title = _header_title(vis_month)
     size = int(42 * s)
@@ -130,6 +151,8 @@ def _draw_header(d: ImageDraw.ImageDraw, vis_month: str, greg: str, hijri: str, 
         size -= max(1, int(2 * s))
     _txt(d, (40 * s, 32 * s), title, font(size, bold=True), pal["text"])
     _txt(d, (40 * s, 82 * s), f"{greg}  \u00b7  {hijri}", font(int(28 * s)), pal["muted"])
+    if site:
+        _txt(d, (40 * s, 122 * s), site, font(int(22 * s)), pal["muted"])
 
 
 def _vgrad(w: int, h: int, stops: list[tuple[float, tuple[int, int, int]]]) -> Image.Image:
@@ -405,8 +428,7 @@ def render_chart(data: dict) -> Image.Image:
     deciding site (TITIK PENGAMAT row in the criteria table).
     """
     pal = _palette()
-    img = _vgrad(W, H, [(0.0, (31, 18, 53)), (0.45, (94, 44, 74)),
-                        (0.72, (196, 96, 66)), (0.86, (242, 166, 90)), (1.0, (52, 30, 40))])
+    img = _vgrad(W, H, SKY_STOPS)
     horizon_y = int(H * 0.55)
     box = (40, 190, W - 40, horizon_y)
     c_az = (data["sun_az"] + data["moon_az"]) / 2
@@ -454,8 +476,7 @@ def render_bare_chart(data: dict, scale: float = 2.0) -> Image.Image:
     pal = _palette()
     s = float(scale)
     w, bare_h = int(W * s), int(BARE_H * s)
-    img = _vgrad(w, bare_h, [(0.0, (31, 18, 53)), (0.45, (94, 44, 74)),
-                             (0.72, (196, 96, 66)), (0.86, (242, 166, 90)), (1.0, (52, 30, 40))])
+    img = _vgrad(w, bare_h, BARE_SKY_STOPS)
     horizon_y = int(H * 0.55 * s)
     box = (40 * s, 190 * s, w - 40 * s, horizon_y)
     c_az = (data["sun_az"] + data["moon_az"]) / 2
@@ -477,7 +498,10 @@ def render_bare_chart(data: dict, scale: float = 2.0) -> Image.Image:
     d.polygon(pts, fill=pal["ground"])
     d.line([0, horizon_y, w, horizon_y], fill=pal["horizon"], width=max(1, int(2 * s)))
     _draw_verdict_pill(img, data, mx, my, moon_size, pal, horizon_y, s=s)
-    _draw_header(d, data["vis_month"], data["greg"], data["hijri"], pal, s=s)
+    _draw_header(
+        d, data["vis_month"], data["greg"], data["hijri"], pal, s=s,
+        site=data["decider"].split("/")[0].strip() if data.get("decider") else None,
+    )
 
     _draw_logo(img, s=s)
     return img

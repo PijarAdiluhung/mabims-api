@@ -66,25 +66,27 @@ const description =
     position: relative;
     display: grid;
     grid-template-columns: 1fr;
-    gap: 2rem;
-    padding: clamp(2.5rem, 7vw, 4.5rem) 0 clamp(3rem, 7vw, 6rem);
+    gap: 2.5rem;
+    padding: clamp(2.5rem, 7vw, 4.5rem) 0 clamp(3.5rem, 8vw, 6.5rem);
     align-items: center;
+    overflow: hidden;
   }
 
   @media (min-width: 64rem) {
     .hilal-hero {
       grid-template-columns: 1.05fr 0.95fr;
       gap: 4rem;
+      min-height: min(calc(100svh - 6rem), 52rem);
     }
   }
 
   .hilal-grid-bg {
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1.5px);
-    background-size: 26px 26px;
-    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 38%, #000 20%, transparent 72%);
-    mask-image: radial-gradient(ellipse 90% 70% at 50% 38%, #000 20%, transparent 72%);
+    background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1.5px);
+    background-size: 28px 28px;
+    -webkit-mask-image: radial-gradient(ellipse 95% 75% at 50% 40%, #000 35%, transparent 80%);
+    mask-image: radial-gradient(ellipse 95% 75% at 50% 40%, #000 35%, transparent 80%);
     pointer-events: none;
   }
 
@@ -116,6 +118,7 @@ const description =
     line-height: 1.05;
     color: var(--sl-color-white);
     text-wrap: balance;
+    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
   }
 
   .hilal-date-month {
@@ -135,41 +138,121 @@ const description =
     color: var(--sl-color-gray-2);
   }
 
+  .hilal-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.875rem;
+    margin-top: 1.75rem;
+  }
+
+  @media (min-width: 64rem) {
+    .hilal-hero-actions {
+      justify-content: flex-start;
+    }
+  }
+
+  .hilal-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: var(--sl-text-sm);
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .hilal-btn-primary {
+    background: var(--sl-color-accent);
+    color: #1a1a2e !important;
+    font-weight: 700;
+  }
+
+  .hilal-btn-primary:hover {
+    background: var(--sl-color-accent-high);
+    transform: translateY(-1px);
+  }
+
+  .hilal-btn-ghost {
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--sl-color-white) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(4px);
+  }
+
+  .hilal-btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.13);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .hilal-method {
+    position: relative;
+    margin: 1.25rem 0 0;
+    font-size: 0.78rem;
+    color: var(--sl-color-gray-3);
+  }
+
   .hilal-countdown {
     position: relative;
     z-index: 1;
-    overflow: hidden;
-    padding: clamp(1.75rem, 4vw, 2.75rem);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    padding: clamp(1.75rem, 4vw, 2.25rem);
     text-align: center;
-    background: linear-gradient(135deg, rgba(254, 207, 70, 0.07), rgba(254, 207, 70, 0.02));
-    border: 1px solid rgba(254, 207, 70, 0.16);
+    background: rgba(35, 38, 47, 0.92);
+    border: 1px solid rgba(254, 207, 70, 0.2);
     border-radius: 20px;
+    box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(6px);
   }
 
-  .countdown-moon {
-    position: absolute;
-    top: -30px;
-    right: -40px;
-    width: 160px;
-    height: 160px;
-    opacity: 0.09;
-    pointer-events: none;
+  @media (min-width: 28rem) {
+    .hilal-countdown {
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      text-align: left;
+      gap: 1.75rem;
+    }
   }
 
-  .countdown-moon .moon-disc {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: var(--sl-color-accent);
+  .countdown-arc {
+    justify-self: center;
   }
 
-  .countdown-moon .moon-mask {
-    position: absolute;
-    inset: 0;
-    top: -12px;
-    left: 44px;
-    border-radius: 50%;
-    background: #17181c;
+  @media (min-width: 28rem) {
+    .countdown-arc {
+      justify-self: start;
+    }
+  }
+
+  .countdown-arc svg {
+    display: block;
+    width: clamp(104px, 26vw, 140px);
+    height: auto;
+  }
+
+  .arc-track {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.09);
+    stroke-width: 6;
+  }
+
+  .arc-fill {
+    fill: none;
+    stroke: var(--sl-color-accent);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    transition: stroke-dashoffset 0.8s ease;
+    filter: drop-shadow(0 0 6px rgba(254, 207, 70, 0.45));
+  }
+
+  .moon-dark {
+    fill: rgba(255, 255, 255, 0.1);
   }
 
   .countdown-eyebrow {
@@ -183,42 +266,67 @@ const description =
 
   .countdown-value {
     position: relative;
-    margin: 0.5rem 0;
-    font-size: clamp(2.5rem, 9vw, 4.5rem);
+    margin: 0.35rem 0;
+    font-size: clamp(2.25rem, 7vw, 3.5rem);
     font-weight: 800;
     line-height: 1;
     color: var(--sl-color-accent);
   }
 
   .countdown-unit {
-    font-size: 0.3em;
+    font-size: 0.32em;
     font-weight: 600;
     color: var(--sl-color-gray-2);
   }
 
   .countdown-target {
     position: relative;
-    margin: 0;
+    margin: 0 0 1rem;
     font-size: 0.95rem;
     color: var(--sl-color-gray-2);
   }
 
-  .countdown-track {
+  .countdown-gauges {
     position: relative;
-    height: 6px;
-    margin-top: 1.5rem;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
-    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
   }
 
-  .countdown-fill {
-    display: block;
-    height: 100%;
-    width: 0;
-    border-radius: 999px;
-    background: var(--sl-color-accent);
-    transition: width 0.6s ease;
+  .gauge-row {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    padding: 0.55rem 0.75rem;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+    font-size: 0.85rem;
+  }
+
+  .gauge-label {
+    color: var(--sl-color-gray-3);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .gauge-value {
+    font-weight: 700;
+    color: var(--sl-color-white);
+  }
+
+  .gauge-threshold {
+    font-size: 0.72rem;
+    color: var(--sl-color-gray-3);
+  }
+
+  .countdown-site {
+    position: relative;
+    margin: 0.75rem 0 0;
+    font-size: 0.8rem;
+    color: var(--sl-color-gray-3);
   }
 
   /* ── Section head ── */
@@ -515,42 +623,63 @@ const description =
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
-      "id verdict"
+      "id actions"
       "eve eve"
-      "values actions";
+      "mid mid";
     gap: 0.5rem 1rem;
     align-items: center;
     padding: 1rem 1.1rem;
   }
 
-  .history-verdict {
-    grid-area: verdict;
-    justify-self: end;
+  .history-mid {
+    grid-area: mid;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
   }
 
-  .history-eve {
-    grid-area: eve;
-  }
-
-  .history-values {
-    grid-area: values;
-  }
-
-  .history-actions {
-    grid-area: actions;
-    justify-self: end;
+  .history-mid .verdict-badge {
+    margin-inline-end: 0.4rem;
   }
 
   @media (min-width: 64rem) {
     .history-row {
-      grid-template-columns: 12rem 13rem 10rem minmax(0, 1fr) auto;
-      grid-template-areas: "id eve verdict values actions";
+      grid-template-columns: 11rem 13.5rem minmax(0, 1fr) auto;
+      grid-template-areas: "id eve mid actions";
       gap: 1rem;
     }
+  }
 
-    .history-verdict {
-      justify-self: start;
-    }
+  .history-actions {
+    grid-area: actions;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+  }
+
+  .history-actions .hilal-detail-btn,
+  .history-actions button.hilal-detail,
+  .history-actions button[data-info] {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.95rem;
+    border: 1px solid rgba(254, 207, 70, 0.35);
+    border-radius: 999px;
+    background: rgba(254, 207, 70, 0.08);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--sl-color-accent);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .history-actions button[data-info]:hover {
+    background: rgba(254, 207, 70, 0.16);
+    border-color: rgba(254, 207, 70, 0.55);
   }
 
   .history-id {
@@ -585,12 +714,6 @@ const description =
     color: var(--sl-color-gray-3);
   }
 
-  .history-values {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
   .mini-chip {
     padding: 0.2rem 0.5rem;
     border-radius: 8px;
@@ -601,40 +724,74 @@ const description =
   .history-actions {
     display: flex;
     align-items: center;
+    justify-content: end;
     flex-wrap: wrap;
     gap: 0.9rem;
   }
 
-  .history-actions a,
-  .history-actions button {
-    padding: 0;
-    border: none;
-    background: none;
-    font: inherit;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--sl-color-accent);
-    text-decoration: none;
-    cursor: pointer;
-  }
-
-  .history-actions a:hover,
-  .history-actions button:hover {
-    text-decoration: underline;
-  }
-
-  .history-actions a[download]::before {
-    content: '↓ ';
-    font-weight: 700;
-  }
-
   .history-panel {
+    display: grid;
+    gap: 1.25rem;
     padding: 1.1rem;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
   }
 
   .history-panel[hidden] {
     display: none;
+  }
+
+  .history-media {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  @media (min-width: 40rem) {
+    .history-media {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .history-media figure {
+    margin: 0;
+  }
+
+  .history-zoom {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    background: #1f1235;
+    cursor: zoom-in;
+    line-height: 0;
+  }
+
+  .history-zoom img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1440 / 1520;
+    object-fit: cover;
+    animation: hilal-spin-in 0.4s ease;
+  }
+
+  .history-zoom:hover img {
+    transform: scale(1.02);
+  }
+
+  .history-media figcaption {
+    text-align: right;
+  }
+
+  .history-media figcaption a {
+    font-size: 0.8rem;
+  }
+
+  @keyframes hilal-spin-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   .hilal-loading {
@@ -729,7 +886,7 @@ const description =
 
   @media (prefers-reduced-motion: reduce) {
     .hilal-zoom img,
-    .countdown-fill,
+    .arc-fill,
     .hilal-loadmore {
       transition: none !important;
     }
@@ -743,7 +900,7 @@ const description =
 
 <script>
   const API = import.meta.env.PUBLIC_API_BASE ?? 'https://api.mabims.dev';
-  const PAGE = 36;
+  const PAGE = 12;
 
   const $ = (sel: string, root: ParentNode = document) => root.querySelector<HTMLElement>(sel);
   const $$ = (sel: string, root: ParentNode = document) =>
@@ -850,8 +1007,6 @@ const description =
       fact('Matahari terbenam', ev.sunset),
       fact('Bulan terbenam', ev.moonset),
       fact('Titik pengamat', ev.deciding_site.name),
-      fact('Titik diperiksa', `${ev.sites_checked} titik`),
-      fact('Sumber data', SOURCE_LABELS[item.source] ?? item.source),
     ].join('');
     return (
       `<div class="hilal-facts-head"><span class="verdict-badge ${vi.cls}">${vi.label}</span>` +
@@ -872,6 +1027,31 @@ const description =
     if (greg) greg.textContent = `${fmtDate(today.input.date)} · ${today.input.tz}`;
   }
 
+  const MOON_R = 40;
+
+  // Correct moon phase: lit disc = half-circle outer arc + half-ellipse
+  // terminator (semi-minor axis r*|cos(2π·phase)|). phase: 0=new, 0.5=full.
+  function moonLitPath(phase: number) {
+    if (phase < 0.001) return '';
+    const r = MOON_R;
+    if (phase > 0.999) {
+      return `M 0 ${-r} A ${r} ${r} 0 1 1 0 ${r} A ${r} ${r} 0 1 1 0 ${-r} Z`;
+    }
+    const cosPhase = Math.cos(2 * Math.PI * phase);
+    const minor = Math.abs(cosPhase) * r;
+    const waxing = phase < 0.5;
+    const outerSweep = waxing ? 1 : 0;
+    // Crescent: terminator hugs the lit rim; gibbous: bulges into the dark
+    // half. For waxing that needs sweep 1 when gibbous, for waning sweep 0.
+    const innerSweep = (cosPhase < 0) === waxing ? 1 : 0;
+    return (
+      `M 0 ${-r}` +
+      ` A ${r} ${r} 0 0 ${outerSweep} 0 ${r}` +
+      ` A ${minor} ${r} 0 0 ${innerSweep} 0 ${-r}` +
+      ' Z'
+    );
+  }
+
   function renderCountdown(today: any, item: Item) {
     const days = Math.round(
       (Date.parse(`${item.evening.gregorian_date}T00:00:00Z`) -
@@ -882,12 +1062,51 @@ const description =
     const unitEl = $('[data-count-unit]');
     if (valueEl) valueEl.textContent = days <= 0 ? 'Malam ini' : String(days);
     if (unitEl) unitEl.textContent = days <= 0 ? '' : days === 1 ? 'besok' : 'hari lagi';
+    const ev = item.evening;
+    const sunset = ev.sunset.split(':').slice(0, 2).join(':');
+    const eveLabel = ev.hijri_day === 29
+      ? `Malam 29 ${item.previous_month.name} ${item.previous_month.year} H`
+      : `Malam ${ev.hijri_day} ${item.previous_month.name} ${item.previous_month.year} H`;
     const target = $('[data-count-target]');
     if (target) {
-      target.textContent = `1 ${item.month.name} ${item.month.year} H · ${fmtDate(item.evening.gregorian_date)}`;
+      target.textContent = days <= 0
+        ? `${eveLabel} · matahari terbenam ${sunset}`
+        : `${eveLabel} · ${fmtDate(ev.gregorian_date)}`;
     }
-    const bar = $('[data-count-bar]');
-    if (bar) bar.style.width = `${Math.min(100, Math.max(0, (today.output.day / 29) * 100))}%`;
+
+    const pct = Math.min(100, Math.max(0, (today.output.day / 29) * 100));
+    const arc = $('[data-moon-arc]') as SVGGeometryElement | null;
+    if (arc) arc.style.strokeDashoffset = String(100 - pct);
+
+    // Symodic phase centered mid-day: day 1 → thin waxing sliver, day ~15 →
+    // full, day 29 → near-conjunction dark, day 30 → new moon.
+    const phase = Math.min(0.999, Math.max(0.02, (today.output.day - 0.5) / 29.53));
+    const lit = $('[data-moon-lit]');
+    if (lit) lit.setAttribute('d', moonLitPath(phase));
+
+    const setGauge = (
+      valSel: string,
+      chipSel: string,
+      value: string,
+      ok: boolean | null
+    ) => {
+      const valEl = $(valSel);
+      if (valEl) valEl.textContent = value;
+      const chip = $(chipSel);
+      if (!chip) return;
+      if (ok == null) {
+        chip.hidden = true;
+        return;
+      }
+      chip.hidden = false;
+      chip.className = `fact-chip ${ok ? 'is-ok' : 'is-bad'}`;
+      chip.textContent = ok ? 'Lolos' : 'Gagal';
+    };
+    setGauge('[data-gauge-alt]', '[data-gauge-alt-chip]', fmtAlt(ev.moon_alt_deg), ev.alt_ok);
+    setGauge('[data-gauge-elong]', '[data-gauge-elong-chip]', fmtElong(ev.elongation_deg), ev.elong_ok);
+
+    const siteEl = $('[data-count-site]');
+    if (siteEl) siteEl.textContent = `Titik penentuan: ${ev.deciding_site.name}`;
   }
 
   function wireImage(
@@ -956,15 +1175,25 @@ const description =
       '<div class="history-row">' +
       `<div class="history-id"><span class="history-name">${item.month.name}</span><span class="history-year">${item.month.year} H</span></div>` +
       `<div class="history-eve"><span class="history-evedate">${fmtDateShort(ev.gregorian_date)}</span><span class="history-eyecap">malam ${ev.hijri_date}</span></div>` +
-      `<div class="history-verdict"><span class="verdict-badge ${vi.cls}">${vi.label}</span></div>` +
-      `<div class="history-values"><span class="mini-chip ${ev.alt_ok ? 'is-ok' : 'is-bad'}">Alt ${fmtAlt(ev.moon_alt_deg)}</span>` +
-      `<span class="mini-chip ${ev.elong_ok ? 'is-ok' : 'is-bad'}">Elong ${fmtElong(ev.elongation_deg)}</span></div>` +
+      '<div class="history-mid">' +
+      `<span class="verdict-badge ${vi.cls}">${vi.label}</span>` +
+      `<span class="mini-chip ${ev.alt_ok ? 'is-ok' : 'is-bad'}">Alt ${fmtAlt(ev.moon_alt_deg)}</span>` +
+      `<span class="mini-chip ${ev.elong_ok ? 'is-ok' : 'is-bad'}">Elong ${fmtElong(ev.elongation_deg)}</span>` +
+      '</div>' +
       '<div class="history-actions">' +
-      `<a href="${API}/api/v1/hilal/map?${q}&download=true" download="hilal-map-${key}.png">Peta</a>` +
-      `<a href="${API}/api/v1/hilal/viz?${q}&download=true" download="hilal-viz-${key}.png">Viz</a>` +
-      '<button type="button" data-info aria-expanded="false">Info</button>' +
+      '<button type="button" data-info aria-expanded="false">Lihat detail</button>' +
       '</div></div>' +
-      `<div class="history-panel" hidden>${factsHTML(item)}</div>` +
+      '<div class="history-panel" hidden>' +
+      '<div class="history-media">' +
+      `<figure><button type="button" class="history-zoom" data-zoom="map" aria-label="Perbesar peta ${item.month.name} ${item.month.year} H">` +
+      `<img alt="Peta wilayah visibilitas hilal ${item.month.name} ${item.month.year} H" data-map data-src="${API}/api/v1/hilal/map?${q}&bare=true">` +
+      `</button><figcaption><a class="hilal-download" href="${API}/api/v1/hilal/map?${q}&download=true" download="hilal-map-${key}.png">Unduh PNG</a></figcaption></figure>` +
+      `<figure><button type="button" class="history-zoom" data-zoom="viz" aria-label="Perbesar grafik ${item.month.name} ${item.month.year} H">` +
+      `<img alt="Grafik langit visibilitas hilal ${item.month.name} ${item.month.year} H" data-viz data-src="${API}/api/v1/hilal/viz?${q}&bare=true">` +
+      `</button><figcaption><a class="hilal-download" href="${API}/api/v1/hilal/viz?${q}&download=true" download="hilal-viz-${key}.png">Unduh PNG</a></figcaption></figure>` +
+      '</div>' +
+      `<div class="hilal-facts">${factsHTML(item)}</div>` +
+      '</div>' +
       '</article>'
     );
   }
@@ -1000,9 +1229,14 @@ const description =
     const zoom = target.closest('[data-zoom]') as HTMLElement | null;
     if (zoom) {
       const isMap = zoom.dataset.zoom === 'map';
-      const img = (isMap ? $('[data-map-img]') : $('[data-viz-img]')) as HTMLImageElement | null;
+      const scope = zoom.closest('.history-panel');
+      const img = (
+        scope
+          ? scope.querySelector<HTMLImageElement>(isMap ? '[data-map]' : '[data-viz]')
+          : $(isMap ? '[data-map-img]' : '[data-viz-img]')
+      ) as HTMLImageElement | null;
       if (img?.src) {
-        openLightbox(img.src, isMap ? 'Peta wilayah visibilitas' : 'Grafik langit visibilitas');
+        openLightbox(img.src, img.alt);
       }
       return;
     }
@@ -1019,6 +1253,12 @@ const description =
       const open = info.getAttribute('aria-expanded') === 'true';
       info.setAttribute('aria-expanded', String(!open));
       panel.hidden = open;
+      if (!open) {
+        for (const img of panel.querySelectorAll<HTMLImageElement>('img[data-src]')) {
+          img.src = img.dataset.src!;
+          img.removeAttribute('data-src');
+        }
+      }
       return;
     }
 
@@ -1042,6 +1282,8 @@ const description =
       } catch {
         today = await api('/api/v1/today');
       }
+      const testDay = Number(new URLSearchParams(location.search).get('day'));
+      if (testDay >= 1 && testDay <= 30) today.output.day = testDay;
       renderToday(today);
 
       const hist = await api('/api/v1/hilal/history');

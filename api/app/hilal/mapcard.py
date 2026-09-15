@@ -47,6 +47,7 @@ from . import astrocache  # noqa: E402
 from .chart import (  # noqa: E402
     BARE_H,
     GREG_MONTHS_ID,
+    SKY_STOPS,
     _draw_header,
     _draw_logo,
     _fit_text,
@@ -425,8 +426,7 @@ def _render_card(map_img, hero, n_total, n_seen,
                  vis_month, vis_year, greg, hijri,
                  alt_min, alt_max, elong_min, elong_max):
     pal = _palette()
-    card = _vgrad(W, H, [(0.0, (31, 18, 53)), (0.45, (94, 44, 74)),
-                         (0.72, (196, 96, 66)), (0.86, (242, 166, 90)), (1.0, (52, 30, 40))])
+    card = _vgrad(W, H, SKY_STOPS)
 
     band = np.asarray(map_img.resize((W, MAP_H), Image.Resampling.LANCZOS).convert("RGB")).astype(float)
     bg = np.asarray(card.convert("RGB")).astype(float)
@@ -513,8 +513,7 @@ def render_bare_map(map_img, vis_month: str, greg: str, hijri: str,
     pal = _palette()
     s = float(scale)
     w, bare_h = int(W * s), int(BARE_H * s)
-    card = _vgrad(w, bare_h, [(0.0, (31, 18, 53)), (0.45, (94, 44, 74)),
-                              (0.72, (196, 96, 66)), (0.86, (242, 166, 90)), (1.0, (52, 30, 40))])
+    card = _vgrad(w, bare_h, SKY_STOPS)
     band = np.asarray(
         map_img.resize((w, int(MAP_H * s)), Image.Resampling.LANCZOS).convert("RGB")
     ).astype(float)

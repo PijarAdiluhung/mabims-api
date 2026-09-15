@@ -19,19 +19,61 @@ const { fallback } = Astro.props;
       <span class="hilal-date-year"><span data-today-year>{fallback?.year ?? ''}</span> H</span>
     </h1>
     <p class="hilal-greg" data-today-greg>{fallback?.greg ?? 'Memuat tanggal…'}</p>
+    <div class="hilal-hero-actions">
+      <a href="#berikutnya" class="hilal-btn hilal-btn-primary">
+        Lihat visibilitas
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+      </a>
+      <a href="#riwayat" class="hilal-btn hilal-btn-ghost">
+        Riwayat penentuan
+      </a>
+    </div>
+    <p class="hilal-method">Kriteria Neo MABIMS · altitude ≥ 3° · elongasi ≥ 6,4°</p>
   </div>
 
   <div class="hilal-countdown">
-    <div class="countdown-moon" aria-hidden="true">
-      <span class="moon-disc"></span>
-      <span class="moon-mask"></span>
+    <div class="countdown-arc" aria-hidden="true">
+      <svg viewBox="0 0 140 140" width="140" height="140" focusable="false">
+        <defs>
+          <radialGradient id="hilal-moon-g" cx="38%" cy="30%" r="80%">
+            <stop offset="0%" stop-color="#fff3c4"></stop>
+            <stop offset="55%" stop-color="#fecf46"></stop>
+            <stop offset="100%" stop-color="#b97f14"></stop>
+          </radialGradient>
+        </defs>
+        <circle class="arc-track" cx="70" cy="70" r="62" pathLength="100"></circle>
+        <circle class="arc-fill" data-moon-arc cx="70" cy="70" r="62" pathLength="100" transform="rotate(-90 70 70)"></circle>
+        <circle class="moon-dark" cx="70" cy="70" r="40"></circle>
+        <g transform="translate(70,70)">
+          <path data-moon-lit fill="url(#hilal-moon-g)" d=""></path>
+        </g>
+      </svg>
     </div>
-    <p class="countdown-eyebrow">Malam penentuan berikutnya</p>
-    <p class="countdown-value">
-      <span data-count-days>—</span>
-      <span class="countdown-unit" data-count-unit>hari lagi</span>
-    </p>
-    <p class="countdown-target" data-count-target>Menghitung…</p>
-    <div class="countdown-track" aria-hidden="true"><span class="countdown-fill" data-count-bar></span></div>
+
+    <div class="countdown-body">
+      <p class="countdown-eyebrow">Malam penentuan berikutnya</p>
+      <p class="countdown-value">
+        <span data-count-days>—</span>
+        <span class="countdown-unit" data-count-unit>hari lagi</span>
+      </p>
+      <p class="countdown-target" data-count-target>Menghitung…</p>
+
+      <div class="countdown-gauges">
+        <div class="gauge-row">
+          <span class="gauge-label">Ketinggian bulan</span>
+          <span class="gauge-value" data-gauge-alt>—</span>
+          <span class="gauge-threshold" data-gauge-alt-min>min. 3,0°</span>
+          <span class="fact-chip" data-gauge-alt-chip hidden></span>
+        </div>
+        <div class="gauge-row">
+          <span class="gauge-label">Elongasi</span>
+          <span class="gauge-value" data-gauge-elong>—</span>
+          <span class="gauge-threshold" data-gauge-elong-min>min. 6,4°</span>
+          <span class="fact-chip" data-gauge-elong-chip hidden></span>
+        </div>
+      </div>
+
+      <p class="countdown-site" data-count-site></p>
+    </div>
   </div>
 </section>

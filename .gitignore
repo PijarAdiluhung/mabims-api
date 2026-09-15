@@ -36,3 +36,6 @@ api/data/hilal_astro.sqlite-wal
 
 # Pre-rendered hilal cards — served from the CDN image pack, never committed
 api/data/hilal_images/
+
+# Rendered hilal image pack workspace (uploaded to the CDN, never committed)
+mabims-assets/
