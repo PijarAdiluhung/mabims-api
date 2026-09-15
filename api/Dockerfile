@@ -6,6 +6,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     MPLCONFIGDIR=/tmp \
     MABIMS_EPHEMERIS_DIR=/app/data/ephemeris
 
+RUN python -c "import secrets; open('/build_hash','w').write(secrets.token_hex(8))"
+
 WORKDIR /app
 
 COPY pyproject.toml ./

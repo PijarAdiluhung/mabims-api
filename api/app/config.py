@@ -17,6 +17,14 @@ def _version() -> str:
 
 APP_VERSION = _version()
 
+
+def _build_hash() -> str:
+    p = Path("/build_hash")
+    return p.read_text().strip() if p.exists() else "unknown"
+
+
+BUILD_HASH = _build_hash()
+
 DEFAULT_ORIGIN_SUFFIXES = ["malangmengaji.com"]
 
 

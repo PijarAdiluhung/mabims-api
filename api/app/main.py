@@ -19,7 +19,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from .calendar import SOURCE_MABIMS, CalendarService
-from .config import APP_VERSION, Settings
+from .config import APP_VERSION, BUILD_HASH, Settings
 from .coverage import (
     RETRO_SOURCE,
     RETRO_WARNING,
@@ -65,11 +65,13 @@ from .schemas import (
     MetaResponse,
     MonthInput,
     MonthResponse,
+    NextDate,
     RangeInput,
     RangeItem,
     RangeResponse,
     Source,
     TableResponse,
+    TodayResponse,
     YearInput,
     YearResponse,
 )
@@ -96,6 +98,11 @@ BORDERLINE_WARNING_TEMPLATE = (
 COMPUTED_METHOD = "neo-mabims-multisite"
 MAX_RANGE_DAYS = 45
 RETRO_QUERY_DESC = "Set true to allow computed retro dates below the curated table"
+NEXT_QUERY_DESC = (
+    "Set true to also return the Hijri date that begins at this evening's maghrib "
+    "(the next civil day's mapping), so a client can flip the date locally. The API "
+    "does not compute sunset — gate on your own prayer-time clock."
+)
 BARE_QUERY_DESC = (
     "Set true to omit the criteria panel and return the high-resolution bare "
     "card (header + graphic + logo) used as the web hero image."
@@ -462,6 +469,16 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             return False
         raise ApiError("invalid_retro", "'retro' must be 'true' or 'false'.")
 
+    def _parse_next(raw: str | None) -> bool:
+        if raw is None or raw == "":
+            return False
+        lowered = raw.lower()
+        if lowered == "true":
+            return True
+        if lowered == "false":
+            return False
+        raise ApiError("invalid_next", "'next' must be 'true' or 'false'.")
+
     def _resolve_pair(date_iso: str, calendar: str, retro: bool = False) -> tuple[str, Source]:
         _check_supported(date_iso, calendar, retro)
         try:
@@ -577,7 +594,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
     @limiter.exempt
     def healthz(request: Request):
         return JSONResponse(
-            content={"status": "ok", "version": APP_VERSION},
+            content={"status": "ok", "version": APP_VERSION, "build_hash": BUILD_HASH},
             headers=HEALTHZ_HEADERS,
         )
 
@@ -663,26 +680,43 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
 
     @app.api_route(
         "/api/v1/today",
-        response_model=ConvertResponse,
+        response_model=TodayResponse,
         tags=["Today"],
         summary="Today's Hijri date",
         description="Returns today's Hijri date, timezone-aware.",
         methods=["GET", "HEAD"],
     )
-    def today(request: Request, tz: str | None = Query(default=None)):
+    def today(
+        request: Request,
+        tz: str | None = Query(default=None),
+        next: str | None = Query(default=None, description=NEXT_QUERY_DESC),
+    ):
         try:
             tzo = resolve_tz(tz)
         except ValueError as exc:
             raise ApiError("invalid_timezone", str(exc)) from exc
+        want_next = _parse_next(next)
         today_iso = datetime.now(tzo).date().isoformat()
         value, source = _resolve_pair(today_iso, "gregorian")
-        payload = ConvertResponse(
+        next_value: NextDate | None = None
+        if want_next:
+            tomorrow = date.fromordinal(date.fromisoformat(today_iso).toordinal() + 1)
+            next_iso, next_source = _resolve_pair(tomorrow.isoformat(), "gregorian")
+            next_value = NextDate(
+                date=next_iso,
+                calendar="hijri",
+                **_parse_date_parts(next_iso, "hijri"),
+                source=next_source,
+            )
+        payload = TodayResponse(
             input=ConversionInput(date=today_iso, calendar="gregorian", tz=tz_label(tzo)),
             output=ConversionOutput(date=value, calendar="hijri", **_parse_date_parts(value, "hijri")),
             source=source,
             warnings=_warnings_for(source, value),
+            next=next_value,
         )
-        return _json_response(payload.model_dump(), dynamic_cache_headers(tzo))
+        dumped = payload.model_dump(exclude={"next"} if not want_next else None)
+        return _json_response(dumped, dynamic_cache_headers(tzo))
 
     @app.api_route(
         "/api/v1/today/{target_date}",

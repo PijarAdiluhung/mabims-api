@@ -82,6 +82,7 @@ GET /healthz
     const res = await fetch("https://api.mabims.dev/healthz");
     const data = await res.json();
     console.log(data.status); // "ok"
+    console.log(data.build_hash); // "a3f8c1e2b4d6f7a8"
     ```
   </TabItem>
   <TabItem label="PHP">
@@ -89,6 +90,7 @@ GET /healthz
     $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/healthz');
     $data = json_decode($response->getBody(), true);
     echo $data['status']; // "ok"
+    echo $data['build_hash']; // "a3f8c1e2b4d6f7a8"
     ```
   </TabItem>
 </Tabs>
@@ -96,8 +98,9 @@ GET /healthz
 ```json
 {
   "status": "ok",
-  "version": "1.4.0"
+  "version": "1.7.0",
+  "build_hash": "a3f8c1e2b4d6f7a8"
 }
 ```
 
-Returns `Cache-Control: no-store`.
+Returns `Cache-Control: public, max-age=10`.

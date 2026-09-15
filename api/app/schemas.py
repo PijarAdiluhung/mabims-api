@@ -40,6 +40,21 @@ class ConvertResponse(BaseModel):
     warnings: list[str] = Field(default_factory=list, description=WARNINGS_DESCRIPTION)
 
 
+class NextDate(ConversionOutput):
+    source: Source = Field(description=SOURCE_DESCRIPTION)
+
+
+class TodayResponse(ConvertResponse):
+    next: NextDate | None = Field(
+        default=None,
+        description=(
+            "The Hijri date that becomes current after this evening's maghrib (the next "
+            "civil day's mapping). Only present when next=true. The API does not compute "
+            "sunset — gate on your own prayer-time clock."
+        ),
+    )
+
+
 class RangeItem(BaseModel):
     gregorian: str
     hijri: str
@@ -130,6 +145,7 @@ class MetaResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: str
     version: str
+    build_hash: str
 
 
 class HilalMonth(BaseModel):
