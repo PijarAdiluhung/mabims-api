@@ -294,6 +294,11 @@ const description =
     color: var(--sl-color-gray-3);
   }
 
+  .countdown-eyebrow .accent-month {
+    color: var(--sl-color-accent);
+    font-weight: 700;
+  }
+
   .countdown-row {
     display: flex;
     align-items: baseline;
@@ -470,6 +475,52 @@ const description =
     font-size: clamp(0.95rem, 0.5rem + 1vw, 1.05rem);
     line-height: 1.75;
     color: var(--sl-color-gray-2);
+  }
+
+  .hilal-section-head p + p {
+    margin-top: 0.6rem;
+  }
+
+  .hilal-section-head p[data-featured-sub] {
+    color: var(--sl-color-gray-3);
+    font-size: clamp(0.88rem, 0.5rem + 0.8vw, 0.98rem);
+  }
+
+  .hilal-explain {
+    max-width: 52rem;
+    font-size: clamp(0.9rem, 0.5rem + 1vw, 1.02rem);
+    line-height: 1.75;
+  }
+
+  .hilal-explain .exp-month {
+    color: var(--sl-color-white);
+    font-weight: 700;
+  }
+
+  .hilal-explain b {
+    color: var(--sl-color-white);
+    font-weight: 600;
+  }
+
+  .hilal-explain b.is-exp-ok {
+    color: #7ed957;
+  }
+
+  .hilal-explain b.is-exp-bad {
+    color: #ff6b6b;
+  }
+
+  .hilal-section-head p.hilal-disclaimer {
+    max-width: 52rem;
+    margin: 0.55rem 0 0;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.42);
+  }
+
+  .hilal-section-head strong {
+    color: var(--sl-color-white);
+    font-weight: 600;
   }
 
   /* ── Featured ── */
@@ -1054,15 +1105,6 @@ const description =
   const state = { history: [] as Item[], shown: PAGE };
   let upcoming: Item | null = null;
 
-  const urlParams = new URL(window.location.href).searchParams;
-  const rawDay = urlParams.get('day');
-  const previewDay = (() => {
-    if (rawDay == null || rawDay === '') return null;
-    const n = parseInt(rawDay, 10);
-    if (!Number.isFinite(n)) return null;
-    return Math.max(1, Math.min(30, n));
-  })();
-
   const DAY_FMT = new Intl.DateTimeFormat('id-ID', {
     weekday: 'long',
     day: 'numeric',
@@ -1148,7 +1190,7 @@ const description =
     const month = $('[data-today-month]');
     const year = $('[data-today-year]');
     const greg = $('[data-today-greg]');
-    if (day) day.textContent = String(previewDay ?? o.day);
+    if (day) day.textContent = String(o.day);
     if (month) month.textContent = o.month_name;
     if (year) year.textContent = String(o.year);
     if (greg) greg.textContent = `${fmtDate(today.input.date)} · ${today.input.tz}`;
@@ -1187,6 +1229,8 @@ const description =
     );
     const valueEl = $('[data-count-days]');
     const unitEl = $('[data-count-unit]');
+    const monthEl = $('[data-count-month]');
+    if (monthEl) monthEl.textContent = item.month.name;
     if (valueEl) valueEl.textContent = days <= 0 ? 'Malam ini' : String(days);
     if (unitEl) unitEl.textContent = days <= 0 ? '' : days === 1 ? 'besok' : 'hari lagi';
     const ev = item.evening;
@@ -1198,7 +1242,7 @@ const description =
         : fmtDate(ev.gregorian_date);
     }
 
-    const moonDay = previewDay ?? today.output.day;
+    const moonDay = today.output.day;
     const pct = Math.min(100, Math.max(0, (moonDay / 29) * 100));
     const arc = $('[data-moon-arc]') as HTMLElement | null;
     if (arc) arc.style.width = `${pct}%`;
@@ -1285,9 +1329,22 @@ const description =
     const vizDl = $('[data-viz-dl]') as HTMLAnchorElement | null;
     if (mapDl) mapDl.href = `${API}/api/v1/hilal/map?${q}&download=true`;
     if (vizDl) vizDl.href = `${API}/api/v1/hilal/viz?${q}&download=true`;
-    const sub = $('[data-featured-sub]');
-    if (sub) {
-      sub.textContent = `Awal 1 ${item.month.name} ${item.month.year} H, ditentukan malam ${fmtDate(item.evening.gregorian_date)}.`;
+    const exp = $('[data-explain]');
+    if (exp) {
+      const ev = item.evening;
+      const ok = ev.visible;
+      const len = item.previous_month.length;
+      const add = len === 29 || (len !== 30 && ok) ? 1 : 2;
+      const start = new Date(`${ev.gregorian_date}T00:00:00`);
+      start.setDate(start.getDate() + add);
+      const startIso = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`;
+      const name = `<b class="exp-month">${item.month.name}</b>`;
+      exp.innerHTML =
+        `Kapan ${name} dimulai? Berdasarkan kriteria Neo MABIMS, kondisi bulan pada tanggal ${ev.hijri_day} ` +
+        `${item.previous_month.name} ` +
+        (ok ? '<b class="is-exp-ok">memenuhi kriteria</b>' : '<b class="is-exp-bad">tidak memenuhi kriteria</b>') +
+        `. Sehingga kemungkinan ${name} dimulai tanggal <b>${fmtDate(startIso)}</b>. ` +
+        'Rincian pemenuhan kriteria Neo MABIMS bisa dilihat di grafik di bawah.';
     }
     const facts = $('[data-featured-facts]');
     if (facts) facts.innerHTML = factsHTML(item, true);
