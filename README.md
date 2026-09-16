@@ -226,8 +226,9 @@ The full OpenAPI 3.1 spec is available at `https://api.mabims.dev/openapi.json`.
 | API | [FastAPI](https://fastapi.tiangolo.com/) + [Pydantic v2](https://docs.pydantic.dev/), [slowapi](https://github.com/laurentS/slowapi) rate limit |
 | Docs | [Astro](https://astro.build/) + [Starlight](https://starlight.astro.build/) with live playground, blog, and FAQ |
 | Data | Precomputed MABIMS tables (`api/data/`) |
+| Rendering | [Skyfield](https://rhodesmill.org/skyfield/) + [Matplotlib](https://matplotlib.org/) + [Pillow](https://python-pillow.org/) + [Shapely](https://shapely.readthedocs.io/) |
 | Hosting | Docker Compose on VPS via Dokploy, Bunny CDN in front |
-| CI | GitHub Actions — pytest, ruff, mypy, table-vs-criteria validation, yearly computed-table regen PR |
+| CI | GitHub Actions — pytest, ruff, mypy, table-vs-criteria validation, deploy health-check + CDN purge |
 
 ## Documentation site
 
@@ -243,10 +244,13 @@ The docs at [mabims.dev](https://mabims.dev) include:
 ## Repository layout
 
 ```
-api/       FastAPI app, calendar data, tests (pytest)
-docs/      Astro/Starlight documentation site
+.github/        CI/CD workflows
+api/             FastAPI app, calendar data, tests (pytest)
+docs/            Astro/Starlight documentation site
 docker-compose.yml        production services (internal-only ports)
 docker-compose.dev.yml    local override publishing ports 8000/8080
+LICENSE                   MIT license
+mabims-assets/            image pack build artifacts
 TODO.md                   open work items
 ```
 
@@ -279,8 +283,8 @@ Shipped on a VPS via Dokploy (compose service) with Bunny CDN pull zones running
 
 ## Data & coverage
 
-`api/data/calendar_data.json` is the authoritative MABIMS table (currently **Hijri 1444–1448**,
-gregorian 2023-01-23 → 2026). Beyond it, `api/data/computed_seed.json` carries the same multi-site
+`api/data/calendar_data.json` is the authoritative MABIMS table (currently **Hijri 1444-07 → 1448-07**,
+gregorian 2023-01-23 → 2026-12-31). Beyond it, `api/data/computed_seed.json` carries the same multi-site
 Neo MABIMS criteria forward (**through Hijri 1473**, gregorian ~mid-2050) and backwards (**to gregorian
 1970**); dates past the seed are still computed lazily on request, up to the supported ceiling
 **2100-01-01** (JPL de440s). Both computed tiers flag borderline months (margin < 0.25°) via warnings.
@@ -290,9 +294,9 @@ Neo MABIMS was introduced in 2022, so pre-2023 results are a retrospective proje
 data the criteria ever produced officially. Supported floor: **1945-01-01** (earlier dates
 return `date_out_of_supported_range` even with `retro=true`).
 
-Regenerate the seed yearly with `api/scripts/generate_seed.py` (verifies curated-table overlap
-before writing); `.github/workflows/regen-computed-table.yml` automates it every January and
-opens a PR with the diff.
+Regenerate the seed on demand with `api/scripts/generate_seed.py` (verifies curated-table overlap
+before writing). The computed seed is static through Hijri 1473, so no periodic regen is needed —
+rerun manually after criteria or ephemeris changes.
 
 Hilal cards read their astronomy from a SQLite cache of precomputed facts
 (`api/data/hilal_astro.sqlite`, keyed by sighting evening + ephemeris tag + site-list

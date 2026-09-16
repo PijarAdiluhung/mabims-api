@@ -69,6 +69,19 @@ const description =
     isolation: isolate;
   }
 
+  @media (max-width: 53.99rem) {
+    .hilal-hero {
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100svh - 4rem);
+      padding-top: 2.5rem;
+      padding-bottom: 4rem;
+    }
+    .hilal-hero-grid {
+      margin: auto 0;
+    }
+  }
+
   @media (min-width: 54rem) {
     .hilal-hero {
       padding-top: clamp(2rem, 4vw, 3rem);
@@ -231,14 +244,14 @@ const description =
   }
 
   .hilal-date-num {
-    font-size: clamp(4rem, 10vw, 7.5rem);
+    font-size: clamp(5.5rem, 12vw, 7.5rem);
     line-height: 1;
     color: var(--sl-color-white);
     font-variant-numeric: tabular-nums;
   }
 
   .hilal-date-month {
-    font-size: clamp(2.25rem, 5.5vw, 3.75rem);
+    font-size: clamp(2.6rem, 5.5vw, 3.75rem);
     line-height: 1;
     color: var(--sl-color-accent);
     white-space: nowrap;
@@ -250,7 +263,7 @@ const description =
     letter-spacing: 0.04em;
     white-space: nowrap;
     color: var(--sl-color-gray-2);
-    margin-top: 0.45em;
+    margin-top: 0.8em;
   }
 
   .hilal-greg {
@@ -260,14 +273,9 @@ const description =
     letter-spacing: 0.01em;
   }
 
-  .hilal-tz {
-    display: none;
-  }
-
-  @media (min-width: 54rem) {
-    .hilal-greg .hilal-tz {
-      display: inline;
-    }
+  .hilal-date-year .hilal-count-name {
+    color: var(--sl-color-white);
+    font-weight: 700;
   }
 
   .hilal-countdown-card {
@@ -275,7 +283,7 @@ const description =
     bottom: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: clamp(240px, 90%, 360px);
+    width: clamp(250px, 96%, 430px);
     padding: clamp(1rem, 2vw, 1.4rem);
     text-align: center;
     background: rgba(18, 20, 28, 0.78);
@@ -309,6 +317,11 @@ const description =
     font-weight: 700;
   }
 
+  .countdown-eyebrow .card-phase {
+    color: var(--sl-color-white);
+    font-weight: 700;
+  }
+
   .countdown-row {
     display: flex;
     align-items: baseline;
@@ -318,7 +331,7 @@ const description =
   }
 
   .countdown-value {
-    font-size: clamp(2rem, 3.6vw, 2.65rem);
+    font-size: clamp(1.5rem, 2.4vw, 2rem);
     font-weight: 800;
     line-height: 1;
     color: var(--sl-color-accent);
@@ -326,9 +339,10 @@ const description =
   }
 
   .countdown-unit {
-    font-size: clamp(0.85rem, 1.1vw, 1rem);
-    font-weight: 500;
-    color: var(--sl-color-gray-2);
+    font-size: clamp(1.5rem, 2.4vw, 2rem);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--sl-color-accent);
   }
 
   .countdown-target {
@@ -369,8 +383,21 @@ const description =
     transform: translateY(-50%);
   }
 
-  .hilal-hero-text .btn {
+  .hilal-cta-row {
     display: none;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: clamp(1.5rem, 2.5vw, 2rem);
+  }
+
+  @media (min-width: 54rem) {
+    .hilal-cta-row {
+      display: flex;
+    }
+  }
+
+  .hilal-hero-text .btn {
+    display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     padding: 0.875rem 1.5rem;
@@ -379,28 +406,18 @@ const description =
     font-size: var(--sl-text-sm);
     text-decoration: none;
     cursor: pointer;
-    margin-top: clamp(1.5rem, 2.5vw, 2rem);
-    transition: gap 0.2s ease, transform 0.2s ease;
+    transition: gap 0.2s ease, transform 0.2s ease, background 0.2s ease;
   }
 
-  .hilal-method {
-    display: none;
-    margin: 0.85rem 0 0;
-    font-size: 0.72rem;
-    color: var(--sl-color-gray-3);
-    letter-spacing: 0.02em;
+  .hilal-hero-text .btn-ghost {
+    color: var(--sl-color-gray-2);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.14);
   }
 
-  @media (min-width: 54rem) {
-    .hilal-method {
-      display: block;
-    }
-  }
-
-  @media (min-width: 64rem) {
-    .hilal-hero-text .btn {
-      display: inline-flex;
-    }
+  .hilal-hero-text .btn-ghost:hover {
+    color: var(--sl-color-white);
+    border-color: rgba(254, 207, 70, 0.4);
   }
 
   .hilal-hero-text .btn-primary {
@@ -1167,6 +1184,32 @@ const description =
     return { month, year };
   }
 
+  function minutesUntilSunset(ev: Evening): number {
+    // Sunset wall-clock time at the deciding site → minutes from now.
+    const [hh, mm] = ev.sunset.split(':').map(Number);
+    const [y, m, d] = ev.gregorian_date.split('-').map(Number);
+    const wall = Date.UTC(y, m - 1, d) + hh * 3600e3 + mm * 60e3;
+    const dtf = new Intl.DateTimeFormat('en-US', {
+      timeZone: ev.deciding_site.tz,
+      hour12: false,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+    // Convert wall-time in site tz to a UTC instant: measure the site's
+    // offset at our guess, then correct once (covers sub-day DST quirks).
+    const round = (u: number) => {
+      const p = dtf.formatToParts(new Date(u));
+      const get = (t: string) => Number(p.find((x) => x.type === t)?.value ?? '0');
+      return Date.UTC(get('year'), get('month') - 1, get('day'), get('hour') % 24, get('minute'), get('second'));
+    };
+    const instant = 2 * wall - round(wall);
+    return Math.max(0, (instant - Date.now()) / 60e3);
+  }
+
   function verdictInfo(item: Item, upcoming = false) {
     const borderline = (item.warnings ?? []).some((w) => /threshold|ambang/i.test(w));
     if (item.evening.visible && borderline) return { cls: 'is-borderline', label: 'Mendekati batas' };
@@ -1201,16 +1244,32 @@ const description =
     );
   }
 
+  const PHASE_LABELS: Array<[number, string]> = [
+    [1.5, 'New Moon'],
+    [6, 'Waxing Crescent'],
+    [8.5, 'First Quarter'],
+    [13.5, 'Waxing Gibbous'],
+    [16.5, 'Full Moon'],
+    [21, 'Waning Gibbous'],
+    [23, 'Last Quarter'],
+    [29.4, 'Waning Crescent'],
+    [30.5, 'New Moon'],
+  ];
+  const moonPhaseLabel = (moonDay: number) =>
+    PHASE_LABELS.find(([limit]) => moonDay <= limit)?.[1] ?? 'New Moon';
+
   function renderToday(today: any) {
     const o = today.output;
-    const day = $('[data-today-day]');
-    const month = $('[data-today-month]');
-    const year = $('[data-today-year]');
-    const greg = $('[data-today-greg]');
+    const day = $('[data-card-day]');
+    const month = $('[data-card-month]');
+    const year = $('[data-card-year]');
+    const greg = $('[data-card-greg]');
+    const phaseEl = $('[data-card-phase]');
     if (day) day.textContent = String(o.day);
     if (month) month.textContent = o.month_name;
     if (year) year.textContent = String(o.year);
-    if (greg) greg.innerHTML = `${fmtDate(today.input.date)} <span class="hilal-tz">· ${today.input.tz}</span>`;
+    if (greg) greg.textContent = fmtDate(today.input.date);
+    if (phaseEl) phaseEl.textContent = moonPhaseLabel(o.day);
   }
 
   const MOON_R = 70;
@@ -1246,20 +1305,33 @@ const description =
     );
     const valueEl = $('[data-count-days]');
     const unitEl = $('[data-count-unit]');
-    const monthEl = $('[data-count-month]');
-    if (monthEl) monthEl.textContent = item.month.name;
-    if (valueEl) valueEl.textContent = days <= 0 ? 'Malam ini' : String(days);
-    if (unitEl) unitEl.textContent = days <= 0 ? '' : days === 1 ? 'besok' : 'hari lagi';
-    const ev = item.evening;
-    const sunset = ev.sunset.split(':').slice(0, 2).join(':');
-    const target = $('[data-count-target]');
-    if (target) {
-      target.textContent = days <= 0
-        ? `${fmtDate(ev.gregorian_date)} · matahari terbenam ${sunset}`
-        : fmtDate(ev.gregorian_date);
+    const hilalEl = $('[data-count-hilal]');
+    const targetGreg = $('[data-target-greg]');
+    if (hilalEl) hilalEl.textContent = item.month.name;
+    if (targetGreg) targetGreg.textContent = fmtDate(item.evening.gregorian_date);
+    if (days <= 0) {
+      // Penentuan is tonight: count down to sunset at the deciding site.
+      if (valueEl) valueEl.style.display = '';
+      const minutes = minutesUntilSunset(item.evening);
+      if (minutes <= 60) {
+        if (valueEl) valueEl.textContent = String(Math.max(0, Math.round(minutes)));
+        if (unitEl) unitEl.textContent = 'Menit Lagi';
+      } else {
+        if (valueEl) valueEl.textContent = String(Math.max(1, Math.ceil(minutes / 60)));
+        if (unitEl) unitEl.textContent = 'Jam Lagi';
+      }
+    } else {
+      if (valueEl) {
+        valueEl.style.display = '';
+        valueEl.textContent = String(days);
+      }
+      if (unitEl) unitEl.textContent = 'Hari Lagi';
     }
 
     const moonDay = today.output.day;
+    const ev = item.evening;
+    const phaseEl = $('[data-card-phase]');
+    if (phaseEl) phaseEl.textContent = moonPhaseLabel(moonDay);
     const pct = Math.min(100, Math.max(0, (moonDay / 29) * 100));
     const arc = $('[data-moon-arc]') as HTMLElement | null;
     if (arc) arc.style.width = `${pct}%`;

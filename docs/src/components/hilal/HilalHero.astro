@@ -39,20 +39,22 @@ const initD = fallback?.day
 
   <div class="hilal-hero-grid">
     <div class="hilal-hero-text">
-      <p class="hilal-eyebrow">Hari ini</p>
+      <p class="hilal-eyebrow">Malam penentuan</p>
       <h1 class="hilal-date">
-        <span class="hilal-date-num" data-today-day>{fallback?.day ?? '—'}</span>
+        <span class="hilal-date-num" data-count-days>—</span>
         <span class="hilal-date-rest">
-          <span class="hilal-date-month" data-today-month>{fallback?.month_name ?? 'Memuat…'}</span>
-          <span class="hilal-date-year"><span data-today-year>{fallback?.year ?? ''}</span> H</span>
+          <span class="hilal-date-month" data-count-unit>Hari Lagi</span>
+          <span class="hilal-date-year">Hilal <span class="hilal-count-name" data-count-hilal>…</span></span>
         </span>
       </h1>
-      <p class="hilal-greg" data-today-greg>{fallback?.greg ?? 'Memuat tanggal…'}</p>
-      <p class="hilal-method">Kriteria Neo MABIMS · altitude ≥ 3° · elongasi ≥ 6,4°</p>
-      <a href="#berikutnya" class="btn btn-primary">
-        Lihat visibilitas
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-      </a>
+      <p class="hilal-greg" data-target-greg>Memuat tanggal…</p>
+      <div class="hilal-cta-row">
+        <a href="#berikutnya" class="btn btn-primary">
+          Lihat Visibilitas
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+        <a href="#riwayat" class="btn btn-ghost">Histori</a>
+      </div>
     </div>
 
     <div class="hilal-moon-stage">
@@ -90,12 +92,12 @@ const initD = fallback?.day
       </svg>
 
       <div class="hilal-countdown-card">
-        <p class="countdown-eyebrow">Malam penentuan <span class="accent-month" data-count-month>—</span></p>
+        <p class="countdown-eyebrow">Hari Ini · <span class="card-phase" data-card-phase>—</span></p>
         <div class="countdown-row">
-          <span class="countdown-value"><span data-count-days>—</span></span>
-          <span class="countdown-unit" data-count-unit>hari lagi</span>
+          <span class="countdown-value"><span data-card-day>{fallback?.day ?? '—'}</span></span>
+          <span class="countdown-unit" data-card-month>{fallback?.month_name ?? '…'}</span>
         </div>
-        <p class="countdown-target" data-count-target>Menghitung…</p>
+        <p class="countdown-target"><span data-card-year>{fallback?.year ?? ''}</span> H · <span data-card-greg>{fallback?.greg ?? 'Memuat…'}</span></p>
         <div class="lunation" aria-hidden="true">
           <div class="lunation-track">
             <div class="lunation-fill" data-moon-arc></div>
