@@ -3,6 +3,21 @@ title: Changelog
 description: History of changes to the MABIMS API and documentation.
 ---
 
+## 1.8.0 — 2026-09-16
+
+### Added
+
+- **`?next=true` on `GET /today`** — also returns the Hijri date that begins at this evening's maghrib (the next civil day's mapping) as a `next` object with its own `source`. The API does not compute sunset — clients gate the flip on their own maghrib time. Supports all timezones like `/today`.
+- **Sidang Isbat corrections** — the published calendar now has an official correction path when a Sidang Isbat session decrees a month start that differs from the published Kemenag calendar: `/meta` exposes **`divergences[]`** (the correction history, newest first) and **`table_version`** (a version token for that history; `"none"` when there are no corrections, changes whenever one is applied).
+- **`kemenag_override:` warning** — responses touching a corrected month (and the month before it, whose length changes) now carry a warning naming the official date (Sidang Isbat) vs the published calendar plus the day delta. Automatic across convert, month/year, events and `/hilal/info`; `source` stays `mabims`.
+
+### Notes
+
+- No behaviour change while no correction is on record: `divergences[]` is empty and `table_version` is `"none"`. Fields and warnings are additive, no breaking change.
+- Client integration details: the [Sidang Isbat Corrections](/en/isbat-koreksi) page.
+
+---
+
 ## 1.7.0 — 2026-09-13
 
 ### Added

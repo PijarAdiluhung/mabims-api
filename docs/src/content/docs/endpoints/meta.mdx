@@ -1,4 +1,4 @@
----
+﻿---
 title: GET /meta
 description: Cakupan tabel, versi data, dan status fallback.
 ---
@@ -23,28 +23,30 @@ GET /api/v1/meta
     ```js
     const res = await fetch("https://api.mabims.dev/api/v1/meta");
     const data = await res.json();
-    console.log("Coverage:", data.coverage.first, "→", data.coverage.last);
+    console.log("Coverage:", data.coverage.first, "â†’", data.coverage.last);
     ```
   </TabItem>
   <TabItem label="PHP">
     ```php
     $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/meta');
     $data = json_decode($response->getBody(), true);
-    echo 'Coverage: ' . $data['coverage']['first'] . ' → ' . $data['coverage']['last'] . PHP_EOL;
+    echo 'Coverage: ' . $data['coverage']['first'] . ' â†’ ' . $data['coverage']['last'] . PHP_EOL;
     ```
   </TabItem>
 </Tabs>
 
 ```json
 {
-  "version": "1.6.0",
+  "version": "1.8.0",
   "data_version": "9f2c41aa7b03",
   "coverage": { "first": "2023-01-23", "last": "2026-12-31" },
   "computed_active": false,
   "computed_months": [],
   "method": "neo-mabims-multisite",
   "docs_url": "https://mabims.dev",
-  "hilal_image_range": [1444, 1475]
+  "hilal_image_range": [1444, 1475],
+  "divergences": [],
+  "table_version": "none"
 }
 ```
 
@@ -56,11 +58,14 @@ GET /api/v1/meta
 | `computed_months` | Bulan-bulan mana yang sudah dihitung via kriteria Neo MABIMS |
 | `method` | Metode perhitungan di luar tabel (`neo-mabims-multisite`) |
 | `hilal_image_range` | Rentang tahun Hijriah `[min, max]` yang kartu `/hilal/viz` + `/hilal/map`-nya sudah dibuat lebih dulu; di luar rentang itu gambar tetap dirender saat diminta |
+| `divergences` | Riwayat koreksi Sidang Isbat: setiap entri berisi `hijri_month` (bulan terkoreksi) dan `delta_days` (bergesernya berapa hari). Kosong bila belum pernah ada koreksi |
+| `table_version` | Token versi riwayat koreksi; `"none"` kalau belum pernah ada koreksi, berubah setiap kali koreksi diterapkan — bandingkan dengan nilai tersimpan Anda untuk tahu kapan harus menarik ulang data |
 
 ## Perilaku klien yang direkomendasikan
 
 1. Poll `/meta` secara harian (murah dan dapat di-cache selama 5 menit).
 2. Jika `computed_active` bernilai true, tampilkan pemberitahuan halus di UI Anda — tanggal bisa bergeser ±1 hari dari pengumuman resmi.
+3. Bandingkan `table_version` dengan yang tersimpan; bila berubah, lihat `divergences[]` dan tarik ulang tanggal di bulan terkoreksi. Detail: [Sidang Isbat & Koreksi](/isbat-koreksi).
 
 ## GET /healthz
 
@@ -97,7 +102,7 @@ GET /healthz
 ```json
 {
   "status": "ok",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "build_hash": "a3f8c1e2b4d6f7a8"
 }
 ```

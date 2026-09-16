@@ -121,6 +121,7 @@ export default defineConfig({
           ],
         },
         { label: 'Data Coverage', link: '/data-coverage', translations: { en: 'Data Coverage' } },
+        { label: 'Sidang Isbat & Koreksi', link: '/isbat-koreksi', translations: { en: 'Sidang Isbat Corrections' } },
         { label: 'Migration dari Aladhan', link: '/migration', translations: { en: 'Migration from Aladhan' } },
         { label: 'FAQ - Pertanyaan', link: '/faq', translations: { en: 'FAQ' } },
         { label: 'Changelog', link: '/changelog' },

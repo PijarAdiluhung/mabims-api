@@ -3,6 +3,21 @@ title: Changelog
 description: Riwayat perubahan API dan dokumentasi MABIMS.
 ---
 
+## 1.8.0 — 2026-09-16
+
+### Added
+
+- **`?next=true` di `GET /today`** — ikut mengembalikanHijriah yang mulai berlaku saat maghrib petang ini (pemetaan hari sipil berikutnya) lewat objek `next` dengan `source`-nya sendiri. API tidak menghitung maghrib — klien yang memutuskan ganti tanggal pakai jam salat maghribnya sendiri. Zona waktu mengikuti perilaku `/today`.
+- **Koreksi Sidang Isbat** — bila Sidang Isbat menetapkan awal bulan berbeda dari kalender terbit Kemenag, kini ada jalur koreksi resminya: `/meta` memunculkan **`divergences[]`** (riwayat koreksi, terbaru dulu) dan **`table_version`** (token versi riwayat; `"none"` kalau belum pernah ada koreksi, berubah setiap kali koreksi diterapkan).
+- **Warning `kemenag_override:`** — respons yang menyentuh bulan terkoreksi (dan bulan sebelumnya, yang panjangnya ikut berubah) membawa peringatan berisi tanggal resmi (Sidang Isbat) vs kalender terbit, plus selisih harinya. Berjalan otomatis di semua endpoint konversi, bulan/tahun, events, dan `/hilal/info`; `source` tetap `mabims`.
+
+### Notes
+
+- Selama belum ada koreksi tercatat, tidak ada yang berubah: `divergences[]` kosong dan `table_version = "none"`. Semuanya tambahan field dan warning, tanpa breaking change.
+- Detail integrasi klien: halaman [Sidang Isbat & Koreksi](/isbat-koreksi).
+
+---
+
 ## 1.7.0 — 2026-09-13
 
 ### Added

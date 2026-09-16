@@ -28,6 +28,12 @@ from .coverage import (
 from .coverage import (
     Coverage as CoverageBounds,
 )
+from .divergences import (
+    Divergence,
+    as_payload,
+    load_divergences,
+    table_version,
+)
 from .events import find_events
 from .fallback import MemoryFallbackStore
 from .hilal import history as _history
@@ -403,6 +409,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
 
     service = CalendarService(data_path, stores=stores)
     bounds: CoverageBounds = load_coverage(settings.data_dir)
+    divergences: dict[str, Divergence] = load_divergences(settings.data_dir)
 
     app = FastAPI(
         title="MABIMS API",
@@ -538,6 +545,17 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         if year < low_year or year > high_year:
             raise ApiError("date_out_of_supported_range", _supported_range_message(retro))
 
+    def _divergence_warnings(hijri_value: str | None) -> list[str]:
+        """Loud notification when the requested hijri month was overridden by
+        a Sidang Isbat decree (its start, or the previous month's length)."""
+        if not hijri_value or not divergences:
+            return []
+        ym = hijri_value[0:7]
+        div = next((d for d in divergences.values() if ym in d.affected_months), None)
+        if div is None:
+            return []
+        return [div.warning(MONTH_NAMES_ID.get(div.month, ""))]
+
     def _warnings_for(source: str, hijri_value: str | None = None) -> list[str]:
         warnings: list[str] = []
         if source == COMPUTED_SOURCE:
@@ -554,6 +572,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
                 borderline = set(active_computed.borderline_months()) if active_computed else set()
                 if ym in borderline:
                     warnings.append(BORDERLINE_WARNING_TEMPLATE.format(ym=ym))
+        warnings.extend(_divergence_warnings(hijri_value))
         return warnings
 
     def _aggregate(items: list) -> tuple[str, list[str]]:
@@ -628,6 +647,8 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             method=COMPUTED_METHOD if active_computed is not None else None,
             docs_url=settings.docs_url,
             hilal_image_range=[HILAL_IMAGE_MIN_YEAR, HILAL_IMAGE_MAX_YEAR],
+            divergences=as_payload(divergences),
+            table_version=table_version(settings.data_dir, divergences),
         )
         return _json_response(payload.model_dump(), SHORT_CACHE_HEADERS)
 

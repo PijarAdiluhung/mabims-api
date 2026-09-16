@@ -81,8 +81,28 @@ def validate_retro_seed(curated_first: date) -> int:
     return 1 if misses else 0
 
 
+def load_acknowledged() -> set[str]:
+    """Hijri YYYY-MM labels whose divergence from the criteria is recorded in
+    divergences.json (sidang isbat overrides). A MISS on a month here is a
+    documented Kemenag override, not a validation failure."""
+    path = DATA_PATH.parent / "divergences.json"
+    if not path.exists():
+        return set()
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        entries = raw.get("divergences", []) if isinstance(raw, dict) else raw
+        ack: set[str] = set()
+        for e in entries:
+            hy, hm = (int(x) for x in str(e["hijri_month"]).split("-"))
+            ack.add(f"{hy:04d}-{hm:02d}")
+        return ack
+    except (json.JSONDecodeError, KeyError, TypeError, ValueError):
+        return set()
+
+
 def main() -> int:
     starts = load_month_starts()
+    acknowledged = load_acknowledged()
     n = len(starts) - 1
     day29 = [starts[i][0] + timedelta(days=28) for i in range(n)]
     sightings = sightings_on_dates(day29)
@@ -104,6 +124,11 @@ def main() -> int:
         dec = s.deciding_site or s.best_site
         verdict = "OK" if s.month_length == actual else "MISS"
         if verdict == "MISS":
+            # A flip of the NEXT month's anchor changes this month's length.
+            ny, nm = (hy + 1, 1) if hm == 12 else (hy, hm + 1)
+            if f"{ny:04d}-{nm:02d}" in acknowledged:
+                verdict = "OVERRIDDEN"
+        if verdict == "MISS":
             misses += 1
         m = dec.margin_deg
         if m < 0.25:
@@ -116,6 +141,8 @@ def main() -> int:
     print()
     print(f"boundaries tested : {n}")
     print(f"multisite hits    : {n - misses}/{n}")
+    if acknowledged:
+        print(f"acknowledged overrides (divergences.json): {', '.join(sorted(acknowledged))}")
     if borderline:
         print("borderline months (margin < 0.25):")
         for b in borderline:

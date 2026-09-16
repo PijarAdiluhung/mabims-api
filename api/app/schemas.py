@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -138,6 +138,23 @@ class MetaResponse(BaseModel):
             "Inclusive [min, max] Hijri years for which the hilal PNG endpoints"
             " (/hilal/viz, /hilal/map) serve images. This is a render cap, not the"
             " data cap: see coverage.forward_ceil for date-conversion limits."
+        ),
+    )
+    divergences: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description=(
+            "Sidang Isbat corrections: months whose official start differs from "
+            "the published Kemenag calendar, each as {hijri_month, delta_days}. "
+            "Empty when the published calendar and the sidang isbat results "
+            "fully agree."
+        ),
+    )
+    table_version: str | None = Field(
+        default=None,
+        description=(
+            "Version token for the curated-table override history. Changes whenever "
+            "a Sidang Isbat correction is applied — poll /meta and diff this to know "
+            "when to re-fetch affected dates."
         ),
     )
 

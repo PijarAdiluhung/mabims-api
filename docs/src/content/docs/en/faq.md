@@ -33,6 +33,13 @@ No. This API is independent, built by PIXO Studio using publicly available Kemen
 
 </details>
 
+<details>
+<summary>What if a Sidang Isbat decision differs from the published Kemenag calendar?</summary>
+
+The API follows the official Sidang Isbat decision. Any response touching the corrected month (and the month before it) carries a warning prefixed <code>kemenag_override:</code>, and <code>/meta</code> exposes the history in <code>divergences[]</code> plus a <code>table_version</code> that changes with every correction — compare it with your stored value to know when to re-fetch. As long as no correction has ever been applied, these fields are empty and nothing about the API's behaviour changes. Details: <a href="/en/isbat-koreksi">Sidang Isbat Corrections</a>.
+
+</details>
+
 ## Access & Authentication
 
 <details>

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -109,12 +110,15 @@ def main() -> int:
     g2h, h2g = build()
     validate(g2h, h2g)
 
-    if DATA_PATH.exists():
+    skip_regression = os.environ.get("MABIMS_ALLOW_FLIP") == "1"
+    if DATA_PATH.exists() and not skip_regression:
         old = json.loads(DATA_PATH.read_text(encoding="utf-8"))
         for g, h in old["gregorian_to_hijri"].items():
             new_h = g2h.get(g)
             assert new_h == h, f"regression: {g} was {h}, now {new_h}"
         print(f"preserved {len(old['gregorian_to_hijri'])} existing entries")
+    elif skip_regression:
+        print("regression check skipped (MABIMS_ALLOW_FLIP=1 — sidang isbat flip)")
 
     payload = {
         "gregorian_to_hijri": dict(sorted(g2h.items())),

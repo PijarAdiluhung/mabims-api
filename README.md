@@ -330,6 +330,14 @@ and the endpoints fall back to lazy rendering.
 
 `/meta` exposes `method`, `computed_active`, `computed_months`, and `retro`.
 
+If a Sidang Isbat session ever decrees a month start that differs from the published
+Kemenag calendar, apply the correction with `api/scripts/apply_flip.py` (see
+`SIDANG-ISBAT-FLIP.md`): one anchor edit (no cascade — later starts wait for their own
+isbat nights) regenerates the curated table, the override is recorded in
+`api/data/divergences.json`, every response touching that month gains a
+`kemenag_override` warning, and `/meta` exposes `divergences[]` plus a `table_version`
+clients can poll.
+
 ## Disclaimer
 
 MABIMS API is an independent open-source project and is **not affiliated with, sponsored by, endorsed by, or officially authorized by** Kementerian Agama Republik Indonesia or MABIMS. Data sourced from publicly available MABIMS tables. Computed results (`mabims-computed`) are algorithmic estimates using Neo MABIMS criteria and do not represent official observations or announcements.

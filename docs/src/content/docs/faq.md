@@ -40,6 +40,13 @@ Bukan. API ini independen, dibangun menggunakan data tabel publik Kemenag RI seb
 
 </details>
 
+<details>
+<summary>Bagaimana kalau hasil Sidang Isbat beda dengan kalender terbit Kemenag?</summary>
+
+API mengikuti keputusan Sidang Isbat. Respons yang menyentuh bulan yang dikoreksi (dan bulan sebelumnya) membawa warning berawalan <code>kemenag_override:</code>. Sementara <code>/meta</code> menyimpan riwayatnya di <code>divergences[]</code> beserta <code>table_version</code> yang berubah setiap kali ada koreksi — bandingkan dengan nilai tersimpan Anda untuk tahu kapan harus menarik ulang data. Selama belum pernah ada koreksi, field-field ini kosong dan tidak mengubah perilaku API. Detail: <a href="/isbat-koreksi">Sidang Isbat &amp; Koreksi</a>.
+
+</details>
+
 ## Akses & Autentikasi
 
 <details>
