@@ -6,6 +6,7 @@ import json
 import math
 import re
 import threading
+import warnings
 from datetime import date, datetime
 from functools import lru_cache
 from pathlib import Path
@@ -13,7 +14,9 @@ from typing import TypeVar
 from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, Query, Request
+from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import FileResponse, JSONResponse, Response
+from scalar_fastapi import AgentScalarConfig, Theme, get_scalar_api_reference
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -331,10 +334,10 @@ def _parse_hijri_date(value: str) -> str:
     """Validate a Hijri ``YYYY-MM-DD`` string without Gregorian date rules.
 
     ``date.fromisoformat`` validates against the Gregorian calendar, so a
-    legitimate Hijri date like ``1368-02-30`` (30 Safar â€” a 30-day month) would
-    be rejected as a nonexistent Gregorian Feb 30 â€” and ``datetime.date`` cannot
+    legitimate Hijri date like ``1368-02-30`` (30 Safar — a 30-day month) would
+    be rejected as a nonexistent Gregorian Feb 30 — and ``datetime.date`` cannot
     even represent ``February 30`` in any year. Hijri months are 29/30 days, so
-    the syntactically valid day range is 1â€“30; whether a specific day exists in
+    the syntactically valid day range is 1–30; whether a specific day exists in
     a given month is left to the data lookup (``date_not_found``). Returns the
     normalized ISO string and never constructs a ``date`` object.
     """
@@ -414,16 +417,47 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
     app = FastAPI(
         title="MABIMS API",
         version=APP_VERSION,
-        tags=[
-            {"name": "Health", "description": "Liveness probes"},
+        redoc_url=None,
+        description=(
+            "## MABIMS API — Indonesian Hijri Calendar\n\n"
+            "Free, open-source API for the Indonesian Hijri calendar.\n"
+            "Uses official MABIMS data from "
+            "[Kementerian Agama RI](https://kemenag.go.id),\n"
+            "not [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) "
+            "(Saudi Arabia's standard).\n\n"
+            "### Quick Start\n\n"
+            "**Today's date:**\n"
+            '```bash\ncurl "https://api.mabims.dev/api/v1/today"\n```\n\n'
+            "**Convert a date:**\n"
+            '```bash\ncurl "https://api.mabims.dev/api/v1/convert?date=2025-01-03&calendar=gregorian"\n```\n\n'
+            "### Endpoints\n\n"
+            "| Endpoint | Description |\n|---|---|\n"
+            "| `/today` | Today's Hijri date (timezone-aware) |\n"
+            "| `/convert` | Single date conversion (Gregorian ↔ Hijri) |\n"
+            "| `/range` | Bulk conversion (up to 45 days) |\n"
+            "| `/month` | All days in a calendar month |\n"
+            "| `/year` | All days in a calendar year |\n"
+            "| `/events` | Islamic observances (Ramadan, Eid, 1 Muharram, Maulid) |\n"
+            "| `/hilal/info` | Hilal visibility data (JSON) |\n"
+            "| `/hilal/viz` | Hilal sky chart (PNG 720×1280) |\n\n"
+            "### Coverage\n\n"
+            "| Source | Range |\n|---|---|\n"
+            "| `mabims` | 2023-01-23 → 2026-12-31 (Kemenag table) |\n"
+            "| `mabims-computed` | Up to 2100 (Neo MABIMS criteria) |\n"
+            "| `mabims-retro` | 1945-01-01 → 2023-01-22 (requires `retro=true`) |\n\n"
+            "### No API key required\n\n"
+            "All endpoints are public. CORS is open for browser access."
+        ),
+        openapi_tags=[
             {"name": "Today", "description": "Today's Hijri date (timezone-aware)"},
-            {"name": "Convert", "description": "Single date conversion"},
-            {"name": "Range", "description": "Bulk date range conversion"},
+            {"name": "Convert", "description": "Single date Gregorian ↔ Hijri conversion"},
+            {"name": "Range", "description": "Bulk date range conversion (up to 45 days)"},
             {"name": "Month", "description": "All days in a calendar month"},
             {"name": "Year", "description": "All days in a calendar year"},
-            {"name": "Events", "description": "Islamic observances"},
-            {"name": "Hilal", "description": "Hilal visibility data and charts"},
-            {"name": "Meta", "description": "API metadata and coverage"},
+            {"name": "Events", "description": "Islamic observances — Ramadan, Eid, 1 Muharram, Maulid"},
+            {"name": "Hilal", "description": "Hilal visibility data and sky charts"},
+            {"name": "Meta", "description": "Data coverage, computation status, and table version"},
+            {"name": "Health", "description": "Liveness probes"},
         ],
     )
 
@@ -608,6 +642,10 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         response_model=HealthResponse,
         tags=["Health"],
         summary="Liveness probe",
+        description=(
+            "Liveness probe for uptime monitors. Returns `status`, `version` "
+            "and `build_hash`. Never cached (`Cache-Control: no-store`)."
+        ),
         methods=["GET", "HEAD"],
     )
     @limiter.exempt
@@ -627,12 +665,28 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             headers={"Cache-Control": "public, max-age=86400, s-maxage=86400"},
         )
 
+    @app.get("/docs", include_in_schema=False)
+    @limiter.exempt
+    async def custom_docs():
+        return get_swagger_ui_html(
+            openapi_url=app.openapi_url or "/openapi.json",
+            title=app.title + " — Swagger UI",
+            swagger_favicon_url="/favicon.ico",
+        )
+
     @app.api_route(
         "/api/v1/meta",
         response_model=MetaResponse,
         tags=["Meta"],
         summary="API metadata",
-        description="Returns data version, coverage range, and computed status.",
+        description=(
+            "Machine-readable truth about the dataset backing every other "
+            "endpoint: data version, Gregorian table coverage, computed-tier "
+            "status (`computed_active`, `computed_months`, `method`), hilal "
+            "render range, Sidang Isbat corrections (`divergences[]`, "
+            "`table_version`) and the docs URL. Poll it daily to detect "
+            "table updates and corrections; cacheable for 5 minutes."
+        ),
         methods=["GET", "HEAD"],
     )
     @limiter.exempt
@@ -674,13 +728,26 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         response_model=ConvertResponse,
         tags=["Convert"],
         summary="Convert a single date",
-        description="Convert a date between Gregorian and Hijri calendars.",
+        description=(
+            "Converts one date in the direction implied by `calendar`: "
+            "Gregorian → Hijri when `calendar=gregorian`, Hijri → Gregorian "
+            "when `calendar=hijri`. Timezone-independent by design — only "
+            "/today takes `tz`, because \"today\" depends on where you ask "
+            "from. Dates within the curated Kemenag table are authoritative "
+            "(`source: mabims`); beyond it they are computed with the Neo "
+            "MABIMS criteria (`mabims-computed`), or `mabims-retro` below the "
+            "table with `retro=true`."
+        ),
         methods=["GET", "HEAD"],
     )
     def convert(
         request: Request,
-        date_: str | None = Query(default=None, alias="date"),
-        calendar: str = Query(default="gregorian"),
+        date_: str | None = Query(
+            default=None,
+            alias="date",
+            description="Date in YYYY-MM-DD format (e.g. 2025-01-03 or 1446-07-03)",
+        ),
+        calendar: str = Query(default="gregorian", description="'gregorian' or 'hijri'"),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
         if not date_:
@@ -704,12 +771,23 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         response_model=TodayResponse,
         tags=["Today"],
         summary="Today's Hijri date",
-        description="Returns today's Hijri date, timezone-aware.",
+        description=(
+            "Returns the Hijri date for \"now\" in the requested timezone — "
+            "the hero endpoint most consumer apps poll. Tuned for it: "
+            "responses carry dynamic edge-cache TTLs so a CDN serves nearly "
+            "all traffic. Defaults to Asia/Jakarta (UTC+7); accepts any IANA "
+            "zone name (`Asia/Kuala_Lumpur`) or UTC offset (`UTC+8`, `+08:00`)"
+            ". The Hijri day begins at maghrib, so the date rolls over before "
+            "midnight: set `next=true` to also return the Hijri date that "
+            "becomes current after this evening's maghrib (`next` object, "
+            "with its own `source`) — gate the flip on your own sunset clock, "
+            "the API does not compute sunset."
+        ),
         methods=["GET", "HEAD"],
     )
     def today(
         request: Request,
-        tz: str | None = Query(default=None),
+        tz: str | None = Query(default=None, description="IANA timezone (e.g. Asia/Jakarta) or UTC offset (e.g. UTC+8)"),
         next: str | None = Query(default=None, description=NEXT_QUERY_DESC),
     ):
         try:
@@ -744,7 +822,13 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         response_model=ConvertResponse,
         tags=["Today"],
         summary="Hijri date for a fixed Gregorian date",
-        description="Immutable endpoint â€” CDN-cacheable forever. Date format: YYYY-MM-DD.",
+        description=(
+            "Same conversion as /today for any given Gregorian date — a "
+            "stable resource for cache-forever CDN setups and for replaying "
+            "historical days. Immutable endpoint, CDN-cacheable forever "
+            "(`max-age=86400`). Date format: `YYYY-MM-DD`. Does not accept "
+            "`tz` — conversion is timezone-independent."
+        ),
         methods=["GET", "HEAD"],
     )
     def today_on(
@@ -766,10 +850,10 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
     def _hijri_month_items(year: int, month: int, retro: bool = False) -> list[RangeItem]:
         """All days of a Hijri month, served from whichever tier covers it.
 
-        A Hijri month is 29 or 30 days, never 31 â€” days are probed by exact
+        A Hijri month is 29 or 30 days, never 31 — days are probed by exact
         Hijri ISO date and the first missing day ends the month, so a
         fabricated ``day 31`` can never be produced. When the curated table
-        fully covers the month it is served as-is (authoritative â€” a computed
+        fully covers the month it is served as-is (authoritative — a computed
         pad could wrongly extend an official 29-day month to 30). When the
         table is absent or truncated mid-month, the computed store is ensured
         and ``lookup`` fills the gap (curated days still win where present).
@@ -880,15 +964,23 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         response_model=RangeResponse,
         tags=["Range"],
         summary="Bulk date conversion",
-        description="Convert a date range between Gregorian and Hijri. Maximum 45 days.",
+        description=(
+            "Converts every day in an inclusive range, up to 45 days. Each "
+            "item carries its own `source` — ranges crossing the table "
+            "boundary can mix authoritative (`mabims`) and computed "
+            "(`mabims-computed`) data. For `calendar=hijri`, ranges beyond "
+            "the public table are served from the Neo MABIMS computed tier "
+            "while within the supported range. Responses are immutable per "
+            "input and safely cacheable for a full day."
+        ),
         methods=["GET", "HEAD"],
     )
     def range_(
         request: Request,
-        start: str = Query(...),
-        end: str = Query(...),
-        calendar: str = Query(default="gregorian"),
-        step: str = Query(default="day"),
+        start: str = Query(..., description="Start date in YYYY-MM-DD format"),
+        end: str = Query(..., description="End date in YYYY-MM-DD format"),
+        calendar: str = Query(default="gregorian", description="'gregorian' or 'hijri'"),
+        step: str = Query(default="day", description="Only 'day' is supported"),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
         cal = _validate_calendar(calendar)
@@ -930,13 +1022,23 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         response_model=EventsResponse,
         tags=["Events"],
         summary="Islamic events for a year",
-        description="Curated Islamic observances: 1 Muharram, Maulid, Ramadan, Eid.",
+        description=(
+            "Returns the Islamic observance dates for one calendar year — "
+            "1 Muharram, Maulid Nabi, Awal Ramadan, Idul Fitri, Idul Adha — "
+            "sorted by Gregorian date. Within the curated table, dates come "
+            "straight from the public Kemenag table; beyond coverage they "
+            "are computed live with the Neo MABIMS criteria, giving "
+            "observance dates years into the future (`source: "
+            "`mabims-computed` — check `warnings[]`). For "
+            "`calendar=gregorian`, the overlapping Hijri years are estimated "
+            "and each event is resolved across them."
+        ),
         methods=["GET", "HEAD"],
     )
     def events(
         request: Request,
-        year: int = Query(...),
-        calendar: str = Query(default="hijri"),
+        year: int = Query(..., description="Year (e.g. 2026)"),
+        calendar: str = Query(default="hijri", description="'gregorian' or 'hijri'"),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
         cal = _validate_calendar(calendar)
@@ -968,14 +1070,21 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         response_model=MonthResponse,
         tags=["Month"],
         summary="All days in a month",
-        description="Calendar-grid sugar over /range. Returns every day in the given month.",
+        description=(
+            "Convenience wrapper resolving a whole month grid. For "
+            "`calendar=hijri` the response contains every Gregorian date "
+            "onto which that Hijri month maps (29–30 items, same shape as "
+            "/range) — exactly what a Hijri month-view needs. Months beyond "
+            "the public table are served from the Neo MABIMS computed tier "
+            "while within the supported range."
+        ),
         methods=["GET", "HEAD"],
     )
     def month(
         request: Request,
-        year: int = Query(...),
-        month: int = Query(...),
-        calendar: str = Query(default="hijri"),
+        year: int = Query(..., description="Year (e.g. 1447)"),
+        month: int = Query(..., description="Month 1-12"),
+        calendar: str = Query(default="hijri", description="'gregorian' or 'hijri'"),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
         cal = _validate_calendar(calendar)
@@ -1023,13 +1132,19 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         response_model=YearResponse,
         tags=["Year"],
         summary="All days in a year",
-        description="Returns every day in all 12 months of a Hijri or Gregorian year.",
+        description=(
+            "Returns every day across all 12 months of a year — much simpler "
+            "than calling /month 12 times. Month keys contain arrays with "
+            "the same item shape as /range; `count` is the number of days in "
+            "the whole year. Beyond the public table, months are served from "
+            "the Neo MABIMS computed tier while within the supported range."
+        ),
         methods=["GET", "HEAD"],
     )
     def year(
         request: Request,
-        year: int = Query(...),
-        calendar: str = Query(default="hijri"),
+        year: int = Query(..., description="Year (e.g. 1447)"),
+        calendar: str = Query(default="hijri", description="'gregorian' or 'hijri'"),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
         cal = _validate_calendar(calendar)
@@ -1111,17 +1226,24 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         tags=["Hilal"],
         summary="Hilal visibility data",
         description=(
-            "Hilal criteria data for the evening deciding a Hijri month start: "
-            "topocentric altitude and geocentric elongation at the deciding "
-            "coastal site, with the sky scene at that same site."
+            "Hilal visibility data for the evening deciding a Hijri month "
+            "start — always the 29th of the current month, the night people "
+            "actually go looking for the crescent. The Neo MABIMS criteria "
+            "(moon altitude ≥ 3.0° topocentric with refraction, elongation ≥ "
+            "6.4° geocentric) are evaluated at 25 coastal observation sites "
+            "across Indonesia at each site's local sunset: `visible` is true "
+            "when met at **any** site, and the passing — or best-margin — "
+            "site is reported as `deciding_site` (all values refer to it). "
+            "If met nowhere, the month completes 30 days. Rate limit: "
+            "60/hour per IP."
         ),
         methods=["GET", "HEAD"],
     )
     @limiter.limit("60/hour")
     def hilal_info(
         request: Request,
-        month: int = Query(...),
-        year: int = Query(...),
+        month: int = Query(..., description="Hijri month 1-12"),
+        year: int = Query(..., description="Hijri year (e.g. 1447)"),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
         res, sighting, alt_ok, elong_ok, visible, ms_site, source, warnings = _hilal_context(
@@ -1177,17 +1299,18 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         tags=["Hilal"],
         summary="Hilal history (precomputed)",
         description=(
-            "Per-month hilal summary for a Hijri range (defaults to the whole "
-            "precomputed index, 1444-08 through 1475-12), served as a lookup so "
-            "the website's history list needs a single request."
+            "Per-month hilal summary for a Hijri `YYYY-MM` range, read from "
+            "the precomputed index (1444-08 through 1475-12 by default) — a "
+            "single cheap lookup that powers a visibility timeline without "
+            "one /hilal/info call per month."
         ),
         methods=["GET", "HEAD"],
     )
     @limiter.limit("240/minute")
     def hilal_history(
         request: Request,
-        start: str | None = Query(default=None, alias="from"),
-        end: str | None = Query(default=None, alias="to"),
+        start: str | None = Query(default=None, alias="from", description="Start month YYYY-MM (e.g. 1445-08)"),
+        end: str | None = Query(default=None, alias="to", description="End month YYYY-MM (e.g. 1475-12)"),
     ):
         span = _history.index_range()
         if span is None:
@@ -1215,16 +1338,22 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         tags=["Hilal"],
         summary="Hilal sky chart PNG",
         description=(
-            "Renders a 720x1280 PNG chart of hilal visibility: sky scene, "
-            "criteria and times at the deciding coastal site."
+            "Renders the \"where to look\" sky chart as a 720×1280 vertical "
+            "PNG: sunset sky with the crescent (bright limb facing the sun), "
+            "a verdict pill, and a criteria table plus deciding-site row — "
+            "the scene, values and times all refer to the same deciding "
+            "site. Deterministic per parameter. Add `bare=true` for the "
+            "panel-less 1440×1520 web card, `download=true` to receive it as "
+            "an attachment. Render cap: Hijri 1444–1475. Rate limit: "
+            "30/hour per IP."
         ),
         methods=["GET", "HEAD"],
     )
     @limiter.limit("30/hour")
     def hilal_viz(
         request: Request,
-        month: int = Query(...),
-        year: int = Query(...),
+        month: int = Query(..., description="Hijri month 1-12"),
+        year: int = Query(..., description="Hijri year (e.g. 1447)"),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
         bare: bool = Query(default=False, description=BARE_QUERY_DESC),
         download: bool = Query(default=False, description=DOWNLOAD_QUERY_DESC),
@@ -1259,17 +1388,23 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         tags=["Hilal"],
         summary="Hilal visibility map PNG",
         description=(
-            "Renders a 720x1280 archipelago map of hilal visibility for the "
-            "evening deciding a Hijri month start: the visible region, the "
-            "display points (memenuhi / tidak) and the criteria table."
+            "Renders an archipelago visibility map as a 720×1280 PNG: the "
+            "region where the Neo MABIMS criteria are met at local sunset, "
+            "the altitude-3°/elongation-6.4° boundary lines, and 95 display "
+            "points (green = meets the criteria, gray = does not) with the "
+            "deciding point ringed. Uses the same deciding point as "
+            "/hilal/viz, so both cards always name the same observer. Add "
+            "`bare=true` for the panel-less 1440×1520 web card, "
+            "`download=true` to receive it as an attachment. Render cap: "
+            "Hijri 1444–1475. Rate limit: 30/hour per IP."
         ),
         methods=["GET", "HEAD"],
     )
     @limiter.limit("30/hour")
     def hilal_map(
         request: Request,
-        month: int = Query(...),
-        year: int = Query(...),
+        month: int = Query(..., description="Hijri month 1-12"),
+        year: int = Query(..., description="Hijri year (e.g. 1447)"),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
         bare: bool = Query(default=False, description=BARE_QUERY_DESC),
         download: bool = Query(default=False, description=DOWNLOAD_QUERY_DESC),
@@ -1310,6 +1445,71 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             content=png,
             media_type="image/png",
             headers={**HILAL_CACHE, **etag_headers(etag_from_bytes(png)), **attach},
+        )
+
+    _TAG_ORDER = [
+        "Today",
+        "Convert",
+        "Range",
+        "Month",
+        "Year",
+        "Events",
+        "Hilal",
+        "Meta",
+        "Health",
+    ]
+    _base_openapi = app.openapi
+
+    def custom_openapi():
+        if app.openapi_schema:
+            return app.openapi_schema
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message="Duplicate Operation ID .*_head .*",
+                category=UserWarning,
+            )
+            schema = _base_openapi()
+        tags = {t["name"]: t for t in schema.get("tags", [])}
+        ordered = [tags[name] for name in _TAG_ORDER if name in tags]
+        ordered += [t for n, t in tags.items() if n not in _TAG_ORDER]
+        schema["tags"] = ordered
+
+        def rank(path: str) -> tuple[int, int]:
+            p = schema["paths"][path]
+            for op in p.values():
+                for tag in op.get("tags", []):
+                    if tag == "Table":
+                        return (999, 0)
+                    if tag in _TAG_ORDER:
+                        return (_TAG_ORDER.index(tag), 0)
+            return (998, 0)
+
+        keep = sorted(
+            (p for p in schema["paths"] if rank(p)[0] != 999),
+            key=rank,
+        )
+        schema["paths"] = {
+            p: {m: op for m, op in schema["paths"][p].items() if m != "head"}
+            for p in keep
+        }
+        app.openapi_schema = schema
+        return schema
+
+    app.openapi = custom_openapi  # type: ignore[method-assign]
+
+    @app.get("/scalar", include_in_schema=False)
+    async def scalar_html():
+        return get_scalar_api_reference(
+            openapi_url=app.openapi_url,
+            title="MABIMS API — Scalar",
+            scalar_favicon_url="/favicon.ico",
+            theme=Theme.DEFAULT,
+            force_dark_mode_state="dark",
+            hide_models=False,
+            show_sidebar=True,
+            default_open_all_tags=False,
+            agent=AgentScalarConfig(disabled=True),
         )
 
     return app
