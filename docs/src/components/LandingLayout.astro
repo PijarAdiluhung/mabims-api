@@ -26,14 +26,14 @@ const {
 
 const base = lang === 'en' ? '/en' : '';
 const labels = lang === 'en'
-  ? { quickstart: 'Quickstart', try: 'Try', blog: 'Blog', faq: 'FAQ', github: 'GitHub' }
-  : { quickstart: 'Quickstart', try: 'Coba', blog: 'Blog', faq: 'FAQ', github: 'GitHub' };
+  ? { quickstart: 'Quickstart', try: 'Demo', blog: 'Blog', faq: 'FAQ', github: 'GitHub' }
+  : { quickstart: 'Quickstart', try: 'Demo', blog: 'Blog', faq: 'FAQ', github: 'GitHub' };
 const links = {
   logo: `${base}/`,
   quickstart: `${base}/quickstart/`,
-  converter: `${base}/playground/converter/`,
-  kalender: `${base}/playground/kalender/`,
-  hilalPlayground: `${base}/playground/hilal/`,
+  converter: `${base}/demo/converter/`,
+  kalender: `${base}/demo/kalender/`,
+  hilalDemo: `${base}/demo/hilal/`,
   hilalPage: lang === 'id' ? '/hilal/' : null,
   blog: `${base}/blog/`,
   faq: `${base}/faq/`,
@@ -101,7 +101,7 @@ const links = {
             <div class="nav-dropdown-menu">
               <a href={links.converter}>Konverter</a>
               <a href={links.kalender}>Kalender</a>
-              <a href={links.hilalPlayground}>Grafik</a>
+              <a href={links.hilalDemo}>Grafik</a>
             </div>
           </div>
           {links.hilalPage && <a href={links.hilalPage}>Hilal</a>}
@@ -123,7 +123,7 @@ const links = {
       <span class="mobile-menu-label">{labels.try}</span>
       <a href={links.converter} class="mobile-menu-sub">Konverter</a>
       <a href={links.kalender} class="mobile-menu-sub">Kalender</a>
-      <a href={links.hilalPlayground} class="mobile-menu-sub">Grafik</a>
+      <a href={links.hilalDemo} class="mobile-menu-sub">Grafik</a>
       {links.hilalPage && <a href={links.hilalPage}>Hilal</a>}
       <a href={links.blog}>{labels.blog}</a>
       <a href={links.faq}>{labels.faq}</a>

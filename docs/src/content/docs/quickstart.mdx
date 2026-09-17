@@ -11,6 +11,8 @@ Base URL:
 https://api.mabims.dev/api/v1
 ```
 
+Selamat datang di MABIMS API. Di halaman ini Anda akan membuat permintaan pertama dalam waktu kurang dari satu menit: mengambil tanggal Hijriah hari ini, mengonversi tanggal Masehi ke Hijriah, lalu mencobanya langsung dari kode. Tidak perlu API key, tidak perlu registrasi. Cukup panggil endpoint-nya.
+
 ## Tanggal Hijriah hari ini
 
 Kasus penggunaan yang paling umum: berapa tanggal Hijriah hari ini?
@@ -28,6 +30,58 @@ curl "https://api.mabims.dev/api/v1/today"
 }
 ```
 
+### Contoh kode
+
+Pakai bahasa apa pun yang bisa HTTP request. Tidak perlu library khusus.
+
+<Tabs syncKey="code">
+  <TabItem label="JavaScript">
+    ```js
+    const res = await fetch("https://api.mabims.dev/api/v1/today");
+    const { day, month_name, year } = (await res.json()).output;
+    console.log(`${day} ${month_name} ${year} H`);
+    // "14 Rabiul Akhir 1448 H"
+    ```
+  </TabItem>
+  <TabItem label="React">
+    ```jsx
+    import { useEffect, useState } from "react";
+
+    export default function HijriDate() {
+      const [date, setDate] = useState(null);
+
+      useEffect(() => {
+        fetch("https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta")
+          .then((res) => res.json())
+          .then(setDate);
+      }, []);
+
+      if (!date) return <span>Memuat tanggal Hijriah...</span>;
+      return <span>{date.output.date}</span>;
+    }
+    ```
+  </TabItem>
+  <TabItem label="Vue">
+    ```vue
+    <script setup>
+    import { ref, onMounted } from "vue";
+
+    const hijriDate = ref(null);
+
+    onMounted(async () => {
+      const res = await fetch("https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta");
+      hijriDate.value = await res.json();
+    });
+    </script>
+
+    <template>
+      <div v-if="hijriDate">{{ hijriDate.output.date }}</div>
+      <div v-else>Memuat tanggal Hijriah...</div>
+    </template>
+    ```
+  </TabItem>
+</Tabs>
+
 `today` secara default menggunakan **Asia/Jakarta (UTC+7)**. Anda bisa override dengan zona IANA atau UTC offset apa pun:
 
 ```bash
@@ -37,10 +91,64 @@ curl "https://api.mabims.dev/api/v1/today?tz=UTC+8"
 
 ## Konversi tanggal tertentu
 
+Konversi dua arah. Arah ditentukan lewat param `calendar`:
+
 ```bash
 curl "https://api.mabims.dev/api/v1/convert?date=2025-01-03&calendar=gregorian"
 curl "https://api.mabims.dev/api/v1/convert?date=1446-07-03&calendar=hijri"
 ```
+
+```json
+{
+  "input": { "date": "2025-01-03", "calendar": "gregorian", "tz": null },
+  "output": { "date": "1446-07-03", "calendar": "hijri", "day": 3, "month": 7, "month_name": "Rajab", "year": 1446 },
+  "source": "mabims",
+  "warnings": []
+}
+```
+
+Pass `calendar=gregorian` berarti `date` adalah tanggal Masehi dan responsnya berupa tanggal Hijriah; `calendar=hijri` berarti sebaliknya.
+
+## Apa saja yang tersedia
+
+Dua endpoint di atas baru permukaannya. Tidak hanya konversi tanggal: MABIMS API juga menyediakan konversi massal, kalender bulanan dan tahunan, hari besar Islam, sampai data visibilitas hilal lengkap dengan grafiknya.
+
+| Endpoint | Fungsi |
+|---|---|
+| `GET /today` | Tanggal Hijri hari ini (timezone-aware) |
+| `GET /convert` | Konversi satu tanggal (Masehi ↔ Hijriah) |
+| `GET /range` | Konversi bulk hingga 45 hari |
+| `GET /month` | Semua hari dalam satu bulan |
+| `GET /year` | Semua hari dalam satu tahun (12 bulan) |
+| `GET /events` | Hari besar Islam (Ramadan, Idul Fitri, Idul Adha, 1 Muharram, Maulid Nabi) |
+| `GET /hilal/info` | Data visibilitas hilal (JSON) |
+| `GET /hilal/viz` | Grafik langit hilal (PNG 720×1280) |
+
+### Referensi API per endpoint
+
+<CardGrid>
+  <LinkCard title="GET /today" href="/endpoints/today" description="Tanggal Hijri hari ini (timezone-aware)" />
+  <LinkCard title="GET /convert & /range" href="/endpoints/convert-range" description="Konversi satu tanggal dan konversi massal" />
+  <LinkCard title="GET /month & /year" href="/endpoints/month-year" description="Semua hari dalam satu bulan atau satu tahun" />
+  <LinkCard title="GET /events" href="/endpoints/events" description="Hari besar Islam" />
+  <LinkCard title="GET /hilal" href="/endpoints/hilal" description="Data visibilitas hilal dan grafik langit" />
+  <LinkCard title="GET /meta" href="/endpoints/meta" description="Cakupan data dan status komputasi" />
+  <LinkCard title="OpenAPI Spec" href="https://api.mabims.dev/openapi.json" description="Spesifikasi OpenAPI 3.1 lengkap" />
+</CardGrid>
+
+### Playground untuk tes respons
+
+Semua endpoint di atas bisa dicoba langsung dari browser lewat Swagger UI di <a href="https://api.mabims.dev/docs" target="_blank" rel="noopener noreferrer">api.mabims.dev/docs</a>. Klik endpoint mana pun, isi parameternya, tekan **Try it out**, dan respons JSON-nya tampil di layar. Cocok untuk mengetes param sebelum menulis kode.
+
+## Lebih ringan lewat SDK
+
+Mau hasilnya offline tanpa panggil API? Pakai **mabims-hijri**, package npm dengan data 2023-2026 ter-bundle di dalamnya. Cocok untuk aplikasi yang butuh tanggal Hijriah tanpa jaringan, tanpa khawatir rate limit.
+
+```
+npm install mabims-hijri
+```
+
+Detail lengkapnya: [Dokumentasi SDK](/sdk).
 
 ## Selalu periksa `source`
 
@@ -64,70 +172,6 @@ Kemungkinan isi `warnings`:
 | Hijri month {'{ym}'} is close to the Neo MABIMS visibility threshold; the officially announced date may shift by one day. | Bulan Hijri berada di batas ambang kriteria visibilitas — tanggal resmi bisa bergeser ±1 hari. |
 | kemenag_override: 1 {'{bulan}'} {'{tahun}'} H resmi {'{tanggal}'} (Sidang Isbat; kalender terbit Kemenag: {'{tanggal}'}, delta ±n hari). | Bulan ini dikoreksi lewat Sidang Isbat — tanggal resminya beda dengan kalender terbit. Detail: [Sidang Isbat & Koreksi](/isbat-koreksi). |
 
-## Contoh kode
-
-MABIMS.dev adalah REST API standar — bisa dipakai dari JavaScript, PHP, Python, Dart, Swift, Kotlin, atau bahasa apapun yang bisa melakukan HTTP request. Tidak perlu library khusus.
-
-<Tabs syncKey="code">
-  <TabItem label="curl">
-    ```bash
-    curl "https://api.mabims.dev/api/v1/today"
-    ```
-  </TabItem>
-  <TabItem label="JavaScript">
-    ```js
-    const res = await fetch("https://api.mabims.dev/api/v1/today");
-    const { day, month_name, year } = (await res.json()).output;
-    console.log(`${day} ${month_name} ${year} H`);
-    // "14 Rabiul Akhir 1448 H"
-    ```
-  </TabItem>
-  <TabItem label="Vue">
-    ```vue
-    <script setup>
-    import { ref, onMounted } from "vue";
-
-    const hijriDate = ref(null);
-
-    onMounted(async () => {
-      const res = await fetch("https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta");
-      hijriDate.value = await res.json();
-    });
-    </script>
-
-    <template>
-      <div v-if="hijriDate">{{ hijriDate.output.date }}</div>
-      <div v-else>Memuat tanggal Hijriah...</div>
-    </template>
-    ```
-  </TabItem>
-  <TabItem label="React">
-    ```jsx
-    import { useEffect, useState } from "react";
-
-    export default function HijriDate() {
-      const [date, setDate] = useState(null);
-
-      useEffect(() => {
-        fetch("https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta")
-          .then((res) => res.json())
-          .then(setDate);
-      }, []);
-
-      if (!date) return <span>Memuat tanggal Hijriah...</span>;
-      return <span>{date.output.date}</span>;
-    }
-    ```
-  </TabItem>
-</Tabs>
-
-:::caution[npm package]
-Ingin hasilnya offline tanpa fetch API? Pakai **mabims-hijri**. Bundle data 2023-2026 langsung di package, ada `today()`, `convert()`, `hilal.info()`, dan lainnya. [Lihat dokumentasi SDK](/sdk).
-```
-npm install mabims-hijri
-```
-:::
-
 ## Panduan integrasi lengkap
 
 Butuh panduan step-by-step untuk kasus spesifik?
@@ -135,31 +179,6 @@ Butuh panduan step-by-step untuk kasus spesifik?
 <CardGrid>
   <LinkCard title="Tampilkan di Website" href="/blog/cara-tampilkan-tanggal-hijriah" description="Tutorial lengkap: JavaScript, PHP, WordPress — plus cache server & widget kalender bulanan" />
   <LinkCard title="Integrasikan ke App iOS/Android" href="/blog/integrasi-mabims-ios-android" description="Strategi cache offline-first untuk app native: pola /year + /today, contoh Swift & Kotlin" />
-</CardGrid>
-
-## Apa saja yang tersedia
-
-| Endpoint | Fungsi |
-|---|---|
-| `GET /today` | Tanggal Hijri hari ini (timezone-aware) |
-| `GET /convert` | Konversi satu tanggal (Masehi ↔ Hijriah) |
-| `GET /range` | Konversi bulk hingga 45 hari |
-| `GET /month` | Semua hari dalam satu bulan |
-| `GET /year` | Semua hari dalam satu tahun (12 bulan) |
-| `GET /events` | Hari besar Islam (Ramadan, Idul Fitri, Idul Adha, 1 Muharram, Maulid Nabi) |
-| `GET /hilal/info` | Data visibilitas hilal (JSON) |
-| `GET /hilal/viz` | Grafik langit hilal (PNG 720×1280) |
-
-### Referensi API per endpoint
-
-<CardGrid>
-  <LinkCard title="GET /today" href="/endpoints/today" description="Tanggal Hijri hari ini (timezone-aware)" />
-  <LinkCard title="GET /convert & /range" href="/endpoints/convert-range" description="Konversi satu tanggal dan konversi massal" />
-  <LinkCard title="GET /month & /year" href="/endpoints/month-year" description="Semua hari dalam satu bulan atau satu tahun" />
-  <LinkCard title="GET /events" href="/endpoints/events" description="Hari besar Islam" />
-  <LinkCard title="GET /hilal" href="/endpoints/hilal" description="Data visibilitas hilal dan grafik langit" />
-  <LinkCard title="GET /meta" href="/endpoints/meta" description="Cakupan data dan status komputasi" />
-  <LinkCard title="OpenAPI Spec" href="https://api.mabims.dev/openapi.json" description="Spesifikasi OpenAPI 3.1 lengkap" />
 </CardGrid>
 
 ## Akses & Batas Rate

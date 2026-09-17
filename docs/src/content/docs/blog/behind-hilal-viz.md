@@ -82,7 +82,7 @@ Status: **MEMENUHI KRITERIA**, dan kali ini marginnya jauh di atas ambang. Bandi
 
 Karena angka mentah (`moon_alt: 10.4, elongation: 14.5`) nggak intuitif buat kebanyakan orang, termasuk saya sendiri. Tapi begitu divisualisasikan -> lihat posisi bulan relatif ke horizon, lihat pill hijau/merah, lihat tabel kriteria -> jadi jauh lebih gampang dicerna. Endpoint ini niatnya bukan cuma buat developer yang butuh JSON, tapi juga buat siapa saja yang penasaran "kok bisa sih hilal dibilang terlihat/tidak terlihat" tanpa harus paham astronomi.
 
-Coba sendiri di [playground](/playground/hilal):
+Coba sendiri di [demo](/demo/hilal):
 
 ```
 GET https://api.mabims.dev/api/v1/hilal/viz?month=1&year=1448

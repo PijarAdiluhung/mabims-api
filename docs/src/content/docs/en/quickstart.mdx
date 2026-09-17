@@ -11,6 +11,8 @@ Base URL:
 https://api.mabims.dev/api/v1
 ```
 
+Welcome to MABIMS API. This page gets your first request done in under a minute: fetch today's Hijri date, convert a Gregorian date to Hijri, then call it straight from your code. No API key, no registration. Just hit the endpoint.
+
 ## Today's Hijri date
 
 The most common use case — what Hijri date is it right now?
@@ -28,6 +30,58 @@ curl "https://api.mabims.dev/api/v1/today"
 }
 ```
 
+### Code examples
+
+Use any language that can make an HTTP request. No special libraries needed.
+
+<Tabs syncKey="code">
+  <TabItem label="JavaScript">
+    ```js
+    const res = await fetch("https://api.mabims.dev/api/v1/today");
+    const { day, month_name, year } = (await res.json()).output;
+    console.log(`${day} ${month_name} ${year} H`);
+    // "14 Rabiul Akhir 1448 H"
+    ```
+  </TabItem>
+  <TabItem label="React">
+    ```jsx
+    import { useEffect, useState } from "react";
+
+    export default function HijriDate() {
+      const [date, setDate] = useState(null);
+
+      useEffect(() => {
+        fetch("https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta")
+          .then((res) => res.json())
+          .then(setDate);
+      }, []);
+
+      if (!date) return <span>Loading Hijri date...</span>;
+      return <span>{date.output.date}</span>;
+    }
+    ```
+  </TabItem>
+  <TabItem label="Vue">
+    ```vue
+    <script setup>
+    import { ref, onMounted } from "vue";
+
+    const hijriDate = ref(null);
+
+    onMounted(async () => {
+      const res = await fetch("https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta");
+      hijriDate.value = await res.json();
+    });
+    </script>
+
+    <template>
+      <div v-if="hijriDate">{{ hijriDate.output.date }}</div>
+      <div v-else>Loading Hijri date...</div>
+    </template>
+    ```
+  </TabItem>
+</Tabs>
+
 `today` defaults to **Asia/Jakarta (UTC+7)**. Override with any IANA zone or UTC offset:
 
 ```bash
@@ -37,10 +91,64 @@ curl "https://api.mabims.dev/api/v1/today?tz=UTC+8"
 
 ## Convert a specific date
 
+Two directions. The `calendar` param picks which one:
+
 ```bash
 curl "https://api.mabims.dev/api/v1/convert?date=2025-01-03&calendar=gregorian"
 curl "https://api.mabims.dev/api/v1/convert?date=1446-07-03&calendar=hijri"
 ```
+
+```json
+{
+  "input": { "date": "2025-01-03", "calendar": "gregorian", "tz": null },
+  "output": { "date": "1446-07-03", "calendar": "hijri", "day": 3, "month": 7, "month_name": "Rajab", "year": 1446 },
+  "source": "mabims",
+  "warnings": []
+}
+```
+
+With `calendar=gregorian`, `date` is a Gregorian date and the response is its Hijri counterpart; `calendar=hijri` means the reverse.
+
+## What's available
+
+The two endpoints above are just the surface. It's not only date conversion: MABIMS API also ships bulk conversion, monthly and yearly calendars, Islamic events, and hilal visibility data with its sky chart.
+
+| Endpoint | Function |
+|---|---|
+| `GET /today` | Today's Hijri date (timezone-aware) |
+| `GET /convert` | Single date conversion (Gregorian ↔ Hijri) |
+| `GET /range` | Bulk conversion up to 45 days |
+| `GET /month` | All days in a month |
+| `GET /year` | All days in a year (12 months) |
+| `GET /events` | Islamic events (Ramadan, Eid al-Fitr, Eid al-Adha, 1 Muharram, Maulid Nabi) |
+| `GET /hilal/info` | Hilal visibility data (JSON) |
+| `GET /hilal/viz` | Hilal sky chart (PNG 720×1280) |
+
+### API reference per endpoint
+
+<CardGrid>
+  <LinkCard title="GET /today" href="/en/endpoints/today" description="Today's Hijri date (timezone-aware)" />
+  <LinkCard title="GET /convert & /range" href="/en/endpoints/convert-range" description="Single date conversion and bulk conversion" />
+  <LinkCard title="GET /month & /year" href="/en/endpoints/month-year" description="All days in a month or year" />
+  <LinkCard title="GET /events" href="/en/endpoints/events" description="Islamic events" />
+  <LinkCard title="GET /hilal" href="/en/endpoints/hilal" description="Hilal visibility data and sky chart" />
+  <LinkCard title="GET /meta" href="/en/endpoints/meta" description="Data coverage and computation status" />
+  <LinkCard title="OpenAPI Spec" href="https://api.mabims.dev/openapi.json" description="Full OpenAPI 3.1 specification" />
+</CardGrid>
+
+### Playground for testing responses
+
+Every endpoint above can be tested straight from the browser via the Swagger UI at <a href="https://api.mabims.dev/docs" target="_blank" rel="noopener noreferrer">api.mabims.dev/docs</a>. Pick an endpoint, fill in the parameters, hit **Try it out**, and the JSON response shows up on screen. A quick way to sanity-check parameters before writing code.
+
+## Or go offline with the SDK
+
+Want results without hitting the API? Use **mabims-hijri**, an npm package with 2023-2026 data bundled inside. Ideal for apps that need Hijri dates without a network call, no rate limits to worry about.
+
+```
+npm install mabims-hijri
+```
+
+Full details: [SDK documentation](/en/sdk).
 
 ## Always check `source`
 
@@ -64,70 +172,6 @@ Possible `warnings` values:
 | Hijri month {'{ym}'} is close to the Neo MABIMS visibility threshold; the officially announced date may shift by one day. | Month is near the visibility threshold — official date may shift ±1 day. |
 | kemenag_override: 1 {'{month}'} {'{year}'} H official {'{date}'} (Sidang Isbat; published Kemenag calendar: {'{date}'}, delta ±n days). | This month was corrected via a Sidang Isbat — the official date differs from the published calendar. See [Sidang Isbat Corrections](/en/isbat-koreksi). |
 
-## Code examples
-
-MABIMS.dev is a standard REST API — works with JavaScript, PHP, Python, Dart, Swift, Kotlin, or any language that can make HTTP requests. No special libraries needed.
-
-<Tabs syncKey="code">
-  <TabItem label="curl">
-    ```bash
-    curl "https://api.mabims.dev/api/v1/today"
-    ```
-  </TabItem>
-  <TabItem label="JavaScript">
-    ```js
-    const res = await fetch("https://api.mabims.dev/api/v1/today");
-    const { day, month_name, year } = (await res.json()).output;
-    console.log(`${day} ${month_name} ${year} H`);
-    // "14 Rabiul Akhir 1448 H"
-    ```
-  </TabItem>
-  <TabItem label="Vue">
-    ```vue
-    <script setup>
-    import { ref, onMounted } from "vue";
-
-    const hijriDate = ref(null);
-
-    onMounted(async () => {
-      const res = await fetch("https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta");
-      hijriDate.value = await res.json();
-    });
-    </script>
-
-    <template>
-      <div v-if="hijriDate">{{ hijriDate.output.date }}</div>
-      <div v-else>Loading Hijri date...</div>
-    </template>
-    ```
-  </TabItem>
-  <TabItem label="React">
-    ```jsx
-    import { useEffect, useState } from "react";
-
-    export default function HijriDate() {
-      const [date, setDate] = useState(null);
-
-      useEffect(() => {
-        fetch("https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta")
-          .then((res) => res.json())
-          .then(setDate);
-      }, []);
-
-      if (!date) return <span>Loading Hijri date...</span>;
-      return <span>{date.output.date}</span>;
-    }
-    ```
-  </TabItem>
-</Tabs>
-
-:::caution[npm package]
-Want offline results without hitting the API? Use **mabims-hijri**. Ships with 2023-2026 data bundled, plus `today()`, `convert()`, `hilal.info()`, and more. [View SDK docs](/en/sdk).
-```
-npm install mabims-hijri
-```
-:::
-
 ## Full integration guides
 
 Need a step-by-step walkthrough for a specific use case?
@@ -135,31 +179,6 @@ Need a step-by-step walkthrough for a specific use case?
 <CardGrid>
   <LinkCard title="Show on a Website" href="/en/blog/cara-tampilkan-tanggal-hijriah" description="Full tutorial: JavaScript, PHP, WordPress — plus server caching and monthly calendar widgets" />
   <LinkCard title="Integrate into iOS/Android Apps" href="/en/blog/integrasi-mabims-ios-android" description="Offline-first cache strategy for native apps: /year + /today pattern with Swift & Kotlin examples" />
-</CardGrid>
-
-## What's available
-
-| Endpoint | Function |
-|---|---|
-| `GET /today` | Today's Hijri date (timezone-aware) |
-| `GET /convert` | Single date conversion (Gregorian ↔ Hijri) |
-| `GET /range` | Bulk conversion up to 45 days |
-| `GET /month` | All days in a month |
-| `GET /year` | All days in a year (12 months) |
-| `GET /events` | Islamic events (Ramadan, Eid al-Fitr, Eid al-Adha, 1 Muharram, Maulid Nabi) |
-| `GET /hilal/info` | Hilal visibility data (JSON) |
-| `GET /hilal/viz` | Hilal sky chart (PNG 720×1280) |
-
-### API reference per endpoint
-
-<CardGrid>
-  <LinkCard title="GET /today" href="/en/endpoints/today" description="Today's Hijri date (timezone-aware)" />
-  <LinkCard title="GET /convert & /range" href="/en/endpoints/convert-range" description="Single date conversion and bulk conversion" />
-  <LinkCard title="GET /month & /year" href="/en/endpoints/month-year" description="All days in a month or year" />
-  <LinkCard title="GET /events" href="/en/endpoints/events" description="Islamic events" />
-  <LinkCard title="GET /hilal" href="/en/endpoints/hilal" description="Hilal visibility data and sky chart" />
-  <LinkCard title="GET /meta" href="/en/endpoints/meta" description="Data coverage and computation status" />
-  <LinkCard title="OpenAPI Spec" href="https://api.mabims.dev/openapi.json" description="Full OpenAPI 3.1 specification" />
 </CardGrid>
 
 ## Access & Rate Limits

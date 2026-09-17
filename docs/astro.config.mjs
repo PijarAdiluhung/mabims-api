@@ -6,6 +6,15 @@ import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
   site: 'https://mabims.dev',
+  redirects: {
+    '/playground': '/demo/converter',
+    '/playground/converter': '/demo/converter',
+    '/playground/kalender': '/demo/kalender',
+    '/playground/hilal': '/demo/hilal',
+    '/en/playground/converter': '/en/demo/converter',
+    '/en/playground/kalender': '/en/demo/kalender',
+    '/en/playground/hilal': '/en/demo/hilal',
+  },
   integrations: [
     sitemap({
       filter: (page) => !page.includes('/404'),
@@ -104,12 +113,12 @@ export default defineConfig({
           ],
         },
         {
-          label: 'Playground',
-          translations: { en: 'Playground' },
+          label: 'Demo',
+          translations: { en: 'Demo' },
           items: [
-            { label: 'Konverter', link: '/playground/converter', translations: { en: 'Converter' } },
-            { label: 'Kalender', link: '/playground/kalender', translations: { en: 'Calendar' } },
-            { label: 'Hilal', link: '/playground/hilal', translations: { en: 'Hilal' } },
+            { label: 'Konverter', link: '/demo/converter', translations: { en: 'Converter' } },
+            { label: 'Kalender', link: '/demo/kalender', translations: { en: 'Calendar' } },
+            { label: 'Hilal', link: '/demo/hilal', translations: { en: 'Hilal' } },
           ],
         },
         {

@@ -82,7 +82,7 @@ Status: **MEMENUHI KRITERIA** (criteria met), and this time the margin is far ab
 
 Because raw numbers (`moon_alt: 10.4, elongation: 14.5`) aren't intuitive for most people, including myself. But once visualized — see the moon's position relative to the horizon, see the green/red pill, see the criteria table — it becomes much easier to digest. This endpoint isn't just for developers who need JSON, but for anyone curious about "how can the hilal be declared visible/not visible" without needing to understand astronomy.
 
-Try it yourself on the [playground](/en/playground/hilal):
+Try it yourself on the [demo](/en/demo/hilal):
 
 ```
 GET https://api.mabims.dev/api/v1/hilal/viz?month=1&year=1448
