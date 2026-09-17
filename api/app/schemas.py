@@ -4,6 +4,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from .i18n import t
+
 Source = Literal["mabims", "mabims-computed", "mabims-retro"]
 
 
@@ -23,14 +25,8 @@ class ConversionOutput(BaseModel):
     year: int
 
 
-SOURCE_DESCRIPTION = (
-    "Data origin: 'mabims' = curated from publicly available Kemenag tables, "
-    "'mabims-computed' = Neo MABIMS algorithmic estimates, "
-    "'mabims-retro' = Neo MABIMS criteria projected backwards below the curated table"
-)
-WARNINGS_DESCRIPTION = (
-    "Non-empty when borderline months, computed fallback, or retro projection applies"
-)
+SOURCE_DESCRIPTION = t("schema.source")
+WARNINGS_DESCRIPTION = t("schema.warnings")
 
 
 class ConvertResponse(BaseModel):
@@ -45,14 +41,7 @@ class NextDate(ConversionOutput):
 
 
 class TodayResponse(ConvertResponse):
-    next: NextDate | None = Field(
-        default=None,
-        description=(
-            "The Hijri date that becomes current after this evening's maghrib (the next "
-            "civil day's mapping). Only present when next=true. The API does not compute "
-            "sunset — gate on your own prayer-time clock."
-        ),
-    )
+    next: NextDate | None = Field(default=None, description=t("schema.today.next"))
 
 
 class RangeItem(BaseModel):
@@ -134,28 +123,15 @@ class MetaResponse(BaseModel):
     docs_url: str
     hilal_image_range: list[int] | None = Field(
         default=None,
-        description=(
-            "Inclusive [min, max] Hijri years for which the hilal PNG endpoints"
-            " (/hilal/viz, /hilal/map) serve images. This is a render cap, not the"
-            " data cap: see coverage.forward_ceil for date-conversion limits."
-        ),
+        description=t("schema.hilal_image_range"),
     )
     divergences: list[dict[str, Any]] = Field(
         default_factory=list,
-        description=(
-            "Sidang Isbat corrections: months whose official start differs from "
-            "the published Kemenag calendar, each as {hijri_month, delta_days}. "
-            "Empty when the published calendar and the sidang isbat results "
-            "fully agree."
-        ),
+        description=t("schema.divergences"),
     )
     table_version: str | None = Field(
         default=None,
-        description=(
-            "Version token for the curated-table override history. Changes whenever "
-            "a Sidang Isbat correction is applied — poll /meta and diff this to know "
-            "when to re-fetch affected dates."
-        ),
+        description=t("schema.table_version"),
     )
 
 
@@ -180,13 +156,13 @@ class HilalPrevMonth(BaseModel):
 
 
 class DecidingSite(BaseModel):
-    """The coastal observation site whose sunset decided the verdict."""
+    __doc__ = t("schema.deciding_site.model")
 
     name: str
     lat: float
     lon: float
     elev_m: float
-    tz: str = Field(description="IANA timezone used for the site's displayed times")
+    tz: str = Field(description=t("schema.deciding_site.tz"))
 
 
 class HilalEvening(BaseModel):
@@ -195,37 +171,21 @@ class HilalEvening(BaseModel):
     gregorian_date: str
     sunset: str
     moonset: str
-    moon_alt_deg: float = Field(
-        description="Topocentric apparent moon altitude (refraction applied) at the "
-        "deciding site's local sunset"
-    )
-    moon_az_deg: float = Field(
-        description="Moon azimuth at the deciding site's sunset, degrees from north clockwise"
-    )
-    sun_alt_deg: float = Field(description="Sun altitude at the deciding site's sunset")
-    elongation_deg: float = Field(
-        description="Geocentric moon-sun elongation at the deciding site's local sunset"
-    )
+    moon_alt_deg: float = Field(description=t("schema.hilal_evening.moon_alt_deg"))
+    moon_az_deg: float = Field(description=t("schema.hilal_evening.moon_az_deg"))
+    sun_alt_deg: float = Field(description=t("schema.hilal_evening.sun_alt_deg"))
+    elongation_deg: float = Field(description=t("schema.hilal_evening.elongation_deg"))
     illumination_pct: float
     age_hours: float
     deciding_site: DecidingSite = Field(
-        description=(
-            "The coastal observation site whose sunset all reported values describe — "
-            "the deciding site when the hilal is seen, otherwise the site that came "
-            "closest to the criteria"
-        ),
+        description=t("schema.hilal_evening.deciding_site"),
     )
     sites_checked: int = Field(
-        default=0, description="Number of coastal observation sites evaluated"
+        default=0, description=t("schema.hilal_evening.sites_checked")
     )
-    alt_ok: bool = Field(description="Moon altitude >= 3.0 degrees at the deciding site's sunset")
-    elong_ok: bool = Field(description="Elongation >= 6.4 degrees at the deciding site's sunset")
-    visible: bool = Field(
-        description=(
-            "True when the criteria are met at any coastal observation site in "
-            "Indonesia — not a claim of actual observation"
-        )
-    )
+    alt_ok: bool = Field(description=t("schema.hilal_evening.alt_ok"))
+    elong_ok: bool = Field(description=t("schema.hilal_evening.elong_ok"))
+    visible: bool = Field(description=t("schema.hilal_evening.visible"))
 
 
 class HilalInput(BaseModel):
@@ -245,8 +205,8 @@ class HilalInfoResponse(BaseModel):
 class HilalHistoryInput(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    from_: str | None = Field(default=None, alias="from", description="First Hijri YYYY-MM (inclusive)")
-    to_: str | None = Field(default=None, alias="to", description="Last Hijri YYYY-MM (inclusive)")
+    from_: str | None = Field(default=None, alias="from", description=t("schema.hilal_history.from"))
+    to_: str | None = Field(default=None, alias="to", description=t("schema.hilal_history.to"))
 
 
 class HilalHistoryItem(BaseModel):
@@ -261,7 +221,7 @@ class HilalHistoryResponse(BaseModel):
     input: HilalHistoryInput
     count: int
     range: Coverage | None = Field(
-        default=None, description="Hijri YYYY-MM span covered by the precomputed index"
+        default=None, description=t("schema.hilal_history.range")
     )
     months: list[HilalHistoryItem]
     warnings: list[str] = Field(default_factory=list)
