@@ -1,0 +1,16 @@
+---
+interface Props {
+  path: string;
+  args?: string;
+  method?: string;
+}
+
+const { path, args = '', method = 'get' } = Astro.props;
+---
+
+<div class="api-request">
+  <pre class="api-request-line"><span class="api-request-method">{method.toUpperCase()}</span><code>{path}{args}</code></pre>
+  <div class="api-request-actions">
+    <slot />
+  </div>
+</div>

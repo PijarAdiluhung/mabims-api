@@ -107,3 +107,86 @@ starlight-theme-select {
   max-width: 520px;
   height: auto;
 }
+
+/* ---- Test-request trigger buttons (TestRequest + ApiRequest) ---- */
+.test-request-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.32rem 0.65rem;
+  border: none;
+  border-radius: 0.35rem;
+  background: var(--sl-color-accent);
+  color: var(--sl-color-black);
+  font: 700 0.75rem var(--sl-font);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+.test-request-btn:hover {
+  background: var(--sl-color-accent-high);
+}
+.test-request-btn svg {
+  flex-shrink: 0;
+}
+.test-request-btn.is-error {
+  background: var(--sl-color-red-high);
+  color: var(--sl-color-black);
+}
+.test-request-btn.is-loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Scalar modal chrome */
+.scalar .scalar-container:not(.scalar-client--open) {
+  display: none;
+}
+.scalar .scalar-app-exit,
+.dark-mode .scalar .scalar-app-exit {
+  background: rgba(0, 0, 0, 0.75) !important;
+}
+
+/* ---- ApiRequest: scalar-style — full-width code line, button below-right ---- */
+.api-request {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+  margin-block: 0.5rem 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.3rem;
+}
+/* neutralize Starlight's markdown-type margins leaking inside the card */
+.api-request :where(*),
+.api-request :where(*) * {
+  margin: 0;
+}
+.api-request-line {
+  align-self: stretch;
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.35rem;
+  background: rgba(0, 0, 0, 0.35);
+  overflow-x: auto;
+  font-family: var(--sl-font-mono);
+  font-size: 0.85rem;
+  color: var(--sl-color-white);
+}
+.api-request-line code {
+  font-family: inherit;
+  color: inherit;
+}
+.api-request-method {
+  font-weight: 700;
+  color: var(--sl-color-accent);
+  margin-inline-end: 0.4rem;
+}
+.api-request-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-block: 0.1rem;
+}
