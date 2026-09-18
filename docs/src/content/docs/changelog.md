@@ -3,6 +3,25 @@ title: Changelog
 description: Riwayat perubahan API dan dokumentasi MABIMS.
 ---
 
+## 1.8.1 — 2026-09-18
+
+### Added
+
+- **Referensi OpenAPI kini lengkap per endpoint** — setiap endpoint mendeklarasikan blok `responses`-nya sendiri (400/404/429, dst.) dengan contoh body error, sehingga API client (Scalar, Swagger UI, generator) menampilkan skenario kesalahan yang nyata, bukan generik. Lihat `openapi.json` atau [Scalar playground](https://api.mabims.dev/playground).
+- **`servers` di spec OpenAPI** — spesifikasi menyatakan `https://api.mabims.dev` sebagai server, jadi klien yang di-generate/interaktif selalu resolve ke origin live tanpa konfigurasi tambahan.
+- **API client tersemat di setiap halaman endpoint** — tombol *Test Request* membuka Scalar API client dengan spec live; fallback playground penuh tetap tersedia.
+
+### Changed
+
+- **Deskripsi OpenAPI ditulis ulang dan diterjemahkan** — ringkasan & deskripsi tiap endpoint ditulis ulang untuk kejelasan, lalu dialihbahasakan ke Indonesia.
+- **Halaman endpoint docs distruktur ulang** — setiap endpoint kini punya kartu permintaan (`GET /…` + tombol *Test Request*) gaya Scalar, parameter, contoh dan error digroup per endpoint, serta baris permintaan yang kini memuat parameter opsional (`next`, `retro`).
+
+### Notes
+
+- Murni dokumentasi/spesifikasi — tidak ada perubahan perilaku runtime API maupun kontrak respons.
+
+---
+
 ## 1.8.0 — 2026-09-16
 
 ### Added

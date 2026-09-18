@@ -3,6 +3,25 @@ title: Changelog
 description: History of changes to the MABIMS API and documentation.
 ---
 
+## 1.8.1 — 2026-09-18
+
+### Added
+
+- **Per-endpoint OpenAPI responses** — every endpoint now declares its own `responses` blocks (400/404/429, etc.) with error body examples, so API clients (Scalar, Swagger UI, generators) render realistic failure scenarios instead of generic ones. See `openapi.json` or the [Scalar playground](https://api.mabims.dev/playground).
+- **`servers` declared in the OpenAPI spec** — the spec pins `https://api.mabims.dev`, so generated/interactive clients always resolve the live origin with no extra configuration.
+- **Embedded API client on every endpoint doc** — a *Test Request* button opens the Scalar API client preloaded with the live spec; the full playground remains as a fallback.
+
+### Changed
+
+- **OpenAPI descriptions rewritten and localized** — endpoint summaries/descriptions were rewritten for clarity and translated to Indonesian.
+- **Endpoint pages restructured** — each endpoint now has a Scalar-style request card (`GET /…` + *Test Request* button), with parameters, examples and errors grouped per endpoint, and request lines that now include optional params (`next`, `retro`).
+
+### Notes
+
+- Docs/spec only — no runtime behaviour or response-contract changes.
+
+---
+
 ## 1.8.0 — 2026-09-16
 
 ### Added
