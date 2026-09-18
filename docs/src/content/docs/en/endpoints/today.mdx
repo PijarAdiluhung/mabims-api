@@ -4,10 +4,19 @@ description: The hero endpoint — today's Hijri date, timezone aware.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
+import TestRequest from '../../../../components/TestRequest.astro';
 
 Returns the Hijri date for "now" in the requested timezone. This is the endpoint most consumer
 apps poll, and it is tuned for it: responses carry **dynamic edge-cache TTLs** so a CDN serves
 nearly all traffic.
+
+## Try it yourself
+
+Click the button to open the API client: fill in the parameters, hit **Send**, and see the live response right in the browser. Prefer the full page? Open <a href="https://api.mabims.dev/playground" target="_blank" rel="noopener noreferrer">Scalar</a>.
+
+<TestRequest path="/api/v1/today" label="Try /today" />
+
+<TestRequest path="/api/v1/today/{target_date}" label="Try /today/{date}" />
 
 ```
 GET /api/v1/today?tz={timezone}

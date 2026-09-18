@@ -4,6 +4,15 @@ description: Monthly and yearly calendar grids.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
+import TestRequest from '../../../../components/TestRequest.astro';
+
+## Try it yourself
+
+Click the button to open the API client: fill in the parameters, hit **Send**, and see the live response right in the browser. Prefer the full page? Open <a href="https://api.mabims.dev/playground" target="_blank" rel="noopener noreferrer">Scalar</a>.
+
+<TestRequest path="/api/v1/month" label="Try /month" />
+
+<TestRequest path="/api/v1/year" label="Try /year" />
 
 ## GET /month
 
@@ -18,7 +27,7 @@ GET /api/v1/month?year={Y}&month={M}&calendar={hijri|gregorian}
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `year` | int | yes | Hijri or Gregorian year |
-| `month` | int | yes | Month 1–12 |
+| `month` | int | yes | Month 1â€“12 |
 | `calendar` | string | no (default `hijri`) | Calendar of the `year` input |
 | `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro`. [See data coverage for the reason why](/en/data-coverage/) |
 
@@ -34,7 +43,7 @@ GET /api/v1/month?year={Y}&month={M}&calendar={hijri|gregorian}
     ```js
     const res = await fetch("https://api.mabims.dev/api/v1/month?year=1447&month=1&calendar=hijri");
     const data = await res.json();
-    data.items.forEach(i => console.log(i.gregorian, "→", i.hijri));
+    data.items.forEach(i => console.log(i.gregorian, "â†’", i.hijri));
     ```
   </TabItem>
   <TabItem label="PHP">
@@ -42,14 +51,14 @@ GET /api/v1/month?year={Y}&month={M}&calendar={hijri|gregorian}
     $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/month?year=1447&month=1&calendar=hijri');
     $data = json_decode($response->getBody(), true);
     foreach ($data['items'] as $item) {
-        echo $item['gregorian'] . ' → ' . $item['hijri'] . PHP_EOL;
+        echo $item['gregorian'] . ' â†’ ' . $item['hijri'] . PHP_EOL;
     }
     ```
   </TabItem>
 </Tabs>
 
 For `calendar=hijri` the response contains every Gregorian date onto which that Hijri month
-maps — exactly what a Hijri month-view needs (29–30 items). Hijri months beyond the public
+maps â€” exactly what a Hijri month-view needs (29â€“30 items). Hijri months beyond the public
 table (e.g. next year) are still resolved from the Neo MABIMS computed tier while within
 the supported range. Same item shape as `/range`.
 
@@ -124,9 +133,10 @@ For `calendar=hijri`, months beyond the public table are still served from the N
 
 | `code` | HTTP | Cause |
 |---|---|---|
-| `invalid_month` | 400 | Month is not 1–12 |
+| `invalid_month` | 400 | Month is not 1â€“12 |
 | `invalid_year` | 400 | Year out of supported bounds |
 | `invalid_calendar` | 400 | `calendar` param is not `hijri` or `gregorian` |
 | `out_of_coverage` | 400 | Month outside table coverage |
 | `date_out_of_supported_range` | 400 | Date exceeds supported range |
 | `invalid_retro` | 400 | `retro` param is not `true` or `false` |
+

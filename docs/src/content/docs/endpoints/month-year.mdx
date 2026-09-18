@@ -4,6 +4,15 @@ description: Grid kalender bulanan dan tahunan.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
+import TestRequest from '../../../components/TestRequest.astro';
+
+## Coba sendiri
+
+Klik tombol untuk membuka API client: isi parameternya, tekan **Send**, dan lihat respons asli langsung di browser. Suka tampilan penuh? Buka <a href="https://api.mabims.dev/playground" target="_blank" rel="noopener noreferrer">Scalar</a>.
+
+<TestRequest path="/api/v1/month" label="Coba /month" />
+
+<TestRequest path="/api/v1/year" label="Coba /year" />
 
 ## GET /month
 

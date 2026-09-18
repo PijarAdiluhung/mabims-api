@@ -4,6 +4,13 @@ description: "Tanggal [hari besar Islam](https://en.wikipedia.org/wiki/Islamic_h
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
+import TestRequest from '../../../components/TestRequest.astro';
+
+## Coba sendiri
+
+Klik tombol untuk membuka API client: isi parameternya, tekan **Send**, dan lihat respons asli langsung di browser. Suka tampilan penuh? Buka <a href="https://api.mabims.dev/playground" target="_blank" rel="noopener noreferrer">Scalar</a>.
+
+<TestRequest path="/api/v1/events" label="Coba /events" />
 
 Mengembalikan tanggal **hari besar Islam** untuk satu tahun kalender. Di dalam cakupan
 tabel MABIMS, tanggal langsung dari tabel publik Kemenag — tabel yang sama dengan

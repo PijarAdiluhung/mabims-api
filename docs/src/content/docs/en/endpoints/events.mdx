@@ -4,6 +4,13 @@ description: "[Islamic observance](https://en.wikipedia.org/wiki/Islamic_holiday
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
+import TestRequest from '../../../../components/TestRequest.astro';
+
+## Try it yourself
+
+Click the button to open the API client: fill in the parameters, hit **Send**, and see the live response right in the browser. Prefer the full page? Open <a href="https://api.mabims.dev/playground" target="_blank" rel="noopener noreferrer">Scalar</a>.
+
+<TestRequest path="/api/v1/events" label="Try /events" />
 
 Returns the **Islamic observance dates** for one calendar year. Within the curated MABIMS
 table, dates come straight from the public Kemenag table — the same one that powers
