@@ -30,6 +30,10 @@ curl "https://api.mabims.dev/api/v1/today"
 }
 ```
 
+:::tip[Try it yourself]
+Open [api.mabims.dev/playground](https://api.mabims.dev/playground) to test every endpoint right in the browser — fill in params, hit **Send**, and see the response live.
+:::
+
 ### Code examples
 
 Use any language that can make an HTTP request. No special libraries needed.
@@ -123,6 +127,8 @@ The two endpoints above are just the surface. It's not only date conversion: MAB
 | `GET /events` | Islamic events (Ramadan, Eid al-Fitr, Eid al-Adha, 1 Muharram, Maulid Nabi) |
 | `GET /hilal/info` | Hilal visibility data (JSON) |
 | `GET /hilal/viz` | Hilal sky chart (PNG 720×1280) |
+| `GET /hilal/map` | Hilal visibility map (PNG 720×1280) |
+| `GET /hilal/history` | Hilal visibility history per month |
 
 ### API reference per endpoint
 
@@ -131,14 +137,10 @@ The two endpoints above are just the surface. It's not only date conversion: MAB
   <LinkCard title="GET /convert & /range" href="/en/endpoints/convert-range" description="Single date conversion and bulk conversion" />
   <LinkCard title="GET /month & /year" href="/en/endpoints/month-year" description="All days in a month or year" />
   <LinkCard title="GET /events" href="/en/endpoints/events" description="Islamic events" />
-  <LinkCard title="GET /hilal" href="/en/endpoints/hilal" description="Hilal visibility data and sky chart" />
+  <LinkCard title="GET /hilal" href="/en/endpoints/hilal" description="Hilal visibility data, sky chart, map, and history" />
   <LinkCard title="GET /meta" href="/en/endpoints/meta" description="Data coverage and computation status" />
   <LinkCard title="OpenAPI Spec" href="https://api.mabims.dev/openapi.json" description="Full OpenAPI 3.1 specification" />
 </CardGrid>
-
-### Playground for testing responses
-
-Every endpoint above can be tested straight from the browser at <a href="https://api.mabims.dev/playground" target="_blank" rel="noopener noreferrer">api.mabims.dev/playground</a>. Pick an endpoint, fill in the parameters, hit **Send**, and the JSON response shows up on screen. A quick way to sanity-check parameters before writing code.
 
 ## Or go offline with the SDK
 
@@ -162,9 +164,9 @@ Why this matters: when `source` = `mabims`, the data is officially from Kemenag 
 
 If you cache API responses in your app, make sure to refresh the cache **at least once a year** — right when `mabims` data is updated for the new year.
 
-Treat `warnings` as user-facing notices when non-empty.
+## `Warnings`
 
-Possible `warnings` values:
+Treat `warnings` as user-facing notices when non-empty.
 
 | Warning | Meaning |
 |---|---|

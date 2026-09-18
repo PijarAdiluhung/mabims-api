@@ -30,6 +30,10 @@ curl "https://api.mabims.dev/api/v1/today"
 }
 ```
 
+:::tip[Coba sendiri]
+Buka [api.mabims.dev/playground](https://api.mabims.dev/playground) untuk mencoba semua endpoint langsung dari browser — isi parameternya, tekan **Send**, dan lihat hasilnya.
+:::
+
 ### Contoh kode
 
 Pakai bahasa apa pun yang bisa HTTP request. Tidak perlu library khusus.
@@ -123,6 +127,8 @@ Dua endpoint di atas baru permukaannya. Tidak hanya konversi tanggal: MABIMS API
 | `GET /events` | Hari besar Islam (Ramadan, Idul Fitri, Idul Adha, 1 Muharram, Maulid Nabi) |
 | `GET /hilal/info` | Data visibilitas hilal (JSON) |
 | `GET /hilal/viz` | Grafik langit hilal (PNG 720×1280) |
+| `GET /hilal/map` | Peta visibilitas hilal (PNG 720×1280) |
+| `GET /hilal/history` | Riwayat visibilitas hilal per bulan |
 
 ### Referensi API per endpoint
 
@@ -131,14 +137,10 @@ Dua endpoint di atas baru permukaannya. Tidak hanya konversi tanggal: MABIMS API
   <LinkCard title="GET /convert & /range" href="/endpoints/convert-range" description="Konversi satu tanggal dan konversi massal" />
   <LinkCard title="GET /month & /year" href="/endpoints/month-year" description="Semua hari dalam satu bulan atau satu tahun" />
   <LinkCard title="GET /events" href="/endpoints/events" description="Hari besar Islam" />
-  <LinkCard title="GET /hilal" href="/endpoints/hilal" description="Data visibilitas hilal dan grafik langit" />
+  <LinkCard title="GET /hilal" href="/endpoints/hilal" description="Data visibilitas hilal, grafik langit, peta, dan riwayat" />
   <LinkCard title="GET /meta" href="/endpoints/meta" description="Cakupan data dan status komputasi" />
   <LinkCard title="OpenAPI Spec" href="https://api.mabims.dev/openapi.json" description="Spesifikasi OpenAPI 3.1 lengkap" />
 </CardGrid>
-
-### Playground untuk tes respons
-
-Semua endpoint di atas bisa dicoba langsung dari browser lewat <a href="https://api.mabims.dev/playground" target="_blank" rel="noopener noreferrer">api.mabims.dev/playground</a>. Klik endpoint mana pun, isi parameternya, tekan **Send**, dan respons JSON-nya tampil di layar. Cocok untuk mengetes param sebelum menulis kode.
 
 ## Lebih ringan lewat SDK
 
@@ -162,9 +164,9 @@ Kenapa ini penting? Jika `source` = `mabims`, datanya resmi dari Kemenag — bis
 
 Kalau Anda menyimpan hasil API di cache aplikasi Anda, usahakan refresh cachenya **minimal 1x setahun** — tepat ketika data `mabims` diperbarui untuk tahun baru.
 
-Perlakukan `warnings` sebagai pemberitahuan kepada pengguna apabila ia mengandung payload (tidak kosong).
+## `Warnings`
 
-Kemungkinan isi `warnings`:
+Perlakukan `warnings` sebagai pemberitahuan kepada pengguna apabila ia mengandung payload (tidak kosong).
 
 | Warning | Artinya |
 |---|---|
