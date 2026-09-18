@@ -4,13 +4,8 @@ description: "[Islamic observance](https://en.wikipedia.org/wiki/Islamic_holiday
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
-import TestRequest from '../../../../components/TestRequest.astro';
-
-## Try it yourself
-
-Click the button to open the API client: fill in the parameters, hit **Send**, and see the live response right in the browser. Prefer the full page? Open <a href="https://api.mabims.dev/playground" target="_blank" rel="noopener noreferrer">Scalar</a>.
-
-<TestRequest path="/api/v1/events" label="Try /events" />
+import ApiRequest from '../../../../components/ApiRequest.astro';
+import TestButton from '../../../../components/TestButton.astro';
 
 Returns the **Islamic observance dates** for one calendar year. Within the curated MABIMS
 table, dates come straight from the public Kemenag table — the same one that powers
@@ -19,9 +14,9 @@ table, dates come straight from the public Kemenag table — the same one that p
 observation points across Indonesia), giving you observance dates
 years into the future.
 
-```
-GET /api/v1/events?year={Y}&calendar={gregorian|hijri}
-```
+<ApiRequest path="/api/v1/events" args="?year={Y}&calendar={gregorian|hijri}&retro={true|false}">
+  <TestButton path="/api/v1/events" />
+</ApiRequest>
 
 ## Parameters
 

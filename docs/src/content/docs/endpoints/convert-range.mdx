@@ -4,25 +4,18 @@ description: Konversi satu tanggal dan konversi massal rentang tanggal.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
-import TestRequest from '../../../components/TestRequest.astro';
-
-## Coba sendiri
-
-Klik tombol untuk membuka API client: isi parameternya, tekan **Send**, dan lihat respons asli langsung di browser. Suka tampilan penuh? Buka <a href="https://api.mabims.dev/playground" target="_blank" rel="noopener noreferrer">Scalar</a>.
-
-<TestRequest path="/api/v1/convert" label="Coba /convert" />
-
-<TestRequest path="/api/v1/range" label="Coba /range" />
+import ApiRequest from '../../../components/ApiRequest.astro';
+import TestButton from '../../../components/TestButton.astro';
 
 ## GET /convert
 
 Mengkonversi satu tanggal dari satu sistem ke sistem yang lain, dengan arah yang ditentukan secara implisit oleh `calendar`.
 
-```
-GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
-```
+<ApiRequest path="/api/v1/convert" args="?date={YYYY-MM-DD}&calendar={gregorian|hijri}&retro={true|false}">
+  <TestButton path="/api/v1/convert" />
+</ApiRequest>
 
-## Parameter
+### Parameter
 
 | Parameter | Tipe | Wajib | Deskripsi |
 |---|---|---|---|
@@ -30,7 +23,7 @@ GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
 | `calendar` | string | tidak (default `gregorian`) | Kalender dari tanggal input |
 | `retro` | `true` / `false` | tidak (default `false`) | Buka tanggal retro komputasi di bawah tabel kurasi (s.d. 1945-01-01), ditandai `mabims-retro`. [Lihat cakupan data untuk alasannya](/data-coverage/) |
 
-## Contoh
+### Contoh
 
 <Tabs syncKey="code">
   <TabItem label="curl">
@@ -54,7 +47,7 @@ GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
   </TabItem>
 </Tabs>
 
-## Respons
+### Respons
 
 **200 OK**
 
@@ -107,9 +100,11 @@ GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
 
 Mengkonversi setiap hari dalam rentang yang diminta.
 
-```
-GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
-```
+<ApiRequest path="/api/v1/range" args="?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}&retro={true|false}">
+  <TestButton path="/api/v1/range" />
+</ApiRequest>
+
+### Parameter
 
 | Parameter | Tipe | Wajib | Deskripsi |
 |---|---|---|---|
@@ -117,7 +112,7 @@ GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
 | `calendar` | string | tidak (default `gregorian`) | Kalender dari batas input |
 | `retro` | `true` / `false` | tidak (default `false`) | Buka tanggal retro komputasi di bawah tabel kurasi (s.d. 1945-01-01), ditandai `mabims-retro`. [Lihat cakupan data untuk alasannya](/data-coverage/) |
 
-## Contoh
+### Contoh
 
 <Tabs syncKey="code">
   <TabItem label="curl">
@@ -160,11 +155,11 @@ Setiap item membawa `source` masing-masing, karena rentang yang melewati batasan
 
 Untuk `calendar=hijri`, rentang dapat melampaui cakupan tabel publik — bulan Hijriah di luar tabel dilayani dari perhitungan Neo MABIMS (hingga 2100). Batas `start`/`end` tetap maks 45 hari.
 
-## Caching
+### Caching
 
 Respons bersifat immutable per input dan dikirim dengan `Cache-Control: max-age=86400` — aman di-cache di layer mana pun selama satu hari penuh.
 
-## Kesalahan
+### Kesalahan
 
 Semua kesalahan mengembalikan JSON dengan format standar:
 

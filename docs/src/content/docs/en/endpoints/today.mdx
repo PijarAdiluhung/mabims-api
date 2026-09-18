@@ -4,23 +4,16 @@ description: The hero endpoint — today's Hijri date, timezone aware.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
-import TestRequest from '../../../../components/TestRequest.astro';
+import ApiRequest from '../../../../components/ApiRequest.astro';
+import TestButton from '../../../../components/TestButton.astro';
 
 Returns the Hijri date for "now" in the requested timezone. This is the endpoint most consumer
 apps poll, and it is tuned for it: responses carry **dynamic edge-cache TTLs** so a CDN serves
 nearly all traffic.
 
-## Try it yourself
-
-Click the button to open the API client: fill in the parameters, hit **Send**, and see the live response right in the browser. Prefer the full page? Open <a href="https://api.mabims.dev/playground" target="_blank" rel="noopener noreferrer">Scalar</a>.
-
-<TestRequest path="/api/v1/today" label="Try /today" />
-
-<TestRequest path="/api/v1/today/{target_date}" label="Try /today/{date}" />
-
-```
-GET /api/v1/today?tz={timezone}
-```
+<ApiRequest path="/api/v1/today" args="?tz={timezone}&next={true|false}">
+  <TestButton path="/api/v1/today" />
+</ApiRequest>
 
 ## Parameters
 
@@ -106,16 +99,12 @@ Switch your display to `next` once your local maghrib has passed. The API does *
 
 ## Immutable variant
 
-```{=html}
-GET /api/v1/today/{YYYY-MM-DD}
-```
+<ApiRequest path="/api/v1/today/{target_date}">
+  <TestButton path="/api/v1/today/{target_date}" />
+</ApiRequest>
 
 Same conversion for any given Gregorian date — useful as a stable, cache-forever resource and
 for replaying historical days:
-
-```bash
-curl "https://api.mabims.dev/api/v1/today/2025-01-03"
-```
 
 ## Caching behaviour
 

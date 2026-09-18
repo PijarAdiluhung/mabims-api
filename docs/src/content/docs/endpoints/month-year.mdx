@@ -4,25 +4,18 @@ description: Grid kalender bulanan dan tahunan.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
-import TestRequest from '../../../components/TestRequest.astro';
-
-## Coba sendiri
-
-Klik tombol untuk membuka API client: isi parameternya, tekan **Send**, dan lihat respons asli langsung di browser. Suka tampilan penuh? Buka <a href="https://api.mabims.dev/playground" target="_blank" rel="noopener noreferrer">Scalar</a>.
-
-<TestRequest path="/api/v1/month" label="Coba /month" />
-
-<TestRequest path="/api/v1/year" label="Coba /year" />
+import ApiRequest from '../../../components/ApiRequest.astro';
+import TestButton from '../../../components/TestButton.astro';
 
 ## GET /month
 
 Wrapper praktis untuk mendapatkan 1 bulan penuh.
 
-```
-GET /api/v1/month?year={Y}&month={M}&calendar={hijri|gregorian}
-```
+<ApiRequest path="/api/v1/month" args="?year={Y}&month={M}&calendar={hijri|gregorian}&retro={true|false}">
+  <TestButton path="/api/v1/month" />
+</ApiRequest>
 
-## Parameter
+### Parameter
 
 | Parameter | Tipe | Wajib | Deskripsi |
 |---|---|---|---|
@@ -31,7 +24,7 @@ GET /api/v1/month?year={Y}&month={M}&calendar={hijri|gregorian}
 | `calendar` | string | tidak (default `hijri`) | Kalender dari input `year` |
 | `retro` | `true` / `false` | tidak (default `false`) | Buka tanggal retro komputasi di bawah tabel kurasi (s.d. 1945-01-01), ditandai `mabims-retro`. [Lihat cakupan data untuk alasannya](/data-coverage/) |
 
-## Contoh
+### Contoh
 
 <Tabs syncKey="code">
   <TabItem label="curl">
@@ -83,9 +76,11 @@ Untuk `calendar=hijri`, respons berisi setiap tanggal Gregorian yang menjadi acu
 
 Mengembalikan semua hari dalam 12 bulan sebuah tahun. Lebih praktis daripada memanggil `/month` 12 kali.
 
-```
-GET /api/v1/year?year={Y}&calendar={hijri|gregorian}
-```
+<ApiRequest path="/api/v1/year" args="?year={Y}&calendar={hijri|gregorian}&retro={true|false}">
+  <TestButton path="/api/v1/year" />
+</ApiRequest>
+
+### Parameter
 
 | Parameter | Tipe | Wajib | Deskripsi |
 |---|---|---|---|
@@ -93,7 +88,7 @@ GET /api/v1/year?year={Y}&calendar={hijri|gregorian}
 | `calendar` | string | tidak (default `hijri`) | Kalender dari input `year` |
 | `retro` | `true` / `false` | tidak (default `false`) | Buka tanggal retro komputasi di bawah tabel kurasi (s.d. 1945-01-01), ditandai `mabims-retro`. [Lihat cakupan data untuk alasannya](/data-coverage/) |
 
-## Contoh
+### Contoh
 
 <Tabs syncKey="code">
   <TabItem label="curl">
@@ -146,7 +141,7 @@ Setiap kunci bulan berisi array item dengan format yang sama dengan `/range`. To
 
 Untuk `calendar=hijri`, bulan Hijriah di luar tabel publik tetap dilayani dari perhitungan Neo MABIMS selama masih dalam rentang yang didukung.
 
-## Kesalahan
+### Kesalahan
 
 | `code` | HTTP | Penyebab |
 |---|---|---|

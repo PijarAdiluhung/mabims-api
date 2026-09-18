@@ -4,25 +4,18 @@ description: Single date conversion and bulk date range conversion.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
-import TestRequest from '../../../../components/TestRequest.astro';
-
-## Try it yourself
-
-Click the button to open the API client: fill in the parameters, hit **Send**, and see the live response right in the browser. Prefer the full page? Open <a href="https://api.mabims.dev/playground" target="_blank" rel="noopener noreferrer">Scalar</a>.
-
-<TestRequest path="/api/v1/convert" label="Try /convert" />
-
-<TestRequest path="/api/v1/range" label="Try /range" />
+import ApiRequest from '../../../../components/ApiRequest.astro';
+import TestButton from '../../../../components/TestButton.astro';
 
 ## GET /convert
 
 Converts one date in the direction implied by `calendar`.
 
-```
-GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
-```
+<ApiRequest path="/api/v1/convert" args="?date={YYYY-MM-DD}&calendar={gregorian|hijri}&retro={true|false}">
+  <TestButton path="/api/v1/convert" />
+</ApiRequest>
 
-## Parameters
+### Parameters
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -30,7 +23,7 @@ GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
 | `calendar` | string | no (default `gregorian`) | Calendar of the input date |
 | `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro`. [See data coverage for the reason why](/en/data-coverage/) |
 
-## Example
+### Example
 
 <Tabs syncKey="code">
   <TabItem label="curl">
@@ -54,7 +47,7 @@ GET /api/v1/convert?date={YYYY-MM-DD}&calendar={gregorian|hijri}
   </TabItem>
 </Tabs>
 
-## Responses
+### Responses
 
 **200 OK**
 
@@ -108,9 +101,11 @@ parameter, because "today" depends on where you ask from.
 
 Converts every day in an inclusive range.
 
-```
-GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
-```
+<ApiRequest path="/api/v1/range" args="?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}&retro={true|false}">
+  <TestButton path="/api/v1/range" />
+</ApiRequest>
+
+### Parameters
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -118,7 +113,7 @@ GET /api/v1/range?start={YYYY-MM-DD}&end={YYYY-MM-DD}&calendar={gregorian|hijri}
 | `calendar` | string | no (default `gregorian`) | Calendar of the input bounds |
 | `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro`. [See data coverage for the reason why](/en/data-coverage/) |
 
-## Example
+### Example
 
 <Tabs syncKey="code">
   <TabItem label="curl">
@@ -164,12 +159,12 @@ For `calendar=hijri`, ranges can extend past the public table coverage — Hijri
 months beyond the table are served from the Neo MABIMS computed tier (up to
 2100). `start`/`end` still cap at 45 days.
 
-## Caching
+### Caching
 
 Responses are immutable per input and sent with `Cache-Control: max-age=86400` — safe to cache
 at any layer for a full day.
 
-## Errors
+### Errors
 
 All errors return a standard JSON envelope:
 

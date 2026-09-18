@@ -4,25 +4,18 @@ description: Monthly and yearly calendar grids.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
-import TestRequest from '../../../../components/TestRequest.astro';
-
-## Try it yourself
-
-Click the button to open the API client: fill in the parameters, hit **Send**, and see the live response right in the browser. Prefer the full page? Open <a href="https://api.mabims.dev/playground" target="_blank" rel="noopener noreferrer">Scalar</a>.
-
-<TestRequest path="/api/v1/month" label="Try /month" />
-
-<TestRequest path="/api/v1/year" label="Try /year" />
+import ApiRequest from '../../../../components/ApiRequest.astro';
+import TestButton from '../../../../components/TestButton.astro';
 
 ## GET /month
 
 Convenience wrapper that resolves a whole month grid.
 
-```
-GET /api/v1/month?year={Y}&month={M}&calendar={hijri|gregorian}
-```
+<ApiRequest path="/api/v1/month" args="?year={Y}&month={M}&calendar={hijri|gregorian}&retro={true|false}">
+  <TestButton path="/api/v1/month" />
+</ApiRequest>
 
-## Parameters
+### Parameters
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -31,7 +24,7 @@ GET /api/v1/month?year={Y}&month={M}&calendar={hijri|gregorian}
 | `calendar` | string | no (default `hijri`) | Calendar of the `year` input |
 | `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro`. [See data coverage for the reason why](/en/data-coverage/) |
 
-## Example
+### Example
 
 <Tabs syncKey="code">
   <TabItem label="curl">
@@ -66,9 +59,11 @@ the supported range. Same item shape as `/range`.
 
 Returns every day across all 12 months of a year. Much simpler than calling `/month` 12 times.
 
-```
-GET /api/v1/year?year={Y}&calendar={hijri|gregorian}
-```
+<ApiRequest path="/api/v1/year" args="?year={Y}&calendar={hijri|gregorian}&retro={true|false}">
+  <TestButton path="/api/v1/year" />
+</ApiRequest>
+
+### Parameters
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -76,7 +71,7 @@ GET /api/v1/year?year={Y}&calendar={hijri|gregorian}
 | `calendar` | string | no (default `hijri`) | Calendar of the `year` input |
 | `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro`. [See data coverage for the reason why](/en/data-coverage/) |
 
-## Example
+### Example
 
 <Tabs syncKey="code">
   <TabItem label="curl">
@@ -129,7 +124,7 @@ Each month key contains an array of items with the same shape as `/range`. The t
 
 For `calendar=hijri`, months beyond the public table are still served from the Neo MABIMS computed tier while within the supported range.
 
-## Errors
+### Errors
 
 | `code` | HTTP | Cause |
 |---|---|---|
