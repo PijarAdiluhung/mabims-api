@@ -1,13 +1,13 @@
 ---
 title: GET /today
-description: Endpoint utama — tanggal Hijriah hari ini, memperhatikan zona waktu.
+description: Tanggal Hijriah hari ini berdasarkan zona waktu.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 import ApiRequest from '../../../components/ApiRequest.astro';
 import TestButton from '../../../components/TestButton.astro';
 
-Mengembalikan tanggal Hijriah untuk "sekarang" di zona waktu yang diminta. Respons memiliki **TTL edge-cache dinamis** yang expire tengah malam, sehingga tidak stale ketika pergantian hari.
+Mengembalikan tanggal Hijriah saat ini berdasarkan zona waktu yang diminta. Hasilnya disimpan di cache sampai tengah malam, lalu diperbarui saat hari berganti.
 
 <ApiRequest path="/api/v1/today" args="?tz={timezone}&next={true|false}">
   <TestButton path="/api/v1/today" />
@@ -17,8 +17,8 @@ Mengembalikan tanggal Hijriah untuk "sekarang" di zona waktu yang diminta. Respo
 
 | Parameter | Tipe | Wajib | Deskripsi |
 |---|---|---|---|
-| `tz` | string | tidak (default `Asia/Jakarta`, UTC+7) | Nama zona [IANA](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (`Asia/Kuala_Lumpur`) atau UTC offset (`UTC+7`, `+08:00`) |
-| `next` | boolean | tidak (default `false`) | Set `true` untuk juga mengembalikan tanggal Hijriah yang mulai berlaku setelah magrib malam ini (setara pemetaan hari sipil berikutnya) |
+| `tz` | string | tidak (bawaan `Asia/Jakarta`, UTC+7) | Nama zona [IANA](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (`Asia/Kuala_Lumpur`) atau selisih waktu UTC (`UTC+7`, `+08:00`) |
+| `next` | boolean | tidak (bawaan `false`) | Isi `true` untuk mengembalikan tanggal Hijriah yang mulai berlaku setelah magrib malam ini |
 
 ## Contoh
 
@@ -55,7 +55,7 @@ Mengembalikan tanggal Hijriah untuk "sekarang" di zona waktu yang diminta. Respo
 }
 ```
 
-Field `input.tz` menampilkan zona waktu yang *terdeteksi sistem* sehingga klien dapat memastikan zona yang digunakan.
+Kolom `input.tz` menampilkan zona waktu yang digunakan, sehingga klien dapat memastikannya.
 
 ## Tanggal setelah magrib (`next`)
 
@@ -75,11 +75,11 @@ curl "https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta&next=true"
 }
 ```
 
-Cukup ganti tampilan ke `next` begitu waktu magrib terlewati. API **tidak** menghitung waktu matahari terbenam, jadi tentukan momen magrib di sisi klien Anda. Tanpa `next=true`, field ini tidak ada dan respons tidak berubah.
+Ganti tampilan ke `next` setelah waktu magrib terlewati. API **tidak** menghitung waktu matahari terbenam, jadi tentukan waktu magrib di sisi klien. Tanpa `next=true`, field ini tidak ada dan respons tidak berubah.
 
-`next.source` dilaporkan terpisah karena bisa berbeda dari `source` utama bila pergantian hari melewati batas tabel kurasi.
+`next.source` dilaporkan terpisah karena bisa berbeda dari `source` utama jika tanggal berikutnya berada di luar tabel.
 
-## Error
+## Kesalahan
 
 ```json
 {
@@ -95,16 +95,16 @@ Cukup ganti tampilan ke `next` begitu waktu magrib terlewati. API **tidak** meng
 | `invalid_timezone` | 400 | Zona waktu tidak dikenal |
 | `invalid_next` | 400 | Parameter `next` bukan `true` atau `false` |
 
-## Varian immutable
+## Versi tetap
 
 <ApiRequest path="/api/v1/today/{target_date}">
   <TestButton path="/api/v1/today/{target_date}" />
 </ApiRequest>
 
-Konversi yang sama untuk tanggal Gregorian tertentu. Berguna sebagai resource yang stabil dan dapat di-cache selamanya, serta untuk memutar ulang hari-hari historis:
+Mengembalikan hasil yang sama untuk tanggal Masehi tertentu. Versi ini cocok untuk data yang stabil, dapat disimpan di cache selamanya, dan dapat digunakan untuk melihat tanggal historis:
 
-## Perilaku caching
+## Penyimpanan di cache
 
 - `Cache-Control: public, max-age=60, s-maxage=<detik hingga tengah malam lokal>`
-- Cache miss pada pukul 06:00 di-cache di edge selama ~18 jam; miss pada pukul 23:59 kedaluwarsa tepat setelah tengah malam sehingga tanggal berganti segera.
-- Dengan jutaan permintaan/hari, origin hanya melihat sekitar satu permintaan per lokasi edge per hari.
+- Jika cache kosong pada pukul 06:00, hasilnya disimpan di edge selama sekitar 18 jam. Jika cache kosong pada pukul 23:59, hasilnya kedaluwarsa tepat setelah tengah malam agar tanggal segera berganti.
+- Dengan jutaan permintaan per hari, server utama hanya menerima sekitar satu permintaan per lokasi edge setiap hari.

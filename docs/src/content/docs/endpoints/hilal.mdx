@@ -1,17 +1,17 @@
 ---
 title: GET /hilal
-description: "Visibilitas hilal: data kriteria dan grafik langit untuk malam penentuan awal bulan Hijriah."
+description: "Visibilitas hilal: data kriteria dan grafik langit pada malam penentuan awal bulan Hijriah."
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-MABIMS API menyediakan tiga endpoint untuk **[visibilitas hilal](https://en.wikipedia.org/wiki/Moon_sighting)**. Malam yang diperiksa selalu
-**malam ke-29 bulan Hijriah yang sedang berjalan**, yaitu malam ketika hilal benar-benar diamati.
-Kalau kriteria tidak terpenuhi di satu pun titik pengamatan, bulan tersebut digenapkan menjadi
-30 hari dan awal bulan berikutnya bergeser satu hari. Batas awal bulan menggunakan
-**data publik yang dikeluarkan secara resmi oleh [Kementerian Agama RI](https://kemenag.go.id)**, sedangkan data astronominya
-dihitung dengan **model multi-titik**: kriteria diperiksa di **titik-titik pengamatan pesisir di
-seluruh Indonesia**. Saat ini ada 25 titik, dari Sabang sampai Rote. Lihat daftar lengkapnya di
+MABIMS API menyediakan empat endpoint untuk **[visibilitas hilal](https://en.wikipedia.org/wiki/Moon_sighting)**. Malam yang diperiksa selalu
+**malam ke-29 bulan Hijriah yang sedang berjalan**, yaitu malam saat hilal diamati.
+Jika kriteria tidak terpenuhi di satu pun titik pengamatan, bulan tersebut menjadi 30 hari dan
+awal bulan berikutnya bergeser satu hari. Penentuan awal bulan menggunakan
+**data publik resmi dari [Kementerian Agama RI](https://kemenag.go.id)**. Data astronominya
+dihitung dengan **model multi-titik**: kriteria diperiksa di **titik pengamatan pesisir di
+seluruh Indonesia**. Saat ini ada 25 titik, dari Sabang sampai Rote. Daftar lengkapnya tersedia di
 [`api/data/hilal_sites.json`](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json).
 
 ```
@@ -21,11 +21,11 @@ GET /api/v1/hilal/map?month={bulan}&year={tahun}    → PNG 720×1280
 GET /api/v1/hilal/history?from={YYYY-MM}&to={YYYY-MM} → JSON (riwayat)
 ```
 
-`info` mengembalikan angka-angka perhitungan beserta status hasilnya; `viz` merender grafik langit
-yang membantu menunjukkan ke arah mana pengamatan dilakukan; `map` merender peta wilayah
-visibilitas seluruh Nusantara. Ketiganya dapat diakses secara publik, tetapi memiliki rate limit
-yang lebih ketat: `info` 60 permintaan per jam, sedangkan `viz` dan `map` masing-masing 30
-permintaan per jam untuk setiap IP.
+`info` mengembalikan angka perhitungan dan hasilnya; `viz` membuat grafik langit
+yang menunjukkan kondisi hilal; `map` membuat peta wilayah visibilitas di seluruh Nusantara.
+Semua endpoint ini dapat diakses secara publik, tetapi memiliki batas permintaan yang lebih ketat:
+`info` 60 permintaan per jam, sedangkan `viz` dan `map` masing-masing 30 permintaan per jam
+untuk setiap IP.
 
 ## Parameter
 
@@ -33,13 +33,13 @@ permintaan per jam untuk setiap IP.
 |---|---|---|---|
 | `month` | int 1–12 | ya | Bulan Hijriah **target**. Grafik menampilkan malam penentuan awal bulan tersebut. |
 | `year` | int | ya | Tahun Hijriah target. |
-| `retro` | `true` / `false` | tidak (default `false`) | Membuka tanggal hasil komputasi retro di bawah tabel kurasi (sampai 1945-01-01), dengan label `mabims-retro`. [Lihat cakupan data untuk penjelasannya](/data-coverage/) |
-| `bare` | `true` / `false` | tidak (default `false`) | Hanya untuk `viz` dan `map`: menghilangkan panel kriteria dan mengembalikan kartu resolusi tinggi **1440×1520** (header + grafik + logo) untuk dipakai sebagai gambar hero di web. |
-| `download` | `true` / `false` | tidak (default `false`) | Hanya untuk `viz` dan `map`: mengirim `Content-Disposition: attachment` sehingga browser mengunduh PNG alih-alih membukanya. Berguna karena atribut `download` HTML diabaikan untuk URL lintas-origin. |
+| `retro` | `true` / `false` | tidak (bawaan `false`) | Mengaktifkan tanggal hasil perhitungan sebelum tabel tersedia, sampai 1 Januari 1945, dengan label `mabims-retro`. [Lihat cakupan data](/data-coverage/) |
+| `bare` | `true` / `false` | tidak (bawaan `false`) | Hanya untuk `viz` dan `map`: menghapus panel kriteria dan mengembalikan kartu resolusi tinggi **1440×1520** (header, grafik, dan logo) untuk digunakan sebagai gambar utama di web. |
+| `download` | `true` / `false` | tidak (bawaan `false`) | Hanya untuk `viz` dan `map`: mengirim `Content-Disposition: attachment` agar browser mengunduh PNG, bukan membukanya. Berguna karena atribut `download` HTML tidak berlaku untuk URL lintas origin. |
 
-Model yang digunakan adalah **"terlihat di mana saja di Indonesia"**. Kriteria Neo MABIMS yang
-sama dengan perhitungan tabel computed dievaluasi saat matahari terbenam di setiap titik pengamatan.
-Kalau kriteria terpenuhi, respons melaporkan **titik penentu** melalui `deciding_site`.
+Model yang digunakan adalah **"terlihat di mana saja di Indonesia"**. Kriteria Neo MABIMS
+diperiksa saat matahari terbenam di setiap titik pengamatan, sama seperti pada perhitungan tabel.
+Jika kriteria terpenuhi, respons melaporkan **titik penentu** melalui `deciding_site`.
 
 ## Contoh
 
@@ -99,9 +99,9 @@ Kalau kriteria terpenuhi, respons melaporkan **titik penentu** melalui `deciding
 }
 ```
 
-## Kriteria visibilitas
+## Kriteria keterlihatan
 
-Field `visible` bernilai `true` jika kriteria terpenuhi di **setidaknya satu titik pengamatan**:
+Kolom `visible` bernilai `true` jika kriteria terpenuhi di **setidaknya satu titik pengamatan**:
 
 - **Ketinggian Bulan ≥ 3,0°** — dihitung secara *toposentris*, yaitu berdasarkan posisi hilal relatif terhadap pengamat, dan sudah dikoreksi dengan refraksi atmosfer menggunakan formula Bennett;
 - **Elongasi ≥ 6,4°** — dihitung secara *geosentris* sesuai konvensi hisab Indonesia, yaitu jarak sudut antara Bulan dan Matahari.
@@ -114,7 +114,7 @@ Karena itu, bulan-bulan dengan kondisi yang cukup aman biasanya ditentukan di pe
 terutama Aceh. Namun, ketika deklinasi Bulan berada di selatan, titik-titik di jalur selatan,
 dari Jawa sampai Nusa Tenggara, dapat menjadi penentu.
 
-Field `deciding_site` selalu terisi. Jika kriteria tidak terpenuhi di titik mana pun, field ini
+Kolom `deciding_site` selalu terisi. Jika kriteria tidak terpenuhi di titik mana pun, kolom ini
 berisi titik dengan margin terbaik, yaitu titik yang paling mendekati batas kriteria. Semua nilai
 ketinggian, elongasi, dan waktu pada respons merujuk pada titik tersebut.
 
@@ -125,7 +125,7 @@ lokal titik tersebut, yaitu WIB atau WITA.
 ## Grafik (`/hilal/viz`)
 
 Endpoint ini mengembalikan PNG vertikal berukuran 720×1280 yang berisi langit senja dengan bulan
-sabit, dengan sisi terang menghadap Matahari; label status (`MEMENUHI KRITERIA`, `TIDAK MEMENUHI`,
+sabit, dengan sisi terang menghadap Matahari. Gambar juga memuat label status (`MEMENUHI KRITERIA`, `TIDAK MEMENUHI`,
 `MENDEKATI BATAS`, atau `DI BAWAH HORIZON`); serta tabel kriteria
 `PARAMETER · MIN. MABIMS · STATUS` dan baris **TITIK PENGAMAT**.
 
@@ -136,7 +136,7 @@ sama. Untuk parameter yang sama, output yang dihasilkan selalu konsisten.
 
 ## Peta (`/hilal/map`)
 
-Endpoint ini mengembalikan PNG 720×1280 berisi **peta wilayah visibilitas** seluruh Nusantara:
+Endpoint ini mengembalikan PNG 720×1280 berisi **peta wilayah keterlihatan** seluruh Nusantara:
 area tempat kriteria Neo MABIMS terpenuhi saat matahari terbenam, garis batas ketinggian 3° dan
 elongasi 6,4°, serta **95 titik tampilan** (hijau = memenuhi, abu-abu = tidak memenuhi). Titik
 penentu dari model 25 titik ditandai dengan cincin kuning.
@@ -149,9 +149,9 @@ menyebut titik pengamat yang sama. Rate limit: 30 permintaan per jam per IP.
 
 ## Riwayat (`/hilal/history`)
 
-`/hilal/history` mengembalikan ringkasan per bulan untuk rentang Hijriah `from`–`to` (format
-`YYYY-MM`, default seluruh indeks **1444-08 → 1475-12**). Datanya diambil dari indeks
-terhitung `api/data/hilal_index.json`, sehingga satu permintaan cukup untuk menampilkan
+`/hilal/history` mengembalikan ringkasan setiap bulan untuk rentang Hijriah `from`–`to` (format
+`YYYY-MM`, bawaan seluruh indeks **1444-08 → 1475-12**). Datanya diambil dari indeks
+`api/data/hilal_index.json`, sehingga satu permintaan cukup untuk menampilkan
 seluruh daftar riwayat tanpa memanggil `/hilal/info` berkali-kali. Setiap entri memiliki
 bentuk yang sama dengan `/hilal/info` (bulan target, bulan sebelumnya, `evening`, `source`,
 `warnings`).
@@ -174,15 +174,15 @@ bentuk yang sama dengan `/hilal/info` (bulan target, bulan sebelumnya, `evening`
 }
 ```
 
-Indeks dibangun dengan `python -m scripts.generate_hilal_index`; jalankan ulang setelah
-kriteria, daftar titik, atau ephemeris berubah, atau setelah tabel kurasi Kemenag diperluas.
+Indeks dibuat dengan `python -m scripts.generate_hilal_index`. Buat ulang setelah
+kriteria, daftar titik, atau ephemeris berubah, atau setelah tabel Kemenag diperluas.
 
-## Caching
+## Penyimpanan di cache
 
-- `Cache-Control: public, max-age=86400, s-maxage=86400` — hasilnya deterministik untuk setiap parameter dan disimpan secara publik di CDN. CDN membuat satu render per lokasi edge setiap hari.
-- Proses rendering menggunakan CPU. Karena itu, gunakan parameter seperlunya dan patuhi rate limit.
-- **Kap render: Hijri 1444–1475** — kartu PNG hanya dilayani dalam rentang itu (lihat `hilal_image_range` di `/meta`); di luar rentang endpoint menolak dengan `out_of_coverage`. Kap data tanggal tetap ada di `coverage.forward_ceil`.
-## Error
+- `Cache-Control: public, max-age=86400, s-maxage=86400` — hasilnya selalu sama untuk parameter yang sama dan disimpan di CDN. CDN membuat satu gambar per lokasi edge setiap hari.
+- Proses pembuatan gambar menggunakan CPU. Gunakan parameter seperlunya dan patuhi batas permintaan.
+- **Batas gambar: Hijriah 1444–1475** — kartu PNG hanya tersedia dalam rentang itu (lihat `hilal_image_range` di `/meta`). Di luar rentang tersebut, endpoint mengembalikan `out_of_coverage`. Cakupan data tanggal tetap tercantum di `coverage.forward_ceil`.
+## Kesalahan
 
 | Kode | HTTP | Penyebab |
 |---|---|---|

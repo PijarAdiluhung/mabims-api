@@ -1,6 +1,6 @@
 ---
 title: GET /month & /year
-description: Grid kalender bulanan dan tahunan.
+description: Kalender bulanan dan tahunan.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
@@ -9,7 +9,7 @@ import TestButton from '../../../components/TestButton.astro';
 
 ## GET /month
 
-Wrapper praktis untuk mendapatkan 1 bulan penuh.
+Mengembalikan semua hari dalam satu bulan.
 
 <ApiRequest path="/api/v1/month" args="?year={Y}&month={M}&calendar={hijri|gregorian}&retro={true|false}">
   <TestButton path="/api/v1/month" />
@@ -19,10 +19,10 @@ Wrapper praktis untuk mendapatkan 1 bulan penuh.
 
 | Parameter | Tipe | Wajib | Deskripsi |
 |---|---|---|---|
-| `year` | int | ya | Tahun Hijriah atau Gregorian |
+| `year` | int | ya | Tahun Hijriah atau Masehi |
 | `month` | int | ya | Bulan 1–12 |
-| `calendar` | string | tidak (default `hijri`) | Kalender dari input `year` |
-| `retro` | `true` / `false` | tidak (default `false`) | Buka tanggal retro komputasi di bawah tabel kurasi (s.d. 1945-01-01), ditandai `mabims-retro`. [Lihat cakupan data untuk alasannya](/data-coverage/) |
+| `calendar` | string | tidak (bawaan `hijri`) | Kalender untuk `year` dan `month` |
+| `retro` | `true` / `false` | tidak (bawaan `false`) | Mengaktifkan tanggal hasil perhitungan untuk tahun sebelum tabel tersedia, sampai 1 Januari 1945. Data ini diberi tanda `mabims-retro`. [Lihat cakupan data](/data-coverage/) |
 
 ### Contoh
 
@@ -50,7 +50,7 @@ Wrapper praktis untuk mendapatkan 1 bulan penuh.
   </TabItem>
 </Tabs>
 
-### Response
+### Respons
 
 ```json
 {
@@ -64,17 +64,17 @@ Wrapper praktis untuk mendapatkan 1 bulan penuh.
 }
 ```
 
-| Field | Type | Description |
+| Kolom | Tipe | Keterangan |
 |---|---|---|
 | `items` | `RangeItem[]` | Each item has `gregorian`, `hijri`, and `source` |
 | `count` | int | Number of days in the month (29 or 30) |
-| `source` | string | `"mabims"` for curated data, `"mabims-computed"` for Neo MABIMS fallback |
+| `source` | string | `"mabims"` untuk data dari tabel, `"mabims-computed"` untuk hasil perhitungan Neo MABIMS |
 
-Untuk `calendar=hijri`, respons berisi setiap tanggal Gregorian yang menjadi acuan dari bulan Hijriah tersebut (29–30 item). Bulan Hijriah di luar tabel publik (mis. tahun mendatang) tetap dilayani dari perhitungan Neo MABIMS selama masih dalam rentang yang didukung. Bentuk item sama dengan `/range`.
+Untuk `calendar=hijri`, respons berisi setiap tanggal Masehi yang termasuk dalam bulan Hijriah tersebut (29–30 item). Bulan Hijriah di luar tabel publik, misalnya pada tahun mendatang, tetap dihitung dengan kriteria Neo MABIMS selama masih dalam rentang yang didukung. Bentuk setiap item sama dengan `/range`.
 
 ## GET /year
 
-Mengembalikan semua hari dalam 12 bulan sebuah tahun. Lebih praktis daripada memanggil `/month` 12 kali.
+Mengembalikan semua hari dalam 12 bulan pada satu tahun. Ini lebih praktis daripada memanggil `/month` sebanyak 12 kali.
 
 <ApiRequest path="/api/v1/year" args="?year={Y}&calendar={hijri|gregorian}&retro={true|false}">
   <TestButton path="/api/v1/year" />
@@ -84,9 +84,9 @@ Mengembalikan semua hari dalam 12 bulan sebuah tahun. Lebih praktis daripada mem
 
 | Parameter | Tipe | Wajib | Deskripsi |
 |---|---|---|---|
-| `year` | int | ya | Tahun Hijriah atau Gregorian |
-| `calendar` | string | tidak (default `hijri`) | Kalender dari input `year` |
-| `retro` | `true` / `false` | tidak (default `false`) | Buka tanggal retro komputasi di bawah tabel kurasi (s.d. 1945-01-01), ditandai `mabims-retro`. [Lihat cakupan data untuk alasannya](/data-coverage/) |
+| `year` | int | ya | Tahun Hijriah atau Masehi |
+| `calendar` | string | tidak (bawaan `hijri`) | Kalender untuk `year` |
+| `retro` | `true` / `false` | tidak (bawaan `false`) | Mengaktifkan tanggal hasil perhitungan untuk tahun sebelum tabel tersedia, sampai 1 Januari 1945. Data ini diberi tanda `mabims-retro`. [Lihat cakupan data](/data-coverage/) |
 
 ### Contoh
 
@@ -137,9 +137,9 @@ Mengembalikan semua hari dalam 12 bulan sebuah tahun. Lebih praktis daripada mem
 }
 ```
 
-Setiap kunci bulan berisi array item dengan format yang sama dengan `/range`. Total `count` adalah jumlah hari di seluruh tahun.
+Setiap kunci bulan berisi daftar item dengan format yang sama dengan `/range`. Nilai `count` adalah jumlah seluruh hari dalam tahun tersebut.
 
-Untuk `calendar=hijri`, bulan Hijriah di luar tabel publik tetap dilayani dari perhitungan Neo MABIMS selama masih dalam rentang yang didukung.
+Untuk `calendar=hijri`, bulan Hijriah di luar tabel publik tetap dihitung dengan kriteria Neo MABIMS selama masih dalam rentang yang didukung.
 
 ### Kesalahan
 

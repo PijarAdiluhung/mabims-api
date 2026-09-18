@@ -1,11 +1,11 @@
 ﻿---
 title: GET /meta
-description: Cakupan tabel, versi data, dan status fallback.
+description: Cakupan tabel, versi data, dan status perhitungan.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-Info tentang dataset yang machine-readable.
+Informasi tentang data yang dapat dibaca oleh program.
 
 ```
 GET /api/v1/meta
@@ -23,14 +23,14 @@ GET /api/v1/meta
     ```js
     const res = await fetch("https://api.mabims.dev/api/v1/meta");
     const data = await res.json();
-    console.log("Coverage:", data.coverage.first, "â†’", data.coverage.last);
+    console.log("Coverage:", data.coverage.first, "→", data.coverage.last);
     ```
   </TabItem>
   <TabItem label="PHP">
     ```php
     $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/meta');
     $data = json_decode($response->getBody(), true);
-    echo 'Coverage: ' . $data['coverage']['first'] . ' â†’ ' . $data['coverage']['last'] . PHP_EOL;
+    echo 'Coverage: ' . $data['coverage']['first'] . ' → ' . $data['coverage']['last'] . PHP_EOL;
     ```
   </TabItem>
 </Tabs>
@@ -50,26 +50,26 @@ GET /api/v1/meta
 }
 ```
 
-| Field | Deskripsi |
+| Kolom | Deskripsi |
 |---|---|
 | `data_version` | Hash pendek dari tabel MABIMS yang berubah ketika tabel diperbarui |
-| `coverage` | Rentang Gregorian yang dicakup oleh tabel otoritatif |
-| `computed_active` | `true` setelah ada permintaan yang dilayani dari kalendar hitungan Neo MABIMS |
-| `computed_months` | Bulan-bulan mana yang sudah dihitung via kriteria Neo MABIMS |
+| `coverage` | Rentang Masehi yang tersedia di tabel rujukan |
+| `computed_active` | `true` setelah ada permintaan yang menggunakan hasil perhitungan Neo MABIMS |
+| `computed_months` | Daftar bulan yang sudah dihitung dengan kriteria Neo MABIMS |
 | `method` | Metode perhitungan di luar tabel (`neo-mabims-multisite`) |
-| `hilal_image_range` | Rentang tahun Hijriah `[min, max]` yang kartu `/hilal/viz` + `/hilal/map`-nya sudah dibuat lebih dulu; di luar rentang itu gambar tetap dirender saat diminta |
-| `divergences` | Riwayat koreksi Sidang Isbat: setiap entri berisi `hijri_month` (bulan terkoreksi) dan `delta_days` (bergesernya berapa hari). Kosong bila belum pernah ada koreksi |
-| `table_version` | Token versi riwayat koreksi; `"none"` kalau belum pernah ada koreksi, berubah setiap kali koreksi diterapkan — bandingkan dengan nilai tersimpan Anda untuk tahu kapan harus menarik ulang data |
+| `hilal_image_range` | Rentang tahun Hijriah `[min, max]` yang gambar `/hilal/viz` dan `/hilal/map`-nya sudah dibuat lebih dulu; di luar rentang itu gambar dibuat saat diminta |
+| `divergences` | Riwayat koreksi Sidang Isbat. Setiap entri berisi `hijri_month` (bulan yang dikoreksi) dan `delta_days` (jumlah hari pergeseran). Kosong jika belum ada koreksi |
+| `table_version` | Penanda versi riwayat koreksi. Nilainya `"none"` jika belum ada koreksi dan berubah setiap kali koreksi diterapkan. Bandingkan dengan nilai yang tersimpan untuk mengetahui kapan data perlu diambil ulang |
 
-## Perilaku klien yang direkomendasikan
+## Saran untuk klien
 
-1. Poll `/meta` secara harian (murah dan dapat di-cache selama 5 menit).
-2. Jika `computed_active` bernilai true, tampilkan pemberitahuan halus di UI Anda — tanggal bisa bergeser ±1 hari dari pengumuman resmi.
-3. Bandingkan `table_version` dengan yang tersimpan; bila berubah, lihat `divergences[]` dan tarik ulang tanggal di bulan terkoreksi. Detail: [Sidang Isbat & Koreksi](/isbat-koreksi).
+1. Periksa `/meta` setiap hari. Permintaan ini ringan dan hasilnya dapat disimpan di cache selama 5 menit.
+2. Jika `computed_active` bernilai `true`, tampilkan pemberitahuan di antarmuka Anda. Tanggal hasil perhitungan dapat berbeda ±1 hari dari pengumuman resmi.
+3. Bandingkan `table_version` dengan nilai yang tersimpan. Jika berubah, periksa `divergences[]` dan ambil ulang tanggal pada bulan yang dikoreksi. Lihat [Sidang Isbat dan Koreksi](/isbat-koreksi).
 
 ## GET /healthz
 
-Probe liveness untuk monitor uptime.
+Pemeriksaan singkat untuk memantau apakah layanan masih berjalan.
 
 ```
 GET /healthz
@@ -107,4 +107,4 @@ GET /healthz
 }
 ```
 
-Mengembalikan `Cache-Control: public, max-age=10`.
+Mengembalikan header `Cache-Control: public, max-age=10`.
