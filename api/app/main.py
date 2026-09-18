@@ -409,7 +409,10 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         title="MABIMS API",
         version=APP_VERSION,
         redoc_url=None,
+        docs_url=None,
+        openapi_url="/openapi.json",
         description=t("app.description"),
+        servers=[{"url": settings.openapi_server, "description": "Live API"}],
         openapi_tags=[
             {"name": "Today", "description": t("tag.today")},
             {"name": "Convert", "description": t("tag.convert")},
@@ -1358,15 +1361,15 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
 
     app.openapi = custom_openapi  # type: ignore[method-assign]
 
-    @app.get("/scalar", include_in_schema=False)
-    async def scalar_html():
+    @app.get("/playground", include_in_schema=False)
+    async def playground_html():
         return get_scalar_api_reference(
             openapi_url=app.openapi_url,
-            title="MABIMS API — Scalar",
+            title="MABIMS API — Playground",
             scalar_favicon_url="/favicon.ico",
             theme=Theme.DEFAULT,
             force_dark_mode_state="dark",
-            hide_models=False,
+            hide_models=True,
             show_sidebar=True,
             default_open_all_tags=False,
             agent=AgentScalarConfig(disabled=True),

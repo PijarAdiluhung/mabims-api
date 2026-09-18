@@ -39,6 +39,7 @@ def _csv_env(name: str, default: str) -> list[str]:
 class Settings:
     data_dir: Path = field(default_factory=lambda: Path(__file__).resolve().parent.parent / "data")
     docs_url: str = "https://mabims.dev"
+    openapi_server: str = os.environ.get("MABIMS_OPENAPI_SERVER", "https://api.mabims.dev")
     allowed_origins: list[str] = field(default_factory=lambda: _csv_env("ALLOWED_ORIGINS", "*"))
     origin_suffixes: list[str] = field(
         default_factory=lambda: _csv_env("ALLOWED_ORIGIN_SUFFIXES", ",".join(DEFAULT_ORIGIN_SUFFIXES))
