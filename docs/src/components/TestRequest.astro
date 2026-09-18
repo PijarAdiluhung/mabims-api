@@ -1,6 +1,5 @@
 ---
 import { Play } from '@lucide/astro';
-import { initTestRequests } from '../lib/testRequestClient';
 
 interface Props {
   path: string;
@@ -24,5 +23,131 @@ const specUrl = 'https://api.mabims.dev/openapi.json';
 </button>
 
 <script>
-  initTestRequests();
+  import { watch } from 'vue';
+  import { createWorkspaceStore } from '@scalar/workspace-store/client';
+  import '@scalar/api-client/style.css';
+
+  type ModalApp = Awaited<ReturnType<typeof getModal>>;
+
+  let modal: ModalApp | null = null;
+  let currentSpec = '';
+  let sectionObserver: MutationObserver | null = null;
+
+  function cullSections(root: Element) {
+    root.querySelectorAll('h2').forEach((h) => {
+      const label = h.textContent?.trim() ?? '';
+      if (label.startsWith('Headers') || label.startsWith('Cookies')) {
+        const disclosure = h.closest('.group\\/collapse');
+        if (disclosure instanceof HTMLElement) disclosure.style.setProperty('display', 'none');
+      }
+    });
+  }
+
+  function watchSections(root: Element) {
+    cullSections(root);
+    const throttled = (() => {
+      let t: number | undefined;
+      return () => {
+        clearTimeout(t);
+        t = window.setTimeout(() => cullSections(root), 150);
+      };
+    })();
+    sectionObserver = new MutationObserver(throttled);
+    sectionObserver.observe(root, { childList: true, subtree: true });
+  }
+
+  async function getModal(specUrl: string) {
+    if (modal && currentSpec === specUrl) return modal;
+    const { createApiClientModal } = await import('@scalar/api-client/modal');
+    const workspaceStore = createWorkspaceStore({
+      meta: {
+        'x-scalar-active-proxy': 'https://proxy.scalar.com',
+      },
+    });
+    await workspaceStore.addDocument({ name: 'mabims', url: specUrl });
+    document.body.classList.add('dark-mode');
+    const mountEl = document.createElement('div');
+    mountEl.setAttribute('data-v-app', '');
+    mountEl.style.position = 'relative';
+    mountEl.style.zIndex = '2147483';
+    mountEl.style.isolation = 'isolate';
+    document.body.appendChild(mountEl);
+    const m = createApiClientModal({
+      el: mountEl,
+      workspaceStore,
+      options: {
+        hideClientButton: true,
+        servers: [{ url: 'https://api.mabims.dev', description: 'Live API' }],
+      },
+    });
+    watch(
+      () => m.modalState.open,
+      (open) => {
+        if (open) {
+          requestAnimationFrame(() => {
+            if (m.app) watchSections(mountEl);
+          });
+        } else {
+          sectionObserver?.disconnect();
+          sectionObserver = null;
+          try {
+            m.app?.unmount();
+          } catch {}
+          mountEl.remove();
+          document.body.classList.remove('dark-mode');
+          modal = null;
+        }
+      }
+    );
+    modal = m;
+    currentSpec = specUrl;
+    return m;
+  }
+
+  function setState(btn: HTMLElement, state: 'loading' | 'error') {
+    btn.classList.toggle('is-loading', state === 'loading');
+    btn.classList.toggle('is-error', state === 'error');
+  }
+
+  async function handleClick(btn: HTMLElement) {
+    const path = btn.dataset.trPath;
+    const method = btn.dataset.trMethod ?? 'get';
+    const specUrl = btn.dataset.trSpec ?? '';
+    if (!path) return;
+    setState(btn, 'loading');
+    try {
+      const m = await getModal(specUrl);
+      m.open({ path, method: method as never });
+      btn.classList.remove('is-loading');
+    } catch (err) {
+      console.error('[test-request]', err);
+      setState(btn, 'error');
+      const labelEl = btn.querySelector('.tr-label') ?? btn;
+      const original = labelEl.childNodes.length > 1 ? null : labelEl.textContent;
+      labelEl.textContent = `Gagal memuat: ${(err as Error)?.message?.slice(0, 60) ?? 'Unknown error'}`;
+      setTimeout(() => {
+        if (original !== null) labelEl.textContent = original;
+        btn.classList.remove('is-error');
+      }, 4000);
+    }
+  }
+
+  // Single global listener no matter how many buttons or bundles are present.
+  const w = window as typeof window & { __mabimsTestRequestInitialized?: boolean };
+  if (!w.__mabimsTestRequestInitialized) {
+    w.__mabimsTestRequestInitialized = true;
+
+    document.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLElement>('.test-request-btn');
+      if (!btn) return;
+      e.preventDefault();
+      handleClick(btn);
+    });
+
+    document.addEventListener('astro:before-swap', () => {
+      modal = null;
+      currentSpec = '';
+      document.body.classList.remove('dark-mode');
+    });
+  }
 </script>
