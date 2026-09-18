@@ -61,3 +61,19 @@ def etag_from_bytes(data: bytes) -> str:
 
 def etag_headers(etag: str) -> dict[str, str]:
     return {"ETag": f'"{etag}"'}
+
+
+def etag_matches(request_if_none_match: str | None, etag: str) -> bool:
+    """RFC 9110 conditional request check (weak comparison)."""
+    if not request_if_none_match:
+        return False
+    merged = f'"{etag}"'
+    for candidate in request_if_none_match.split(","):
+        candidate = candidate.strip()
+        if candidate == "*":
+            return True
+        if candidate.startswith("W/"):
+            candidate = candidate[2:]
+        if candidate == merged:
+            return True
+    return False

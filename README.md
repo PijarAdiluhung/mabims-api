@@ -96,7 +96,11 @@ The hilal visibility criteria follow Neo MABIMS: **moon altitude ≥ 3.0°** (to
 | `year` | Integer | Hijri or Gregorian year, depending on `calendar`. |
 | `retro` | `true`, `false` | Default `false`. Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro`. |
 | `next` | `true`, `false` | Default `false`. On `/today`, also returns the Hijri date that begins after this evening's maghrib (the next civil day's mapping) as `next`, with its own `source`. The API does not compute sunset — the client gates the flip on its own maghrib time. |
-| `month` | Integer | Hijri or Gregorian month (1–12). |
+| `month` | 1–12 | Hijri or Gregorian month. |
+| `bare`, `download` | `true`, `false` | Default `false`. Hilal PNG endpoints only. Boolean flags accept `true`/`false` (case-insensitive) or `1`/`0`; anything else is rejected with 400 `invalid_bare` / `invalid_download`. `download` adds `Content-Disposition: attachment`. |
+
+Integer parameters (`year`, `month`) must be plain digits. Malformed integers
+return 400 `invalid_year` / `invalid_month` (never FastAPI's 422 shape).
 
 ## Events
 
@@ -128,17 +132,26 @@ All errors follow a consistent JSON shape:
 | 400 | `invalid_timezone` | Unknown timezone string |
 | 400 | `missing_parameter` | Required query param not provided |
 | 400 | `invalid_step` | `step` param is not `day` |
-| 400 | `invalid_retro` | `retro` param is not `true` or `false` |
-| 400 | `invalid_next` | `next` param is not `true` or `false` |
+| 400 | `invalid_retro` | `retro` param is not a boolean (`true`/`false`, `1`/`0`) |
+| 400 | `invalid_next` | `next` param is not a boolean |
+| 400 | `invalid_bare` | `bare` param is not a boolean |
+| 400 | `invalid_download` | `download` param is not a boolean |
 | 400 | `invalid_range` | `start` is after `end` |
-| 400 | `invalid_month` | `month` is not between 1 and 12 |
-| 400 | `invalid_year` | `year` is out of supported bounds |
+| 400 | `invalid_month` | `month` is not an integer or is not between 1 and 12 |
+| 400 | `invalid_year` | `year` is not an integer or is out of supported bounds |
 | 400 | `out_of_coverage` | Date is outside available coverage |
 | 400 | `date_out_of_supported_range` | Date exceeds supported range |
 | 400 | `range_too_large` | Range exceeds 45 days |
 | 404 | `date_not_found` | No calendar pair exists for this date |
+| 404 | `not_found` | Unknown path (also returned in the JSON envelope) |
+| 429 | `rate_limit_exceeded` | Rate limit exceeded — includes a `Retry-After` header |
 | 500 | `render_failed` | Hilal chart rendering failed |
 | 503 | `computation_unavailable` | Astronomical computation failed or is disabled |
+
+Every error above uses the same JSON envelope, including 404s from unknown
+paths and 429s from the rate limiter. Integer and boolean parameters are
+validated manually, so FastAPI's raw 422 `{"detail": [...]}` shape never
+appears.
 
 ## Caching
 

@@ -273,12 +273,16 @@ _STRINGS: dict[str, dict[str, str]] = {
     "query.retro": {
         "en": (
             "Set true to allow computed retro dates below the curated table "
-            "(dari 1945-01-01)"
+            "(from 1945-01-01). Boolean: `true`/`false` (case-insensitive), "
+            "also accepts `1`/`0`; other values are rejected with 400 "
+            "`invalid_retro`."
         ),
         "id": (
             "Set `true` untuk membuka tanggal retro komputasi di bawah "
             "tabel kurasi (dari 1945-01-01 sampai 2022-12-31), "
-            "ditandai `mabims-retro`"
+            "ditandai `mabims-retro`. Boolean: `true`/`false` (tidak peka "
+            "huruf besar/kecil), juga menerima `1`/`0`; nilai lain ditolak "
+            "dengan 400 `invalid_retro`."
         ),
     },
     "query.next": {
@@ -286,7 +290,9 @@ _STRINGS: dict[str, dict[str, str]] = {
             "Set true to also return the Hijri date that begins after this "
             "evening's maghrib (the next civil day's mapping), as `next` with "
             "its own `source`. The API does not compute sunset, so gate the "
-            "flip on your own prayer-time clock."
+            "flip on your own prayer-time clock. Boolean: `true`/`false` "
+            "(case-insensitive), also accepts `1`/`0`; other values are "
+            "rejected with 400 `invalid_next`."
         ),
         "id": (
             "Jika di-set `true`, maka API akan mengembalikan juga objek "
@@ -294,29 +300,39 @@ _STRINGS: dict[str, dict[str, str]] = {
             "tanggal Hijriah setelah magrib malam ini. Kenapa? Karena hari "
             "Hijriah dimulai saat magrib, bukan tengah malam. API tidak "
             "menghitung waktu matahari terbenam, jadi tentukan momen magrib "
-            "di sisi klien Anda."
+            "di sisi klien Anda. Boolean: `true`/`false` (tidak peka huruf "
+            "besar/kecil), juga menerima `1`/`0`; nilai lain ditolak dengan "
+            "400 `invalid_next`."
         ),
     },
     "query.bare": {
         "en": (
             "Set true to omit the criteria panel and return the high-resolution bare "
-            "card (header + graphic + logo) used as the web hero image."
+            "card (header + graphic + logo) used as the web hero image. Boolean: "
+            "`true`/`false` (case-insensitive), also accepts `1`/`0`; other values "
+            "are rejected with 400 `invalid_bare`."
         ),
         "id": (
             "Hanya untuk `viz` dan `map`: menghilangkan panel kriteria dan "
             "mengembalikan kartu resolusi tinggi 1440×1520 (header + grafik + logo) "
-            "untuk dipakai sebagai gambar hero di web."
+            "untuk dipakai sebagai gambar hero di web. Boolean: `true`/`false` "
+            "(tidak peka huruf besar/kecil), juga menerima `1`/`0`; nilai lain "
+            "ditolak dengan 400 `invalid_bare`."
         ),
     },
     "query.download": {
         "en": (
             "Set true to return Content-Disposition: attachment so the browser "
-            "downloads the PNG instead of navigating to it."
+            "downloads the PNG instead of navigating to it. Boolean: "
+            "`true`/`false` (case-insensitive), also accepts `1`/`0`; other "
+            "values are rejected with 400 `invalid_download`."
         ),
         "id": (
             "Hanya untuk `viz` dan `map`: mengirim `Content-Disposition: attachment` "
             "sehingga browser mengunduh PNG alih-alih membukanya. Berguna karena "
-            "atribut `download` HTML diabaikan untuk URL lintas-origin."
+            "atribut `download` HTML diabaikan untuk URL lintas-origin. Boolean: "
+            "`true`/`false` (tidak peka huruf besar/kecil), juga menerima `1`/`0`; "
+            "nilai lain ditolak dengan 400 `invalid_download`."
         ),
     },
     "query.date": {

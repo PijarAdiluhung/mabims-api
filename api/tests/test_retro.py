@@ -50,7 +50,7 @@ class TestRetroGating:
         assert r.json()["source"] == "mabims"
 
     def test_invalid_retro_value(self, retro_client):
-        r = retro_client.get("/api/v1/convert?date=2025-01-01&calendar=gregorian&retro=1")
+        r = retro_client.get("/api/v1/convert?date=2025-01-01&calendar=gregorian&retro=maybe")
         assert r.status_code == 400
         assert r.json()["error"]["code"] == "invalid_retro"
 

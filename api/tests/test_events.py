@@ -99,4 +99,5 @@ def test_events_invalid_year(client):
 
 def test_events_missing_year(client):
     r = client.get("/api/v1/events")
-    assert r.status_code == 422
+    assert r.status_code == 400
+    assert r.json()["error"]["code"] == "missing_parameter"

@@ -14,12 +14,14 @@ from typing import TypeVar
 from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, Query, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.openapi.docs import get_swagger_ui_html
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import JSONResponse, Response
 from scalar_fastapi import AgentScalarConfig, Theme, get_scalar_api_reference
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .calendar import SOURCE_MABIMS, CalendarService
 from .config import APP_VERSION, BUILD_HASH, Settings
@@ -92,6 +94,7 @@ from .timeutil import (
     dynamic_cache_headers,
     etag_from_bytes,
     etag_headers,
+    etag_matches,
     resolve_tz,
     tz_label,
 )
@@ -119,20 +122,56 @@ DOWNLOAD_QUERY_DESC = t("query.download")
 
 
 def _err(status: int, code: str, description: str) -> dict:
-    """Build an OpenAPI responses entry for an error code."""
+    """Build a spec-problem entry for one error code.
+
+    Message strings come from ERROR_MESSAGES so the generated reference shows
+    the real thing instead of ``"..."``.
+    """
     return {
         "description": description,
         "content": {
             "application/json": {
-                "example": {"error": {"code": code, "message": "..."}},
+                "schema": {"$ref": "#/components/schemas/ErrorBody"},
+                "example": {
+                    "error": {
+                        "code": code,
+                        "message": ERROR_MESSAGES.get(
+                            code, "See /api/v1/meta for coverage."
+                        ),
+                    }
+                },
             }
         },
     }
 
 
+ERROR_MESSAGES = {
+    "invalid_date": "'1999-13-45' is not a valid ISO date (YYYY-MM-DD).",
+    "invalid_calendar": "The 'calendar' parameter must be 'gregorian' or 'hijri'.",
+    "invalid_timezone": "Unknown timezone: Foo/Bar",
+    "missing_parameter": "You must provide a 'date' query parameter.",
+    "invalid_retro": "'retro' must be 'true' or 'false'.",
+    "invalid_next": "'next' must be 'true' or 'false'.",
+    "invalid_bare": "'bare' must be 'true' or 'false'.",
+    "invalid_download": "'download' must be 'true' or 'false'.",
+    "invalid_step": "Only step='day' is supported.",
+    "invalid_range": "'start' must be on or before 'end'.",
+    "invalid_month": "'month' must be between 1 and 12.",
+    "invalid_year": "'year' is out of supported bounds.",
+    "out_of_coverage": "No calendar pair exists for 2022-01-01; check /api/v1/meta for coverage.",
+    "date_out_of_supported_range": "Supported range is 2023-01-23 through 2100-01-01 (gregorian).",
+    "date_not_found": "No calendar pair exists for 2026-07-31 (hijri). See /api/v1/meta for coverage.",
+    "not_found": "Not Found",
+    "rate_limit_exceeded": "Rate limit exceeded (240 per 1 minute). Wait 60s before retrying.",
+    "render_failed": "Could not render chart: RenderError",
+    "computation_unavailable": "Could not compute hilal data: EphemerisError",
+}
+
+
 # Common error responses reused across endpoints.
-_ERR_400 = _err(400, "invalid_date", "Bad Request — validation error")
+_ERR_400 = _err(400, "missing_parameter", "Bad Request — validation error")
 _ERR_404 = _err(404, "date_not_found", "Not Found")
+_ERR_404_ROUTE = _err(404, "not_found", "Not Found")
 _ERR_429 = _err(429, "rate_limit_exceeded", "Rate Limit Exceeded")
 _ERR_500 = _err(500, "render_failed", "Internal Server Error")
 _ERR_503 = _err(503, "computation_unavailable", "Service Unavailable")
@@ -325,11 +364,42 @@ def _error(code: str, message: str, status: int) -> JSONResponse:
     )
 
 
-def _json_response(content: dict, headers: dict[str, str]) -> JSONResponse:
+_INT_MESSAGE = "{name} must be a plain integer (no leading '+', decimals or spaces)."
+
+
+def _parse_int(raw: str | None, name: str) -> int:
+    """Manual integer query parameter for the uniform 400 error envelope.
+
+    Replaces FastAPI's native int coercion (which leaks a raw 422
+    ``{"detail": [...]}`` shape) with ``missing_parameter`` /
+    ``invalid_{name}`` codes in the same envelope as every other error.
+    """
+    if raw is None or raw == "":
+        raise ApiError(
+            "missing_parameter",
+            f"You must provide a '{name}' query parameter.",
+        )
+    if not raw.isdigit():
+        raise ApiError(f"invalid_{name}", _INT_MESSAGE.format(name=name))
+    return int(raw)
+
+
+def _json_response(request: Request, content: dict, headers: dict[str, str]) -> Response:
     body = json.dumps(content, separators=(",", ":")).encode()
     etag = etag_from_bytes(body)
-    merged = {**headers, **etag_headers(etag)}
-    return JSONResponse(content=content, headers=merged)
+    cache = {**headers, **etag_headers(etag)}
+    if etag_matches(request.headers.get("if-none-match"), etag):
+        return Response(status_code=304, headers=cache)
+    return JSONResponse(content=content, headers=cache)
+
+
+def _png_response(request: Request, png: bytes, attach: dict[str, str]) -> Response:
+    """Serve a hilal PNG with ETag/304 support and optional attachment headers."""
+    etag = etag_from_bytes(png)
+    cache = {**HILAL_CACHE, **etag_headers(etag), **attach}
+    if etag_matches(request.headers.get("if-none-match"), etag):
+        return Response(status_code=304, headers=cache)
+    return Response(content=png, media_type="image/png", headers=cache)
 
 
 def _parse_iso_date(value: str) -> date:
@@ -352,8 +422,11 @@ def _parse_hijri_date(value: str) -> str:
     the syntactically valid day range is 1–30; whether a specific day exists in
     a given month is left to the data lookup (``date_not_found``). Returns the
     normalized ISO string and never constructs a ``date`` object.
+
+    Like the Gregorian path, the input is *not* stripped: leading/trailing
+    whitespace is rejected outright (``invalid_date``).
     """
-    normalized = (value or "").strip()
+    normalized = value or ""
     match = _HIJRI_DATE_RE.match(normalized)
     if match is None:
         raise ApiError("invalid_date", f"'{value}' is not a valid ISO date (YYYY-MM-DD).")
@@ -455,7 +528,54 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
     limiter = Limiter(key_func=_rate_limit_key, default_limits=[settings.rate_limit])
     app.state.limiter = limiter
     app.add_middleware(SlowAPIMiddleware)
-    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
+
+    def handle_rate_limit(request: Request, exc: RateLimitExceeded):
+        # Uniform error envelope; slowapi's stock handler leaks
+        # {"error": "<string>"} and no Retry-After.
+        limit = exc.limit.limit if exc.limit else None
+        window = limit.multiples * limit.GRANULARITY.seconds if limit else 60
+        return JSONResponse(
+            status_code=429,
+            headers={"Retry-After": str(window)},
+            content={
+                "error": {
+                    "code": "rate_limit_exceeded",
+                    "message": (
+                        f"Rate limit exceeded ({limit}). Wait {window}s before retrying."
+                    ),
+                }
+            },
+        )
+
+    def handle_starlette_http(request: Request, exc: StarletteHTTPException):
+        # Unhandled starlette errors (404 unknown path, 405 method) leak the
+        # raw {"detail": ...} shape; route into the same envelope.
+        code = {404: "not_found", 405: "method_not_allowed"}.get(
+            exc.status_code, "error"
+        )
+        return _error(code, str(exc.detail), exc.status_code)
+
+    def handle_validation(request: Request, exc: RequestValidationError):
+        # Residual 422s (should be none once every param is parsed manually)
+        # still get the uniform envelope instead of FastAPI's {"detail":[...]}.
+        first = exc.errors()[0]
+        loc = [part for part in first.get("loc", []) if part != "query"]
+        name = str(loc[-1]) if loc else "parameter"
+        if first.get("type") == "missing":
+            return _error(
+                "missing_parameter",
+                f"You must provide a '{name}' query parameter.",
+                400,
+            )
+        return _error(
+            f"invalid_{name}",
+            f"The '{name}' parameter is invalid.",
+            400,
+        )
+
+    app.add_exception_handler(RateLimitExceeded, handle_rate_limit)  # type: ignore[arg-type]
+    app.add_exception_handler(StarletteHTTPException, handle_starlette_http)  # type: ignore[arg-type]
+    app.add_exception_handler(RequestValidationError, handle_validation)  # type: ignore[arg-type]
 
     @app.exception_handler(ApiError)
     async def handle_api_error(request: Request, exc: ApiError):
@@ -486,25 +606,25 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         response.headers["X-Content-Type-Options"] = "nosniff"
         return response
 
-    def _parse_retro(raw: str | None) -> bool:
-        if raw is None or raw == "":
-            return False
-        lowered = raw.lower()
-        if lowered == "true":
-            return True
-        if lowered == "false":
-            return False
-        raise ApiError("invalid_retro", "'retro' must be 'true' or 'false'.")
+    def _parse_bool(raw: str | None, name: str) -> bool:
+        """Strict-ish boolean flag: ``true``/``false`` (any case) or ``1``/``0``.
 
-    def _parse_next(raw: str | None) -> bool:
+        Anything else is a clean 400 ``invalid_{name}`` instead of FastAPI's
+        raw 422 shape, so URL booleans stay unambiguous across clients while
+        staying lenient enough for clients that send ``1``/``0``.
+        """
         if raw is None or raw == "":
             return False
         lowered = raw.lower()
-        if lowered == "true":
+        if lowered in ("true", "1"):
             return True
-        if lowered == "false":
+        if lowered in ("false", "0"):
             return False
-        raise ApiError("invalid_next", "'next' must be 'true' or 'false'.")
+        raise ApiError(
+            f"invalid_{name}",
+            f"'{name}' must be 'true' or 'false'.",
+        )
+
 
     def _resolve_pair(date_iso: str, calendar: str, retro: bool = False) -> tuple[str, Source]:
         _check_supported(date_iso, calendar, retro)
@@ -680,7 +800,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             divergences=as_payload(divergences),
             table_version=table_version(settings.data_dir, divergences),
         )
-        return _json_response(payload.model_dump(), SHORT_CACHE_HEADERS)
+        return _json_response(request, payload.model_dump(), SHORT_CACHE_HEADERS)
 
     @app.api_route(
         "/api/v1/table",
@@ -697,7 +817,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             gregorian_to_hijri=service.g2h,
             hijri_to_gregorian=service.h2g,
         )
-        return _json_response(payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
+        return _json_response(request, payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
 
     @app.api_route(
         "/api/v1/convert",
@@ -725,7 +845,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         if not date_:
             raise ApiError("missing_parameter", "You must provide a 'date' query parameter.")
         cal = _validate_calendar(calendar)
-        is_retro = _parse_retro(retro)
+        is_retro = _parse_bool(retro, "retro")
         target_iso = _parse_hijri_date(date_) if cal == "hijri" else _parse_iso_date(date_).isoformat()
         value, source = _resolve_pair(target_iso, cal, is_retro)
         opposite = "hijri" if cal == "gregorian" else "gregorian"
@@ -736,7 +856,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             source=source,
             warnings=_warnings_for(source, hijri_value),
         )
-        return _json_response(payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
+        return _json_response(request, payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
 
     @app.api_route(
         "/api/v1/today",
@@ -760,7 +880,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             tzo = resolve_tz(tz)
         except ValueError as exc:
             raise ApiError("invalid_timezone", str(exc)) from exc
-        want_next = _parse_next(next)
+        want_next = _parse_bool(next, "next")
         today_iso = datetime.now(tzo).date().isoformat()
         value, source = _resolve_pair(today_iso, "gregorian")
         next_value: NextDate | None = None
@@ -781,7 +901,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             next=next_value,
         )
         dumped = payload.model_dump(exclude={"next"} if not want_next else None)
-        return _json_response(dumped, dynamic_cache_headers(tzo))
+        return _json_response(request, dumped, dynamic_cache_headers(tzo))
 
     @app.api_route(
         "/api/v1/today/{target_date}",
@@ -801,7 +921,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         target_date: str,
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
-        is_retro = _parse_retro(retro)
+        is_retro = _parse_bool(retro, "retro")
         target = _parse_iso_date(target_date)
         value, source = _resolve_pair(target.isoformat(), "gregorian", is_retro)
         payload = ConvertResponse(
@@ -810,7 +930,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             source=source,
             warnings=_warnings_for(source, value),
         )
-        return _json_response(payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
+        return _json_response(request, payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
 
     def _hijri_month_items(year: int, month: int, retro: bool = False) -> list[RangeItem]:
         """All days of a Hijri month, served from whichever tier covers it.
@@ -938,14 +1058,18 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
     )
     def range_(
         request: Request,
-        start: str = Query(..., description=t("query.start_date")),
-        end: str = Query(..., description=t("query.end_date")),
+        start: str | None = Query(default=None, description=t("query.start_date")),
+        end: str | None = Query(default=None, description=t("query.end_date")),
         calendar: str = Query(default="gregorian", description=t("query.calendar")),
         step: str = Query(default="day", description=t("query.step")),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
+        if not start:
+            raise ApiError("missing_parameter", "You must provide a 'start' query parameter.")
+        if not end:
+            raise ApiError("missing_parameter", "You must provide an 'end' query parameter.")
         cal = _validate_calendar(calendar)
-        is_retro = _parse_retro(retro)
+        is_retro = _parse_bool(retro, "retro")
         if step != "day":
             raise ApiError("invalid_step", "Only step='day' is supported.")
         if cal == "hijri":
@@ -976,7 +1100,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             items=items,
             warnings=warnings,
         )
-        return _json_response(payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
+        return _json_response(request, payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
 
     @app.api_route(
         "/api/v1/events",
@@ -992,13 +1116,14 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
     )
     def events(
         request: Request,
-        year: int = Query(..., description=t("query.events_year")),
+        year: str | None = Query(default=None, description=t("query.events_year")),
         calendar: str = Query(default="hijri", description=t("query.calendar")),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
+        year_int = _parse_int(year, "year")
         cal = _validate_calendar(calendar)
-        is_retro = _parse_retro(retro)
-        if not 1000 <= year <= 3000:
+        is_retro = _parse_bool(retro, "retro")
+        if not 1000 <= year_int <= 3000:
             raise ApiError("invalid_year", "'year' is out of supported bounds.")
         items = [
             EventItem(
@@ -1008,17 +1133,17 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
                 hijri=h_iso,
                 source=service.lookup(h_iso, "hijri").source,
             )
-            for definition, g_iso, h_iso in find_events(service, year, cal, retro=is_retro)
+            for definition, g_iso, h_iso in find_events(service, year_int, cal, retro=is_retro)
         ]
         _relabel_retro(items, is_retro)
         aggregate_source, warnings = _aggregate(items)
         payload = EventsResponse(
-            input=EventsInput(year=year, calendar=cal),
+            input=EventsInput(year=year_int, calendar=cal),
             count=len(items),
             events=items,
             warnings=warnings,
         )
-        return _json_response(payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
+        return _json_response(request, payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
 
     @app.api_route(
         "/api/v1/month",
@@ -1034,32 +1159,35 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
     )
     def month(
         request: Request,
-        year: int = Query(..., description=t("query.hijri_year")),
-        month: int = Query(..., description=t("query.month")),
+        year: str | None = Query(default=None, description=t("query.hijri_year")),
+        month: str | None = Query(default=None, description=t("query.month")),
         calendar: str = Query(default="hijri", description=t("query.calendar")),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
+        year_int = _parse_int(year, "year")
+        month_int = _parse_int(month, "month")
         cal = _validate_calendar(calendar)
-        is_retro = _parse_retro(retro)
-        if not 1 <= month <= 12:
+        is_retro = _parse_bool(retro, "retro")
+        if not 1 <= month_int <= 12:
             raise ApiError("invalid_month", "'month' must be between 1 and 12.")
-        if not 1000 <= year <= 3000:
+        if not 1000 <= year_int <= 3000:
             raise ApiError("invalid_year", "'year' is out of supported bounds.")
 
         if cal == "gregorian":
-            days_in_month = pycalendar.monthrange(year, month)[1]
-            start_d = date(year, month, 1)
-            end_d = date(year, month, days_in_month)
+            days_in_month = pycalendar.monthrange(year_int, month_int)[1]
+            start_d = date(year_int, month_int, 1)
+            end_d = date(year_int, month_int, days_in_month)
             _check_supported(start_d.isoformat(), cal, is_retro)
             _check_supported(end_d.isoformat(), cal, is_retro)
             items = _collect_items(start_d.isoformat(), end_d.isoformat(), cal, is_retro)
         else:
-            _check_supported(f"{year:04d}-{month:02d}-01", cal, is_retro)
-            items = _hijri_month_items(year, month, is_retro)
+            _check_supported(f"{year_int:04d}-{month_int:02d}-01", cal, is_retro)
+            items = _hijri_month_items(year_int, month_int, is_retro)
             if not items:
                 raise ApiError(
                     "out_of_coverage",
-                    f"Hijri month {year:04d}-{month:02d} is outside available coverage; see /api/v1/meta.",
+                    "Hijri month "
+                    f"{year_int:04d}-{month_int:02d} is outside available coverage; see /api/v1/meta.",
                     400,
                 )
             start_d = date.fromisoformat(items[0].gregorian)
@@ -1072,12 +1200,12 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
 
         aggregate_source, warnings = _aggregate(items)
         payload = MonthResponse(
-            input=MonthInput(year=year, month=month, calendar=cal),
+            input=MonthInput(year=year_int, month=month_int, calendar=cal),
             count=len(items),
             items=items,
             warnings=warnings,
         )
-        return _json_response(payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
+        return _json_response(request, payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
 
     @app.api_route(
         "/api/v1/year",
@@ -1093,13 +1221,14 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
     )
     def year(
         request: Request,
-        year: int = Query(..., description=t("query.hijri_year")),
+        year: str | None = Query(default=None, description=t("query.hijri_year")),
         calendar: str = Query(default="hijri", description=t("query.calendar")),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
+        year_int = _parse_int(year, "year")
         cal = _validate_calendar(calendar)
-        is_retro = _parse_retro(retro)
-        if not 1 <= year <= 3000:
+        is_retro = _parse_bool(retro, "retro")
+        if not 1 <= year_int <= 3000:
             raise ApiError("invalid_year", "'year' is out of supported bounds.")
 
         all_items: list[RangeItem] = []
@@ -1107,19 +1236,20 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
 
         for m in range(1, 13):
             if cal == "gregorian":
-                days_in_month = pycalendar.monthrange(year, m)[1]
-                start_d = date(year, m, 1)
-                end_d = date(year, m, days_in_month)
+                days_in_month = pycalendar.monthrange(year_int, m)[1]
+                start_d = date(year_int, m, 1)
+                end_d = date(year_int, m, days_in_month)
                 _check_supported(start_d.isoformat(), cal, is_retro)
                 _check_supported(end_d.isoformat(), cal, is_retro)
                 items = _collect_items(start_d.isoformat(), end_d.isoformat(), cal, is_retro)
             else:
-                _check_supported(f"{year:04d}-{m:02d}-01", cal, is_retro)
-                items = _hijri_month_items(year, m, is_retro)
+                _check_supported(f"{year_int:04d}-{m:02d}-01", cal, is_retro)
+                items = _hijri_month_items(year_int, m, is_retro)
                 if not items:
                     raise ApiError(
                         "out_of_coverage",
-                        f"Hijri month {year:04d}-{m:02d} is outside available coverage; see /api/v1/meta.",
+                        "Hijri month "
+                        f"{year_int:04d}-{m:02d} is outside available coverage; see /api/v1/meta.",
                         400,
                     )
                 start_d = date.fromisoformat(items[0].gregorian)
@@ -1134,12 +1264,12 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
 
         aggregate_source, warnings = _aggregate(all_items)
         payload = YearResponse(
-            input=YearInput(year=year, calendar=cal),
+            input=YearInput(year=year_int, calendar=cal),
             count=len(all_items),
             months=months,
             warnings=warnings,
         )
-        return _json_response(payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
+        return _json_response(request, payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
 
     def _hilal_context(month: int, year: int, retro: bool = False):
         try:
@@ -1186,16 +1316,18 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
     @limiter.limit("60/hour")
     def hilal_info(
         request: Request,
-        month: int = Query(..., description=t("query.hijri_month")),
-        year: int = Query(..., description=t("query.hilal_year")),
+        month: str | None = Query(default=None, description=t("query.hijri_month")),
+        year: str | None = Query(default=None, description=t("query.hilal_year")),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
+        month_int = _parse_int(month, "month")
+        year_int = _parse_int(year, "year")
         res, sighting, alt_ok, elong_ok, visible, ms_site, source, warnings = _hilal_context(
-            month, year, _parse_retro(retro)
+            month_int, year_int, _parse_bool(retro, "retro")
         )
         sky = sighting.multisite.sky_for(ms_site.site)
         payload = HilalInfoResponse(
-            input=HilalInput(month=month, year=year),
+            input=HilalInput(month=month_int, year=year_int),
             month=HilalMonth(
                 name=res.target_name,
                 number=res.target_month,
@@ -1235,7 +1367,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             source=source,
             warnings=warnings,
         )
-        return _json_response(payload.model_dump(), HILAL_CACHE)
+        return _json_response(request, payload.model_dump(), HILAL_CACHE)
 
     @app.api_route(
         "/api/v1/hilal/history",
@@ -1275,7 +1407,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             range=Coverage(first=first, last=last),
             months=months,
         )
-        return _json_response(payload.model_dump(by_alias=True), HILAL_CACHE)
+        return _json_response(request, payload.model_dump(by_alias=True), HILAL_CACHE)
 
     @app.api_route(
         "/api/v1/hilal/viz",
@@ -1293,24 +1425,28 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
     @limiter.limit("30/hour")
     def hilal_viz(
         request: Request,
-        month: int = Query(..., description=t("query.hijri_month")),
-        year: int = Query(..., description=t("query.hilal_year")),
+        month: str | None = Query(default=None, description=t("query.hijri_month")),
+        year: str | None = Query(default=None, description=t("query.hilal_year")),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
-        bare: bool = Query(default=False, description=BARE_QUERY_DESC),
-        download: bool = Query(default=False, description=DOWNLOAD_QUERY_DESC),
+        bare: str | None = Query(default=None, description=BARE_QUERY_DESC),
+        download: str | None = Query(default=None, description=DOWNLOAD_QUERY_DESC),
     ):
-        _hilal_render_year_check(year)
+        month_int = _parse_int(month, "month")
+        year_int = _parse_int(year, "year")
+        is_bare = _parse_bool(bare, "bare")
+        is_download = _parse_bool(download, "download")
+        _hilal_render_year_check(year_int)
         res, sighting, alt_ok, elong_ok, _visible, ms_site, _source, _warnings = _hilal_context(
-            month, year, _parse_retro(retro)
+            month_int, year_int, _parse_bool(retro, "retro")
         )
         _imagepack.ensure_pack()
-        kind = "viz-bare" if bare else "viz"
-        attach = _attachment_headers("viz", res.target_year, res.target_month, download)
+        kind = "viz-bare" if is_bare else "viz"
+        attach = _attachment_headers("viz", res.target_year, res.target_month, is_download)
         cached = image_path(kind, res.target_year, res.target_month)
         if cached is not None:
-            return FileResponse(cached, media_type="image/png", headers={**HILAL_CACHE, **attach})
+            return _png_response(request, cached.read_bytes(), attach)
         try:
-            png = _render_viz_png(res, sighting, ms_site, alt_ok, elong_ok, bare=bare)
+            png = _render_viz_png(res, sighting, ms_site, alt_ok, elong_ok, bare=is_bare)
         except Exception as exc:
             raise ApiError(
                 "render_failed",
@@ -1318,11 +1454,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
                 500,
             ) from exc
         store(kind, res.target_year, res.target_month, png)
-        return Response(
-            content=png,
-            media_type="image/png",
-            headers={**HILAL_CACHE, **etag_headers(etag_from_bytes(png)), **attach},
-        )
+        return _png_response(request, png, attach)
 
     @app.api_route(
         "/api/v1/hilal/map",
@@ -1340,22 +1472,26 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
     @limiter.limit("30/hour")
     def hilal_map(
         request: Request,
-        month: int = Query(..., description=t("query.hijri_month")),
-        year: int = Query(..., description=t("query.hilal_year")),
+        month: str | None = Query(default=None, description=t("query.hijri_month")),
+        year: str | None = Query(default=None, description=t("query.hilal_year")),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
-        bare: bool = Query(default=False, description=BARE_QUERY_DESC),
-        download: bool = Query(default=False, description=DOWNLOAD_QUERY_DESC),
+        bare: str | None = Query(default=None, description=BARE_QUERY_DESC),
+        download: str | None = Query(default=None, description=DOWNLOAD_QUERY_DESC),
     ):
-        _hilal_render_year_check(year)
+        month_int = _parse_int(month, "month")
+        year_int = _parse_int(year, "year")
+        is_bare = _parse_bool(bare, "bare")
+        is_download = _parse_bool(download, "download")
+        _hilal_render_year_check(year_int)
         res, sighting, _alt_ok, _elong_ok, _visible, ms_site, _source, _warnings = _hilal_context(
-            month, year, _parse_retro(retro)
+            month_int, year_int, _parse_bool(retro, "retro")
         )
         _imagepack.ensure_pack()
-        kind = "map-bare" if bare else "map"
-        attach = _attachment_headers("map", res.target_year, res.target_month, download)
+        kind = "map-bare" if is_bare else "map"
+        attach = _attachment_headers("map", res.target_year, res.target_month, is_download)
         cached = image_path(kind, res.target_year, res.target_month)
         if cached is not None:
-            return FileResponse(cached, media_type="image/png", headers={**HILAL_CACHE, **attach})
+            return _png_response(request, cached.read_bytes(), attach)
         site = sighting.site
         try:
             with _MAP_SEMAPHORE:
@@ -1369,7 +1505,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
                     site.lon_deg,
                     ms_site.alt_refracted_deg,
                     ms_site.elong_deg,
-                    bare,
+                    is_bare,
                 )
         except Exception as exc:
             raise ApiError(
@@ -1378,11 +1514,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
                 500,
             ) from exc
         store(kind, res.target_year, res.target_month, png)
-        return Response(
-            content=png,
-            media_type="image/png",
-            headers={**HILAL_CACHE, **etag_headers(etag_from_bytes(png)), **attach},
-        )
+        return _png_response(request, png, attach)
 
     _TAG_ORDER = [
         "Today",
@@ -1430,6 +1562,63 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             p: {m: op for m, op in schema["paths"][p].items() if m != "head"}
             for p in keep
         }
+
+        # Boolean-style query flags are parsed as strict strings at runtime
+        # (true/false, any case, plus 1/0); declare them as booleans in the
+        # generated reference so interactive clients render value toggles.
+        flag_params = {"retro", "next", "bare", "download"}
+        for params in [
+            op.get("parameters", [])
+            for path in schema["paths"].values()
+            for op in path.values()
+        ]:
+            for param in params:
+                if param.get("name") in flag_params:
+                    param["schema"] = {"type": "boolean", "default": False}
+                    param.pop("anyOf", None)
+
+        schemas = schema.setdefault("components", {}).setdefault("schemas", {})
+        if "ErrorBody" not in schemas:
+            # Shared error envelope referenced by every error response.
+            schemas["ErrorBody"] = {
+                "title": "ErrorBody",
+                "type": "object",
+                "required": ["code", "message"],
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "description": "Stable machine-readable error code.",
+                        "examples": ["invalid_date", "rate_limit_exceeded"],
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Human-readable explanation of what went wrong.",
+                    },
+                },
+            }
+            schemas["ErrorResponse"] = {
+                "title": "ErrorResponse",
+                "type": "object",
+                "required": ["error"],
+                "properties": {
+                    "error": {"$ref": "#/components/schemas/ErrorBody"},
+                },
+            }
+        for path in schema["paths"].values():
+            for op in path.values():
+                op.get("responses", {}).pop("422", None)
+
+        for png_path, opname in (
+            ("/api/v1/hilal/viz", "get"),
+            ("/api/v1/hilal/map", "get"),
+        ):
+            op = schema["paths"].get(png_path, {}).get(opname)
+            if op and "200" in op.get("responses", {}):
+                op["responses"]["200"] = {
+                    "description": "Hilal card PNG (720×1280; bare variant 1440×1520)",
+                    "content": {"image/png": {}},
+                }
+
         app.openapi_schema = schema
         return schema
 
@@ -1463,4 +1652,5 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
 
 
 app = create_app()
+
 
