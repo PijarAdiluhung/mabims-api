@@ -117,6 +117,27 @@ HILAL_ELONG_MIN_DEG = 6.4
 HILAL_BARE_SCALE = 2.0
 DOWNLOAD_QUERY_DESC = t("query.download")
 
+
+def _err(status: int, code: str, description: str) -> dict:
+    """Build an OpenAPI responses entry for an error code."""
+    return {
+        "description": description,
+        "content": {
+            "application/json": {
+                "example": {"error": {"code": code, "message": "..."}},
+            }
+        },
+    }
+
+
+# Common error responses reused across endpoints.
+_ERR_400 = _err(400, "invalid_date", "Bad Request — validation error")
+_ERR_404 = _err(404, "date_not_found", "Not Found")
+_ERR_429 = _err(429, "rate_limit_exceeded", "Rate Limit Exceeded")
+_ERR_500 = _err(500, "render_failed", "Internal Server Error")
+_ERR_503 = _err(503, "computation_unavailable", "Service Unavailable")
+
+
 # Range covered by the pre-generated image set (bundled core + documented range)
 # and the hard render cap for the PNG endpoints: outside it, /hilal/viz and
 # /hilal/map refuse instead of rendering on demand.
@@ -685,6 +706,11 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         summary=t("convert.summary"),
         description=t("convert.description"),
         methods=["GET", "HEAD"],
+        responses={
+            400: _err(400, "missing_parameter", "Missing date parameter or invalid calendar"),
+            404: _ERR_404,
+            429: _ERR_429,
+        },
     )
     def convert(
         request: Request,
@@ -719,6 +745,11 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         summary=t("today.summary"),
         description=t("today.description"),
         methods=["GET", "HEAD"],
+        responses={
+            400: _err(400, "invalid_timezone", "Invalid timezone or next parameter"),
+            404: _ERR_404,
+            429: _ERR_429,
+        },
     )
     def today(
         request: Request,
@@ -759,6 +790,11 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         summary=t("today_on.summary"),
         description=t("today_on.description"),
         methods=["GET", "HEAD"],
+        responses={
+            400: _err(400, "invalid_date", "Invalid date or retro parameter"),
+            404: _ERR_404,
+            429: _ERR_429,
+        },
     )
     def today_on(
         request: Request,
@@ -895,6 +931,10 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         summary=t("range.summary"),
         description=t("range.description"),
         methods=["GET", "HEAD"],
+        responses={
+            400: _err(400, "invalid_range", "Invalid range, step, calendar, or date out of coverage"),
+            429: _ERR_429,
+        },
     )
     def range_(
         request: Request,
@@ -945,6 +985,10 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         summary=t("events.summary"),
         description=t("events.description"),
         methods=["GET", "HEAD"],
+        responses={
+            400: _err(400, "invalid_year", "Invalid year or calendar parameter"),
+            429: _ERR_429,
+        },
     )
     def events(
         request: Request,
@@ -983,6 +1027,10 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         summary=t("month.summary"),
         description=t("month.description"),
         methods=["GET", "HEAD"],
+        responses={
+            400: _err(400, "invalid_month", "Invalid month, year, calendar, or date out of coverage"),
+            429: _ERR_429,
+        },
     )
     def month(
         request: Request,
@@ -1038,6 +1086,10 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         summary=t("year.summary"),
         description=t("year.description"),
         methods=["GET", "HEAD"],
+        responses={
+            400: _err(400, "invalid_year", "Invalid year, calendar, or date out of coverage"),
+            429: _ERR_429,
+        },
     )
     def year(
         request: Request,
@@ -1125,6 +1177,11 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         summary=t("hilal_info.summary"),
         description=t("hilal_info.description"),
         methods=["GET", "HEAD"],
+        responses={
+            400: _err(400, "out_of_coverage", "Month out of coverage or date out of supported range"),
+            429: _ERR_429,
+            503: _ERR_503,
+        },
     )
     @limiter.limit("60/hour")
     def hilal_info(
@@ -1187,6 +1244,11 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         summary=t("hilal_history.summary"),
         description=t("hilal_history.description"),
         methods=["GET", "HEAD"],
+        responses={
+            400: _err(400, "invalid_range", "Invalid date range"),
+            429: _ERR_429,
+            503: _ERR_503,
+        },
     )
     @limiter.limit("240/minute")
     def hilal_history(
@@ -1221,6 +1283,12 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         summary=t("hilal_viz.summary"),
         description=t("hilal_viz.description"),
         methods=["GET", "HEAD"],
+        responses={
+            400: _err(400, "out_of_coverage", "Year out of image range or date out of coverage"),
+            429: _ERR_429,
+            500: _err(500, "render_failed", "Chart rendering failed"),
+            503: _ERR_503,
+        },
     )
     @limiter.limit("30/hour")
     def hilal_viz(
@@ -1262,6 +1330,12 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         summary=t("hilal_map.summary"),
         description=t("hilal_map.description"),
         methods=["GET", "HEAD"],
+        responses={
+            400: _err(400, "out_of_coverage", "Year out of image range or date out of coverage"),
+            429: _ERR_429,
+            500: _err(500, "render_failed", "Map rendering failed"),
+            503: _ERR_503,
+        },
     )
     @limiter.limit("30/hour")
     def hilal_map(
@@ -1367,12 +1441,22 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             openapi_url=app.openapi_url,
             title="MABIMS API — Playground",
             scalar_favicon_url="/favicon.ico",
-            theme=Theme.DEFAULT,
+            theme=Theme.BLUE_PLANET,
             force_dark_mode_state="dark",
             hide_models=True,
             show_sidebar=True,
             default_open_all_tags=False,
             agent=AgentScalarConfig(disabled=True),
+            hidden_clients=["ruby", "rust", "scala", "elixir", "clj", "c"],
+            custom_css="""
+            /* logo */
+            .logo {
+                background: url('/logo.png') no-repeat left center;
+                background-size: contain;
+                height: 40px;
+                margin: 16px;
+            }
+            """,
         )
 
     return app
