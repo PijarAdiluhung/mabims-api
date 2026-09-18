@@ -3,7 +3,7 @@
 
 MABIMS.dev is an unofficial, free, open-source API that provides an ecosystem for the Indonesian Hijri calendar. Get today's Hijri date, date conversion tools, monthly and yearly calendars, hilal visibility data, and Islamic event dates. All based on MABIMS criteria from **Kementerian Agama Republik Indonesia**.
 
-**Full docs, playground, API reference, FAQ, and blog → [mabims.dev](https://mabims.dev)**
+**Full docs, demo, API reference, FAQ, and blog → [mabims.dev](https://mabims.dev)**
 
 ## Quick start
 
@@ -49,7 +49,7 @@ curl "https://api.mabims.dev/api/v1/events?year=2025&calendar=gregorian"
 }
 ```
 
-For more examples (hilal data, date ranges, calendar grids), see the [live docs & playground](https://mabims.dev).
+For more examples (hilal data, date ranges, calendar grids), see the [live docs, demo & API client](https://mabims.dev).
 
 ## Endpoints
 
@@ -216,15 +216,17 @@ GitHub: [PijarAdiluhung/mabims-hijri](https://github.com/PijarAdiluhung/mabims-h
 
 ## OpenAPI spec
 
-The full OpenAPI 3.1 spec is available at `https://api.mabims.dev/openapi.json`. Use it with
-[openapi-generator](https://openapi-generator.tech/) or [Swagger UI](https://petstore.swagger.io/?url=https://api.mabims.dev/openapi.json) to generate client libraries or explore the API interactively.
+The full OpenAPI 3.1 spec is available at `https://api.mabims.dev/openapi.json` (it declares `https://api.mabims.dev` as its server, so API clients resolve the live origin). Interactive usage:
+- **Scalar reference** — [api.mabims.dev/playground](https://api.mabims.dev/playground), the API client is also embedded directly on every endpoint doc
+- [openapi-generator](https://openapi-generator.tech/) to generate client libraries
+- [Swagger UI](https://petstore.swagger.io/?url=https://api.mabims.dev/openapi.json) as a classic alternative
 
 ## Stack
 
 | Layer | Tech |
 |---|---|
 | API | [FastAPI](https://fastapi.tiangolo.com/) + [Pydantic v2](https://docs.pydantic.dev/), [slowapi](https://github.com/laurentS/slowapi) rate limit |
-| Docs | [Astro](https://astro.build/) + [Starlight](https://starlight.astro.build/) with live playground, blog, and FAQ |
+| Docs | [Astro](https://astro.build/) + [Starlight](https://starlight.astro.build/) with demo pages, embedded Scalar API client, blog, and FAQ |
 | Data | Precomputed MABIMS tables (`api/data/`) |
 | Rendering | [Skyfield](https://rhodesmill.org/skyfield/) + [Matplotlib](https://matplotlib.org/) + [Pillow](https://python-pillow.org/) + [Shapely](https://shapely.readthedocs.io/) |
 | Hosting | Docker Compose on VPS via Dokploy, Bunny CDN in front |
@@ -235,7 +237,8 @@ The full OpenAPI 3.1 spec is available at `https://api.mabims.dev/openapi.json`.
 The docs at [mabims.dev](https://mabims.dev) include:
 
 - **Bilingual** — Indonesian (default) and English
-- **Live playground** — try API calls directly from the browser
+- **Demo** — sample implementations: date converter, full-year calendar, hilal cards (src/pages/demo/)
+- **API client** — "Coba sendiri"/try-it buttons on every endpoint doc open a Scalar client modal (new tab fallback: full reference at [api.mabims.dev/playground](https://api.mabims.dev/playground))
 - **API Reference** — every endpoint with parameters, response shapes, and error codes
 - **FAQ** — common questions about MABIMS, auth, timezone, and integration
 - **Blog** — tutorials, integration guides, and the story behind the API

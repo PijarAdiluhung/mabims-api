@@ -26,7 +26,8 @@
 ## Product polish
 - [ ] Homepage v2: hero with live "today in Hijri" widget, copy-paste quickstart, partner/social proof
 - [x] i18n docs (Bahasa Indonesia) — Starlight supports it natively
-- [ ] Playground: shareable permalinks (`?date=…&calendar=…`), copy-as-curl button
+- [ ] Demo pages: shareable permalinks (`?date=…&calendar=…`), copy-as-curl button
+- [ ] Try-request buttons on remaining docs: /hilal (rate-limit caveat: 60/h), /meta, /healthz; and a light variant for blog code samples
 - [x] Response examples per endpoint auto-checked in CI against the live schema — `api/tests/test_contract.py` parses every real response into its Pydantic model and asserts documented paths exist in `/openapi.json`
 - [ ] Docs-site example JSON blocks: verify the payloads printed in `docs/src/content/docs/endpoints/*.md` still match live responses (contract tests cover schema shapes, not the markdown snippets)
 ## Hilal endpoints
