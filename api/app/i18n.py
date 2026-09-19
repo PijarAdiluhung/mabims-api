@@ -39,6 +39,38 @@ _STRINGS: dict[str, dict[str, str]] = {
             "[mabims.dev/quickstart](https://mabims.dev/quickstart)."
         ),
     },
+    "app.basics": {
+        "en": (
+            "\n\n## API-wide behavior\n\n"
+            "- **No authentication** — every endpoint is public; rate limits are per IP.\n"
+            "- **HEAD works on every endpoint** with the same headers and no body.\n"
+            "- **ETag revalidation** — every 200 response carries an `ETag`; send "
+            "`If-None-Match` with it (weak comparison, or `*`) and the origin replies "
+            "**304 Not Modified** with the same `Cache-Control` and `ETag` headers.\n"
+            "- **Uniform error envelope** — every error (validation, 404, 429, …) is "
+            "`{\"error\": {\"code\": \"...\", \"message\": \"...\"}}`; 429s include a "
+            "`Retry-After` header in seconds.\n"
+            "- **Values are case-insensitive** where spelled (`calendar=hijri`, "
+            "`retro=true`); boolean flags also accept `1`/`0`.\n"
+            "- **CORS is open** — all origins are allowed. Self-hosters can restrict "
+            "via `ALLOWED_ORIGINS`; restricted origins get 403 `forbidden_origin`."
+        ),
+        "id": (
+            "\n\n## Perilaku lintas-endpoint\n\n"
+            "- **Tanpa autentikasi** — semua endpoint publik; pembatasan laju per IP.\n"
+            "- **HEAD tersedia di setiap endpoint** dengan header yang sama, tanpa body.\n"
+            "- **Revalidasi ETag** — setiap respons 200 membawa `ETag`; kirim "
+            "`If-None-Match` dengannya (perbandingan lemah, atau `*`) dan origin "
+            "menjawab **304 Not Modified** dengan `Cache-Control` dan `ETag` yang sama.\n"
+            "- **Amplop error seragam** — setiap error (validasi, 404, 429, …) berbentuk "
+            "`{\"error\": {\"code\": \"...\", \"message\": \"...\"}}`; 429 menyertakan "
+            "header `Retry-After` dalam detik.\n"
+            "- **Nilai tidak peka huruf besar/kecil** untuk nilai bertuliskan "
+            "(`calendar=hijri`, `retro=true`); flag boolean menerima `1`/`0`.\n"
+            "- **CORS terbuka** — semua origin diizinkan. Self-hoster bisa membatasi "
+            "lewat `ALLOWED_ORIGINS`; origin terlarang mendapat 403 `forbidden_origin`."
+        ),
+    },
     "tag.today": {
         "en": "Today's Hijri date",
         "id": "Tanggal Hijriah hari ini",

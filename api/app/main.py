@@ -1635,22 +1635,14 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
                     "error": {"$ref": "#/components/schemas/ErrorBody"},
                 },
             }
+        basic_info = t("app.basics")
+        info_desc = schema["info"].setdefault("description", "")
+        if basic_info.strip() not in info_desc:
+            schema["info"]["description"] = info_desc + basic_info
+
         for path in schema["paths"].values():
             for op in path.values():
                 op.get("responses", {}).pop("422", None)
-
-        head_note = (
-            "HEAD works identically (same headers, no body). Conditional GETs "
-            "are honored: send If-None-Match with a previous ETag to receive "
-            "a 304 Not Modified."
-        )
-        for path in schema["paths"]:
-            op = schema["paths"][path].get("get")
-            if not op:
-                continue
-            desc = op.setdefault("description", "")
-            if head_note not in desc:
-                op["description"] = (desc + "\n\n" + head_note).strip()
 
         cacheable = {
             "/api/v1/today": "max-age=60, s-maxage until midnight in the requested timezone",
