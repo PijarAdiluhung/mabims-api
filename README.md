@@ -301,9 +301,11 @@ Shipped on a VPS via Dokploy (compose service) with Bunny CDN pull zones running
 
 `api/data/calendar_data.json` is the authoritative MABIMS table (currently **Hijri 1444-07 → 1448-07**,
 gregorian 2023-01-23 → 2026-12-31). Beyond it, `api/data/computed_seed.json` carries the same multi-site
-Neo MABIMS criteria forward (**through Hijri 1473**, gregorian ~mid-2050) and backwards (**to gregorian
-1970**); dates past the seed are still computed lazily on request, up to the supported ceiling
-**2100-01-01** (JPL de440s). Both computed tiers flag borderline months (margin < 0.25°) via warnings.
+Neo MABIMS criteria across the full supported window — **1945-01-01 → 2100-01-01** (JPL de440s),
+precomputed and shipped, so no lazy computation happens at request time. Both computed tiers flag
+**genuine borderline months** via warnings: only months whose day-29 sighting evening *passed* with
+less than 0.25° of margin above the criteria thresholds (a passed month that was days away from
+rejection). Rejected months — where a clear 29-day verdict is certain — never warn.
 
 Dates **below the curated table** are gated behind `retro=true` and tagged `mabims-retro`:
 Neo MABIMS was introduced in 2022, so pre-2023 results are a retrospective projection, not
@@ -311,8 +313,8 @@ data the criteria ever produced officially. Supported floor: **1945-01-01** (ear
 return `date_out_of_supported_range` even with `retro=true`).
 
 Regenerate the seed on demand with `api/scripts/generate_seed.py` (verifies curated-table overlap
-before writing). The computed seed is static through Hijri 1473, so no periodic regen is needed —
-rerun manually after criteria or ephemeris changes.
+before writing). The seed is static across the whole window, so no periodic regen is needed —
+rerun manually after criteria, site-list or ephemeris changes.
 
 Hilal cards read their astronomy from a SQLite cache of precomputed facts
 (`api/data/hilal_astro.sqlite`, keyed by sighting evening + ephemeris tag + site-list

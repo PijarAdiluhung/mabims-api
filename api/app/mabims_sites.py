@@ -84,6 +84,17 @@ class MultiSiteSighting:
         """Highest-margin site regardless of verdict (for diagnostics)."""
         return max(self.sites, key=lambda s: s.margin_deg)
 
+    def decider_margin_deg(self) -> float:
+        """Margin recorded for borderline-flagging purposes.
+
+        A genuine pass: the visible deciding site's margin (0 < m, its
+        weakest criterion above the floor). A rejection: the best site's
+        margin, which is negative — guaranteeing ``margin > 0`` can only
+        mean "passed", so borderline flags never fire on clean rejections.
+        """
+        decider = self.deciding_site
+        return decider.margin_deg if decider else self.best_site.margin_deg
+
     def sky_for(self, site_name: str) -> SiteSky:
         """Scene facts for the named site (requires batched construction)."""
         if self.sky is None:

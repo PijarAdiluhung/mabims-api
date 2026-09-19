@@ -58,7 +58,7 @@ class MabimsCalcProvider:
             hijri=hijri,
             start=start,
             length=result.month_length,
-            margin=result.best_site.margin_deg,
+            margin=result.decider_margin_deg(),
         )
 
     def _decide_backward(self, next_start: date) -> _Block:
@@ -84,7 +84,7 @@ class MabimsCalcProvider:
             hijri=prev_hijri_month(*first.hijri),
             start=block_start,
             length=length,
-            margin=forward.best_site.margin_deg,
+            margin=forward.decider_margin_deg(),
         )
 
     def _fill(self, block: _Block) -> None:
@@ -115,7 +115,13 @@ class MabimsCalcProvider:
             self._blocks.append(block)
 
     def _extend_backward_to(self, target: date) -> None:
-        """Prepend months until the earliest block starts at or before ``target``."""
+        """Prepend months until the earliest block starts at or before ``target``.
+
+        One crossing month whose start lies below the floor is permitted, as
+        long as the month itself reaches the floor (its final days stay inside
+        the supported window) — without that, no month structure can ever
+        cover ``RETRO_FLOOR`` exactly.
+        """
         if target < RETRO_FLOOR:
             raise FallbackError(
                 f"retro computation cannot reach before {RETRO_FLOOR.isoformat()}"
@@ -123,9 +129,13 @@ class MabimsCalcProvider:
         while self._blocks[0].start > target:
             block = self._decide_backward(self._blocks[0].start)
             if block.start < RETRO_FLOOR:
-                raise FallbackError(
-                    f"retro computation cannot reach before {RETRO_FLOOR.isoformat()}"
-                )
+                if block.start + timedelta(days=block.length) < RETRO_FLOOR:
+                    raise FallbackError(
+                        f"retro computation cannot reach before {RETRO_FLOOR.isoformat()}"
+                    )
+                self._blocks.insert(0, block)
+                self._fill(block)
+                break
             self._blocks.insert(0, block)
             self._fill(block)
 
@@ -205,10 +215,16 @@ class MabimsCalcProvider:
             return {k: v for k, v in sorted(self._h2g.items()) if k.startswith(prefix)}
 
     def borderline_months(self) -> list[str]:
+        """Hijri months whose sighting evening passed by less than 0.25 deg.
+
+        Only genuine passes qualify: a rejected evening fails at least one
+        criterion at every site, so its recorded margin is negative (never
+        a border case — see ``MultiSiteSighting.decider_margin_deg``).
+        """
         return sorted(
             f"{b.hijri[0]:04d}-{b.hijri[1]:02d}"
             for b in self._blocks
-            if b.margin < BORDERLINE_MARGIN_DEG
+            if 0 < b.margin < BORDERLINE_MARGIN_DEG
         )
 
     def snapshot(self) -> tuple[dict[str, str], dict[str, str]]:

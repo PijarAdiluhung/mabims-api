@@ -1,9 +1,9 @@
 """Generate the seed file for the computed provider.
 
 Forward: curated anchor -> 2099-12-31 (Neo MABIMS forward computation).
-Backward (retro): curated anchor -> RETRO_SEED_BACK (1970-01-01), using the
-validated backward rule. Dates below the seed are computed lazily at request
-time down to RETRO_FLOOR (1945-01-01).
+Backward (retro): curated anchor -> RETRO_SEED_BACK (= RETRO_FLOOR,
+1945-01-01), using the validated backward rule. The seed therefore covers
+the full supported range; no lazy runtime computation is needed.
 
 Run once: python api/scripts/generate_seed.py
 Outputs: api/data/computed_seed.json
