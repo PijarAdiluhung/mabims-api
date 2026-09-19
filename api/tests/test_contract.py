@@ -63,7 +63,9 @@ def test_documented_endpoints_exist_in_openapi(client):
 
 def test_today_next_param_in_openapi(client):
     params = client.get("/openapi.json").json()["paths"]["/api/v1/today"]["get"]["parameters"]
-    assert "next" in {p["name"] for p in params}
+    param_names = {p["name"] for p in params if "name" in p}
+    ref_targets = {p["$ref"].split("/")[-1] for p in params if "$ref" in p}
+    assert "next" in param_names or "NextParam" in ref_targets
 
 
 def test_today_next_matches_schema(client):

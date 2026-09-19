@@ -236,6 +236,16 @@ class ErrorResponse(BaseModel):
     error: ErrorBody
 
 
+class MonthItem(BaseModel):
+    number: int
+    name: str
+
+
+class MonthsResponse(BaseModel):
+    calendar: str
+    months: list[MonthItem]
+
+
 class TableResponse(BaseModel):
     version: str
     gregorian_to_hijri: dict[str, str]

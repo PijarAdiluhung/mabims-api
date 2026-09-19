@@ -9,6 +9,7 @@ description: Riwayat perubahan API dan dokumentasi MABIMS.
 
 - **ETag + 304 Not Modified di semua respons 200** — setiap respons membawa header **ETag**; kirim `If-None-Match: <etag>` (perbandingan lemah, atau `*`) dan server menjawab **304 tanpa body** dengan `Cache-Control` dan ETag yang sama. Berlaku di semua endpoint cacheable (`/today`, `today/{date}`, `convert`, `range`, `month`, `year`, `events`, `/hilal/*`).
 - **Kode error `invalid_bare` dan `invalid_download`** — parameter `bare`/`download` di `/hilal/viz` dan `/hilal/map` kini divalidasi ketat; nilai selain boolean ditolak 400.
+- **`GET /api/v1/months`** — endpoint statis baru yang mengembalikan 12 nama bulan Hijriah beserta nomornya. Tidak perlu parameter, aman di-cache (`max-age=86400`), rate-limit exempt. Cocok untuk mengisi dropdown atau label di UI.
 
 ### Changed
 
@@ -17,6 +18,7 @@ description: Riwayat perubahan API dan dokumentasi MABIMS.
 - **Seed komputasi kini menutup seluruh rentang yang didukung** — kira-kira 1945-01-01 (bulan Hijriah mulai 1944-12-17) sampai 2100-01-01, jadi tidak ada lagi komputasi lazy saat runtime. Sebelumnya seed hanya 1970 → ~2050.
 - **Warning borderline diperketat** — bulan Hijriah ditandai "mendekati ambang visibilitas Neo MABIMS" **hanya bila** malam ke-29-nya **lolos** kedua kriteria (alt ≥ 3,0°, elongasi ≥ 6,4°) dengan margin **< 0,25°**. Bulan yang ditolak (tidak ada titik lolos) tidak pernah mendapat warning ini; kira-kira 3% bulan terhitung borderline.
 - **`/meta` kini melaporkan versi 1.8.2**, dan spec OpenAPI mendokumentasikan `contact`/`license`/`externalDocs`, contoh parameter, serta respons 304.
+- **Komponen OpenAPI yang dapat digunakan kembali** — parameter `retro`, `next`, `bare`, `download` dan respons error (404, 429, 400, 500, 503) kini didefinisikan sekali di `components/parameters` dan `components/responses`, lalu direferensikan dengan `$ref` di seluruh endpoint. Spec lebih ringkas dan deskripsi tidak drift antar-endpoint.
 
 ### Notes
 

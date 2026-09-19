@@ -87,6 +87,10 @@ _STRINGS: dict[str, dict[str, str]] = {
         "en": "All days in a calendar month",
         "id": "Semua hari dalam satu bulan",
     },
+    "tag.months": {
+        "en": "Hijri month names",
+        "id": "Nama bulan Hijriah",
+    },
     "tag.year": {
         "en": "All days in a calendar year",
         "id": "Semua hari dalam satu tahun",
@@ -217,6 +221,20 @@ _STRINGS: dict[str, dict[str, str]] = {
     "month.summary": {
         "en": "All days in a month",
         "id": "Semua hari dalam satu bulan",
+    },
+    "months.summary": {
+        "en": "List Hijri month names",
+        "id": "Daftar nama bulan Hijriah",
+    },
+    "months.description": {
+        "en": (
+            "Returns the 12 Hijri month names with their numbers. "
+            "Static, cacheable — use this to populate UI dropdowns."
+        ),
+        "id": (
+            "Mengembalikan 12 nama bulan Hijriah beserta nomornya. "
+            "Statis, dapat di-cache — gunakan ini untuk mengisi dropdown UI."
+        ),
     },
     "month.description": {
         "en": (

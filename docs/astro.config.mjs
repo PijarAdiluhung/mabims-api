@@ -106,7 +106,7 @@ export default defineConfig({
           items: [
       { label: 'GET /today', link: '/endpoints/today' },
       { label: 'GET /convert & /range', link: '/endpoints/convert-range' },
-      { label: 'GET /month & /year', link: '/endpoints/month-year' },
+      { label: 'GET /month, /months & /year', link: '/endpoints/month-year' },
       { label: 'GET /events', link: '/endpoints/events' },
       { label: 'GET /hilal', link: '/endpoints/hilal' },
       { label: 'GET /meta', link: '/endpoints/meta' },

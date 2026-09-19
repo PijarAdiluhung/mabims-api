@@ -1,6 +1,6 @@
 ---
-title: GET /month & /year
-description: Kalender bulanan dan tahunan.
+title: GET /month, /months & /year
+description: Kalender bulanan, tahunan, dan daftar nama bulan Hijriah.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
@@ -71,6 +71,62 @@ Mengembalikan semua hari dalam satu bulan.
 | `source` | string | `"mabims"` untuk data dari tabel, `"mabims-computed"` untuk hasil perhitungan Neo MABIMS |
 
 Untuk `calendar=hijri`, respons berisi setiap tanggal Masehi yang termasuk dalam bulan Hijriah tersebut (29–30 item). Bulan Hijriah di luar tabel publik, misalnya pada tahun mendatang, tetap dihitung dengan kriteria Neo MABIMS selama masih dalam rentang yang didukung. Bentuk setiap item sama dengan `/range`.
+
+## GET /months
+
+Mengembalikan 12 nama bulan Hijriah beserta nomornya. Statis, tidak perlu parameter, dan aman di-cache — gunakan untuk mengisi dropdown atau label di UI.
+
+<ApiRequest path="/api/v1/months">
+  <TestButton path="/api/v1/months" />
+</ApiRequest>
+
+### Contoh
+
+<Tabs syncKey="code">
+  <TabItem label="curl">
+    ```bash
+    curl "https://api.mabims.dev/api/v1/months"
+    ```
+  </TabItem>
+  <TabItem label="JavaScript">
+    ```js
+    const res = await fetch("https://api.mabims.dev/api/v1/months");
+    const data = await res.json();
+    data.months.forEach(m => console.log(m.number, m.name));
+    ```
+  </TabItem>
+  <TabItem label="PHP">
+    ```php
+    $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/months');
+    $data = json_decode($response->getBody(), true);
+    foreach ($data['months'] as $month) {
+        echo $month['number'] . ' ' . $month['name'] . PHP_EOL;
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+### Respons
+
+```json
+{
+  "calendar": "hijri",
+  "months": [
+    { "number": 1, "name": "Muharram" },
+    { "number": 2, "name": "Safar" },
+    { "number": 3, "name": "Rabiul Awal" },
+    { "number": 4, "name": "Rabiul Akhir" },
+    { "number": 5, "name": "Jumadil Awal" },
+    { "number": 6, "name": "Jumadil Akhir" },
+    { "number": 7, "name": "Rajab" },
+    { "number": 8, "name": "Sya'ban" },
+    { "number": 9, "name": "Ramadhan" },
+    { "number": 10, "name": "Syawal" },
+    { "number": 11, "name": "Dzulqa'dah" },
+    { "number": 12, "name": "Dzulhijjah" }
+  ]
+}
+```
 
 ## GET /year
 

@@ -76,7 +76,9 @@ from .schemas import (
     HilalPrevMonth,
     MetaResponse,
     MonthInput,
+    MonthItem,
     MonthResponse,
+    MonthsResponse,
     NextDate,
     RangeInput,
     RangeItem,
@@ -512,6 +514,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             {"name": "Convert", "description": t("tag.convert")},
             {"name": "Range", "description": t("tag.range")},
             {"name": "Month", "description": t("tag.month")},
+            {"name": "Months", "description": t("tag.months")},
             {"name": "Year", "description": t("tag.year")},
             {"name": "Events", "description": t("tag.events")},
             {"name": "Hilal", "description": t("tag.hilal")},
@@ -1208,6 +1211,20 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         return _json_response(request, payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
 
     @app.api_route(
+        "/api/v1/months",
+        response_model=MonthsResponse,
+        tags=["Months"],
+        summary=t("months.summary"),
+        description=t("months.description"),
+        methods=["GET", "HEAD"],
+    )
+    @limiter.exempt
+    def months(request: Request):
+        items = [MonthItem(number=n, name=name) for n, name in MONTH_NAMES_ID.items()]
+        payload = MonthsResponse(calendar="hijri", months=items)
+        return _json_response(request, payload.model_dump(), IMMUTABLE_CACHE_HEADERS)
+
+    @app.api_route(
         "/api/v1/year",
         response_model=YearResponse,
         tags=["Year"],
@@ -1521,6 +1538,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         "Convert",
         "Range",
         "Month",
+        "Months",
         "Year",
         "Events",
         "Hilal",
@@ -1650,6 +1668,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             "/api/v1/convert": "max-age=86400",
             "/api/v1/range": "max-age=86400",
             "/api/v1/month": "max-age=86400",
+            "/api/v1/months": "max-age=86400",
             "/api/v1/year": "max-age=86400",
             "/api/v1/events": "max-age=86400",
             "/api/v1/hilal/info": "public, max-age=86400",
@@ -1687,6 +1706,169 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
                     "description": "Hilal card PNG (720×1280; bare variant 1440×1520)",
                     "content": {"image/png": {}},
                 }
+
+        # --- Reusable components: parameters & responses -------------------
+        # Define shared parameter and response objects once, then replace
+        # matching inline definitions with $ref.  This shrinks the spec and
+        # keeps wording from drifting between endpoints.
+
+        components = schema.setdefault("components", {})
+        parameters = components.setdefault("parameters", {})
+        responses = components.setdefault("responses", {})
+
+        parameters["RetroParam"] = {
+            "name": "retro",
+            "in": "query",
+            "required": False,
+            "schema": {"type": "boolean", "default": False},
+            "description": t("query.retro"),
+        }
+        parameters["NextParam"] = {
+            "name": "next",
+            "in": "query",
+            "required": False,
+            "schema": {"type": "boolean", "default": False},
+            "description": t("query.next"),
+        }
+        parameters["BareParam"] = {
+            "name": "bare",
+            "in": "query",
+            "required": False,
+            "schema": {"type": "boolean", "default": False},
+            "description": t("query.bare"),
+        }
+        parameters["DownloadParam"] = {
+            "name": "download",
+            "in": "query",
+            "required": False,
+            "schema": {"type": "boolean", "default": False},
+            "description": t("query.download"),
+        }
+
+        responses["NotFound"] = {
+            "description": "Date not found or path not found",
+            "content": {
+                "application/json": {
+                    "schema": {"$ref": "#/components/schemas/ErrorBody"},
+                    "example": {
+                        "error": {
+                            "code": "date_not_found",
+                            "message": ERROR_MESSAGES["date_not_found"],
+                        }
+                    },
+                }
+            },
+        }
+        responses["RateLimited"] = {
+            "description": "Rate Limit Exceeded",
+            "content": {
+                "application/json": {
+                    "schema": {"$ref": "#/components/schemas/ErrorBody"},
+                    "example": {
+                        "error": {
+                            "code": "rate_limit_exceeded",
+                            "message": ERROR_MESSAGES["rate_limit_exceeded"],
+                        }
+                    },
+                }
+            },
+        }
+        responses["BadRequest"] = {
+            "description": "Bad Request — validation error or missing parameter",
+            "content": {
+                "application/json": {
+                    "schema": {"$ref": "#/components/schemas/ErrorBody"},
+                    "example": {
+                        "error": {
+                            "code": "missing_parameter",
+                            "message": ERROR_MESSAGES["missing_parameter"],
+                        }
+                    },
+                }
+            },
+        }
+        responses["InternalServerError"] = {
+            "description": "Internal Server Error",
+            "content": {
+                "application/json": {
+                    "schema": {"$ref": "#/components/schemas/ErrorBody"},
+                    "example": {
+                        "error": {
+                            "code": "render_failed",
+                            "message": ERROR_MESSAGES["render_failed"],
+                        }
+                    },
+                }
+            },
+        }
+        responses["ServiceUnavailable"] = {
+            "description": "Service Unavailable",
+            "content": {
+                "application/json": {
+                    "schema": {"$ref": "#/components/schemas/ErrorBody"},
+                    "example": {
+                        "error": {
+                            "code": "computation_unavailable",
+                            "message": ERROR_MESSAGES["computation_unavailable"],
+                        }
+                    },
+                }
+            },
+        }
+
+        # Canonical parameter signatures: (name, in, has_schema_type_boolean).
+        # Only parameters whose inline shape matches exactly are replaced.
+        _shared_params: dict[str, str] = {
+            "retro": "#/components/parameters/RetroParam",
+            "next": "#/components/parameters/NextParam",
+            "bare": "#/components/parameters/BareParam",
+            "download": "#/components/parameters/DownloadParam",
+        }
+
+        # Map (status_code, error_code) → component response $ref.
+        # Matched against the inline example.error.code value.
+        _shared_responses: dict[tuple[int, str], str] = {
+            (404, "date_not_found"): "#/components/responses/NotFound",
+            (404, "not_found"): "#/components/responses/NotFound",
+            (429, "rate_limit_exceeded"): "#/components/responses/RateLimited",
+            (400, "missing_parameter"): "#/components/responses/BadRequest",
+            (500, "render_failed"): "#/components/responses/InternalServerError",
+            (503, "computation_unavailable"): "#/components/responses/ServiceUnavailable",
+        }
+
+        for path in schema["paths"].values():
+            for op in path.values():
+                # Replace shared parameters with $ref.
+                new_params = []
+                for param in op.get("parameters", []):
+                    pname = param.get("name")
+                    ref = _shared_params.get(pname)
+                    if ref and param.get("in") == "query":
+                        new_params.append({"$ref": ref})
+                    else:
+                        new_params.append(param)
+                if new_params:
+                    op["parameters"] = new_params
+
+                # Replace error responses with $ref.
+                responses_obj = op.get("responses", {})
+                for status_str, resp_obj in list(responses_obj.items()):
+                    try:
+                        status_int = int(status_str)
+                    except (ValueError, TypeError):
+                        continue
+                    error_code = (
+                        resp_obj
+                        .get("content", {})
+                        .get("application/json", {})
+                        .get("example", {})
+                        .get("error", {})
+                        .get("code")
+                    )
+                    if error_code:
+                        ref = _shared_responses.get((status_int, error_code))
+                        if ref:
+                            responses_obj[status_str] = {"$ref": ref}
 
         app.openapi_schema = schema
         return schema

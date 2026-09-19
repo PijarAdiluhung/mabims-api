@@ -9,6 +9,7 @@ description: History of changes to the MABIMS API and documentation.
 
 - **ETag + 304 Not Modified on every 200** — every response now carries an **ETag** header; send `If-None-Match: <etag>` (weak comparison, or `*`) and the server answers a bare **304** with the same `Cache-Control` and ETag. Applies to all cacheable endpoints (`/today`, `today/{date}`, `convert`, `range`, `month`, `year`, `events`, `/hilal/*`).
 - **`invalid_bare` and `invalid_download` error codes** — the `bare`/`download` params on `/hilal/viz` and `/hilal/map` are now strictly validated; non-boolean values are rejected with 400.
+- **`GET /api/v1/months`** — new static endpoint returning the 12 Hijri month names with their numbers. No parameters required, cacheable (`max-age=86400`), rate-limit exempt. Useful for populating dropdowns or labels in UIs.
 
 ### Changed
 
@@ -17,6 +18,7 @@ description: History of changes to the MABIMS API and documentation.
 - **The seed now covers the entire supported window** — approx. 1945-01-01 (Hijri months starting 1944-12-17) through 2100-01-01, so there is **no lazy computation at runtime at all**. Previously the seed only reached back to 1970 and forward to ~2050.
 - **Borderline warning semantics tightened** — a Hijri month is flagged "close to the Neo MABIMS visibility threshold" **only when** its day-29 sighting evening **passed** both criteria (alt ≥ 3.0°, elong ≥ 6.4°) with a margin **< 0.25°**. Rejected months (no passing site) never get this warning; roughly 3% of computed months are borderline.
 - **`/meta` now reports version 1.8.2**, and the OpenAPI spec documents `contact`/`license`/`externalDocs`, parameter examples, and the 304 response.
+- **Reusable OpenAPI components** — the `retro`, `next`, `bare`, `download` parameters and error responses (404, 429, 400, 500, 503) are now defined once in `components/parameters` and `components/responses`, then referenced via `$ref` across all endpoints. The spec is shorter and descriptions can't drift between endpoints.
 
 ### Notes
 
