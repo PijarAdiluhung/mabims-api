@@ -133,5 +133,7 @@ For `calendar=hijri`, months beyond the public table are still served from the N
 | `invalid_calendar` | 400 | `calendar` param is not `hijri` or `gregorian` |
 | `out_of_coverage` | 400 | Month outside table coverage |
 | `date_out_of_supported_range` | 400 | Date exceeds supported range |
-| `invalid_retro` | 400 | `retro` param is not `true` or `false` |
+| `invalid_retro` | 400 | `retro` param is not a boolean value (accepts `true`/`false`, `1`/`0`) |
+
+Boolean flags accept `true`/`false` (case-insensitive) and `1`/`0`; absent = false.
 

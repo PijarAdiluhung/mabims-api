@@ -93,7 +93,9 @@ Ganti tampilan ke `next` setelah waktu magrib terlewati. API **tidak** menghitun
 | `code` | HTTP | Penyebab |
 |---|---|---|
 | `invalid_timezone` | 400 | Zona waktu tidak dikenal |
-| `invalid_next` | 400 | Parameter `next` bukan `true` atau `false` |
+| `invalid_next` | 400 | Parameter `next` bukan nilai boolean (menerima `true`/`false`, `1`/`0`) |
+
+Flag boolean menerima `true`/`false` (tidak peka huruf besar/kecil) dan `1`/`0`; tanpa param = false.
 
 ## Versi tetap
 
@@ -108,3 +110,4 @@ Mengembalikan hasil yang sama untuk tanggal Masehi tertentu. Versi ini cocok unt
 - `Cache-Control: public, max-age=60, s-maxage=<detik hingga tengah malam lokal>`
 - Jika cache kosong pada pukul 06:00, hasilnya disimpan di edge selama sekitar 18 jam. Jika cache kosong pada pukul 23:59, hasilnya kedaluwarsa tepat setelah tengah malam agar tanggal segera berganti.
 - Dengan jutaan permintaan per hari, server utama hanya menerima sekitar satu permintaan per lokasi edge setiap hari.
+- Setiap respons juga menyertakan ETag. Kirim `If-None-Match: <etag>` dan server menjawab 304 Not Modified (tanpa body) bila data belum berubah, dengan `Cache-Control` dan ETag yang sama.

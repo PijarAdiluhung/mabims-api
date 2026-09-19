@@ -37,7 +37,7 @@ GET /api/v1/meta
 
 ```json
 {
-  "version": "1.8.0",
+  "version": "1.8.2",
   "data_version": "9f2c41aa7b03",
   "coverage": { "first": "2023-01-23", "last": "2026-12-31" },
   "computed_active": false,
@@ -69,6 +69,8 @@ GET /api/v1/meta
 3. Compare `table_version` against your stored value; when it changes, read
    `divergences[]` and re-fetch dates in the corrected month. Details:
    [Sidang Isbat Corrections](/en/isbat-koreksi).
+
+Every response also carries an ETag. Send `If-None-Match: <etag>` and the server answers 304 Not Modified (empty body) when the data has not changed, with the same `Cache-Control` and ETag headers.
 
 ## GET /healthz
 
@@ -105,7 +107,7 @@ GET /healthz
 ```json
 {
   "status": "ok",
-  "version": "1.8.0",
+  "version": "1.8.2",
   "build_hash": "a3f8c1e2b4d6f7a8"
 }
 ```

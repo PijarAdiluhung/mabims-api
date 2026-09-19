@@ -146,6 +146,9 @@ Rate limit: 30/hour per IP.
 - **Render cap: Hijri 1444–1475** — PNG cards are only served in that range (see
   `hilal_image_range` on `/meta`); outside it the endpoint refuses with `out_of_coverage`.
   The date-conversion data cap remains `coverage.forward_ceil`.
+
+Every response also carries an ETag. Send `If-None-Match: <etag>` and the server answers 304 Not Modified (empty body) when the data has not changed, with the same `Cache-Control` and ETag headers.
+
 ## Errors
 
 | Code | HTTP | Cause |
@@ -153,4 +156,10 @@ Rate limit: 30/hour per IP.
 | `out_of_coverage` | 400 | Month/year outside table coverage (see `/meta`) |
 | `computation_unavailable` | 503 | Astronomy computation failed |
 | `render_failed` | 500 | PNG rendering failed |
-| `invalid_retro` | 400 | `retro` param is not `true` or `false` |
+| `invalid_retro` | 400 | `retro` param is not a boolean value (accepts `true`/`false`, `1`/`0`) |
+| `invalid_bare` | 400 | `bare` is not a boolean value (accepts true/false, 1/0) |
+| `invalid_download` | 400 | `download` is not a boolean value (accepts true/false, 1/0) |
+| `rate_limit_exceeded` | 429 | Too many requests; wait per the `Retry-After` header (seconds) |
+| `not_found` | 404 | Unknown path (uniform error envelope) |
+
+Boolean flags accept `true`/`false` (case-insensitive) and `1`/`0`; absent = false.

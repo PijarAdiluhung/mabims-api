@@ -3,6 +3,27 @@ title: Changelog
 description: History of changes to the MABIMS API and documentation.
 ---
 
+## 1.8.2 — 2026-09-19
+
+### Added
+
+- **ETag + 304 Not Modified on every 200** — every response now carries an **ETag** header; send `If-None-Match: <etag>` (weak comparison, or `*`) and the server answers a bare **304** with the same `Cache-Control` and ETag. Applies to all cacheable endpoints (`/today`, `today/{date}`, `convert`, `range`, `month`, `year`, `events`, `/hilal/*`).
+- **`invalid_bare` and `invalid_download` error codes** — the `bare`/`download` params on `/hilal/viz` and `/hilal/map` are now strictly validated; non-boolean values are rejected with 400.
+
+### Changed
+
+- **Uniform error envelope `{"error":{"code","message"}}` on every error response** — including generic 404s on unknown paths (`not_found`) and the **429 rate limiter** (`rate_limit_exceeded`), which now sends a **`Retry-After`** header (integer seconds to wait).
+- **No more raw FastAPI 422s** — malformed amounts return 400 (`invalid_year`/`invalid_month`/`missing_parameter`) and malformed booleans return 400 `invalid_<name>`; `retro`/`next`/`bare`/`download` accept `true`/`false` (case-insensitive) and `1`/`0`. Absent or empty = false.
+- **The seed now covers the entire supported window** — approx. 1945-01-01 (Hijri months starting 1944-12-17) through 2100-01-01, so there is **no lazy computation at runtime at all**. Previously the seed only reached back to 1970 and forward to ~2050.
+- **Borderline warning semantics tightened** — a Hijri month is flagged "close to the Neo MABIMS visibility threshold" **only when** its day-29 sighting evening **passed** both criteria (alt ≥ 3.0°, elong ≥ 6.4°) with a margin **< 0.25°**. Rejected months (no passing site) never get this warning; roughly 3% of computed months are borderline.
+- **`/meta` now reports version 1.8.2**, and the OpenAPI spec documents `contact`/`license`/`externalDocs`, parameter examples, and the 304 response.
+
+### Notes
+
+- For clients: honor `Retry-After` on 429 and use `If-None-Match` to save bandwidth — a 304 fallback makes polling cheap.
+
+---
+
 ## 1.8.1 — 2026-09-18
 
 ### Added

@@ -37,7 +37,7 @@ GET /api/v1/meta
 
 ```json
 {
-  "version": "1.8.0",
+  "version": "1.8.2",
   "data_version": "9f2c41aa7b03",
   "coverage": { "first": "2023-01-23", "last": "2026-12-31" },
   "computed_active": false,
@@ -66,6 +66,8 @@ GET /api/v1/meta
 1. Periksa `/meta` setiap hari. Permintaan ini ringan dan hasilnya dapat disimpan di cache selama 5 menit.
 2. Jika `computed_active` bernilai `true`, tampilkan pemberitahuan di antarmuka Anda. Tanggal hasil perhitungan dapat berbeda ±1 hari dari pengumuman resmi.
 3. Bandingkan `table_version` dengan nilai yang tersimpan. Jika berubah, periksa `divergences[]` dan ambil ulang tanggal pada bulan yang dikoreksi. Lihat [Sidang Isbat dan Koreksi](/isbat-koreksi).
+
+Setiap respons juga menyertakan ETag. Kirim `If-None-Match: <etag>` dan server menjawab 304 Not Modified (tanpa body) bila data belum berubah, dengan `Cache-Control` dan ETag yang sama.
 
 ## GET /healthz
 
@@ -102,7 +104,7 @@ GET /healthz
 ```json
 {
   "status": "ok",
-  "version": "1.8.0",
+  "version": "1.8.2",
   "build_hash": "a3f8c1e2b4d6f7a8"
 }
 ```

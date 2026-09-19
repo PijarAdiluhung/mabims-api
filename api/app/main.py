@@ -1577,6 +1577,37 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
                     param["schema"] = {"type": "boolean", "default": False}
                     param.pop("anyOf", None)
 
+        tag_info = schema["info"]
+        tag_info.setdefault("contact", {"name": "PIXO Studio", "email": "halo@pixostudio.id"})
+        tag_info.setdefault("license", {"name": "MIT", "url": "https://github.com/PijarAdiluhung/mabims-api/blob/main/LICENSE"})
+        schema.setdefault("externalDocs", {
+            "description": "Full docs, demo, FAQ and API reference",
+            "url": settings.docs_url,
+        })
+
+        param_examples = {
+            "date": "2025-01-03",
+            "target_date": "2025-01-03",
+            "calendar": "gregorian",
+            "tz": "Asia/Jakarta",
+            "retro": False,
+            "next": False,
+            "bare": False,
+            "download": False,
+            "year": "2026",
+            "month": "3",
+            "start": "2025-01-01",
+            "end": "2025-01-31",
+            "step": "day",
+            "from": "1446-01",
+            "to": "1446-12",
+        }
+        for op in (op for path in schema["paths"].values() for op in path.values()):
+            for param in op.get("parameters", []):
+                example = param_examples.get(param.get("name"))
+                if example is not None:
+                    param["example"] = example
+
         schemas = schema.setdefault("components", {}).setdefault("schemas", {})
         if "ErrorBody" not in schemas:
             # Shared error envelope referenced by every error response.
@@ -1607,6 +1638,52 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         for path in schema["paths"].values():
             for op in path.values():
                 op.get("responses", {}).pop("422", None)
+
+        head_note = (
+            "HEAD works identically (same headers, no body). Conditional GETs "
+            "are honored: send If-None-Match with a previous ETag to receive "
+            "a 304 Not Modified."
+        )
+        for path in schema["paths"]:
+            op = schema["paths"][path].get("get")
+            if not op:
+                continue
+            desc = op.setdefault("description", "")
+            if head_note not in desc:
+                op["description"] = (desc + "\n\n" + head_note).strip()
+
+        cacheable = {
+            "/api/v1/today": "max-age=60, s-maxage until midnight in the requested timezone",
+            "/api/v1/today/{target_date}": "max-age=86400",
+            "/api/v1/convert": "max-age=86400",
+            "/api/v1/range": "max-age=86400",
+            "/api/v1/month": "max-age=86400",
+            "/api/v1/year": "max-age=86400",
+            "/api/v1/events": "max-age=86400",
+            "/api/v1/hilal/info": "public, max-age=86400",
+            "/api/v1/hilal/history": "public, max-age=86400",
+            "/api/v1/hilal/viz": "public, max-age=86400",
+            "/api/v1/hilal/map": "public, max-age=86400",
+        }
+        for path, ttl in cacheable.items():
+            op = schema["paths"].get(path, {}).get("get")
+            if not op:
+                continue
+            op.setdefault("responses", {})["304"] = {
+                "description": (
+                    f"Not Modified — the If-None-Match header matched the current "
+                    f"ETag. Cache-Control: {ttl}."
+                ),
+                "headers": {
+                    "ETag": {
+                        "description": (
+                            "Entity tag of the 200 body; compare weakly with If-None-Match."
+                        ),
+                        "schema": {"type": "string"},
+                    },
+                    "Cache-Control": {"schema": {"type": "string"}},
+                },
+            }
 
         for png_path, opname in (
             ("/api/v1/hilal/viz", "get"),

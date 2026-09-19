@@ -150,4 +150,6 @@ Untuk `calendar=hijri`, bulan Hijriah di luar tabel publik tetap dihitung dengan
 | `invalid_calendar` | 400 | Parameter `calendar` bukan `hijri` atau `gregorian` |
 | `out_of_coverage` | 400 | Bulan di luar cakupan tabel |
 | `date_out_of_supported_range` | 400 | Tanggal di luar rentang yang didukung |
-| `invalid_retro` | 400 | Parameter `retro` bukan `true` atau `false` |
+| `invalid_retro` | 400 | Parameter `retro` bukan nilai boolean (menerima `true`/`false`, `1`/`0`) |
+
+Flag boolean menerima `true`/`false` (tidak peka huruf besar/kecil) dan `1`/`0`; tanpa param = false.

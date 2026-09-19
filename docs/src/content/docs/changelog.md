@@ -3,6 +3,27 @@ title: Changelog
 description: Riwayat perubahan API dan dokumentasi MABIMS.
 ---
 
+## 1.8.2 — 2026-09-19
+
+### Added
+
+- **ETag + 304 Not Modified di semua respons 200** — setiap respons membawa header **ETag**; kirim `If-None-Match: <etag>` (perbandingan lemah, atau `*`) dan server menjawab **304 tanpa body** dengan `Cache-Control` dan ETag yang sama. Berlaku di semua endpoint cacheable (`/today`, `today/{date}`, `convert`, `range`, `month`, `year`, `events`, `/hilal/*`).
+- **Kode error `invalid_bare` dan `invalid_download`** — parameter `bare`/`download` di `/hilal/viz` dan `/hilal/map` kini divalidasi ketat; nilai selain boolean ditolak 400.
+
+### Changed
+
+- **Envelope error seragam `{"error":{"code","message"}}` di seluruh respons** — termasuk 404 path tidak dikenal (`not_found`) dan **429 rate limiter** (`rate_limit_exceeded`) yang kini menyertakan header **`Retry-After`** (detik).
+- **Tidak ada lagi 422 mentah FastAPI** — input pecahan yang salah bentuk kini 400 (`invalid_year`/`invalid_month`/`missing_parameter`), dan boolean rusak kini 400 `invalid_<nama>`; `retro`/`next`/`bare`/`download` menerima `true`/`false` (tidak peka huruf besar/kecil) dan `1`/`0`. Parameter yang hilang atau kosong = `false`.
+- **Seed komputasi kini menutup seluruh rentang yang didukung** — kira-kira 1945-01-01 (bulan Hijriah mulai 1944-12-17) sampai 2100-01-01, jadi tidak ada lagi komputasi lazy saat runtime. Sebelumnya seed hanya 1970 → ~2050.
+- **Warning borderline diperketat** — bulan Hijriah ditandai "mendekati ambang visibilitas Neo MABIMS" **hanya bila** malam ke-29-nya **lolos** kedua kriteria (alt ≥ 3,0°, elongasi ≥ 6,4°) dengan margin **< 0,25°**. Bulan yang ditolak (tidak ada titik lolos) tidak pernah mendapat warning ini; kira-kira 3% bulan terhitung borderline.
+- **`/meta` kini melaporkan versi 1.8.2**, dan spec OpenAPI mendokumentasikan `contact`/`license`/`externalDocs`, contoh parameter, serta respons 304.
+
+### Notes
+
+- Bagi klien: tangani `Retry-After` saat 429 dan gunakan `If-None-Match` untuk menghemat bandwidth — fallback 304 membuat polling murah.
+
+---
+
 ## 1.8.1 — 2026-09-18
 
 ### Added

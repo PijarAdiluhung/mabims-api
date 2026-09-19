@@ -95,7 +95,9 @@ Switch your display to `next` once your local maghrib has passed. The API does *
 | `code` | HTTP | Cause |
 |---|---|---|
 | `invalid_timezone` | 400 | Unrecognized timezone |
-| `invalid_next` | 400 | `next` param is not `true` or `false` |
+| `invalid_next` | 400 | `next` param is not a boolean value (accepts `true`/`false`, `1`/`0`) |
+
+Boolean flags accept `true`/`false` (case-insensitive) and `1`/`0`; absent = false.
 
 ## Immutable variant
 
@@ -112,3 +114,4 @@ for replaying historical days:
 - A cache miss at 06:00 is cached at the edge for ~18 hours; a miss at 23:59 expires right
   after midnight so the date rolls over immediately.
 - At millions of requests/day the origin sees roughly one request per edge location per day.
+- Every response also carries an ETag. Send `If-None-Match: <etag>` and the server answers 304 Not Modified (empty body) when the data has not changed, with the same `Cache-Control` and ETag headers.

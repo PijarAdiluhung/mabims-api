@@ -182,6 +182,9 @@ kriteria, daftar titik, atau ephemeris berubah, atau setelah tabel Kemenag diper
 - `Cache-Control: public, max-age=86400, s-maxage=86400` — hasilnya selalu sama untuk parameter yang sama dan disimpan di CDN. CDN membuat satu gambar per lokasi edge setiap hari.
 - Proses pembuatan gambar menggunakan CPU. Gunakan parameter seperlunya dan patuhi batas permintaan.
 - **Batas gambar: Hijriah 1444–1475** — kartu PNG hanya tersedia dalam rentang itu (lihat `hilal_image_range` di `/meta`). Di luar rentang tersebut, endpoint mengembalikan `out_of_coverage`. Cakupan data tanggal tetap tercantum di `coverage.forward_ceil`.
+
+Setiap respons juga menyertakan ETag. Kirim `If-None-Match: <etag>` dan server menjawab 304 Not Modified (tanpa body) bila data belum berubah, dengan `Cache-Control` dan ETag yang sama.
+
 ## Kesalahan
 
 | Kode | HTTP | Penyebab |
@@ -189,4 +192,10 @@ kriteria, daftar titik, atau ephemeris berubah, atau setelah tabel Kemenag diper
 | `out_of_coverage` | 400 | Bulan atau tahun berada di luar cakupan tabel (lihat `/meta`). |
 | `computation_unavailable` | 503 | Perhitungan astronomi gagal. |
 | `render_failed` | 500 | Gagal merender PNG. |
-| `invalid_retro` | 400 | Parameter `retro` bukan `true` atau `false`. |
+| `invalid_retro` | 400 | Parameter `retro` bukan nilai boolean (menerima `true`/`false`, `1`/`0`). |
+| `invalid_bare` | 400 | `bare` bukan nilai boolean (menerima `true`/`false`, `1`/`0`) |
+| `invalid_download` | 400 | `download` bukan nilai boolean (menerima `true`/`false`, `1`/`0`) |
+| `rate_limit_exceeded` | 429 | Terlalu banyak permintaan; tunggu sesuai header `Retry-After` (detik) |
+| `not_found` | 404 | Path tidak dikenal (respons error seragam) |
+
+Flag boolean menerima `true`/`false` (tidak peka huruf besar/kecil) dan `1`/`0`; tanpa param = false.

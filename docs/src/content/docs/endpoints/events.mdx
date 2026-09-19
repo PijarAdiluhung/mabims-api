@@ -105,4 +105,6 @@ Item diurutkan berdasarkan tanggal Masehi.
 |---|---|---|
 | `invalid_calendar` | 400 | Nilai `calendar` bukan `gregorian` atau `hijri` |
 | `invalid_year` | 400 | Tahun di luar batas yang didukung |
-| `invalid_retro` | 400 | Parameter `retro` bukan `true` atau `false` |
+| `invalid_retro` | 400 | Parameter `retro` bukan nilai boolean (menerima `true`/`false`, `1`/`0`) |
+
+Flag boolean menerima `true`/`false` (tidak peka huruf besar/kecil) dan `1`/`0`; tanpa param = false.

@@ -77,7 +77,9 @@ Converts one date in the direction implied by `calendar`.
 | `invalid_calendar` | `calendar` parameter is not `gregorian` or `hijri` |
 | `missing_parameter` | `date` query parameter is missing |
 | `out_of_coverage` | Date is outside table coverage; see [/meta](/endpoints/meta) |
-| `invalid_retro` | `retro` param is not `true` or `false` |
+| `invalid_retro` | `retro` param is not a boolean value (accepts `true`/`false`, `1`/`0`) |
+
+Boolean flags accept `true`/`false` (case-insensitive) and `1`/`0`; absent = false.
 
 **404** — `date_not_found`: no pair exists for that date
 
@@ -164,6 +166,8 @@ months beyond the table are served from the Neo MABIMS computed tier (up to
 Responses are immutable per input and sent with `Cache-Control: max-age=86400` — safe to cache
 at any layer for a full day.
 
+Every response also carries an ETag. Send `If-None-Match: <etag>` and the server answers 304 Not Modified (empty body) when the data has not changed, with the same `Cache-Control` and ETag headers.
+
 ### Errors
 
 All errors return a standard JSON envelope:
@@ -182,4 +186,8 @@ All errors return a standard JSON envelope:
 | `invalid_step` | 400 | Step is not `day` |
 | `range_too_large` | 400 | Range exceeds 45 days |
 | `out_of_coverage` | 400 | Date outside table coverage |
-| `invalid_retro` | 400 | `retro` param is not `true` or `false` |
+| `invalid_retro` | 400 | `retro` param is not a boolean value (accepts `true`/`false`, `1`/`0`) |
+| `rate_limit_exceeded` | 429 | Too many requests; wait per the `Retry-After` header (seconds) |
+| `not_found` | 404 | Unknown path (uniform error envelope) |
+
+Boolean flags accept `true`/`false` (case-insensitive) and `1`/`0`; absent = false.

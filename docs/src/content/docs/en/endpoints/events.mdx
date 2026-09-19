@@ -106,4 +106,6 @@ Items are sorted by Gregorian date.
 |---|---|---|
 | `invalid_calendar` | 400 | Calendar is not `gregorian` or `hijri` |
 | `invalid_year` | 400 | Year out of supported bounds |
-| `invalid_retro` | 400 | `retro` param is not `true` or `false` |
+| `invalid_retro` | 400 | `retro` param is not a boolean value (accepts `true`/`false`, `1`/`0`) |
+
+Boolean flags accept `true`/`false` (case-insensitive) and `1`/`0`; absent = false.

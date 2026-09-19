@@ -94,8 +94,8 @@ The hilal visibility criteria follow Neo MABIMS: **moon altitude ≥ 3.0°** (to
 | `tz` | IANA timezone or UTC offset | Default `Asia/Jakarta` (UTC+7). Examples: `Asia/Kuala_Lumpur`, `UTC+8`, `+08:00`. |
 | `start`, `end` | `YYYY-MM-DD` | Used by `/range`. |
 | `year` | Integer | Hijri or Gregorian year, depending on `calendar`. |
-| `retro` | `true`, `false` | Default `false`. Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro`. |
-| `next` | `true`, `false` | Default `false`. On `/today`, also returns the Hijri date that begins after this evening's maghrib (the next civil day's mapping) as `next`, with its own `source`. The API does not compute sunset — the client gates the flip on its own maghrib time. |
+| `retro` | `true`, `false` | Default `false`. Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro`. Boolean flags accept `true`/`false` (case-insensitive) or `1`/`0`. |
+| `next` | `true`, `false` | Default `false`. On `/today`, also returns the Hijri date that begins after this evening's maghrib (the next civil day's mapping) as `next`, with its own `source`. The API does not compute sunset — the client gates the flip on its own maghrib time. Same boolean acceptance as `retro`. |
 | `month` | 1–12 | Hijri or Gregorian month. |
 | `bare`, `download` | `true`, `false` | Default `false`. Hilal PNG endpoints only. Boolean flags accept `true`/`false` (case-insensitive) or `1`/`0`; anything else is rejected with 400 `invalid_bare` / `invalid_download`. `download` adds `Content-Disposition: attachment`. |
 
@@ -155,7 +155,10 @@ appears.
 
 ## Caching
 
-Every response includes an `ETag` header. Clients should send `If-None-Match` to avoid re-downloading unchanged data.
+Every response includes an `ETag` header. Send `If-None-Match: <etag>` (weak
+comparison, or `*`) and the origin answers a bare **304 Not Modified** when the
+data is unchanged, with the same `Cache-Control` and `ETag` headers — cheap
+revalidation on top of the CDN cache.
 
 | Endpoint | `Cache-Control` | Notes |
 |---|---|---|
@@ -186,7 +189,8 @@ The API follows [semver](https://semver.org/). The current version is returned b
 
 Default: **240 requests/minute** (4/s sustained, burst 24) per IP via Bunny CDN. The origin
 also applies a per-IP limit (240/min) as a fallback. Hilal endpoints are stricter (60 or 30/hour)
-due to heavier computation.
+due to heavier computation. When limited, the response is 429 `rate_limit_exceeded` in the same
+error envelope above, with a `Retry-After` header carrying the wait in seconds.
 
 ## Authentication
 
