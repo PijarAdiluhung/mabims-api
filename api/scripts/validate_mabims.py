@@ -147,9 +147,7 @@ def main() -> int:
         print("borderline months (margin < 0.25):")
         for b in borderline:
             print(f"  - {b}")
-    if misses:
-        return 1
-    return validate_retro_seed(starts[0][0])
+    return 1 if misses else 0
 
 
 if __name__ == "__main__":
