@@ -33,7 +33,7 @@ type Today = { day: number; month: number; month_name: string; year: number };
 
 /* ── SSR fetch (build-time snapshot; client refresh keeps it current) ── */
 let todayOut: Today | null = null;
-let todayGregLine: { hijriNumber: string; hijri: string; greg: string } | null = null;
+let todayGregLine: { hijriNumber: string; weekday: string; hijriLabel: string; greg: string } | null = null;
 let todayGregIso = '';
 try {
   const res = await fetch(`${apiBase}/api/v1/today`, { headers: { accept: 'application/json' } });
@@ -49,7 +49,8 @@ try {
     const gParts = { weekday, greg };
     todayGregLine = {
       hijriNumber: `${weekday}, ${todayOut.day} ${todayOut.month_name} ${todayOut.year} H · ${greg}`,
-      hijri: `${todayOut.day} ${todayOut.month_name} ${todayOut.year} H`,
+      weekday,
+      hijriLabel: `${todayOut.day} ${todayOut.month_name} ${todayOut.year} H`,
       greg: greg,
     };
   }
@@ -340,7 +341,9 @@ const initialMonthEvents: string[] = [];
       <h1 class="kh-title">Kalender Hijriah <span class="kh-accent">MABIMS</span></h1>
       <p class="kh-today" data-today>
         <span class="kh-today-line" data-today-hijri>
-          {todayOut && todayGregLine ? `${todayGregLine.hijriNumber} ` : '…'}
+          {todayOut && todayGregLine ? (
+            <Fragment>{todayGregLine.weekday}, <span class="kh-today-hj">{todayGregLine.hijriLabel}</span><span class="kh-today-greg"> · {todayGregLine.greg}</span></Fragment>
+          ) : '…'}
         </span>
       </p>
       <p class="kh-criteria">Berdasarkan kalender Kemenag · kriteria Neo MABIMS</p>
@@ -586,6 +589,9 @@ const initialMonthEvents: string[] = [];
     border-radius: 16px;
     background: rgba(255, 255, 255, 0.02);
   }
+  @media (max-width: 47.9rem) {
+    .kh-year-details { display: none; }
+  }
   .kh-year-details summary {
     padding: 0.9rem 1.25rem;
     font-weight: 600;
@@ -662,7 +668,7 @@ const initialMonthEvents: string[] = [];
   .kh-hero-inner { position: relative; z-index: 1; }
   .kh-title {
     margin: 0;
-    font-size: clamp(2.4rem, 1.2rem + 5vw, 4.5rem);
+    font-size: clamp(2rem, 0.9rem + 3.5vw, 3.25rem);
     font-weight: 800;
     line-height: 1.1;
     color: var(--sl-color-white);
@@ -673,14 +679,18 @@ const initialMonthEvents: string[] = [];
   }
   .kh-today-line {
     display: block;
-    font-size: clamp(1.05rem, 0.6rem + 1.5vw, 1.4rem);
-    font-weight: 600;
+    font-size: clamp(0.95rem, 0.55rem + 1.1vw, 1.2rem);
+    font-weight: 400;
     color: var(--sl-color-white);
+  }
+  .kh-today-hj {
+    color: var(--sl-color-accent);
+    font-weight: 700;
   }
   .kh-criteria {
     margin: 0.35rem 0 0;
-    font-size: clamp(1.05rem, 0.6rem + 1.5vw, 1.4rem);
-    font-weight: 600;
+    font-size: clamp(0.9rem, 0.55rem + 1.1vw, 1.15rem);
+    font-weight: 400;
     color: var(--sl-color-gray-2);
   }
   @media (max-width: 47.9rem) {
@@ -862,23 +872,31 @@ const initialMonthEvents: string[] = [];
     .kc-greg { font-size: 0.72rem; }
   }
   @media (min-width: 54rem) {
+    .kh-cal-head,
+    .kh-card,
+    .kh-year-details {
+      max-width: 68rem;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .kh-year-details { max-width: 54rem; }
     .kh-grid {
       gap: 0.35rem;
-      padding: 0.5rem 0.75rem 0.75rem;
-      min-height: calc(6 * 6rem + 5 * 0.35rem);
+      padding: 0.5rem 0.6rem 0.65rem;
+      min-height: calc(6 * 5rem + 5 * 0.35rem);
     }
     .kc {
-      min-height: 6rem;
+      min-height: 5rem;
       aspect-ratio: auto;
-      padding: 0.7rem 0.3rem;
+      padding: 0.4rem 0.3rem;
     }
     .kh-skel {
-      min-height: 6rem;
+      min-height: 5rem;
       aspect-ratio: auto;
     }
-    .kh-skel::after { inset: 0.8rem; border-radius: 10px; }
-    .kc-day { font-size: 2.75rem; }
-    .kc-greg { font-size: 0.85rem; }
+    .kh-skel::after { inset: 0.6rem; border-radius: 8px; }
+    .kc-day { font-size: 2.1rem; }
+    .kc-greg { font-size: 0.78rem; }
   }
   .kh-skel {
     min-height: 3.2rem;
@@ -931,7 +949,7 @@ const initialMonthEvents: string[] = [];
     .kc.is-today .kc-day { width: 2.7rem; height: 2.7rem; }
   }
   @media (min-width: 54rem) {
-    .kc.is-today .kc-day { width: 3.6rem; height: 3.6rem; }
+    .kc.is-today .kc-day { width: 3.2rem; height: 3.2rem; }
   }
   .kh-events {
     display: flex;
@@ -1776,9 +1794,12 @@ const initialMonthEvents: string[] = [];
       state.mode = btn.dataset.mode as 'hijri' | 'gregorian';
       // carry the current view across modes via the visible grid's dates
       if (state.mode === 'gregorian') {
-        const firstCell = document.querySelector<HTMLElement>('.kc[data-greg]');
-        const laterCell = document.querySelector<HTMLElement>('.kc[data-greg]:nth-last-child(8)') ?? firstCell;
-        const anchorIso = laterCell?.dataset.greg ?? firstCell?.dataset.greg;
+        // anchor on the middle real cell of the visible grid — a hijri
+        // month can straddle two gregorian months, and the majority month
+        // lives in the middle, not the trailing week
+        const cells = [...document.querySelectorAll<HTMLElement>('.kc[data-greg]')];
+        const anchorIso = cells[Math.floor(cells.length / 2)]?.dataset.greg
+          ?? cells[0]?.dataset.greg;
         if (anchorIso) {
           parseIso(anchorIso);
           // clamp into the hijri year's gregorian window (floor…ceil)
@@ -1792,9 +1813,9 @@ const initialMonthEvents: string[] = [];
           }
         }
       } else if (state.mode === 'hijri') {
-        const firstHijri = document.querySelector<HTMLElement>('.kc[data-hijri]');
-        const laterHijri = document.querySelector<HTMLElement>('.kc[data-hijri]:nth-last-child(8)') ?? firstHijri;
-        const anchorIso = laterHijri?.dataset.hijri ?? firstHijri?.dataset.hijri ?? state.todayHijri;
+        const cells = [...document.querySelectorAll<HTMLElement>('.kc[data-hijri]')];
+        const anchorIso = cells[Math.floor(cells.length / 2)]?.dataset.hijri
+          ?? cells[0]?.dataset.hijri ?? state.todayHijri;
         // hijri mode is pinned to the year the page opened on — an anchor
         // past the year boundary (Dzulhijjah → Muharram 1449 in June 2027)
         // maps back into Dzulhijjah of the current year, never 1449
@@ -1848,7 +1869,9 @@ const initialMonthEvents: string[] = [];
       const gDate = new Intl.DateTimeFormat('id-ID', {
         day: 'numeric', month: 'long', year: 'numeric',
       }).format(gD);
-      if (hijriEl) hijriEl.textContent = `${gWeekday}, ${o.day} ${o.month_name} ${o.year} H · ${gDate}`;
+      if (hijriEl) hijriEl.innerHTML =
+        `${gWeekday}, <span class="kh-today-hj">${o.day} ${o.month_name} ${o.year} H</span>` +
+        `<span class="kh-today-greg"> · ${gDate}</span>`;
 
       // If the build snapshot drifted (e.g. yesterday's deploy), resync the grid
       const buildToday = state.hijriYear === o.year && state.month === o.month;
