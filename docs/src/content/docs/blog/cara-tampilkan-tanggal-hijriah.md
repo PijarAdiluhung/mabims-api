@@ -173,6 +173,8 @@ Lalu pakai shortcode `[tanggal_hijriah]` di halaman, widget teks, atau editor bl
 
 ## Bonus: Nampilin Kalender Sebulan Penuh (Bukan Cuma Hari Ini)
 
+> Script nggak pengin nulis kode? Lihat langsung [kalender Hijriah MABIMS online](/kalender-hijriah/) di mabims.dev.
+
 Kalau kamu bukan cuma butuh tanggal hari ini, tapi mau bikin **grid kalender bulanan** (misalnya widget kalender Hijriah lengkap 29-30 hari), pakai endpoint `/month`:
 
 ```

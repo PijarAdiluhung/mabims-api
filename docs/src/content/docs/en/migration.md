@@ -126,3 +126,4 @@ const data = await res.json();
 3. **Update response parsing** — MABIMS uses `output` instead of `data.hijri`
 4. **Use `/today`** instead of calling `/gToH` manually every day
 5. **Check `source`** — MABIMS marks whether data is from the public table (`mabims`) or computed (`mabims-computed`)
+6. **Verify visually** — open the [MABIMS Hijri calendar](/kalender-hijriah/) to sanity-check converted dates against a monthly calendar view before and after the migration

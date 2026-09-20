@@ -54,7 +54,7 @@ Tapi kalau kamu develop aplikasi yang butuh kalender Hijriah yang akurat buat In
 curl "https://api.mabims.dev/api/v1/today"
 ```
 
-Dokumentasi lengkap ada di [mabims.dev/quickstart](https://mabims.dev/quickstart).
+Dokumentasi lengkap ada di [mabims.dev/quickstart](https://mabims.dev/quickstart). Bukan developer? Coba dulu di browser: [kalender Hijriah MABIMS](/kalender-hijriah/).
 
 <script type="application/ld+json">
 {

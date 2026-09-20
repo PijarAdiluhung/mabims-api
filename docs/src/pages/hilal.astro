@@ -33,7 +33,7 @@ const description =
   'Tanggal Hijriah hari ini, hitung mundur malam penentuan hilal, peta wilayah visibilitas, grafik langit, dan riwayat penentuan hilal sejak 1444 H berdasarkan kriteria Neo MABIMS.';
 ---
 
-<LandingLayout title={title} description={description} lang="id" canonical="https://mabims.dev/hilal/">
+<LandingLayout title={title} description={description} lang="id" canonical="https://mabims.dev/hilal/" altId="https://mabims.dev/hilal/" altEn="">
   <Fragment slot="head">
     <script type="application/ld+json">
       {
@@ -1433,7 +1433,8 @@ const description =
         `${item.previous_month.name} ` +
         (ok ? '<b class="is-exp-ok">memenuhi kriteria</b>' : '<b class="is-exp-bad">tidak memenuhi kriteria</b>') +
         `. Sehingga kemungkinan ${name} dimulai tanggal <b>${fmtDate(startIso)}</b>. ` +
-        'Rincian pemenuhan kriteria Neo MABIMS bisa dilihat di grafik di bawah.';
+        `Rincian pemenuhan kriteria Neo MABIMS bisa dilihat di grafik di bawah, atau lihat periode bulannya di ` +
+        `<a href="/kalender-hijriah/" style="color:var(--sl-color-accent)">kalender Hijriah</a>.`;
     }
     const facts = $('[data-featured-facts]');
     if (facts) facts.innerHTML = factsHTML(item, true);

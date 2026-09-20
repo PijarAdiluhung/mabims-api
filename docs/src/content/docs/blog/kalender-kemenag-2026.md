@@ -95,7 +95,7 @@ Kriteria baru ini merupakan hasil Muzakarah Rukyah dan Takwim Islam MABIMS 2016 
 
 ## Cek Tanggal Hijriah untuk Tanggal Apa Saja
 
-Mau tahu tanggal 15 Maret 2026 itu tanggal berapa Hijriah? Atau kapan 1 Ramadhan 1448 H dalam kalender Masehi? Gunakan API MABIMS.dev (unofficial):
+Mau tahu tanggal 15 Maret 2026 itu tanggal berapa Hijriah? Atau kapan 1 Ramadhan 1448 H dalam kalender Masehi? Cek langsung di [kalender Hijriah berbasis kriteria MABIMS](/kalender-hijriah/) kami, atau gunakan API MABIMS.dev (unofficial):
 
 ```bash
 curl "https://api.mabims.dev/api/v1/convert?date=2026-03-15&calendar=gregorian"

@@ -1,7 +1,7 @@
 # MABIMS API
 
 
-MABIMS.dev is an unofficial, free, open-source API that provides an ecosystem for the Indonesian Hijri calendar. Get today's Hijri date, date conversion tools, monthly and yearly calendars, hilal visibility data, and Islamic event dates. All based on MABIMS criteria from **Kementerian Agama Republik Indonesia**.
+MABIMS.dev is an unofficial, free, open-source API that provides an ecosystem for the Indonesian Hijri calendar following the official Menteri Agama Brunei, Indonesia, Malaysia, Singapura criteria. Get today's Hijri date, date conversion tools, monthly and yearly calendars, hilal visibility data, and Islamic event dates. All based on MABIMS criteria from **Kementerian Agama Republik Indonesia** — the standard behind the [kalender Hijriah MABIMS](https://mabims.dev/kalender-hijriah/).
 
 **[Landing page](https://mabims.dev)** · [Quickstart](https://mabims.dev/quickstart) — make your first request · [Playground](https://api.mabims.dev/playground) — test endpoints in-browser · [FAQ](https://mabims.dev/faq) · [Blog](https://mabims.dev/blog)
 

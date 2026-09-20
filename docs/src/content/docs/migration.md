@@ -125,3 +125,4 @@ const data = await res.json();
 3. **Sesuaikan parsing response** — MABIMS menggunakan `output` bukan `data.hijri`
 4. **Gunakan `/today`** alih-alih hit `/gToH` manual setiap hari
 5. **Periksa `source`** — MABIMS menandai apakah data dari tabel publik (`mabims`) atau komputasi (`mabims-computed`)
+6. **Bandingkan visual** — buka [kalender Hijriah MABIMS](/kalender-hijriah/) untuk mengecek hasil konversi terhadap tampilan kalender bulanan sebelum dan sesudah migrasi

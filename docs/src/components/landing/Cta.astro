@@ -1,4 +1,6 @@
 ---
+interface Props { hintHref?: string; hintLabel?: string }
+const { hintHref = '/kalender-hijriah/', hintLabel = 'Lihat kalender Hijriah MABIMS →' } = Astro.props;
 ---
 
 <section class="cta-section">
@@ -32,7 +34,7 @@
       </a>
     </div>
     <p class="cta-hint">
-      <a href="/blog/cara-pakai-mabims-api/">Lihat tutorial integrasi →</a>
+      <a href={hintHref}>{hintLabel}</a>
     </p>
   </div>
 </section>

@@ -44,4 +44,4 @@ Dari data ini, Rabiul Awal 1448 H belum memenuhi kriteria Neo MABIMS pada sore 1
 
 Ini adalah hasil perhitungan visibilitas, bukan keputusan resmi penetapan awal bulan. Keputusan resmi tetap mengikuti proses rukyat dan [sidang isbat](https://en.wikipedia.org/wiki/Moon_sighting) oleh pihak yang berwenang.
 
-Data lengkap tersedia melalui [data hilal MABIMS](https://api.mabims.dev/api/v1/hilal/info?month=4&year=1448) dan [visualisasi hilal](https://api.mabims.dev/api/v1/hilal/viz?month=4&year=1448).
+Data lengkap tersedia melalui [data hilal MABIMS](https://api.mabims.dev/api/v1/hilal/info?month=4&year=1448) dan [visualisasi hilal](https://api.mabims.dev/api/v1/hilal/viz?month=4&year=1448). Mau memeriksa bulan lain? Buka [kalender Hijriah](/kalender-hijriah/) dan lihat periode masing-masing bulan beserta data hilalnya.

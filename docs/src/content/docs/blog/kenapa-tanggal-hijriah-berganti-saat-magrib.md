@@ -214,7 +214,7 @@ Coba sekarang:
 curl "https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta&next=true"
 ```
 
-Dokumentasi lengkap endpoint ini ada di [mabims.dev/endpoints/today](https://mabims.dev/endpoints/today). Kalau ada kasus yang belum tertangani atau kamu nemu tanggal yang terasa janggal, silakan buka issue di [GitHub](https://github.com/PijarAdiluhung/mabims-api).
+Dokumentasi lengkap endpoint ini ada di [mabims.dev/endpoints/today](https://mabims.dev/endpoints/today). Pengguna non-developer bisa langsung melihat efek pergantian saat maghrib lewat [kalender Hijriah MABIMS](/kalender-hijriah/). Kalau ada kasus yang belum tertangani atau kamu nemu tanggal yang terasa janggal, silakan buka issue di [GitHub](https://github.com/PijarAdiluhung/mabims-api).
 
 Semoga widget tanggal Hijriah kamu nggak pernah lagi telat sehari :)
 

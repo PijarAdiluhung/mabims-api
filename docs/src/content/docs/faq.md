@@ -15,7 +15,7 @@ MABIMS singkatan dari Menteri-menteri Agama Brunei, Indonesia, Malaysia, Singapu
 <details>
 <summary>Apa itu mabims.dev?</summary>
 
-Mabims.dev adalah API open-source unofficial gratis untuk kalender Hijriah Indonesia. Menyediakan tanggal Hijri hari ini, konversi tanggal, kalender bulanan dan tahunan, data visibilitas hilal, serta jadwal hari besar Islam. Semuanya berdasarkan data kalender publik dari Kementerian Agama RI. Selengkapnya di halaman [Tentang](/about).
+Mabims.dev adalah API open-source unofficial gratis untuk kalender Hijriah Indonesia. Menyediakan tanggal Hijri hari ini, konversi tanggal, kalender bulanan dan tahunan, data visibilitas hilal, serta jadwal hari besar Islam. Semuanya berdasarkan data kalender publik dari Kementerian Agama RI. Selengkapnya di halaman [Tentang](/about), atau langsung lihat [kalender Hijriah MABIMS](/kalender-hijriah/) di browser.
 
 </details>
 
@@ -143,7 +143,7 @@ Gunakan endpoint `GET /events?year=2026&calendar=gregorian` untuk mendapatkan ta
 <details>
 <summary>Kenapa tanggal Hijriah di Google beda?</summary>
 
-Google dan kebanyakan aplikasi kalender menggunakan Umm al-Qura (standar Arab Saudi), bukan MABIMS (standar Indonesia). Karena lokasi pengamatan dan metode rukyah berbeda, hasilnya bisa selisih ±1 hari dari keputusan resmi Kemenag.
+Google dan kebanyakan aplikasi kalender menggunakan Umm al-Qura (standar Arab Saudi), bukan MABIMS (standar Indonesia). Karena lokasi pengamatan dan metode rukyah berbeda, hasilnya bisa selisih ±1 hari dari keputusan resmi Kemenag. Untuk tanggal yang sesuai standar Indonesia, pakai [kalender Hijriah](/kalender-hijriah/).
 
 </details>
 

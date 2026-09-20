@@ -45,7 +45,7 @@ The API follows the official Sidang Isbat decision. Any response touching the co
 <details>
 <summary>What is mabims.dev?</summary>
 
-mabims.dev is a free open-source API for the Indonesian Hijri calendar. It provides today's Hijri date, date conversion, monthly and yearly calendars, hilal visibility data, and Islamic event dates — all based on official MABIMS data from Indonesia's Ministry of Religious Affairs (Kemenag RI). See the [About](/en/about) page for details.
+mabims.dev is a free open-source API for the Indonesian Hijri calendar. It provides today's Hijri date, date conversion, monthly and yearly calendars, hilal visibility data, and Islamic event dates — all based on official MABIMS data from Indonesia's Ministry of Religious Affairs (Kemenag RI). See the [About](/en/about) page for details, or browse the [MABIMS Hijri calendar](/kalender-hijriah/) directly.
 
 </details>
 

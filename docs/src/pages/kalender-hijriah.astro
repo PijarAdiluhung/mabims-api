@@ -25,7 +25,10 @@ const EVENT_NAMES: Record<string, string> = {
 };
 
 type DayItem = { gregorian: string; hijri: string; source: string };
-type EventItem = { event: string; name: string; hijri: string; gregorian: string };
+type EventItem = {
+  event: string; name: string; hijri: string; gregorian: string;
+  date_range: { hijri_start: string; hijri_end: string; gregorian_start: string; gregorian_end: string } | null;
+};
 type Today = { day: number; month: number; month_name: string; year: number };
 
 /* ── SSR fetch (build-time snapshot; client refresh keeps it current) ── */
@@ -55,7 +58,7 @@ try {
 const events: EventItem[] = [];
 if (todayOut) {
   try {
-    const res = await fetch(`${apiBase}/api/v1/events?year=${todayOut.year}&calendar=hijri`);
+    const res = await fetch(`${apiBase}/api/v1/events?year=${todayOut.year}&calendar=hijri&include=all`);
     if (res.ok) events.push(...(await res.json()).events ?? []);
   } catch {}
 }
@@ -77,6 +80,28 @@ const todayHijri = todayOut
   : '';
 const initialSource = initialDays[0]?.source ?? 'mabims';
 const sourceLabel = initialSource === 'mabims' ? 'Data publik Kemenag' : 'Perhitungan Neo MABIMS';
+
+/* 12-month overview, server-rendered so it's crawlable */
+const dateId = (iso: string) =>
+  new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+    .format(new Date(`${iso}T00:00:00`));
+const yearRows: { name: string; start: string; end: string; days: number }[] = [];
+try {
+  const res = await fetch(`${apiBase}/api/v1/year?year=${currentYear}&calendar=hijri`);
+  if (res.ok) {
+    const months = ((await res.json()).months ?? {}) as Record<string, DayItem[]>;
+    for (let m = 1; m <= 12; m++) {
+      const items = months[String(m)] ?? [];
+      if (!items.length) continue;
+      yearRows.push({
+        name: `${HIJRI_MONTHS[m - 1]} ${currentYear} H`,
+        start: dateId(items[0].gregorian),
+        end: dateId(items[items.length - 1].gregorian),
+        days: items.length,
+      });
+    }
+  }
+} catch {}
 
 /* Hilal featured: the month whose start the next sighting evening decides */
 type HilalEvening = {
@@ -168,11 +193,13 @@ const hilalDateShort = hilalItem
       .format(new Date(`${hilalItem.evening.gregorian_date}T00:00:00`))
   : '';
 
-const title = `Kalender Hijriah ${currentYear} H — Kalender MABIMS Indonesia`;
+const masehiYear = Number(todayGregIso.slice(0, 4)) || 2026;
+const title = `Kalender Hijriah ${currentYear} H & ${masehiYear} — Data Hilal, Kriteria MABIMS | mabims.dev`;
 const description =
-  `Kalender Hijriah ${currentYear} H lengkap berdasarkan kriteria MABIMS Kementerian Agama RI. ` +
-  `Tanggal Hijriah hari ini, konversi Masehi–Hijriah, hari penting Islam, dan visibilitas hilal. Gratis & open-source.`;
+  `Kalender Hijriah ${currentYear} H (${masehiYear}) berdasarkan kriteria MABIMS Kementerian Agama RI. ` +
+  `Tanggal Hijriah hari ini, awal tiap bulan, hari penting Islam, dan data visibilitas hilal. Gratis & open-source.`;
 
+const awalRamadan = events.find((e) => e.event === 'awal_ramadan') ?? null;
 const faqs = [
   {
     q: 'Apa itu Kalender MABIMS?',
@@ -191,11 +218,38 @@ const faqs = [
     q: 'Apakah data ini bisa dipakai di aplikasi saya?',
     a: 'Bisa. Semua data di halaman ini tersedia melalui API publik gratis tanpa autentikasi di mabims.dev, atau melalui paket npm offline mabims-hijri.',
   },
+  ...(awalRamadan
+    ? [{
+        q: `1 Ramadhan ${currentYear} H jatuh pada tanggal berapa?`,
+        a: `Berdasarkan kriteria Neo MABIMS (data publik Kemenag), 1 Ramadhan ${currentYear} H diperkirakan jatuh pada ${dateId(awalRamadan.gregorian)}. Awal bulan tetap dikonfirmasi lewat hasil rukyah dan sidang isbat Kementerian Agama.`,
+      }]
+    : []),
+  {
+    q: 'Kapan tanggal Hijriah berganti menjadi hari berikutnya?',
+    a: 'Dalam penetapan Kemenag dan standar MABIMS, tanggal Hijriah berganti saat matahari terbenam (maghrib), bukan pukul 00.00 seperti kalender Masehi. Karena itu kegiatan malam setelah maghrib sudah dihitung sebagai tanggal Hijriah berikutnya.',
+  },
+  {
+    q: 'Mengapa kalender Hijriah di HP atau Google berbeda beberapa hari dengan MABIMS?',
+    a: "Sebagian besar aplikasi dan Google Calendar memakai kalender Umm al-Qura (standar Arab Saudi), sedangkan kalender MABIMS mengikuti rukyah dan keputusan Kementerian Agama RI. Metode dan lokasi pengamatannya berbeda, sehingga hasilnya bisa selisih ±1 hari, terutama pada awal Ramadhan, Syawal, dan Dzulhijjah.",
+  },
 ];
 
 const monthName = HIJRI_MONTHS[currentMonth - 1];
 const weekdayIndex = (iso: string) => (new Date(`${iso}T00:00:00`).getDay() + 6) % 7;
-const eventsByHijri = new Map(events.map((e) => [e.hijri, e.name]));
+const eventsByHijri = new Map<string, string>();
+for (const e of events) {
+  const name = EVENT_NAMES[e.event] ?? e.name;
+  if (e.date_range) {
+    const ym = e.hijri.slice(0, 8);
+    const sd = Number(e.date_range.hijri_start.slice(8, 10));
+    const ed = Number(e.date_range.hijri_end.slice(8, 10));
+    for (let d = sd; d <= ed; d++) {
+      eventsByHijri.set(`${ym}${String(d).padStart(2, '0')}`, name);
+    }
+  } else {
+    eventsByHijri.set(e.hijri, name);
+  }
+}
 
 /* Build initial grid cells (shared logic with client via data attrs) */
 let gridHTML = '';
@@ -223,14 +277,21 @@ const HIJRI_MONTHS_SHORT = [
   'Muh', 'Saf', 'Rb. I', 'Rb. II', 'Jm. I', 'Jm. II', 'Raj', 'Syb',
   'Ram', 'Syw', 'Dq', 'Dh',
 ];
-const initialMonthEvents = initialDays
-  .map((d) => {
-    const name = eventsByHijri.get(d.hijri);
-    if (!name) return null;
-    const label = `${Number(d.hijri.slice(8, 10))} ${HIJRI_MONTHS[Number(d.hijri.slice(5, 7)) - 1]} · ${name}`;
-    return label;
-  })
-  .filter((v): v is string => Boolean(v));
+const initialMonthEvents: string[] = [];
+{
+  const ym = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+  for (const e of events) {
+    if (e.hijri.slice(0, 7) !== ym) continue;
+    const name = EVENT_NAMES[e.event] ?? e.name;
+    if (e.date_range) {
+      initialMonthEvents.push(
+        `${Number(e.date_range.hijri_start.slice(8, 10))}–${Number(e.date_range.hijri_end.slice(8, 10))} ${monthName} · ${name}`,
+      );
+    } else {
+      initialMonthEvents.push(`${Number(e.hijri.slice(8, 10))} ${monthName} · ${name}`);
+    }
+  }
+}
 ---
 
 <LandingLayout
@@ -239,7 +300,6 @@ const initialMonthEvents = initialDays
   lang="id"
   canonical="https://mabims.dev/kalender-hijriah/"
   altId="https://mabims.dev/kalender-hijriah/"
-  altEn="https://mabims.dev/en/hijri-calendar/"
 >
   <Fragment slot="head">
     <script type="application/ld+json">
@@ -326,6 +386,32 @@ const initialMonthEvents = initialDays
     </div>
 
     <p class="kh-status" data-status hidden></p>
+
+    {yearRows.length > 0 && (
+    <details class="kh-year-details">
+      <summary>Tampilkan rentang per bulan (12 bulan, {currentYear} H)</summary>
+      <div class="kh-year-table-wrap">
+        <table class="kh-year-table">
+          <thead>
+            <tr><th>Bulan Hijriah</th><th>Tanggal Masehi</th><th>Jumlah hari</th></tr>
+          </thead>
+          <tbody>
+            {yearRows.map((r) => (
+              <tr>
+                <th scope="row">{r.name}</th>
+                <td>{r.start === r.end ? r.start : `${r.start} – ${r.end}`}</td>
+                <td>{r.days}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p class="kh-year-note">
+          Ukuran kalender Hijriah berbasis data publik Kemenag. Bulan berikutnya tetap dikonfirmasi
+          lewat hasil rukyah dan sidang isbat.
+        </p>
+      </div>
+    </details>
+    )}
   </section>
 
   {/* ── Hilal cards (featured, hijri month nav) ── */}
@@ -401,17 +487,21 @@ const initialMonthEvents = initialDays
     </div>
     <div class="kh-events-list" data-events-list>
       {events.length === 0 && <p class="kh-loading">Memuat tanggal penting…</p>}
-      {events.map((e) => {
+      {events.filter((e) => e.event !== 'ayyamul_bidh').map((e) => {
         const g = new Date(`${e.gregorian}T00:00:00`);
         return (
           <article class="kh-event-row">
             <div class="kh-event-date">
-              <span class="kh-event-day">{g.getDate()}</span>
-              <span class="kh-event-month">{GREG_MONTHS[g.getMonth()]} {g.getFullYear()}</span>
+              <span class="kh-event-day">{g.getDate()} {GREG_MONTHS[g.getMonth()]}</span>
+              <span class="kh-event-year">{g.getFullYear()}</span>
             </div>
             <div class="kh-event-body">
               <span class="kh-event-name">{EVENT_NAMES[e.event] ?? e.name}</span>
-              <span class="kh-event-hijri">{e.hijri}</span>
+              <span class="kh-event-hijri">
+                {e.date_range
+                  ? `${Number(e.date_range.hijri_start.slice(8, 10))}–${Number(e.date_range.hijri_end.slice(8, 10))} · ${e.hijri.slice(0, 7)}`
+                  : e.hijri}
+              </span>
             </div>
           </article>
         );
@@ -427,11 +517,10 @@ const initialMonthEvents = initialDays
     <div class="kh-about-grid">
       <div class="kh-about-text">
         <p>
-          <strong>MABIMS</strong> (Majelis Keputusan Bersama) adalah standar hisab awal bulan
-          Hijriah dari <strong>Kementerian Agama Republik Indonesia</strong>. Kriteria terbaru,
-          <em>Neo MABIMS</em>, mensyaratkan tinggi bulan sabit minimal <strong>3°</strong> dan
-          elongasi minimal <strong>6,4°</strong> saat matahari terbenam — diuji di 25 titik
-          pengamatan pesisir dari Aceh sampai Rote.
+          <strong>MABIMS</strong> (Menteri Agama Brunei, Indonesia, Malaysia, dan Singapura)
+          adalah standar penentuan awal bulan Hijriah yang digunakan oleh <strong>Kementerian Agama Republik Indonesia</strong>.
+          Kriteria terbaru, <em>Neo MABIMS</em>, mensyaratkan tinggi bulan sabit minimal <strong>3°</strong> dan
+          elongasi minimal <strong>6,4°</strong> saat matahari terbenam, dievaluasi di seluruh Indonesia.
         </p>
         <p>
           Halaman ini menyajikan kalender tersebut secara gratis dan terbuka. Semua data berasal
@@ -466,10 +555,89 @@ const initialMonthEvents = initialDays
   </section>
 
   {/* ── CTA (landing style) ── */}
-  <Cta />
+  <Cta hintHref="/blog/cara-pakai-mabims-api/" hintLabel="Lihat tutorial integrasi →" />
 </LandingLayout>
 
 <style is:global>
+  /* ── Section head (shared) ── */
+  .kh-section-head {
+    max-width: 84rem;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .kh-section-head h2 {
+    margin: 0 0 0.75rem;
+    font-size: clamp(1.5rem, 1rem + 2.5vw, 2.25rem);
+    font-weight: 700;
+    color: var(--sl-color-white);
+  }
+  .kh-section-head h2 .accent { color: var(--sl-color-accent); }
+  .kh-section-head p {
+    margin: 0;
+    font-size: clamp(0.95rem, 0.5rem + 1vw, 1.05rem);
+    color: var(--sl-color-gray-2);
+  }
+
+  /* ── 12-month overview ── */
+  .kh-year-details {
+    max-width: 52rem;
+    margin: 1.25rem auto 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .kh-year-details summary {
+    padding: 0.9rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--sl-color-gray-2);
+    cursor: pointer;
+    list-style-position: inside;
+  }
+  .kh-year-details summary:hover { color: var(--sl-color-white); }
+  .kh-year-details[open] summary { border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+  .kh-year-table-wrap {
+    margin: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    overflow: hidden;
+  }
+  .kh-year-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
+  .kh-year-table th,
+  .kh-year-table td {
+    padding: 0.7rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    color: var(--sl-color-gray-2);
+  }
+  .kh-year-table thead th {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sl-color-gray-3);
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .kh-year-table tbody th {
+    font-weight: 700;
+    color: var(--sl-color-white);
+    white-space: nowrap;
+  }
+  .kh-year-table tbody tr:last-child th,
+  .kh-year-table tbody tr:last-child td { border-bottom: none; }
+  .kh-year-note {
+    max-width: 52rem;
+    margin: 0.9rem auto 0;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.42);
+  }
+
   /* ── Hero ── */
   .kh-hero {
     position: relative;
@@ -733,8 +901,8 @@ const initialMonthEvents = initialDays
   @media (prefers-reduced-motion: reduce) {
     .kh-skel::after { animation: none; }
   }
-  .kc.has-event { background: rgba(254, 207, 70, 0.06); }
   .kc.is-weekend { background: rgba(255, 255, 255, 0.012); }
+  .kc.has-event { background: rgba(254, 207, 70, 0.06); }
   .kc.has-event::after {
     content: '';
     position: absolute;
@@ -1037,28 +1205,39 @@ const initialMonthEvents = initialDays
   }
   .kh-event-row {
     display: grid;
-    grid-template-columns: 5rem minmax(0, 1fr);
+    grid-template-columns: 5.5rem minmax(0, 1fr);
     align-items: center;
     gap: 1rem;
-    padding: 0.9rem 1.1rem;
+    padding: 0.75rem 1rem;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 14px;
+    transition: border-color 0.2s ease;
+  }
+  .kh-event-row:hover {
+    border-color: rgba(255, 207, 70, 0.2);
   }
   .kh-event-date {
     display: flex;
     flex-direction: column;
     line-height: 1.1;
+    width: 5.5rem;
+    flex-shrink: 0;
   }
   .kh-event-day {
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     font-weight: 800;
     color: var(--sl-color-accent);
   }
   .kh-event-month {
-    font-size: 0.72rem;
-    color: var(--sl-color-gray-3);
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--sl-color-accent);
     text-transform: uppercase;
+  }
+  .kh-event-year {
+    font-size: 0.75rem;
+    color: var(--sl-color-gray-3);
     letter-spacing: 0.06em;
   }
   .kh-event-body {
@@ -1067,15 +1246,26 @@ const initialMonthEvents = initialDays
     gap: 0.15rem;
   }
   .kh-event-name {
-    font-size: 1.6rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--sl-color-white);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .kh-event-hijri {
     font-size: 0.8rem;
     color: var(--sl-color-gray-3);
   }
   .kh-loading { color: var(--sl-color-gray-3); }
+
+  @media (min-width: 54rem) {
+    .kh-events-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+  }
 
   /* ── About ── */
   .kh-about { padding: clamp(3rem, 6vw, 5rem) 0; }
@@ -1178,12 +1368,16 @@ const initialMonthEvents = initialDays
     idul_adha: 'Idul Adha',
     '1_muharram': 'Tahun Baru Islam',
     maulid_nabi: 'Maulid Nabi Muhammad ﷺ',
+    isra_miraj: "Isra Mi'raj Nabi Muhammad ﷺ",
   };
 
   const $ = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel);
 
   type DayItem = { gregorian: string; hijri: string; source: string };
-  type EventItem = { event: string; name: string; hijri: string; gregorian: string };
+  type EventItem = {
+    event: string; name: string; hijri: string; gregorian: string;
+    date_range: { hijri_start: string; hijri_end: string; gregorian_start: string; gregorian_end: string } | null;
+  };
   type Today = { day: number; month: number; month_name: string; year: number };
 
   const NOW = new Date();
@@ -1193,6 +1387,7 @@ const initialMonthEvents = initialDays
     month: 1, // month within the active mode
     mode: 'hijri' as 'hijri' | 'gregorian',
     events: new Map<string, string>(),
+    eventsList: [] as EventItem[],
     todayHijri: '',
     todayGreg: '',
     // hijri year the page opened on; hijri mode is pinned to it
@@ -1281,19 +1476,57 @@ const initialMonthEvents = initialDays
   }
 
   function renderExtras(days: DayItem[]) {
-    const monthEvents = [];
-    const seen = new Set<string>();
-    for (const d of days) {
-      const name = state.events.get(d.hijri);
-      if (!name || seen.has(d.hijri)) continue;
-      seen.add(d.hijri);
-      const label = `${Number(d.hijri.slice(8, 10))} ${HIJRI_MONTHS[Number(d.hijri.slice(5, 7)) - 1]} · ${name}`;
-      monthEvents.push(label);
+    const badges: { key: string; label: string }[] = [];
+    const nameOf = (e: EventItem) => EVENT_NAMES[e.event] ?? e.name;
+    if (state.mode === 'gregorian') {
+      // label with gregorian dates, and only show events that actually
+      // fall inside the displayed gregorian month
+      const shown = new Set(days.map((d) => d.gregorian));
+      for (const e of state.eventsList) {
+        if (e.date_range) {
+          const overlap = days.filter(
+            (d) => d.gregorian >= e.date_range!.gregorian_start && d.gregorian <= e.date_range!.gregorian_end,
+          );
+          if (!overlap.length) continue;
+          const first = overlap[0].gregorian;
+          const last = overlap[overlap.length - 1].gregorian;
+          const mon = GREG_MONTHS_LONG[Number(first.slice(5, 7)) - 1];
+          const span = first === last
+            ? `${Number(first.slice(8, 10))}`
+            : `${Number(first.slice(8, 10))}–${Number(last.slice(8, 10))}`;
+          badges.push({ key: first, label: `${span} ${mon} · ${nameOf(e)}` });
+        } else {
+          if (!shown.has(e.gregorian)) continue;
+          badges.push({
+            key: e.gregorian,
+            label: `${Number(e.gregorian.slice(8, 10))} ${GREG_MONTHS_LONG[Number(e.gregorian.slice(5, 7)) - 1]} · ${nameOf(e)}`,
+          });
+        }
+      }
+    } else {
+      const yms = new Set(days.map((d) => d.hijri.slice(0, 7)));
+      for (const e of state.eventsList) {
+        if (!yms.has(e.hijri.slice(0, 7))) continue;
+        const name = EVENT_NAMES[e.event] ?? e.name;
+        const mn = HIJRI_MONTHS[Number(e.hijri.slice(5, 7)) - 1];
+        if (e.date_range) {
+          badges.push({
+            key: e.date_range.hijri_start,
+            label: `${Number(e.date_range.hijri_start.slice(8, 10))}–${Number(e.date_range.hijri_end.slice(8, 10))} ${mn} · ${name}`,
+          });
+        } else {
+          badges.push({
+            key: e.hijri,
+            label: `${Number(e.hijri.slice(8, 10))} ${mn} · ${name}`,
+          });
+        }
+      }
     }
+    badges.sort((a, b) => a.key.localeCompare(b.key));
     const evEl = $('[data-events]');
     if (evEl) {
-      evEl.hidden = monthEvents.length === 0;
-      evEl.innerHTML = monthEvents.map((e) => `<span class="kh-ev-badge">${e}</span>`).join('');
+      evEl.hidden = badges.length === 0;
+      evEl.innerHTML = badges.map((b) => `<span class="kh-ev-badge">${b.label}</span>`).join('');
     }
   }
 
@@ -1624,10 +1857,22 @@ const initialMonthEvents = initialDays
         state.month = o.month;
       }
 
-      const evBody = await api('/api/v1/events', { year: String(o.year), calendar: 'hijri' });
-      state.events = new Map(
-        ((evBody.events ?? []) as EventItem[]).map((e) => [e.hijri, EVENT_NAMES[e.event] ?? e.name])
-      );
+      const evBody = await api('/api/v1/events', { year: String(o.year), calendar: 'hijri', include: 'all' });
+      state.eventsList = (evBody.events ?? []) as EventItem[];
+      state.events = new Map<string, string>();
+      for (const e of state.eventsList) {
+        const name = EVENT_NAMES[e.event] ?? e.name;
+        if (e.date_range) {
+          const ym = e.hijri.slice(0, 8);
+          const sd = Number(e.date_range.hijri_start.slice(8, 10));
+          const ed = Number(e.date_range.hijri_end.slice(8, 10));
+          for (let d = sd; d <= ed; d++) {
+            state.events.set(`${ym}${String(d).padStart(2, '0')}`, name);
+          }
+        } else {
+          state.events.set(e.hijri, name);
+        }
+      }
 
       // Masehi clamp bounds: the gregorian months containing the first day
       // (Muharram) and last day (Dzulhijjah) of the current hijri year
@@ -1646,14 +1891,16 @@ const initialMonthEvents = initialDays
       // Render events list section (fresh, in case SSR failed)
       const list = $('[data-events-list]');
       if (list && evBody.events?.length) {
-        list.innerHTML = (evBody.events as EventItem[]).map((e) => {
+        list.innerHTML = (evBody.events as EventItem[]).filter((e) => e.event !== 'ayyamul_bidh').map((e) => {
           const g = new Date(`${e.gregorian}T00:00:00`);
           const day = g.getDate();
-          const mon = `${GREG_MONTHS[g.getMonth()]} ${g.getFullYear()}`;
-          return `<article class="kh-event-row"><div class="kh-event-date"><span class="kh-event-day">${day}</span>` +
-            `<span class="kh-event-month">${mon}</span></div><div class="kh-event-body">` +
+          const mon = GREG_MONTHS[g.getMonth()];
+          return `<article class="kh-event-row"><div class="kh-event-date"><span class="kh-event-day">${day} ${mon}</span>` +
+            `<span class="kh-event-year">${g.getFullYear()}</span></div><div class="kh-event-body">` +
             `<span class="kh-event-name">${EVENT_NAMES[e.event] ?? e.name}</span>` +
-            `<span class="kh-event-hijri">${e.hijri}</span></div></article>`;
+            `<span class="kh-event-hijri">${e.date_range
+              ? `${Number(e.date_range.hijri_start.slice(8, 10))}–${Number(e.date_range.hijri_end.slice(8, 10))} · ${e.hijri.slice(0, 7)}`
+              : e.hijri}</span></div></article>`;
         }).join('');
       }
 
