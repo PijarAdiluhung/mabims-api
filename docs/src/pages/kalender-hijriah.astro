@@ -9,9 +9,10 @@ const HIJRI_MONTHS = [
   'Jumadil Awal', 'Jumadil Akhir', 'Rajab', "Sya'ban",
   'Ramadhan', 'Syawal', "Dzulqa'dah", 'Dzulhijjah',
 ];
-const WEEKDAYS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-const WEEKDAYS_FULL_NAME = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-const WEEKDAYS_FULL = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+const WEEKDAYS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Ahd'];
+const WEEKDAYS_FULL_NAME = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Ahad'];
+const WEEKDAYS_FULL = ['Ahd', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+const ahad = (s: string) => s.replace('Minggu', 'Ahad');
 const GREG_MONTHS = [
   'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
   'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
@@ -42,7 +43,7 @@ try {
     todayOut = body.output;
     todayGregIso = body.input.date;
     const d = new Date(`${body.input.date}T00:00:00`);
-    const weekday = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d);
+    const weekday = ahad(new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d));
     const greg = new Intl.DateTimeFormat('id-ID', {
       day: 'numeric', month: 'long', year: 'numeric',
     }).format(d);
@@ -145,8 +146,8 @@ try {
 const numId = (v: number) => v.toFixed(1).replace('.', ',');
 const fmtAltId = (v: number) => `${v > 0 ? '+' : ''}${numId(v)}°`;
 const idDate = (iso: string) =>
-  new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-    .format(new Date(`${iso}T00:00:00`));
+  ahad(new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    .format(new Date(`${iso}T00:00:00`)));
 
 let hilalExplainHtml = 'Memuat…';
 let hilalFactsHtml = '';
@@ -1388,7 +1389,8 @@ const initialMonthEvents: string[] = [];
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
   ];
-  const WEEKDAYS_FULL = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+  const WEEKDAYS_FULL = ['Ahd', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+  const ahad = (s: string) => s.replace('Minggu', 'Ahad');
   const EVENT_NAMES: Record<string, string> = {
     awal_ramadan: 'Awal Ramadan',
     idul_fitri: 'Idul Fitri',
@@ -1447,9 +1449,9 @@ const initialMonthEvents: string[] = [];
   }
 
   function fmtDateLong(iso: string) {
-    return new Intl.DateTimeFormat('id-ID', {
+    return ahad(new Intl.DateTimeFormat('id-ID', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-    }).format(new Date(`${iso}T00:00:00`));
+    }).format(new Date(`${iso}T00:00:00`)));
   }
 
   function renderGridHijri(days: DayItem[]) {
@@ -1883,7 +1885,7 @@ const initialMonthEvents: string[] = [];
 
       const hijriEl = $('[data-today-hijri]');
       const gD = new Date(`${today.input.date}T00:00:00`);
-      const gWeekday = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(gD);
+      const gWeekday = ahad(new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(gD));
       const gDate = new Intl.DateTimeFormat('id-ID', {
         day: 'numeric', month: 'long', year: 'numeric',
       }).format(gD);
@@ -2002,9 +2004,9 @@ const initialMonthEvents: string[] = [];
   const numId = (v: number) => v.toFixed(1).replace('.', ',');
   const fmtAltId = (v: number) => `${v > 0 ? '+' : ''}${numId(v)}°`;
   const fmtPctId = (v: number) => `${v.toFixed(2).replace('.', ',')}%`;
-  const idDateLong = (iso: string) => new Intl.DateTimeFormat('id-ID', {
+  const idDateLong = (iso: string) => ahad(new Intl.DateTimeFormat('id-ID', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  }).format(new Date(`${iso}T00:00:00`));
+  }).format(new Date(`${iso}T00:00:00`)));
   const idDateShort = (iso: string) => new Intl.DateTimeFormat('id-ID', {
     day: 'numeric', month: 'short', year: 'numeric',
   }).format(new Date(`${iso}T00:00:00`));
@@ -2124,65 +2126,48 @@ const initialMonthEvents: string[] = [];
   // hijri nav initial refresh comes from boot below
 </script>
 
-<dialog class="kh-lightbox" data-lightbox>
-  <button type="button" class="kh-lightbox-close" data-lightbox-close aria-label="Tutup">×</button>
-  <img data-lightbox-img src="" alt="" />
-</dialog>
 <style>
-  .kh-lightbox {
-    width: min(96vw, 900px);
-    max-width: none;
-    padding: 0;
-    border: none;
-    background: transparent;
-    overflow: visible;
+  /* ── PhotoSwipe (shared: src/lib/pswp-lightbox.ts) theme ── */
+  .pswp__bg {
+    background: rgba(10, 10, 14, 0.92);
+    backdrop-filter: blur(6px);
   }
-  .kh-lightbox::backdrop {
-    background: rgba(10, 10, 14, 0.86);
-    backdrop-filter: blur(4px);
-  }
-  .kh-lightbox img {
-    display: block;
-    width: 100%;
-    height: auto;
-    max-height: 82vh;
-    object-fit: contain;
+  .pswp__img {
     border-radius: 12px;
-    background: #1f1235;
   }
-  .kh-lightbox-close {
-    position: absolute;
-    top: -2.6rem;
-    right: 0;
-    width: 2rem;
-    height: 2rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.08);
+  .pswp__button {
     color: #fff;
-    font-size: 1.2rem;
-    line-height: 1;
-    cursor: pointer;
+  }
+  .pswp__hilal-caption {
+    position: absolute;
+    bottom: 0.85rem;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: min(88vw, 720px);
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    text-align: center;
+    backdrop-filter: blur(4px);
+    pointer-events: none;
+  }
+  .pswp__hilal-caption:empty {
+    display: none;
   }
 </style>
 <script>
-  const lightbox = document.querySelector<HTMLDialogElement>('[data-lightbox]');
+  import { openPswp } from '../lib/pswp-lightbox.ts';
+
   document.addEventListener('click', (event) => {
     const target = event.target as HTMLElement;
-    const zoom = target.closest('[data-zoom]');
-    if (zoom && lightbox) {
-      const img = zoom.querySelector('img');
-      const lightboxImg = lightbox.querySelector<HTMLImageElement>('[data-lightbox-img]');
-      if (img && lightboxImg) {
-        lightboxImg.src = img.src;
-        lightboxImg.alt = img.alt;
-        lightbox.showModal();
-      }
+    const zoom = target.closest<HTMLElement>('[data-zoom]');
+    if (zoom) {
+      const img = zoom.querySelector<HTMLImageElement>('img');
+      if (img?.src) openPswp(img.src, img.alt, 1440, 1520);
       return;
     }
-    if (target.closest('[data-lightbox-close]')) lightbox?.close();
-  });
-  lightbox?.addEventListener('click', (event) => {
-    if (event.target === lightbox) lightbox.close();
   });
 </script>

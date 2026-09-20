@@ -1,4 +1,4 @@
-export const WEEKDAYS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
+export const WEEKDAYS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Ahd"];
 export const GREG_MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
   "Jul", "Agu", "Sep", "Okt", "Nov", "Des",

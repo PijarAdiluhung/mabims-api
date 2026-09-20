@@ -3,9 +3,10 @@ import LandingLayout from '../components/LandingLayout.astro';
 import HilalHero from '../components/hilal/HilalHero.astro';
 import SightingFeatured from '../components/hilal/SightingFeatured.astro';
 import SightingHistory from '../components/hilal/SightingHistory.astro';
-import HilalLightbox from '../components/hilal/HilalLightbox.astro';
 
 const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'https://api.mabims.dev';
+
+const ahad = (s: string) => s.replace('Minggu', 'Ahad');
 
 let fallback: { day: number; month_name: string; year: number; greg: string } | null = null;
 try {
@@ -13,12 +14,12 @@ try {
   if (res.ok) {
     const body = await res.json();
     const d = new Date(`${body.input.date}T00:00:00`);
-    const greg = new Intl.DateTimeFormat('id-ID', {
+    const greg = ahad(new Intl.DateTimeFormat('id-ID', {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
       year: 'numeric',
-    }).format(d);
+    }).format(d));
     fallback = {
       day: body.output.day,
       month_name: body.output.month_name,
@@ -51,7 +52,6 @@ const description =
   <HilalHero fallback={fallback} />
   <SightingFeatured />
   <SightingHistory />
-  <HilalLightbox />
 </LandingLayout>
 
 <style is:global>
@@ -1032,61 +1032,6 @@ const description =
     color: #ff8f8f;
   }
 
-  /* ── Lightbox ── */
-  .hilal-lightbox {
-    width: min(96vw, 900px);
-    max-width: none;
-    padding: 0;
-    border: none;
-    background: transparent;
-    overflow: visible;
-  }
-
-  .hilal-lightbox::backdrop {
-    background: rgba(10, 10, 14, 0.86);
-    backdrop-filter: blur(4px);
-  }
-
-  .hilal-lightbox img {
-    display: block;
-    width: 100%;
-    height: auto;
-    max-height: 82vh;
-    object-fit: contain;
-    border-radius: 12px;
-    background: #1f1235;
-  }
-
-  .hilal-lightbox-caption {
-    margin: 0.75rem 0 0;
-    text-align: center;
-    font-size: 0.9rem;
-    color: var(--sl-color-gray-2);
-  }
-
-  .hilal-lightbox-close {
-    position: absolute;
-    top: -2.6rem;
-    right: 0;
-    width: 2rem;
-    height: 2rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
-    font-size: 1.2rem;
-    line-height: 1;
-    cursor: pointer;
-  }
-
-  @media (max-width: 40rem) {
-    .hilal-lightbox-close {
-      top: 0.5rem;
-      right: 0.5rem;
-      background: rgba(0, 0, 0, 0.6);
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .hilal-zoom img,
     .lunation-fill,
@@ -1098,6 +1043,41 @@ const description =
     .hilal-spinner {
       animation: none !important;
     }
+  }
+
+  /* ── PhotoSwipe (shared: src/lib/pswp-lightbox.ts) ── */
+  .pswp__bg {
+    background: rgba(10, 10, 14, 0.92);
+    backdrop-filter: blur(6px);
+  }
+
+  .pswp__img {
+    border-radius: 12px;
+  }
+
+  .pswp__button {
+    color: #fff;
+  }
+
+  .pswp__hilal-caption {
+    position: absolute;
+    bottom: 0.85rem;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: min(88vw, 720px);
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    text-align: center;
+    backdrop-filter: blur(4px);
+    pointer-events: none;
+  }
+
+  .pswp__hilal-caption:empty {
+    display: none;
   }
 </style>
 
@@ -1157,7 +1137,8 @@ const description =
     'mabims-retro': 'Proyeksi retro',
   };
 
-  const fmtDate = (iso: string) => DAY_FMT.format(new Date(`${iso}T00:00:00`));
+  const ahad = (s: string) => s.replace('Minggu', 'Ahad');
+  const fmtDate = (iso: string) => ahad(DAY_FMT.format(new Date(`${iso}T00:00:00`)));
   const fmtDateShort = (iso: string) => SHORT_FMT.format(new Date(`${iso}T00:00:00`));
   const fmtNum = (v: number) => v.toFixed(1).replace('.', ',');
   const fmtAlt = (v: number) => `${v > 0 ? '+' : ''}${fmtNum(v)}°`;
@@ -1486,16 +1467,11 @@ const description =
     if (more) more.hidden = state.shown >= state.history.length;
   }
 
+  // ── Lightbox (PhotoSwipe) ──
+  import { openPswp } from '../lib/pswp-lightbox.ts';
+
   function openLightbox(src: string, caption: string) {
-    const dlg = $('[data-lightbox]') as HTMLDialogElement | null;
-    const img = $('[data-lightbox-img]') as HTMLImageElement | null;
-    const cap = $('[data-lightbox-caption]');
-    if (!dlg || !img) return;
-    img.src = src;
-    img.alt = caption;
-    if (cap) cap.textContent = caption;
-    if (typeof dlg.showModal === 'function') dlg.showModal();
-    else dlg.setAttribute('open', '');
+    openPswp(src, caption, 1440, 1520);
   }
 
   document.addEventListener('click', (event) => {
@@ -1513,11 +1489,6 @@ const description =
       if (img?.src) {
         openLightbox(img.src, img.alt);
       }
-      return;
-    }
-
-    if (target.closest('[data-lightbox-close]')) {
-      ($('[data-lightbox]') as HTMLDialogElement | null)?.close();
       return;
     }
 
@@ -1541,11 +1512,6 @@ const description =
       state.shown += PAGE;
       renderHistory();
     }
-  });
-
-  const lightbox = $('[data-lightbox]') as HTMLDialogElement | null;
-  lightbox?.addEventListener('click', (event) => {
-    if (event.target === lightbox) lightbox.close();
   });
 
   async function setup() {
