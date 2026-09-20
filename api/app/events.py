@@ -162,28 +162,28 @@ def find_events(
     if calendar == "hijri":
         for definition in definitions:
             h_iso = f"{year:04d}-{definition.month:02d}-{definition.day:02d}"
-            result = service.lookup(h_iso, "hijri")
+            result = service.resolve(h_iso, "hijri", retro=retro)
             if result.value is not None:
                 found.append((definition, result.value, h_iso))
         if want_ayyamul_bidh:
             for month in range(1, 13):
                 start, _ = ayyamul_bidh_span(month)
                 h_iso = f"{year:04d}-{month:02d}-{start:02d}"
-                result = service.lookup(h_iso, "hijri")
+                result = service.resolve(h_iso, "hijri", retro=retro)
                 if result.value is not None:
                     found.append((_ayyamul_bidh_definition(month), result.value, h_iso))
     else:
         for hijri_year in range(year - 581, year - 576):
             for definition in definitions:
                 h_iso = f"{hijri_year:04d}-{definition.month:02d}-{definition.day:02d}"
-                result = service.lookup(h_iso, "hijri")
+                result = service.resolve(h_iso, "hijri", retro=retro)
                 if result.value is not None and result.value.startswith(f"{year:04d}-"):
                     found.append((definition, result.value, h_iso))
             if want_ayyamul_bidh:
                 for month in range(1, 13):
                     start, _ = ayyamul_bidh_span(month)
                     h_iso = f"{hijri_year:04d}-{month:02d}-{start:02d}"
-                    result = service.lookup(h_iso, "hijri")
+                    result = service.resolve(h_iso, "hijri", retro=retro)
                     if result.value is not None and result.value.startswith(f"{year:04d}-"):
                         found.append((_ayyamul_bidh_definition(month), result.value, h_iso))
 

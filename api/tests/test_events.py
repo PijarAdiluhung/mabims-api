@@ -103,6 +103,18 @@ def test_events_missing_year(client):
     assert r.json()["error"]["code"] == "missing_parameter"
 
 
+@pytest.fixture(scope="module")
+def computed_client():
+    """Computed tier enabled - needed for dates beyond the curated table."""
+    settings = Settings(
+        allowed_origins=["*"],
+        rate_limit="10000/minute",
+        enable_fallback=True,
+        enable_computed=True,
+    )
+    return TestClient(create_app(settings=settings))
+
+
 def test_events_include_extra(client, real_data):
     r = client.get("/api/v1/events?year=1446&calendar=hijri&include=extra")
     assert r.status_code == 200
@@ -174,6 +186,24 @@ def test_events_ayyamul_bidh(client, real_data):
     zulhijjah = [e for e in bidh if e["hijri"][5:7] == "12"]
     assert zulhijjah[0]["hijri"] == "1446-12-14"
     assert zulhijjah[0]["date_range"]["hijri_end"] == "1446-12-16"
+
+
+def test_events_resolve_computed_days_in_boundary_month(computed_client):
+    """Regression: hijri 1448-07 is nominally inside curated coverage, but its
+    late days (23+) fall in 2027, i.e. the computed tier. An event on such a
+    day (isra_miraj 27 Rajab) must still resolve - the endpoint used to use a
+    table-only lookup that skipped month computation for covered months."""
+    r = computed_client.get("/api/v1/events?year=1448&calendar=hijri&include=all")
+    assert r.status_code == 200
+    body = r.json()
+    slugs = {e["event"] for e in body["events"]}
+    assert {
+        "1_muharram", "maulid_nabi", "awal_ramadan", "idul_fitri", "idul_adha",
+        "isra_miraj", "nuzulul_quran", "arafah", "tasua", "asyura", "tasyrik",
+    } <= slugs
+    isra = next(e for e in body["events"] if e["event"] == "isra_miraj")
+    assert isra["hijri"] == "1448-07-27"
+    assert isra["gregorian"].startswith("2027-")
 
 
 def test_events_ayyamul_bidh_gregorian(client, real_data):
