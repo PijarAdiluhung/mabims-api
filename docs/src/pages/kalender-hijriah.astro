@@ -1,5 +1,6 @@
 ---
 import LandingLayout from '../components/LandingLayout.astro';
+import Cta from '../components/landing/Cta.astro';
 
 const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'https://api.mabims.dev';
 
@@ -75,10 +76,94 @@ const todayHijri = todayOut
 const initialSource = initialDays[0]?.source ?? 'mabims';
 const sourceLabel = initialSource === 'mabims' ? 'Data publik Kemenag' : 'Perhitungan Neo MABIMS';
 
-/* Hilal bare cards for the current month's deciding evening */
-const hilalQuery = todayOut
-  ? `month=${currentMonth}&year=${currentYear}`
-  : 'month=1&year=1447';
+/* Hilal featured: the month whose start the next sighting evening decides */
+type HilalEvening = {
+  hijri_date: string;
+  hijri_day: number;
+  gregorian_date: string;
+  sunset: string;
+  moonset: string;
+  moon_alt_deg: number;
+  elongation_deg: number;
+  illumination_pct: number;
+  age_hours: number;
+  deciding_site: { name: string };
+  visible: boolean;
+  alt_ok: boolean;
+  elong_ok: boolean;
+};
+type HilalInfo = {
+  month: { name: string; number: number; year: number; start: string };
+  previous_month: { name: string; number: number; year: number; length: number };
+  evening: HilalEvening;
+  warnings: string[];
+};
+
+let hilalTarget = { month: Math.min(currentMonth + 1, 12), year: currentYear };
+if (todayOut) {
+  const add = todayOut.day <= 29 ? 1 : 2;
+  let m = todayOut.month + add;
+  let y = currentYear;
+  while (m > 12) { m -= 12; y += 1; }
+  hilalTarget = { month: m, year: y };
+}
+
+let hilalItem: HilalInfo | null = null;
+try {
+  const res = await fetch(`${apiBase}/api/v1/hilal/info?month=${hilalTarget.month}&year=${hilalTarget.year}`);
+  if (res.ok) hilalItem = await res.json();
+} catch {}
+
+const numId = (v: number) => v.toFixed(1).replace('.', ',');
+const fmtAltId = (v: number) => `${v > 0 ? '+' : ''}${numId(v)}°`;
+const idDate = (iso: string) =>
+  new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    .format(new Date(`${iso}T00:00:00`));
+
+let hilalExplainHtml = 'Memuat…';
+let hilalFactsHtml = '';
+if (hilalItem) {
+  const ev = hilalItem.evening;
+  const ok = ev.visible;
+  const borderline = (hilalItem.warnings ?? []).some((w) => /threshold|ambang/i.test(w));
+  const len = hilalItem.previous_month.length;
+  const addStep = len === 29 || (len !== 30 && ok) ? 1 : 2;
+  const startDt = new Date(`${ev.gregorian_date}T00:00:00`);
+  startDt.setDate(startDt.getDate() + addStep);
+  const startIso = startDt.toISOString().slice(0, 10);
+
+  hilalExplainHtml =
+    `Kapan <b class="exp-month">${hilalItem.month.name}</b> dimulai? ` +
+    `Berdasarkan kriteria Neo MABIMS, kondisi bulan pada tanggal ${ev.hijri_day} ` +
+    `${hilalItem.previous_month.name} ` +
+    (ok ? '<b class="is-exp-ok">memenuhi kriteria</b>' : '<b class="is-exp-bad">tidak memenuhi kriteria</b>') +
+    `. Sehingga kemungkinan ${hilalItem.month.name} dimulai tanggal <b>${idDate(startIso)}</b>. ` +
+    'Rincian pemenuhan kriteria Neo MABIMS bisa dilihat di grafik di bawah.';
+
+  const verdictCls = ok && borderline ? 'is-borderline' : ok ? 'is-ok' : 'is-bad';
+  const verdictLabel = ok && borderline ? 'Mendekati batas' : ok ? 'Memenuhi kriteria' : 'Tidak memenuhi kriteria';
+  const chip = (okParam: boolean | null) =>
+    okParam == null ? '' : `<span class="fact-chip ${okParam ? 'is-ok' : 'is-bad'}">${okParam ? 'Lolos' : 'Gagal'}</span>`;
+  const fmtPctId = (v: number) => `${v.toFixed(2).replace('.', ',')}%`;
+  hilalFactsHtml =
+    `<div class="kh-facts-head"><span class="kh-verdict ${verdictCls}">${verdictLabel}</span>` +
+    `<span class="kh-facts-note">1 ${hilalItem.month.name} ${hilalItem.month.year} H · malam ${idDate(ev.gregorian_date)}</span></div>` +
+    `<div class="kh-facts-grid">` +
+    `<div class="kh-fact"><span class="kh-fact-label">Tinggi bulan</span><span class="kh-fact-value">${fmtAltId(ev.moon_alt_deg)}${chip(ev.alt_ok)}</span><span class="kh-fact-min">min. 3,0°</span></div>` +
+    `<div class="kh-fact"><span class="kh-fact-label">Elongasi</span><span class="kh-fact-value">${numId(ev.elongation_deg)}°${chip(ev.elong_ok)}</span><span class="kh-fact-min">min. 6,4°</span></div>` +
+    `<div class="kh-fact"><span class="kh-fact-label">Iluminasi</span><span class="kh-fact-value">${fmtPctId(ev.illumination_pct)}</span></div>` +
+    `<div class="kh-fact"><span class="kh-fact-label">Umur bulan</span><span class="kh-fact-value">${numId(ev.age_hours)} jam</span></div>` +
+    `<div class="kh-fact"><span class="kh-fact-label">Matahari terbenam</span><span class="kh-fact-value">${ev.sunset}</span></div>` +
+    `<div class="kh-fact"><span class="kh-fact-label">Bulan terbenam</span><span class="kh-fact-value">${ev.moonset}</span></div>` +
+    `<div class="kh-fact"><span class="kh-fact-label">Titik pengamat</span><span class="kh-fact-value">${ev.deciding_site.name}</span></div>` +
+    `</div>`;
+}
+
+const hilalQuery = `month=${hilalTarget.month}&year=${hilalTarget.year}`;
+const hilalDateShort = hilalItem
+  ? new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+      .format(new Date(`${hilalItem.evening.gregorian_date}T00:00:00`))
+  : '';
 
 const title = `Kalender Hijriah ${currentYear} H — Kalender MABIMS Indonesia`;
 const description =
@@ -96,7 +181,8 @@ const faqs = [
   },
   {
     q: 'Bagaimana cara mengonversi tanggal Masehi ke Hijriah?',
-    a: 'Gunakan kolom konversi di halaman ini, atau panggil endpoint API gratis https://api.mabims.dev/api/v1/convert?date=YYYY-MM-DD&calendar=gregorian.',
+    aPlain: 'Gunakan konverter di mabims.dev/demo/converter, atau panggil endpoint API gratis https://api.mabims.dev/api/v1/convert?date=YYYY-MM-DD&calendar=gregorian.',
+    aHtml: 'Gunakan <a href="/demo/converter/" style="color:var(--sl-color-accent)">konverter di halaman demo</a>, atau panggil endpoint API gratis <code>https://api.mabims.dev/api/v1/convert?date=YYYY-MM-DD&calendar=gregorian</code>.',
   },
   {
     q: 'Apakah data ini bisa dipakai di aplikasi saya?',
@@ -170,7 +256,7 @@ const initialMonthEvents = initialDays
       mainEntity: faqs.map((f) => ({
         '@type': 'Question',
         name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
+        acceptedAnswer: { '@type': 'Answer', text: f.aPlain ?? f.a },
       })),
     })} />
   </Fragment>
@@ -239,50 +325,68 @@ const initialMonthEvents = initialDays
     <p class="kh-status" data-status hidden></p>
   </section>
 
-  {/* ── Hilal cards ── */}
+  {/* ── Hilal cards (featured, hijri month nav) ── */}
   <section class="kh-hilal" id="hilal">
-    <div class="kh-section-head">
-      <h2>Kenapa bulan ini <span class="accent">dimulai saat itu?</span></h2>
-      <p>
-        Awal bulan Hijriah ditentukan malam hari ke-29. Jika bulan sabit memenuhi kriteria
-        Neo MABIMS — tinggi minimal 3° dan elongasi minimal 6,4° saat matahari terbenam di
-        salah satu dari 25 titik pengamatan pesisir Indonesia — bulan berusia 29 hari.
-        Berikut kondisi langit untuk penentuan awal <strong data-hilal-month>{monthName}</strong>.
-      </p>
+    <div class="kh-hilal-head">
+      <div class="kh-hilal-nav">
+        <button type="button" class="kh-nav-btn" data-hprev aria-label="Bulan sebelumnya" disabled={hilalTarget.month <= 1}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <h2 class="kh-hilal-title">
+          <span data-hmonth>{hilalItem?.month.name ?? HIJRI_MONTHS[hilalTarget.month - 1]}</span>
+          <span class="kh-month-year" data-hyear>{hilalTarget.year} H</span>
+        </h2>
+        <button type="button" class="kh-nav-btn" data-hnext aria-label="Bulan berikutnya" disabled={hilalTarget.month >= 12}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+      <p class="kh-hilal-explain" data-explain set:html={hilalExplainHtml} />
+      <p class="kh-hilal-disclaimer">Hanya estimasi, bukan pengumuman resmi.</p>
     </div>
+
     <div class="kh-hilal-grid">
       <figure class="kh-hilal-figure">
-        <button type="button" class="kh-zoom" data-zoom="viz" aria-label="Perbesar grafik langit hilal">
-          <img
-            data-viz-img
-            src={`${apiBase}/api/v1/hilal/viz?${hilalQuery}&bare=true`}
-            alt={`Grafik langit visibilitas hilal ${monthName} ${currentYear} H`}
-            loading="lazy"
-          />
-        </button>
-        <figcaption>
-          <span class="kh-graphic-title">Grafik langit</span>
-          <a class="kh-download" href={`${apiBase}/api/v1/hilal/viz?${hilalQuery}&download=true`} download="hilal-viz.png">Unduh PNG</a>
-        </figcaption>
-      </figure>
-      <figure class="kh-hilal-figure">
-        <button type="button" class="kh-zoom" data-zoom="map" aria-label="Perbesar peta visibilitas hilal">
+        <button type="button" class="kh-zoom" data-zoom="map" aria-label="Perbesar peta wilayah visibilitas hilal">
           <img
             data-map-img
             src={`${apiBase}/api/v1/hilal/map?${hilalQuery}&bare=true`}
-            alt={`Peta wilayah visibilitas hilal ${monthName} ${currentYear} H`}
+            alt={`Peta wilayah visibilitas hilal ${hilalTarget.month}/${hilalTarget.year}`}
+            width="1440"
+            height="1520"
             loading="lazy"
+            decoding="async"
           />
+          <span class="kh-zoom-hint">Perbesar</span>
         </button>
         <figcaption>
-          <span class="kh-graphic-title">Peta Indonesia</span>
-          <a class="kh-download" href={`${apiBase}/api/v1/hilal/map?${hilalQuery}&download=true`} download="hilal-map.png">Unduh PNG</a>
+          <span class="kh-graphic-title">Peta wilayah</span>
+          <span class="kh-graphic-date" data-map-date>{hilalDateShort}</span>
+          <a class="kh-download" data-map-dl href={`${apiBase}/api/v1/hilal/map?${hilalQuery}&download=true`} download="hilal-map.png">Unduh kartu</a>
+        </figcaption>
+      </figure>
+
+      <figure class="kh-hilal-figure">
+        <button type="button" class="kh-zoom" data-zoom="viz" aria-label="Perbesar grafik langit visibilitas hilal">
+          <img
+            data-viz-img
+            src={`${apiBase}/api/v1/hilal/viz?${hilalQuery}&bare=true`}
+            alt={`Grafik langit visibilitas hilal ${hilalTarget.month}/${hilalTarget.year}`}
+            width="1440"
+            height="1520"
+            loading="lazy"
+            decoding="async"
+          />
+          <span class="kh-zoom-hint">Perbesar</span>
+        </button>
+        <figcaption>
+          <span class="kh-graphic-title">Grafik langit</span>
+          <span class="kh-graphic-date" data-viz-date>{hilalDateShort}</span>
+          <a class="kh-download" data-viz-dl href={`${apiBase}/api/v1/hilal/viz?${hilalQuery}&download=true`} download="hilal-viz.png">Unduh kartu</a>
         </figcaption>
       </figure>
     </div>
-    <p class="kh-hilal-note">
-      Ingin melihat riwayat penentuan sejak 1444 H? Kunjungi halaman <a href="/hilal/">Hilal</a>.
-    </p>
+
+    <div class="kh-facts" data-hilal-facts set:html={hilalFactsHtml} />
   </section>
 
   {/* ── Tanggal penting ── */}
@@ -344,20 +448,6 @@ const initialMonthEvents = initialDays
     </div>
   </section>
 
-  {/* ── CTA ── */}
-  <section class="kh-cta">
-    <div class="kh-cta-card">
-      <h2>Pakai data ini di aplikasi kamu</h2>
-      <p>Satu endpoint, tanpa registrasi. Data kalender yang sama dengan halaman ini:</p>
-      <div class="kh-cta-code"><code>curl "https://api.mabims.dev/api/v1/today"</code></div>
-      <div class="kh-cta-actions">
-        <a href="/quickstart/" class="btn btn-primary">Quickstart</a>
-        <a href="https://api.mabims.dev/playground" class="btn btn-secondary" target="_blank" rel="noopener">Coba Playground</a>
-      </div>
-      <p class="kh-cta-hint">Lebih suka offline? <a href="/en/sdk/">Pakai paket npm mabims-hijri</a>.</p>
-    </div>
-  </section>
-
   {/* ── FAQ ── */}
   <section class="kh-faq" id="faq">
     <div class="kh-section-head">
@@ -366,10 +456,13 @@ const initialMonthEvents = initialDays
     {faqs.map((f) => (
       <details class="kh-faq-item">
         <summary>{f.q}</summary>
-        <p>{f.a}</p>
+        <p set:html={'aHtml' in f ? f.aHtml : f.a} />
       </details>
     ))}
   </section>
+
+  {/* ── CTA (landing style) ── */}
+  <Cta />
 </LandingLayout>
 
 <style is:global>
@@ -694,6 +787,50 @@ const initialMonthEvents = initialDays
 
   /* ── Hilal ── */
   .kh-hilal { padding: clamp(3rem, 6vw, 5rem) 0; }
+  .kh-hilal-head {
+    margin-bottom: clamp(1.75rem, 4vw, 2.75rem);
+  }
+  .kh-hilal-nav {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .kh-hilal-nav .kh-nav-btn:first-of-type { justify-self: start; }
+  .kh-hilal-nav [data-hnext] { justify-self: end; }
+  .kh-hilal-title {
+    margin: 0;
+    text-align: center;
+    font-size: clamp(1.4rem, 1rem + 2vw, 2rem);
+    font-weight: 700;
+    color: var(--sl-color-white);
+  }
+  .kh-hilal-title .kh-month-year {
+    font-weight: 400;
+    font-size: 0.75em;
+    color: var(--sl-color-gray-3);
+  }
+  .kh-hilal-explain {
+    max-width: 52rem;
+    margin: 0;
+    font-size: clamp(0.95rem, 0.5rem + 1vw, 1.05rem);
+    line-height: 1.8;
+    color: var(--sl-color-gray-2);
+  }
+  .kh-hilal-explain .exp-month,
+  .kh-hilal-explain b {
+    color: var(--sl-color-white);
+    font-weight: 700;
+  }
+  .kh-hilal-explain .is-exp-ok { color: #7ed957 !important; }
+  .kh-hilal-explain .is-exp-bad { color: #ff6b6b !important; }
+  .kh-hilal-disclaimer {
+    margin: 0.55rem 0 0;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.42);
+  }
   .kh-hilal-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -709,6 +846,7 @@ const initialMonthEvents = initialDays
     margin: 0;
   }
   .kh-zoom {
+    position: relative;
     display: block;
     width: 100%;
     padding: 0;
@@ -723,17 +861,34 @@ const initialMonthEvents = initialDays
     display: block;
     width: 100%;
     height: auto;
-    aspect-ratio: 1440 / 1520;
+    aspect-ratio: 720 / 1280;
     object-fit: cover;
   }
   .kh-zoom:hover img { transform: scale(1.02); transition: transform 0.4s ease; }
+  .kh-zoom-hint {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    z-index: 1;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1;
+    backdrop-filter: blur(4px);
+  }
   .kh-hilal-figure figcaption {
     display: flex;
     align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.5rem;
     font-size: 0.85rem;
     color: var(--sl-color-gray-3);
   }
   .kh-graphic-title { font-weight: 600; color: var(--sl-color-white); }
+  .kh-graphic-date { font-size: 0.85rem; color: var(--sl-color-gray-3); }
   .kh-download {
     margin-left: auto;
     color: var(--sl-color-accent);
@@ -741,12 +896,89 @@ const initialMonthEvents = initialDays
     text-decoration: none;
   }
   .kh-download:hover { text-decoration: underline; }
-  .kh-hilal-note {
-    margin: 1.5rem 0 0;
-    font-size: 0.9rem;
-    color: var(--sl-color-gray-2);
+
+  /* ── Hilal facts ── */
+  .kh-facts { margin-top: clamp(1.75rem, 4vw, 2.5rem); }
+  .kh-facts-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
   }
-  .kh-hilal-note a { color: var(--sl-color-accent); }
+  .kh-facts-note {
+    font-size: 0.9rem;
+    color: var(--sl-color-gray-3);
+  }
+  .kh-facts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+  }
+  .kh-facts-grid .kh-fact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.9rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    text-align: left;
+  }
+  .kh-facts-grid .kh-fact-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sl-color-gray-3);
+  }
+  .kh-facts-grid .kh-fact-value {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--sl-color-white);
+  }
+  .kh-fact-min { font-size: 0.7rem; color: var(--sl-color-gray-3); }
+  .kh-verdict {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .kh-verdict::before {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .fact-chip {
+    display: inline-flex;
+    padding: 0.12rem 0.4rem;
+    border-radius: 999px;
+    font-size: 0.64rem;
+    font-weight: 700;
+  }
+  .kh-verdict.is-ok,
+  .fact-chip.is-ok {
+    color: #7ed957;
+    background: rgba(126, 217, 87, 0.12);
+  }
+  .kh-verdict.is-bad,
+  .fact-chip.is-bad {
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.12);
+  }
+  .kh-verdict.is-borderline {
+    color: var(--sl-color-accent);
+    background: rgba(254, 207, 70, 0.12);
+  }
 
   /* ── Section head (shared) ── */
   .kh-section-head {
@@ -867,75 +1099,9 @@ const initialMonthEvents = initialDays
     color: var(--sl-color-white);
   }
 
-  /* ── CTA ── */
-  .kh-cta { padding: clamp(3rem, 6vw, 5rem) 0; }
-  .kh-cta-card {
-    position: relative;
-    overflow: hidden;
-    text-align: center;
-    padding: clamp(2.5rem, 5vw, 4rem) 2rem;
-    background: linear-gradient(135deg, rgba(254, 207, 70, 0.06) 0%, rgba(254, 207, 70, 0.02) 100%);
-    border: 1px solid rgba(254, 207, 70, 0.15);
-    border-radius: 20px;
-  }
-  .kh-cta-card h2 {
-    margin: 0 0 0.5rem;
-    font-size: clamp(1.5rem, 1rem + 2.5vw, 2.25rem);
-    font-weight: 700;
-    color: var(--sl-color-white);
-  }
-  .kh-cta-card > p {
-    margin: 0 0 1.25rem;
-    color: var(--sl-color-gray-2);
-  }
-  .kh-cta-code {
-    display: inline-block;
-    margin-bottom: 1.5rem;
-    padding: 0.75rem 1.25rem;
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-  .kh-cta-code code {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.85rem;
-    color: var(--sl-color-accent);
-  }
-  .kh-cta-actions {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-  }
-  .kh-cta-card .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.875rem 1.5rem;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 0.875rem;
-    text-decoration: none;
-  }
-  .kh-cta-card .btn-secondary {
-    color: var(--sl-color-gray-2);
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-  }
-  .kh-cta-card .btn-secondary:hover {
-    color: var(--sl-color-white);
-    border-color: rgba(254, 207, 70, 0.4);
-  }
-  .kh-cta-hint {
-    margin: 1.25rem 0 0;
-    font-size: 0.85rem;
-    color: var(--sl-color-gray-3);
-  }
-  .kh-cta-hint a { color: var(--sl-color-accent); }
-
   /* ── FAQ ── */
   .kh-faq {
-    padding: clamp(3rem, 6vw, 5rem) 0 clamp(4rem, 8vw, 6rem);
+    padding: clamp(3rem, 6vw, 5rem) 0;
   }
   .kh-faq-item {
     border: 1px solid rgba(255, 255, 255, 0.06);
