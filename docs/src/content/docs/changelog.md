@@ -7,7 +7,7 @@ description: Riwayat perubahan API dan dokumentasi MABIMS.
 
 ### Added
 
-- **Parameter `include` di `GET /api/v1/events`** — 5 hari besar bawaan tetap direspons apa adanya; kini bisa diminta tambahan: `include=extra` membuka peringatan tingkat 2 (Isra Mi'raj 27 Rajab, Nuzulul Quran 17 Ramadan, Arafah 9 Dzulhijjah, Tasu'a 9 Muharam, Asyura 10 Muharam, Hari Tasyrik 11–13 Dzulhijjah), `include=ayyamul_bidh` membuka puasa hari putih (13–15 setiap bulan Hijriah, satu event berkisar per bulan, 12 setahun), slug individual bisa dipilih satu per satu, dan `include=all` mengembalikan semuanya.
+- **Parameter `include` di `GET /api/v1/events`** — 5 hari besar bawaan tetap direspons apa adanya; kini bisa diminta tambahan: `include=extra` membuka peringatan tingkat 2 (Isra Mi'raj 27 Rajab, Nuzulul Quran 17 Ramadan, Arafah 9 Dzulhijjah, Tasu'a 9 Muharam, Asyura 10 Muharam, Hari Tasyrik 11–13 Dzulhijjah), `include=ayyamul_bidh` membuka puasa hari putih (13–15 setiap bulan Hijriah, 14–16 di Dzulhijjah karena tanggal 13 adalah Hari Tasyrik, satu event berkisar per bulan, 12 setahun), slug individual bisa dipilih satu per satu, dan `include=all` mengembalikan semuanya.
 - **Field `date_range` pada item event** — event multi-hari (`tasyrik`, `ayyamul_bidh`) membawa `hijri_start`, `hijri_end`, `gregorian_start`, `gregorian_end`; event satu hari bernilai `date_range: null`. Field opsional, tidak breaking.
 - **Gema `input.include`** — respons menggema set include yang diminta (tersortir, `null` bila tanpa parametro) supaya klien bisa memverifikasi.
 - **400 `invalid_include`** — token yang tidak dikenal (mis. `include=ayahsura`) ditolak dengan pesan yang menyebut nilai yang salah.

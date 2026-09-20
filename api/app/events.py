@@ -47,6 +47,18 @@ AYYAMUL_BIDH_NAME = "Puasa Ayyamul Bidh"
 AYYAMUL_BIDH_START_DAY = 13
 AYYAMUL_BIDH_END_DAY = 15
 
+
+def ayyamul_bidh_span(month: int) -> tuple[int, int]:
+    """Start and end day of Ayyamul Bidh for a Hijri month.
+
+    The series is 13-15 of every month, except Dzulhijjah: day 13 is the
+    last day of Tasyrik (fasting is prohibited), so the white days there
+    shift to 14-16.
+    """
+    if month == 12:
+        return (14, 16)
+    return (AYYAMUL_BIDH_START_DAY, AYYAMUL_BIDH_END_DAY)
+
 BASE_SLUGS: frozenset[str] = frozenset(d.slug for d in EVENT_DEFINITIONS)
 EXTRA_SLUGS: frozenset[str] = frozenset(d.slug for d in EXTRA_DEFINITIONS)
 INCLUDE_TOKENS: frozenset[str] = frozenset(
@@ -93,12 +105,13 @@ def parse_include(include: str | None) -> frozenset[str]:
 
 
 def _ayyamul_bidh_definition(month: int) -> EventDefinition:
+    start, end = ayyamul_bidh_span(month)
     return EventDefinition(
         slug=AYYAMUL_BIDH_SLUG,
         name=AYYAMUL_BIDH_NAME,
         month=month,
-        day=AYYAMUL_BIDH_START_DAY,
-        day_end=AYYAMUL_BIDH_END_DAY,
+        day=start,
+        day_end=end,
     )
 
 
@@ -126,8 +139,9 @@ def find_events(
             for definition in definitions:
                 months_needed.add((hijri_year, definition.month))
 
-    # Ayyamul bidh needs days 13-15 of every Hijri month, so the whole year
-    # window must be probed, not just the definitions' months.
+    # Ayyamul bidh needs the 13-15 (Dzulhijjah: 14-16) window of every Hijri
+    # month, so the whole year window must be probed, not just the
+    # definitions' months.
     months_to_probe = set(months_needed)
     if want_ayyamul_bidh:
         if calendar == "hijri":
@@ -153,7 +167,8 @@ def find_events(
                 found.append((definition, result.value, h_iso))
         if want_ayyamul_bidh:
             for month in range(1, 13):
-                h_iso = f"{year:04d}-{month:02d}-{AYYAMUL_BIDH_START_DAY:02d}"
+                start, _ = ayyamul_bidh_span(month)
+                h_iso = f"{year:04d}-{month:02d}-{start:02d}"
                 result = service.lookup(h_iso, "hijri")
                 if result.value is not None:
                     found.append((_ayyamul_bidh_definition(month), result.value, h_iso))
@@ -166,7 +181,8 @@ def find_events(
                     found.append((definition, result.value, h_iso))
             if want_ayyamul_bidh:
                 for month in range(1, 13):
-                    h_iso = f"{hijri_year:04d}-{month:02d}-{AYYAMUL_BIDH_START_DAY:02d}"
+                    start, _ = ayyamul_bidh_span(month)
+                    h_iso = f"{hijri_year:04d}-{month:02d}-{start:02d}"
                     result = service.lookup(h_iso, "hijri")
                     if result.value is not None and result.value.startswith(f"{year:04d}-"):
                         found.append((_ayyamul_bidh_definition(month), result.value, h_iso))

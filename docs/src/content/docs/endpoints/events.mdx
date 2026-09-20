@@ -90,7 +90,9 @@ Item diurutkan berdasarkan tanggal Masehi.
 | `tasua` | Puasa Tasu'a | 1 (Muharam) | 9 | `extra` |
 | `asyura` | Puasa Asyura | 1 (Muharam) | 10 | `extra` |
 | `tasyrik` | Hari Tasyrik | 12 (Zulhijah) | 11–13 | `extra` |
-| `ayyamul_bidh` | Puasa Ayyamul Bidh | semua bulan 1–12 | 13–15 | `ayyamul_bidh` |
+| `ayyamul_bidh` | Puasa Ayyamul Bidh | semua bulan 1–12 | 13–15 (14–16 di Dzulhijjah *) | `ayyamul_bidh` |
+
+\* 13 adalah hari Tasyrik ke-3 (diamalkan haram puasa), jadi ayyamul bidh Dzulhijjah bergeser ke 14–16.
 
 ### Contoh kombinasi `include`
 
@@ -101,7 +103,7 @@ curl "https://api.mabims.dev/api/v1/events?year=2025&calendar=gregorian"
 # + hari tambahan: Isra Mi'raj, Nuzulul Quran, Arafah, Tasu'a, Asyura, Tasyrik
 curl "https://api.mabims.dev/api/v1/events?year=2025&calendar=gregorian&include=extra"
 
-# 5 hari besar + Ayyamul Bidh (13-15 semua bulan Hijriah)
+# 5 hari besar + Ayyamul Bidh (13-15 setiap bulan; 14-16 di Dzulhijjah)
 curl "https://api.mabims.dev/api/v1/events?year=2025&calendar=gregorian&include=ayyamul_bidh"
 
 # + pilih satu-satu

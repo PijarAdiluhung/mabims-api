@@ -171,6 +171,9 @@ def test_events_ayyamul_bidh(client, real_data):
     assert sample["date_range"]["hijri_end"] == f"{sample['hijri'][:7]}-15"
     imp = client.get("/api/v1/events?year=1446&calendar=hijri")
     assert all(e["event"] != "ayyamul_bidh" for e in imp.json()["events"])
+    zulhijjah = [e for e in bidh if e["hijri"][5:7] == "12"]
+    assert zulhijjah[0]["hijri"] == "1446-12-14"
+    assert zulhijjah[0]["date_range"]["hijri_end"] == "1446-12-16"
 
 
 def test_events_ayyamul_bidh_gregorian(client, real_data):

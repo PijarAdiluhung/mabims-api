@@ -42,7 +42,7 @@ curl "https://api.mabims.dev/api/v1/events?year=2025&calendar=gregorian"
 # + tier-2 observances (Isra' and Mi'raj, Nuzulul Quran, Arafah, Tasu'a, Ashura, Tasyrik)
 curl "https://api.mabims.dev/api/v1/events?year=2025&calendar=gregorian&include=extra"
 
-# base 5 + Ayyamul Bidh (13-15 of every Hijri month)
+# base 5 + Ayyamul Bidh (13-15 every month; 14-16 in Dhul Hijjah)
 curl "https://api.mabims.dev/api/v1/events?year=2025&calendar=gregorian&include=ayyamul_bidh"
 
 # cherry-pick
@@ -112,7 +112,9 @@ Items are sorted by Gregorian date.
 | `tasua` | Tasu'a fasting | 1 (Muharram) | 9 | `extra` |
 | `asyura` | Ashura fasting | 1 (Muharram) | 10 | `extra` |
 | `tasyrik` | Days of Tashriq | 12 (Dhu al-Hijjah) | 11–13 | `extra` |
-| `ayyamul_bidh` | Ayyamul Bidh fasting | every month 1–12 | 13–15 | `ayyamul_bidh` |
+| `ayyamul_bidh` | Ayyamul Bidh fasting | every month 1–12 | 13–15 (14–16 in Dhul Hijjah *) | `ayyamul_bidh` |
+
+\* Day 13 is the third Tashriq day (fasting is forbidden there), so the white days in Dhul Hijjah shift to 14–16.
 
 ## Notes
 

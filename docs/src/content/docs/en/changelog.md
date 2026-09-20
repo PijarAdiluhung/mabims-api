@@ -7,7 +7,7 @@ description: History of changes to the MABIMS API and documentation.
 
 ### Added
 
-- **`include` parameter on `GET /api/v1/events`** — the 5 base events are returned by default (unchanged responses), and optional extras can now be requested: `include=extra` adds the tier-2 observances (Isra Mi'raj 27 Rajab, Nuzulul Quran 17 Ramadan, Arafah 9 Dhul Hijjah, Tasu'a 9 Muharram, Ashura 10 Muharram, Days of Tashriq 11–13 Dhul Hijjah), `include=ayyamul_bidh` adds the white days (13–15 of every Hijri month, one ranged event per month, 12 per year), individual slugs can be cherry-picked, and `include=all` returns everything.
+- **`include` parameter on `GET /api/v1/events`** — the 5 base events are returned by default (unchanged responses), and optional extras can now be requested: `include=extra` adds the tier-2 observances (Isra Mi'raj 27 Rajab, Nuzulul Quran 17 Ramadan, Arafah 9 Dhul Hijjah, Tasu'a 9 Muharram, Ashura 10 Muharram, Days of Tashriq 11–13 Dhul Hijjah), `include=ayyamul_bidh` adds the white days (13–15 of every Hijri month, 14–16 in Dhul Hijjah since the 13th is a Tashriq day, one ranged event per month, 12 per year), individual slugs can be cherry-picked, and `include=all` returns everything.
 - **`date_range` field on event items** — multi-day events (`tasyrik`, `ayyamul_bidh`) carry `hijri_start`, `hijri_end`, `gregorian_start`, `gregorian_end`; single-day events have `date_range: null`. Optional field, non-breaking.
 - **`input.include` echo** — the response echoes the requested include set (sorted, `null` when unset) so clients can verify what ran.
 - **400 `invalid_include`** — unknown include tokens (e.g. `include=ayahsura`) are rejected with a message naming the invalid value.

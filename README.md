@@ -71,7 +71,7 @@ The `source` field indicates where the data came from:
 | `GET /api/v1/range?start=&end=&calendar=` | Bulk conversion (≤45 days). `calendar` must be `hijri` or `gregorian`. Beyond table coverage, hijri ranges are served from the computed tier. | 240/min |
 | `GET /api/v1/month?year=&month=&calendar=` | All days in a month. `calendar` must be `hijri` or `gregorian`. Hijri months beyond the table are served from the computed tier. | 240/min |
 | `GET /api/v1/year?year=&calendar=` | All days in a year (12 months). `calendar` must be `hijri` or `gregorian`. | 240/min |
-| `GET /api/v1/events?year=&calendar=&include=` | Islamic observances. Base 5 events by default; `include=extra` adds tier-2 observances (Isra Mi'raj, Nuzulul Quran, Arafah, Tasu'a, Asyura, Tasyrik), `include=ayyamul_bidh` adds the white days (13–15 every Hijri month), or cherry-pick slugs / `all`. | 240/min |
+| `GET /api/v1/events?year=&calendar=&include=` | Islamic observances. Base 5 events by default; `include=extra` adds tier-2 observances (Isra Mi'raj, Nuzulul Quran, Arafah, Tasu'a, Asyura, Tasyrik), `include=ayyamul_bidh` adds the white days (13–15 every Hijri month, 14–16 in Dhul Hijjah since the 13th is a Tasyrik day), or cherry-pick slugs / `all`. | 240/min |
 | `GET /api/v1/hilal/info?month=&year=` | Hilal visibility data for the evening deciding a month start (topocentric altitude + geocentric elongation at the deciding site). | 60/hour |
 | `GET /api/v1/hilal/viz?month=&year=` | Hilal sky chart PNG (720×1280) with the criteria table — scene, values and times at the deciding site. Add `bare=true` for the panel-less high-resolution (1440×1520) web card, or `download=true` to send it as an attachment. | 30/hour |
 | `GET /api/v1/hilal/map?month=&year=` | Hilal visibility map PNG (720×1280): the archipelago visible region, 95 display points and the all-indonesia min–max gauges. Add `bare=true` for the panel-less high-resolution (1440×1520) web card, or `download=true` to send it as an attachment. Available for Hijri 1444–1475 (pre-rendered for 1444–1450 via the CDN image pack, cached renders beyond); outside that range the endpoint refuses. | 30/hour |
@@ -127,7 +127,7 @@ Default (`no include`) — the base 5, unchanged from v1:
 | `tasyrik` | Days of Tashriq | 11–13 Dhul Hijjah |
 
 `include=ayyamul_bidh` → one ranged event per Hijri month (`date_range` field with the
-13–15 span), 12 events per Hijri year. `include=all` → everything. Individual slugs
+13–15 span, except 14–16 in Dhul Hijjah where the 13th is a Tasyrik day), 12 events per Hijri year. `include=all` → everything. Individual slugs
 from tier 2 may also be cherry-picked, comma separated; `input.include` echoes what
 was requested. Multi-day events (`tasyrik`, `ayyamul_bidh`) carry a `date_range` field;
 single-day events have `date_range: null`.
