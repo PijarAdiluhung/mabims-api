@@ -23,6 +23,7 @@ class ConversionOutput(BaseModel):
     month: int
     month_name: str
     year: int
+    weekday: str = Field(description=t("schema.weekday"))
 
 
 SOURCE_DESCRIPTION = t("schema.source")
@@ -47,6 +48,7 @@ class TodayResponse(ConvertResponse):
 class RangeItem(BaseModel):
     gregorian: str
     hijri: str
+    weekday: str = Field(description=t("schema.weekday"))
     source: Source
 
 

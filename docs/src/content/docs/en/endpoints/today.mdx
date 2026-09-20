@@ -1,6 +1,6 @@
----
+﻿---
 title: GET /today
-description: The hero endpoint — today's Hijri date, timezone aware.
+description: The hero endpoint â€” today's Hijri date, timezone aware.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
@@ -51,7 +51,7 @@ nearly all traffic.
 ```json
 {
   "input": { "date": "2026-08-24", "calendar": "gregorian", "tz": "Asia/Jakarta" },
-  "output": { "date": "1448-03-11", "calendar": "hijri", "day": 11, "month": 3, "month_name": "Rabiul Akhir", "year": 1448 },
+  "output": { "date": "1448-03-11", "calendar": "hijri", "day": 11, "month": 3, "month_name": "Rabiul Akhir", "year": 1448, "weekday": "Senin" },
   "source": "mabims",
   "warnings": []
 }
@@ -70,14 +70,14 @@ curl "https://api.mabims.dev/api/v1/today?tz=Asia/Jakarta&next=true"
 ```json
 {
   "input": { "date": "2026-08-24", "calendar": "gregorian", "tz": "Asia/Jakarta" },
-  "output": { "date": "1448-03-11", "calendar": "hijri", "day": 11, "month": 3, "month_name": "Rabiul Akhir", "year": 1448 },
-  "next": { "date": "1448-03-12", "calendar": "hijri", "day": 12, "month": 3, "month_name": "Rabiul Akhir", "year": 1448, "source": "mabims" },
+  "output": { "date": "1448-03-11", "calendar": "hijri", "day": 11, "month": 3, "month_name": "Rabiul Akhir", "year": 1448, "weekday": "Senin" },
+  "next": { "date": "1448-03-12", "calendar": "hijri", "day": 12, "month": 3, "month_name": "Rabiul Akhir", "year": 1448, "weekday": "Selasa", "source": "mabims" },
   "source": "mabims",
   "warnings": []
 }
 ```
 
-Switch your display to `next` once your local maghrib has passed. The API does **not** compute sunset — gate the flip on your own prayer-time clock. Without `next=true` the field is absent and the response is unchanged.
+Switch your display to `next` once your local maghrib has passed. The API does **not** compute sunset â€” gate the flip on your own prayer-time clock. Without `next=true` the field is absent and the response is unchanged.
 
 `next.source` is reported separately because it may differ from the top-level `source` when the rollover crosses the curated-table edge.
 
@@ -105,7 +105,7 @@ Boolean flags accept `true`/`false` (case-insensitive) and `1`/`0`; absent = fal
   <TestButton path="/api/v1/today/{target_date}" />
 </ApiRequest>
 
-Same conversion for any given Gregorian date — useful as a stable, cache-forever resource and
+Same conversion for any given Gregorian date â€” useful as a stable, cache-forever resource and
 for replaying historical days:
 
 ## Caching behaviour

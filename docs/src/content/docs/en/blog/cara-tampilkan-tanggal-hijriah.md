@@ -36,7 +36,8 @@ It returns JSON like this:
     "day": 11,
     "month": 3,
     "month_name": "Rabiul Akhir",
-    "year": 1448
+    "year": 1448,
+    "weekday": "Senin"
   },
   "source": "mabims",
   "warnings": []
@@ -222,7 +223,7 @@ The response is grouped by month (keys `"1"` through `"12"`), each containing an
   "count": 354,
   "months": {
     "1": [
-      { "gregorian": "2025-06-27", "hijri": "1447-01-01", "source": "mabims" }
+      { "gregorian": "2025-06-27", "hijri": "1447-01-01", "weekday": "Jumat", "source": "mabims" }
     ],
     "2": [ "..." ]
   },

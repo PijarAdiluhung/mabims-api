@@ -39,7 +39,8 @@ Contoh tanggal yang masih tersedia di dalam tabel:
     "day": 1,
     "month": 9,
     "month_name": "Ramadhan",
-    "year": 1447
+    "year": 1447,
+    "weekday": "Kamis"
   },
   "source": "mabims",
   "warnings": []
@@ -56,7 +57,8 @@ Kalau tanggal yang diminta sudah berada di luar tabel, bentuk responsnya tetap s
     "day": 1,
     "month": 1,
     "month_name": "Muharram",
-    "year": 1450
+    "year": 1450,
+    "weekday": "Jumat"
   },
   "source": "mabims-computed",
   "warnings": [

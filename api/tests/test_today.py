@@ -64,6 +64,7 @@ def test_today_immutable_date_endpoint(client):
     body = r.json()
     assert body["output"]["date"] == "1446-09-01"
     assert body["output"]["calendar"] == "hijri"
+    assert body["output"]["weekday"] == "Sabtu"
 
 
 def test_today_immutable_cache_headers(client):
@@ -92,6 +93,7 @@ def test_today_next_returns_following_hijri_date(client, real_data):
     assert body["next"]["calendar"] == "hijri"
     assert body["next"]["day"] >= 1
     assert body["next"]["month_name"]
+    assert body["next"]["weekday"]
     assert body["next"]["source"] == "mabims"
 
 

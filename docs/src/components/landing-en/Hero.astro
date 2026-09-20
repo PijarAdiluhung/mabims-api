@@ -408,7 +408,7 @@
 
     const SAMPLE = {
       input: { date: '2026-08-27', calendar: 'gregorian', tz: 'Asia/Jakarta' },
-      output: { date: '1448-03-14', calendar: 'hijri', day: 14, month: 3, month_name: 'Rabiul Akhir', year: 1448 },
+      output: { date: '1448-03-14', calendar: 'hijri', day: 14, month: 3, month_name: 'Rabiul Akhir', year: 1448, weekday: 'Kamis' },
       source: 'mabims',
       warnings: [],
     };
@@ -441,7 +441,7 @@
   "output": {
     "date": "${o.date}", "calendar": "${o.calendar}",
     "day": ${o.day}, "month": ${o.month}, "year": ${o.year},
-    "month_name": "${o.month_name}"
+    "month_name": "${o.month_name}", "weekday": "${o.weekday ?? ''}"
   },
   "source": "${data.source}",
   "warnings": ${JSON.stringify(data.warnings)}

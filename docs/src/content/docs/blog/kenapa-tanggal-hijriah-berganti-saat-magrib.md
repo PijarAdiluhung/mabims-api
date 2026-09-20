@@ -67,7 +67,7 @@ Responsnya:
 ```json
 {
   "input": { "date": "2026-08-24", "calendar": "gregorian", "tz": "Asia/Jakarta" },
-  "output": { "date": "1448-03-11", "calendar": "hijri", "day": 11, "month": 3, "month_name": "Rabiul Akhir", "year": 1448 },
+  "output": { "date": "1448-03-11", "calendar": "hijri", "day": 11, "month": 3, "month_name": "Rabiul Akhir", "year": 1448, "weekday": "Senin" },
   "source": "mabims",
   "warnings": []
 }
@@ -90,7 +90,7 @@ Responsnya sekarang punya satu objek tambahan bernama `next`:
 ```json
 {
   "input": { "date": "2026-08-24", "calendar": "gregorian", "tz": "Asia/Jakarta" },
-  "output": { "date": "1448-03-11", "calendar": "hijri", "day": 11, "month": 3, "month_name": "Rabiul Akhir", "year": 1448 },
+  "output": { "date": "1448-03-11", "calendar": "hijri", "day": 11, "month": 3, "month_name": "Rabiul Akhir", "year": 1448, "weekday": "Senin" },
   "next": { "date": "1448-03-12", "calendar": "hijri", "day": 12, "month": 3, "month_name": "Rabiul Akhir", "year": 1448, "source": "mabims" },
   "source": "mabims",
   "warnings": []

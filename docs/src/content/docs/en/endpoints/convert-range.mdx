@@ -1,4 +1,4 @@
----
+﻿---
 title: GET /convert & /range
 description: Single date conversion and bulk date range conversion.
 ---
@@ -54,13 +54,13 @@ Converts one date in the direction implied by `calendar`.
 ```json
 {
   "input": { "date": "2025-01-03", "calendar": "gregorian" },
-  "output": { "date": "1446-07-03", "calendar": "hijri", "day": 3, "month": 7, "month_name": "Rajab", "year": 1446 },
+  "output": { "date": "1446-07-03", "calendar": "hijri", "day": 3, "month": 7, "month_name": "Rajab", "year": 1446, "weekday": "Jumat" },
   "source": "mabims",
   "warnings": []
 }
 ```
 
-**400** — invalid date format or unknown calendar
+**400** â€” invalid date format or unknown calendar
 
 ```json
 {
@@ -81,7 +81,7 @@ Converts one date in the direction implied by `calendar`.
 
 Boolean flags accept `true`/`false` (case-insensitive) and `1`/`0`; absent = false.
 
-**404** — `date_not_found`: no pair exists for that date
+**404** â€” `date_not_found`: no pair exists for that date
 
 ```json
 {
@@ -111,7 +111,7 @@ Converts every day in an inclusive range.
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `start` / `end` | string | yes | ISO dates; `start ≤ end`; max span 45 days |
+| `start` / `end` | string | yes | ISO dates; `start â‰¤ end`; max span 45 days |
 | `calendar` | string | no (default `gregorian`) | Calendar of the input bounds |
 | `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro`. [See data coverage for the reason why](/en/data-coverage/) |
 
@@ -127,7 +127,7 @@ Converts every day in an inclusive range.
     ```js
     const res = await fetch("https://api.mabims.dev/api/v1/range?start=2025-01-01&end=2025-01-03&calendar=gregorian");
     const data = await res.json();
-    data.items.forEach(i => console.log(i.gregorian, "→", i.hijri));
+    data.items.forEach(i => console.log(i.gregorian, "â†’", i.hijri));
     ```
   </TabItem>
   <TabItem label="PHP">
@@ -135,7 +135,7 @@ Converts every day in an inclusive range.
     $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/range?start=2025-01-01&end=2025-01-03&calendar=gregorian');
     $data = json_decode($response->getBody(), true);
     foreach ($data['items'] as $item) {
-        echo $item['gregorian'] . ' → ' . $item['hijri'] . PHP_EOL;
+        echo $item['gregorian'] . ' â†’ ' . $item['hijri'] . PHP_EOL;
     }
     ```
   </TabItem>
@@ -146,24 +146,24 @@ Converts every day in an inclusive range.
   "input": { "start": "2025-01-01", "end": "2025-01-03", "calendar": "gregorian" },
   "count": 3,
   "items": [
-    { "gregorian": "2025-01-01", "hijri": "1446-07-01", "source": "mabims" },
-    { "gregorian": "2025-01-02", "hijri": "1446-07-02", "source": "mabims" },
-    { "gregorian": "2025-01-03", "hijri": "1446-07-03", "source": "mabims" }
+    { "gregorian": "2025-01-01", "hijri": "1446-07-01", "weekday": "Rabu", "source": "mabims" },
+    { "gregorian": "2025-01-02", "hijri": "1446-07-02", "weekday": "Kamis", "source": "mabims" },
+    { "gregorian": "2025-01-03", "hijri": "1446-07-03", "weekday": "Jumat", "source": "mabims" }
   ],
   "warnings": []
 }
 ```
 
-Each item carries its own `source` — ranges crossing the table boundary can mix
+Each item carries its own `source` â€” ranges crossing the table boundary can mix
 authoritative and computed data.
 
-For `calendar=hijri`, ranges can extend past the public table coverage — Hijri
+For `calendar=hijri`, ranges can extend past the public table coverage â€” Hijri
 months beyond the table are served from the Neo MABIMS computed tier (up to
 2100). `start`/`end` still cap at 45 days.
 
 ### Caching
 
-Responses are immutable per input and sent with `Cache-Control: max-age=86400` — safe to cache
+Responses are immutable per input and sent with `Cache-Control: max-age=86400` â€” safe to cache
 at any layer for a full day.
 
 Every response also carries an ETag. Send `If-None-Match: <etag>` and the server answers 304 Not Modified (empty body) when the data has not changed, with the same `Cache-Control` and ETag headers.

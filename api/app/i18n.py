@@ -482,6 +482,10 @@ _STRINGS: dict[str, dict[str, str]] = {
         "en": "Non-empty when borderline months, computed fallback, or retro projection applies",
         "id": "Tidak kosong saat berlaku bulan di batas ambang, fallback komputasi, atau proyeksi retro",
     },
+    "schema.weekday": {
+        "en": "Weekday name of the calendar day (Indonesian: Ahad, Senin, ..., Sabtu)",
+        "id": "Nama hari untuk tanggal kalender tersebut (Ahad, Senin, ..., Sabtu)",
+    },
     "schema.today.next": {
         "en": (
             "The Hijri date that becomes current after this evening's maghrib. "

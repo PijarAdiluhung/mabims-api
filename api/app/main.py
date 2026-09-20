@@ -293,11 +293,32 @@ GREGORIAN_MONTH_NAMES = {
     9: "September", 10: "October", 11: "November", 12: "December",
 }
 
+# Indonesian weekday names indexed by date.weekday() (Monday=0).
+# Indonesian convention per Kemenag uses Ahad (not Minggu) for Sunday.
+_WEEKDAY_NAMES_ID = (
+    "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Ahad",
+)
 
-def _parse_date_parts(iso: str, calendar: str) -> dict:
+
+def _weekday_id(iso: str) -> str:
+    return _WEEKDAY_NAMES_ID[date.fromisoformat(iso).weekday()]
+
+
+def _parse_date_parts(iso: str, calendar: str, g_iso: str) -> dict:
+    """Date-part labels for one civil day.
+
+    ``iso`` carries the output calendar's day coordinate, ``g_iso`` the
+    same physical day in the Gregorian calendar — the weekday is computed
+    there, because a Hijri ISO string parsed proleptically yields a
+    meaningless weekday. For a Gregorian output ``iso == g_iso``; for a
+    Hijri output the two differ.
+    """
     y, m, d = (int(iso[0:4]), int(iso[5:7]), int(iso[8:10]))
     names = MONTH_NAMES_ID if calendar == "hijri" else GREGORIAN_MONTH_NAMES
-    return {"day": d, "month": m, "month_name": names[m], "year": y}
+    return {
+        "day": d, "month": m, "month_name": names[m], "year": y,
+        "weekday": _weekday_id(g_iso),
+    }
 
 
 class SightingObservation:
@@ -855,9 +876,13 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         value, source = _resolve_pair(target_iso, cal, is_retro)
         opposite = "hijri" if cal == "gregorian" else "gregorian"
         hijri_value = value if cal == "gregorian" else target_iso
+        g_value = value if cal == "hijri" else target_iso
         payload = ConvertResponse(
             input=ConversionInput(date=target_iso, calendar=cal),
-            output=ConversionOutput(date=value, calendar=opposite, **_parse_date_parts(value, opposite)),
+            output=ConversionOutput(
+                date=value, calendar=opposite,
+                **_parse_date_parts(value, opposite, g_value),
+            ),
             source=source,
             warnings=_warnings_for(source, hijri_value),
         )
@@ -895,12 +920,15 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             next_value = NextDate(
                 date=next_iso,
                 calendar="hijri",
-                **_parse_date_parts(next_iso, "hijri"),
+                **_parse_date_parts(next_iso, "hijri", tomorrow.isoformat()),
                 source=next_source,
             )
         payload = TodayResponse(
             input=ConversionInput(date=today_iso, calendar="gregorian", tz=tz_label(tzo)),
-            output=ConversionOutput(date=value, calendar="hijri", **_parse_date_parts(value, "hijri")),
+            output=ConversionOutput(
+                date=value, calendar="hijri",
+                **_parse_date_parts(value, "hijri", today_iso),
+            ),
             source=source,
             warnings=_warnings_for(source, value),
             next=next_value,
@@ -931,7 +959,10 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         value, source = _resolve_pair(target.isoformat(), "gregorian", is_retro)
         payload = ConvertResponse(
             input=ConversionInput(date=target.isoformat(), calendar="gregorian"),
-            output=ConversionOutput(date=value, calendar="hijri", **_parse_date_parts(value, "hijri")),
+            output=ConversionOutput(
+                date=value, calendar="hijri",
+                **_parse_date_parts(value, "hijri", target.isoformat()),
+            ),
             source=source,
             warnings=_warnings_for(source, value),
         )
@@ -959,6 +990,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
                     RangeItem(
                         gregorian=service.h2g[h_iso],
                         hijri=h_iso,
+                        weekday=_weekday_id(service.h2g[h_iso]),
                         source=SOURCE_MABIMS,
                     )
                     for h_iso in curated
@@ -971,7 +1003,10 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             if result.value is None:
                 break
             items.append(
-                RangeItem(gregorian=result.value, hijri=h_iso, source=result.source)
+                RangeItem(
+                    gregorian=result.value, hijri=h_iso,
+                    weekday=_weekday_id(result.value), source=result.source,
+                )
             )
         return _relabel_retro(items, retro)
 
@@ -996,6 +1031,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
                 RangeItem(
                     gregorian=iso,
                     hijri=result.value,
+                    weekday=_weekday_id(iso),
                     source=result.source,
                 )
             )

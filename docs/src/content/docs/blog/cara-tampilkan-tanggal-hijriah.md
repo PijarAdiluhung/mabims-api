@@ -36,7 +36,8 @@ Responsnya JSON kayak gini:
     "day": 11,
     "month": 3,
     "month_name": "Rabiul Akhir",
-    "year": 1448
+    "year": 1448,
+    "weekday": "Senin"
   },
   "source": "mabims",
   "warnings": []
@@ -224,7 +225,7 @@ Respons-nya dikelompokkan per bulan (key `"1"` sampai `"12"`), masing-masing ber
   "count": 354,
   "months": {
     "1": [
-      { "gregorian": "2025-06-27", "hijri": "1447-01-01", "source": "mabims" }
+      { "gregorian": "2025-06-27", "hijri": "1447-01-01", "weekday": "Jumat", "source": "mabims" }
     ],
     "2": [ "..." ]
   },

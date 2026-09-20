@@ -57,6 +57,13 @@ def test_gregorian_to_hijri_every_date_in_table(client, real_data):
     assert not failures, f"{len(failures)} mismatches:\n" + "\n".join(failures[:20])
 
 
+_DAY_NAMES = {
+    "Monday": "Senin", "Tuesday": "Selasa", "Wednesday": "Rabu",
+    "Thursday": "Kamis", "Friday": "Jumat", "Saturday": "Sabtu",
+    "Sunday": "Ahad",
+}
+
+
 def test_gregorian_to_hijri_source_is_mabims(client, real_data):
     g2h = real_data["gregorian_to_hijri"]
     sample = list(g2h.items())[::100]
@@ -76,6 +83,40 @@ def test_convert_output_contains_day_month_year(client):
     assert out["day"] == 1
     assert out["month"] == 9
     assert out["year"] == 1446
+    assert out["weekday"] == "Sabtu"
+
+
+def test_convert_weekday_matches_civil_day(client):
+    # 2026-10-11 is the Sunday triggering the original Minggu/Ahad question.
+    r = client.get("/api/v1/convert?date=2026-10-11&calendar=gregorian")
+    assert r.status_code == 200
+    assert r.json()["output"]["weekday"] == "Ahad"
+
+    r = client.get("/api/v1/convert?date=2026-09-21&calendar=gregorian")
+    assert r.status_code == 200
+    assert r.json()["output"]["weekday"] == "Senin"
+
+
+def test_convert_weekday_identical_across_calendars(client):
+    # The weekday belongs to the civil day itself — Hijri and Gregorian
+    # views of the same date must agree.
+    r1 = client.get("/api/v1/convert?date=2025-03-01&calendar=gregorian")
+    r2 = client.get("/api/v1/convert?date=1446-09-01&calendar=hijri")
+    assert r1.status_code == 200 and r2.status_code == 200
+    assert r1.json()["output"]["weekday"] == r2.json()["output"]["weekday"]
+
+
+def test_weekday_every_known_civil_day(client):
+    from datetime import date, timedelta
+
+    cursor = date(2025, 1, 3)
+    for _ in range(45):
+        r = client.get(f"/api/v1/range?start={cursor.isoformat()}&end={cursor.isoformat()}")
+        assert r.status_code == 200
+        item = r.json()["items"][0]
+        g_iso = item["gregorian"]
+        assert item["weekday"] == _DAY_NAMES[date.fromisoformat(g_iso).strftime("%A")], g_iso
+        cursor += timedelta(days=1)
 
 
 # ── Curated table: Hijri → Gregorian ──────────────────────────────────────

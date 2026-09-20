@@ -33,7 +33,7 @@ Response-nya kira-kira begini:
 ```json
 {
   "input": { "date": "2026-08-28", "calendar": "gregorian", "tz": "Asia/Jakarta" },
-  "output": { "date": "1448-03-15", "calendar": "hijri", "day": 15, "month": 3, "month_name": "Rabiul Akhir", "year": 1448 },
+  "output": { "date": "1448-03-15", "calendar": "hijri", "day": 15, "month": 3, "month_name": "Rabiul Akhir", "year": 1448, "weekday": "Jumat" },
   "source": "mabims",
   "warnings": []
 }

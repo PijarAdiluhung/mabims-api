@@ -30,7 +30,7 @@ type EventItem = {
   event: string; name: string; hijri: string; gregorian: string;
   date_range: { hijri_start: string; hijri_end: string; gregorian_start: string; gregorian_end: string } | null;
 };
-type Today = { day: number; month: number; month_name: string; year: number };
+type Today = { day: number; month: number; month_name: string; year: number; weekday?: string };
 
 /* ── SSR fetch (build-time snapshot; client refresh keeps it current) ── */
 let todayOut: Today | null = null;
@@ -43,7 +43,7 @@ try {
     todayOut = body.output;
     todayGregIso = body.input.date;
     const d = new Date(`${body.input.date}T00:00:00`);
-    const weekday = ahad(new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d));
+    const weekday = todayOut.weekday ?? ahad(new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d));
     const greg = new Intl.DateTimeFormat('id-ID', {
       day: 'numeric', month: 'long', year: 'numeric',
     }).format(d);
@@ -1407,7 +1407,7 @@ const initialMonthEvents: string[] = [];
     event: string; name: string; hijri: string; gregorian: string;
     date_range: { hijri_start: string; hijri_end: string; gregorian_start: string; gregorian_end: string } | null;
   };
-  type Today = { day: number; month: number; month_name: string; year: number };
+  type Today = { day: number; month: number; month_name: string; year: number; weekday?: string };
 
   const NOW = new Date();
   const state = {
@@ -1885,7 +1885,7 @@ const initialMonthEvents: string[] = [];
 
       const hijriEl = $('[data-today-hijri]');
       const gD = new Date(`${today.input.date}T00:00:00`);
-      const gWeekday = ahad(new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(gD));
+      const gWeekday = o.weekday ?? ahad(new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(gD));
       const gDate = new Intl.DateTimeFormat('id-ID', {
         day: 'numeric', month: 'long', year: 'numeric',
       }).format(gD);

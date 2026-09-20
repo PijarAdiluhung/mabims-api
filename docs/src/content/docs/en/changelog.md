@@ -3,6 +3,22 @@ title: Changelog
 description: History of changes to the MABIMS API and documentation.
 ---
 
+---
+
+## 1.10.0 — 2026-09-21
+
+### Added
+
+- **`weekday` field on all dates** — `/today`, `/today/{date}`, `/convert` (including `next`), `/range`, `/month`, and `/year` now carry the Indonesian weekday name for the same civil day: `"weekday": "Ahad"`, `"Selasa"`, ..., `"Sabtu"`. Sunday is written **Ahad** (the Kemenag convention), not "Minggu". The name is derived from the Gregorian date of the same physical day, so Hijri and Gregorian views of one date always agree.
+- **OpenAPI description** for the new field via `schema.weekday` (bilingual).
+
+### Notes
+
+- Additive change (semver minor, non-breaking): the new field is always present on `output`/items; no field is removed or retyped. Clients that don't care about weekday names can ignore it.
+- Documented samples on the endpoint pages, landing page, and README were updated alongside; the documentation site now uses `output.weekday` straight from the API with a local fallback for old snapshots.
+
+---
+
 ## 1.9.0 — 2026-09-20
 
 ### Added

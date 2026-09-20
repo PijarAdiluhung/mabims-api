@@ -1,4 +1,4 @@
----
+﻿---
 title: Quickstart
 description: Buat request pertama Anda dalam waktu kurang dari satu menit.
 ---
@@ -24,14 +24,14 @@ curl "https://api.mabims.dev/api/v1/today"
 ```json
 {
   "input": { "date": "2026-08-24", "calendar": "gregorian", "tz": "Asia/Jakarta" },
-  "output": { "date": "1448-03-11", "calendar": "hijri", "day": 11, "month": 3, "month_name": "Rabiul Akhir", "year": 1448 },
+  "output": { "date": "1448-03-11", "calendar": "hijri", "day": 11, "month": 3, "month_name": "Rabiul Akhir", "year": 1448, "weekday": "Senin" },
   "source": "mabims",
   "warnings": []
 }
 ```
 
 :::tip[Coba sendiri]
-Buka [api.mabims.dev/playground](https://api.mabims.dev/playground) untuk mencoba semua endpoint langsung dari browser — isi parameternya, tekan **Send**, dan lihat hasilnya.
+Buka [api.mabims.dev/playground](https://api.mabims.dev/playground) untuk mencoba semua endpoint langsung dari browser â€” isi parameternya, tekan **Send**, dan lihat hasilnya.
 :::
 
 ### Contoh kode
@@ -105,7 +105,7 @@ curl "https://api.mabims.dev/api/v1/convert?date=1446-07-03&calendar=hijri"
 ```json
 {
   "input": { "date": "2025-01-03", "calendar": "gregorian", "tz": null },
-  "output": { "date": "1446-07-03", "calendar": "hijri", "day": 3, "month": 7, "month_name": "Rajab", "year": 1446 },
+  "output": { "date": "1446-07-03", "calendar": "hijri", "day": 3, "month": 7, "month_name": "Rajab", "year": 1446, "weekday": "Jumat" },
   "source": "mabims",
   "warnings": []
 }
@@ -120,14 +120,14 @@ Dua endpoint di atas baru permukaannya. Tidak hanya konversi tanggal: MABIMS API
 | Endpoint | Fungsi |
 |---|---|
 | `GET /today` | Tanggal Hijri hari ini (timezone-aware) |
-| `GET /convert` | Konversi satu tanggal (Masehi ↔ Hijriah) |
+| `GET /convert` | Konversi satu tanggal (Masehi â†” Hijriah) |
 | `GET /range` | Konversi bulk hingga 45 hari |
 | `GET /month` | Semua hari dalam satu bulan |
 | `GET /year` | Semua hari dalam satu tahun (12 bulan) |
 | `GET /events` | Hari besar Islam (Ramadan, Idul Fitri, Idul Adha, 1 Muharram, Maulid Nabi) |
 | `GET /hilal/info` | Data visibilitas hilal (JSON) |
-| `GET /hilal/viz` | Grafik langit hilal (PNG 720×1280) |
-| `GET /hilal/map` | Peta visibilitas hilal (PNG 720×1280) |
+| `GET /hilal/viz` | Grafik langit hilal (PNG 720Ã—1280) |
+| `GET /hilal/map` | Peta visibilitas hilal (PNG 720Ã—1280) |
 | `GET /hilal/history` | Riwayat visibilitas hilal per bulan |
 
 ### Referensi API per endpoint
@@ -152,19 +152,19 @@ npm install mabims-hijri
 
 Detail lengkapnya: [Dokumentasi SDK](/sdk).
 
-Mau lihat hasilnya tanpa menulis kode? Buka [kalender Hijriah MABIMS](/kalender-hijriah/) — kalender sebulan penuh, hari penting Islam, dan data hilal dalam satu halaman.
+Mau lihat hasilnya tanpa menulis kode? Buka [kalender Hijriah MABIMS](/kalender-hijriah/) â€” kalender sebulan penuh, hari penting Islam, dan data hilal dalam satu halaman.
 
 ## Selalu periksa `source`
 
 Setiap respons membawa field `source`:
 
-- `mabims` — dari data publik Kemenag
-- `mabims-computed` — dihitung dengan kriteria [Neo MABIMS](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia)
-- `mabims-retro` — di bawah tabel kurasi (butuh `retro=true`): kriteria Neo MABIMS diproyeksikan ke belakang. Kriteria baru diperkenalkan pada 2022 dan data kurasi baru mulai 2023, jadi tanggal sebelum itu adalah ekstrapolasi murni
+- `mabims` â€” dari data publik Kemenag
+- `mabims-computed` â€” dihitung dengan kriteria [Neo MABIMS](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia)
+- `mabims-retro` â€” di bawah tabel kurasi (butuh `retro=true`): kriteria Neo MABIMS diproyeksikan ke belakang. Kriteria baru diperkenalkan pada 2022 dan data kurasi baru mulai 2023, jadi tanggal sebelum itu adalah ekstrapolasi murni
 
-Kenapa ini penting? Jika `source` = `mabims`, datanya resmi dari Kemenag — bisa dipakai tenang. Data kurasi ini diperbarui setiap tahun, biasanya **pertengahan Oktober**. Untuk tanggal lebih dari itu, respons disajikan dari `mabims-computed` — dihitung dengan kriteria Neo MABIMS, akurat tapi bukan pengumuman resmi.
+Kenapa ini penting? Jika `source` = `mabims`, datanya resmi dari Kemenag â€” bisa dipakai tenang. Data kurasi ini diperbarui setiap tahun, biasanya **pertengahan Oktober**. Untuk tanggal lebih dari itu, respons disajikan dari `mabims-computed` â€” dihitung dengan kriteria Neo MABIMS, akurat tapi bukan pengumuman resmi.
 
-Kalau Anda menyimpan hasil API di cache aplikasi Anda, usahakan refresh cachenya **minimal 1x setahun** — tepat ketika data `mabims` diperbarui untuk tahun baru.
+Kalau Anda menyimpan hasil API di cache aplikasi Anda, usahakan refresh cachenya **minimal 1x setahun** â€” tepat ketika data `mabims` diperbarui untuk tahun baru.
 
 ## `Warnings`
 
@@ -173,15 +173,15 @@ Perlakukan `warnings` sebagai pemberitahuan kepada pengguna apabila ia mengandun
 | Warning | Artinya |
 |---|---|
 | Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (moon altitude >= 3 deg and elongation >= 6.4 deg at local sunset, seen anywhere across the coastal observation sites of Indonesia). | Tanggal di luar tabel, dihitung dengan kriteria Neo MABIMS. |
-| Hijri month {'{ym}'} is close to the Neo MABIMS visibility threshold; the officially announced date may shift by one day. | Bulan Hijri berada di batas ambang kriteria visibilitas — tanggal resmi bisa bergeser ±1 hari. |
-| kemenag_override: 1 {'{bulan}'} {'{tahun}'} H resmi {'{tanggal}'} (Sidang Isbat; kalender terbit Kemenag: {'{tanggal}'}, delta ±n hari). | Bulan ini dikoreksi lewat Sidang Isbat — tanggal resminya beda dengan kalender terbit. Detail: [Sidang Isbat & Koreksi](/isbat-koreksi). |
+| Hijri month {'{ym}'} is close to the Neo MABIMS visibility threshold; the officially announced date may shift by one day. | Bulan Hijri berada di batas ambang kriteria visibilitas â€” tanggal resmi bisa bergeser Â±1 hari. |
+| kemenag_override: 1 {'{bulan}'} {'{tahun}'} H resmi {'{tanggal}'} (Sidang Isbat; kalender terbit Kemenag: {'{tanggal}'}, delta Â±n hari). | Bulan ini dikoreksi lewat Sidang Isbat â€” tanggal resminya beda dengan kalender terbit. Detail: [Sidang Isbat & Koreksi](/isbat-koreksi). |
 
 ## Panduan integrasi lengkap
 
 Butuh panduan step-by-step untuk kasus spesifik?
 
 <CardGrid>
-  <LinkCard title="Tampilkan di Website" href="/blog/cara-tampilkan-tanggal-hijriah" description="Tutorial lengkap: JavaScript, PHP, WordPress — plus cache server & widget kalender bulanan" />
+  <LinkCard title="Tampilkan di Website" href="/blog/cara-tampilkan-tanggal-hijriah" description="Tutorial lengkap: JavaScript, PHP, WordPress â€” plus cache server & widget kalender bulanan" />
   <LinkCard title="Integrasikan ke App iOS/Android" href="/blog/integrasi-mabims-ios-android" description="Strategi cache offline-first untuk app native: pola /year + /today, contoh Swift & Kotlin" />
 </CardGrid>
 
@@ -202,7 +202,7 @@ Respons dilayani dengan header CORS yang fleksibel, sehingga aplikasi client-sid
 
 ### Batas rate & caching
 
-- **CDN edge** (Bunny CDN): 4 request/detik per IP secara terus-menerus, burst 24. Ini adalah batas rate utama — sebagian besar permintaan tidak pernah mencapai origin.
+- **CDN edge** (Bunny CDN): 4 request/detik per IP secara terus-menerus, burst 24. Ini adalah batas rate utama â€” sebagian besar permintaan tidak pernah mencapai origin.
 - **Origin** (FastAPI): 240/menit per IP sebagai cadangan jika CDN dilewati. Endpoint hilal (`/hilal/info`, `/hilal/viz`) lebih ketat di origin (60 atau 30/jam) karena komputasi berat, namun respons-nya di-cache publik di CDN (`s-maxage=86400`) sehingga edges hanya sekali render per hari.
 - Permintaan yang identik dilayani dari cache CDN dan tidak pernah mencapai origin. Dengan jutaan permintaan/hari, origin hanya melihat sekitar satu permintaan per lokasi edge per sumber daya yang di-cache per hari.
 - Respons [`/today`](/endpoints/today) membawa TTL yang kedaluwarsa tepat pada tengah malam waktu lokal, sehingga jawaban yang di-cache tidak pernah basi setelah pergantian hari.

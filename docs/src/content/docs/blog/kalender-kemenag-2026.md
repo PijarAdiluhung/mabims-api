@@ -104,7 +104,7 @@ curl "https://api.mabims.dev/api/v1/convert?date=2026-03-15&calendar=gregorian"
 ```json
 {
   "input": { "date": "2026-03-15", "calendar": "gregorian", "tz": null },
-  "output": { "date": "1447-06-14", "calendar": "hijri", "day": 14, "month": 6, "month_name": "Sya'ban", "year": 1447 },
+  "output": { "date": "1447-06-14", "calendar": "hijri", "day": 14, "month": 6, "month_name": "Sya'ban", "year": 1447, "weekday": "Ahad" },
   "source": "mabims",
   "warnings": []
 }

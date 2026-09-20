@@ -1,4 +1,4 @@
----
+﻿---
 title: GET /month, /months & /year
 description: Kalender bulanan, tahunan, dan daftar nama bulan Hijriah.
 ---
@@ -20,7 +20,7 @@ Mengembalikan semua hari dalam satu bulan.
 | Parameter | Tipe | Wajib | Deskripsi |
 |---|---|---|---|
 | `year` | int | ya | Tahun Hijriah atau Masehi |
-| `month` | int | ya | Bulan 1–12 |
+| `month` | int | ya | Bulan 1â€“12 |
 | `calendar` | string | tidak (bawaan `hijri`) | Kalender untuk `year` dan `month` |
 | `retro` | `true` / `false` | tidak (bawaan `false`) | Mengaktifkan tanggal hasil perhitungan untuk tahun sebelum tabel tersedia, sampai 1 Januari 1945. Data ini diberi tanda `mabims-retro`. [Lihat cakupan data](/data-coverage/) |
 
@@ -36,7 +36,7 @@ Mengembalikan semua hari dalam satu bulan.
     ```js
     const res = await fetch("https://api.mabims.dev/api/v1/month?year=1447&month=1&calendar=hijri");
     const data = await res.json();
-    data.items.forEach(i => console.log(i.gregorian, "→", i.hijri));
+    data.items.forEach(i => console.log(i.gregorian, "â†’", i.hijri));
     ```
   </TabItem>
   <TabItem label="PHP">
@@ -44,7 +44,7 @@ Mengembalikan semua hari dalam satu bulan.
     $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/month?year=1447&month=1&calendar=hijri');
     $data = json_decode($response->getBody(), true);
     foreach ($data['items'] as $item) {
-        echo $item['gregorian'] . ' → ' . $item['hijri'] . PHP_EOL;
+        echo $item['gregorian'] . ' â†’ ' . $item['hijri'] . PHP_EOL;
     }
     ```
   </TabItem>
@@ -57,8 +57,8 @@ Mengembalikan semua hari dalam satu bulan.
   "input": { "year": 1447, "month": 9, "calendar": "hijri" },
   "count": 30,
   "items": [
-    { "gregorian": "2026-03-01", "hijri": "1447-09-01", "source": "mabims" },
-    { "gregorian": "2026-03-02", "hijri": "1447-09-02", "source": "mabims" }
+    { "gregorian": "2026-03-01", "hijri": "1447-09-01", "weekday": "Ahad", "source": "mabims" },
+    { "gregorian": "2026-03-02", "hijri": "1447-09-02", "weekday": "Senin", "source": "mabims" }
   ],
   "warnings": []
 }
@@ -70,11 +70,11 @@ Mengembalikan semua hari dalam satu bulan.
 | `count` | int | Number of days in the month (29 or 30) |
 | `source` | string | `"mabims"` untuk data dari tabel, `"mabims-computed"` untuk hasil perhitungan Neo MABIMS |
 
-Untuk `calendar=hijri`, respons berisi setiap tanggal Masehi yang termasuk dalam bulan Hijriah tersebut (29–30 item). Bulan Hijriah di luar tabel publik, misalnya pada tahun mendatang, tetap dihitung dengan kriteria Neo MABIMS selama masih dalam rentang yang didukung. Bentuk setiap item sama dengan `/range`.
+Untuk `calendar=hijri`, respons berisi setiap tanggal Masehi yang termasuk dalam bulan Hijriah tersebut (29â€“30 item). Bulan Hijriah di luar tabel publik, misalnya pada tahun mendatang, tetap dihitung dengan kriteria Neo MABIMS selama masih dalam rentang yang didukung. Bentuk setiap item sama dengan `/range`.
 
 ## GET /months
 
-Mengembalikan 12 nama bulan Hijriah beserta nomornya. Statis, tidak perlu parameter, dan aman di-cache — gunakan untuk mengisi dropdown atau label di UI.
+Mengembalikan 12 nama bulan Hijriah beserta nomornya. Statis, tidak perlu parameter, dan aman di-cache â€” gunakan untuk mengisi dropdown atau label di UI.
 
 <ApiRequest path="/api/v1/months">
   <TestButton path="/api/v1/months" />
@@ -174,8 +174,8 @@ Mengembalikan semua hari dalam 12 bulan pada satu tahun. Ini lebih praktis darip
   "count": 354,
   "months": {
     "1": [
-      { "gregorian": "2025-06-27", "hijri": "1447-01-01", "source": "mabims" },
-      { "gregorian": "2025-06-28", "hijri": "1447-01-02", "source": "mabims" }
+      { "gregorian": "2025-06-27", "hijri": "1447-01-01", "weekday": "Jumat", "source": "mabims" },
+      { "gregorian": "2025-06-28", "hijri": "1447-01-02", "weekday": "Sabtu", "source": "mabims" }
     ],
     "2": [ "..." ],
     "3": [ "..." ],
@@ -201,7 +201,7 @@ Untuk `calendar=hijri`, bulan Hijriah di luar tabel publik tetap dihitung dengan
 
 | `code` | HTTP | Penyebab |
 |---|---|---|
-| `invalid_month` | 400 | Bulan bukan 1–12 |
+| `invalid_month` | 400 | Bulan bukan 1â€“12 |
 | `invalid_year` | 400 | Tahun di luar batas yang didukung |
 | `invalid_calendar` | 400 | Parameter `calendar` bukan `hijri` atau `gregorian` |
 | `out_of_coverage` | 400 | Bulan di luar cakupan tabel |

@@ -14,12 +14,13 @@ try {
   if (res.ok) {
     const body = await res.json();
     const d = new Date(`${body.input.date}T00:00:00`);
-    const greg = ahad(new Intl.DateTimeFormat('id-ID', {
-      weekday: 'long',
+    const wd = body.output.weekday ?? ahad(new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d));
+    const rest = new Intl.DateTimeFormat('id-ID', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
-    }).format(d));
+    }).format(d);
+    const greg = `${wd}, ${rest}`;
     fallback = {
       day: body.output.day,
       month_name: body.output.month_name,

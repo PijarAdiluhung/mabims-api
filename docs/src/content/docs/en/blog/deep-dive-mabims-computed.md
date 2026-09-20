@@ -39,7 +39,8 @@ For example, a date that is still inside the table:
     "day": 1,
     "month": 9,
     "month_name": "Ramadhan",
-    "year": 1447
+    "year": 1447,
+    "weekday": "Thursday"
   },
   "source": "mabims",
   "warnings": []
@@ -56,7 +57,8 @@ If the date is beyond the table, the response shape stays the same, but the sour
     "day": 1,
     "month": 1,
     "month_name": "Muharram",
-    "year": 1450
+    "year": 1450,
+    "weekday": "Friday"
   },
   "source": "mabims-computed",
   "warnings": [

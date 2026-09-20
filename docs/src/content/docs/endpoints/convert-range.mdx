@@ -1,4 +1,4 @@
----
+﻿---
 title: GET /convert & /range
 description: Mengubah satu tanggal atau beberapa tanggal sekaligus.
 ---
@@ -54,13 +54,13 @@ Mengubah satu tanggal dari satu kalender ke kalender lain. Arah perubahan ditent
 ```json
 {
   "input": { "date": "2025-01-03", "calendar": "gregorian" },
-  "output": { "date": "1446-07-03", "calendar": "hijri", "day": 3, "month": 7, "month_name": "Rajab", "year": 1446 },
+  "output": { "date": "1446-07-03", "calendar": "hijri", "day": 3, "month": 7, "month_name": "Rajab", "year": 1446, "weekday": "Jumat" },
   "source": "mabims",
   "warnings": []
 }
 ```
 
-**400** — format tanggal tidak valid atau kalender tidak dikenal
+**400** â€” format tanggal tidak valid atau kalender tidak dikenal
 
 ```json
 {
@@ -81,7 +81,7 @@ Mengubah satu tanggal dari satu kalender ke kalender lain. Arah perubahan ditent
 
 Flag boolean menerima `true`/`false` (tidak peka huruf besar/kecil) dan `1`/`0`; tanpa param = false.
 
-**404** — `date_not_found`: tidak ada pasangan untuk tanggal tersebut
+**404** â€” `date_not_found`: tidak ada pasangan untuk tanggal tersebut
 
 ```json
 {
@@ -110,7 +110,7 @@ Mengubah setiap hari dalam rentang yang diminta.
 
 | Parameter | Tipe | Wajib | Deskripsi |
 |---|---|---|---|
-| `start` / `end` | string | ya | Tanggal ISO; `start ≤ end`; rentang maks 45 hari |
+| `start` / `end` | string | ya | Tanggal ISO; `start â‰¤ end`; rentang maks 45 hari |
 | `calendar` | string | tidak (bawaan `gregorian`) | Kalender tanggal awal dan akhir |
 | `retro` | `true` / `false` | tidak (bawaan `false`) | Mengaktifkan tanggal hasil perhitungan untuk tahun sebelum tabel tersedia, sampai 1 Januari 1945. Data ini diberi tanda `mabims-retro`. [Lihat cakupan data](/data-coverage/) |
 
@@ -126,7 +126,7 @@ Mengubah setiap hari dalam rentang yang diminta.
     ```js
     const res = await fetch("https://api.mabims.dev/api/v1/range?start=2025-01-01&end=2025-01-03&calendar=gregorian");
     const data = await res.json();
-    data.items.forEach(i => console.log(i.gregorian, "→", i.hijri));
+    data.items.forEach(i => console.log(i.gregorian, "â†’", i.hijri));
     ```
   </TabItem>
   <TabItem label="PHP">
@@ -134,7 +134,7 @@ Mengubah setiap hari dalam rentang yang diminta.
     $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/range?start=2025-01-01&end=2025-01-03&calendar=gregorian');
     $data = json_decode($response->getBody(), true);
     foreach ($data['items'] as $item) {
-        echo $item['gregorian'] . ' → ' . $item['hijri'] . PHP_EOL;
+        echo $item['gregorian'] . ' â†’ ' . $item['hijri'] . PHP_EOL;
     }
     ```
   </TabItem>
@@ -145,9 +145,9 @@ Mengubah setiap hari dalam rentang yang diminta.
   "input": { "start": "2025-01-01", "end": "2025-01-03", "calendar": "gregorian" },
   "count": 3,
   "items": [
-    { "gregorian": "2025-01-01", "hijri": "1446-07-01", "source": "mabims" },
-    { "gregorian": "2025-01-02", "hijri": "1446-07-02", "source": "mabims" },
-    { "gregorian": "2025-01-03", "hijri": "1446-07-03", "source": "mabims" }
+    { "gregorian": "2025-01-01", "hijri": "1446-07-01", "weekday": "Rabu", "source": "mabims" },
+    { "gregorian": "2025-01-02", "hijri": "1446-07-02", "weekday": "Kamis", "source": "mabims" },
+    { "gregorian": "2025-01-03", "hijri": "1446-07-03", "weekday": "Jumat", "source": "mabims" }
   ],
   "warnings": []
 }
