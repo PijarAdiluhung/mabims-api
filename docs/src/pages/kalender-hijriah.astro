@@ -30,12 +30,14 @@ type Today = { day: number; month: number; month_name: string; year: number };
 
 /* ── SSR fetch (build-time snapshot; client refresh keeps it current) ── */
 let todayOut: Today | null = null;
-let todayGregLine: { hijri: string; greg: string } | null = null;
+let todayGregLine: { hijriNumber: string; hijri: string; greg: string } | null = null;
+let todayGregIso = '';
 try {
   const res = await fetch(`${apiBase}/api/v1/today`, { headers: { accept: 'application/json' } });
   if (res.ok) {
     const body = await res.json();
     todayOut = body.output;
+    todayGregIso = body.input.date;
     const d = new Date(`${body.input.date}T00:00:00`);
     const weekday = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d);
     const greg = new Intl.DateTimeFormat('id-ID', {
@@ -131,13 +133,14 @@ if (hilalItem) {
   const startDt = new Date(`${ev.gregorian_date}T00:00:00`);
   startDt.setDate(startDt.getDate() + addStep);
   const startIso = startDt.toISOString().slice(0, 10);
+  const isPast = todayGregIso !== '' && ev.gregorian_date < todayGregIso;
 
   hilalExplainHtml =
     `Kapan <b class="exp-month">${hilalItem.month.name}</b> dimulai? ` +
     `Berdasarkan kriteria Neo MABIMS, kondisi bulan pada tanggal ${ev.hijri_day} ` +
     `${hilalItem.previous_month.name} ` +
     (ok ? '<b class="is-exp-ok">memenuhi kriteria</b>' : '<b class="is-exp-bad">tidak memenuhi kriteria</b>') +
-    `. Sehingga kemungkinan ${hilalItem.month.name} dimulai tanggal <b>${idDate(startIso)}</b>. ` +
+    `. Sehingga ${isPast ? '' : 'kemungkinan '}${hilalItem.month.name} dimulai tanggal <b>${idDate(startIso)}</b>. ` +
     'Rincian pemenuhan kriteria Neo MABIMS bisa dilihat di grafik di bawah.';
 
   const verdictCls = ok && borderline ? 'is-borderline' : ok ? 'is-ok' : 'is-bad';
@@ -328,18 +331,19 @@ const initialMonthEvents = initialDays
   {/* ── Hilal cards (featured, hijri month nav) ── */}
   <section class="kh-hilal" id="hilal">
     <div class="kh-hilal-head">
-      <div class="kh-hilal-nav">
-        <button type="button" class="kh-nav-btn" data-hprev aria-label="Bulan sebelumnya" disabled={hilalTarget.month <= 1}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-        <h2 class="kh-hilal-title">
-          <span data-hmonth>{hilalItem?.month.name ?? HIJRI_MONTHS[hilalTarget.month - 1]}</span>
-          <span class="kh-month-year" data-hyear>{hilalTarget.year} H</span>
-        </h2>
-        <button type="button" class="kh-nav-btn" data-hnext aria-label="Bulan berikutnya" disabled={hilalTarget.month >= 12}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-      </div>
+    <h2 class="kh-section-title">Grafik <span class="accent">Visibilitas</span></h2>
+    <div class="kh-hilal-nav">
+      <button type="button" class="kh-nav-btn" data-hprev aria-label="Bulan sebelumnya" disabled={hilalTarget.month <= 1}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <h3 class="kh-hilal-title">
+        <span data-hmonth>{hilalItem?.month.name ?? HIJRI_MONTHS[hilalTarget.month - 1]}</span>
+        <span class="kh-month-year" data-hyear>{hilalTarget.year} H</span>
+      </h3>
+      <button type="button" class="kh-nav-btn" data-hnext aria-label="Bulan berikutnya" disabled={hilalTarget.month >= 12}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
       <p class="kh-hilal-explain" data-explain set:html={hilalExplainHtml} />
       <p class="kh-hilal-disclaimer">Hanya estimasi, bukan pengumuman resmi.</p>
     </div>
@@ -790,19 +794,24 @@ const initialMonthEvents = initialDays
   .kh-hilal-head {
     margin-bottom: clamp(1.75rem, 4vw, 2.75rem);
   }
+  .kh-section-title {
+    margin: 0 0 1rem;
+    font-size: clamp(1.5rem, 1rem + 2.5vw, 2.25rem);
+    font-weight: 700;
+    color: var(--sl-color-white);
+  }
+  .kh-section-title .accent { color: var(--sl-color-accent); }
   .kh-hilal-nav {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    display: inline-flex;
     align-items: center;
     gap: 0.75rem;
-    margin-bottom: 1rem;
   }
-  .kh-hilal-nav .kh-nav-btn:first-of-type { justify-self: start; }
-  .kh-hilal-nav [data-hnext] { justify-self: end; }
   .kh-hilal-title {
     margin: 0;
+    /* fixed for "Jumadil Akhir" + year so arrows stay put */
+    min-width: 10.4em;
     text-align: center;
-    font-size: clamp(1.4rem, 1rem + 2vw, 2rem);
+    font-size: clamp(1.2rem, 1rem + 1.2vw, 1.5rem);
     font-weight: 700;
     color: var(--sl-color-white);
   }
@@ -813,7 +822,7 @@ const initialMonthEvents = initialDays
   }
   .kh-hilal-explain {
     max-width: 52rem;
-    margin: 0;
+    margin: 1.5rem 0 0;
     font-size: clamp(0.95rem, 0.5rem + 1vw, 1.05rem);
     line-height: 1.8;
     color: var(--sl-color-gray-2);
@@ -861,7 +870,7 @@ const initialMonthEvents = initialDays
     display: block;
     width: 100%;
     height: auto;
-    aspect-ratio: 720 / 1280;
+    aspect-ratio: 1440 / 1520;
     object-fit: cover;
   }
   .kh-zoom:hover img { transform: scale(1.02); transition: transform 0.4s ease; }
@@ -1636,6 +1645,8 @@ const initialMonthEvents = initialDays
     }
   })();
 
+  void loadHilal;
+
   function parseIso(iso: string) {
     // set gregorian mode state from an ISO gregorian date
     state.gregYear = Number(iso.slice(0, 4));
@@ -1644,6 +1655,165 @@ const initialMonthEvents = initialDays
 
   // expose for the toggle wiring above (same script scope hoisting)
   void parseIso;
+
+  /* ── Hilal featured section: month nav (hijri, current year only) ── */
+  type HilalEvening = {
+    hijri_day: number;
+    gregorian_date: string;
+    sunset: string;
+    moonset: string;
+    moon_alt_deg: number;
+    elongation_deg: number;
+    illumination_pct: number;
+    age_hours: number;
+    deciding_site: { name: string };
+    visible: boolean;
+    alt_ok: boolean | null;
+    elong_ok: boolean | null;
+  };
+  type HilalInfo = {
+    month: { name: string; number: number; year: number };
+    previous_month: { name: string; length: number };
+    evening: HilalEvening;
+    warnings?: string[];
+  };
+
+  const hilalState = {
+    year: 0, // filled at boot (current hijri year)
+    month: 0,
+  };
+  // recover initial month/year from SSR markup
+  {
+    const yText = $<HTMLElement>('[data-hyear]')?.textContent?.trim() ?? '';
+    hilalState.year = Number(yText.match(/\d{3,4}/)?.[0] ?? 0) || (state.currentHijriYear as unknown as number) || 1448;
+    const mText = $<HTMLElement>('[data-hmonth]')?.textContent?.trim() ?? '';
+    const idx = HIJRI_MONTHS.findIndex((n) => n.toLowerCase() === mText.toLowerCase());
+    hilalState.month = idx + 1 || 1;
+  }
+
+  const numId = (v: number) => v.toFixed(1).replace('.', ',');
+  const fmtAltId = (v: number) => `${v > 0 ? '+' : ''}${numId(v)}°`;
+  const fmtPctId = (v: number) => `${v.toFixed(2).replace('.', ',')}%`;
+  const idDateLong = (iso: string) => new Intl.DateTimeFormat('id-ID', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  }).format(new Date(`${iso}T00:00:00`));
+  const idDateShort = (iso: string) => new Intl.DateTimeFormat('id-ID', {
+    day: 'numeric', month: 'short', year: 'numeric',
+  }).format(new Date(`${iso}T00:00:00`));
+
+  function hilalVerdict(item: HilalInfo) {
+    const borderline = (item.warnings ?? []).some((w) => /threshold|ambang/i.test(w));
+    if (item.evening.visible && borderline) return { cls: 'is-borderline', label: 'Mendekati batas' };
+    if (item.evening.visible) return { cls: 'is-ok', label: 'Memenuhi kriteria' };
+    return { cls: 'is-bad', label: 'Tidak memenuhi kriteria' };
+  }
+
+  function hilalFactsHtml(item: HilalInfo) {
+    const ev = item.evening;
+    const vi = hilalVerdict(item);
+    const chip = (ok: boolean | null) =>
+      ok == null ? '' : `<span class="fact-chip ${ok ? 'is-ok' : 'is-bad'}">${ok ? 'Lolos' : 'Gagal'}</span>`;
+    const fact = (label: string, value: string, min = '', ok: boolean | null = null) =>
+      `<div class="kh-fact"><span class="kh-fact-label">${label}</span><span class="kh-fact-value">${value}${chip(ok)}</span>` +
+      (min ? `<span class="kh-fact-min">${min}</span>` : '') + `</div>`;
+    return (
+      `<div class="kh-facts-head"><span class="kh-verdict ${vi.cls}">${vi.label}</span>` +
+      `<span class="kh-facts-note">1 ${item.month.name} ${item.month.year} H · malam ${idDateLong(ev.gregorian_date)}</span></div>` +
+      '<div class="kh-facts-grid">' +
+      fact('Tinggi bulan', fmtAltId(ev.moon_alt_deg), 'min. 3,0°', ev.alt_ok) +
+      fact('Elongasi', `${numId(ev.elongation_deg)}°`, 'min. 6,4°', ev.elong_ok) +
+      fact('Iluminasi', fmtPctId(ev.illumination_pct)) +
+      fact('Umur bulan', `${numId(ev.age_hours)} jam`) +
+      fact('Matahari terbenam', ev.sunset) +
+      fact('Bulan terbenam', ev.moonset) +
+      fact('Titik pengamat', ev.deciding_site.name) +
+      '</div>'
+    );
+  }
+
+  function renderHilalSection(item: HilalInfo) {
+    const ev = item.evening;
+    const ok = ev.visible;
+
+    // heading
+    const nameEl = $<HTMLElement>('[data-hmonth]');
+    const yearEl = $<HTMLElement>('[data-hyear]');
+    if (nameEl) nameEl.textContent = item.month.name;
+    if (yearEl) yearEl.textContent = `${item.month.year} H`;
+
+    // explain paragraph
+    const len = item.previous_month.length;
+    const addStep = len === 29 || (len !== 30 && ok) ? 1 : 2;
+    const startDt = new Date(`${ev.gregorian_date}T00:00:00`);
+    startDt.setDate(startDt.getDate() + addStep);
+    const startIso = `${startDt.getFullYear()}-${String(startDt.getMonth() + 1).padStart(2, '0')}-${String(startDt.getDate()).padStart(2, '0')}`;
+    const isPast = state.todayGreg !== '' && ev.gregorian_date < state.todayGreg;
+    const exp = $('[data-explain]');
+    if (exp) {
+      exp.innerHTML =
+        `Kapan <b class="exp-month">${item.month.name}</b> dimulai? ` +
+        `Berdasarkan kriteria Neo MABIMS, kondisi bulan pada tanggal ${ev.hijri_day} ` +
+        `${item.previous_month.name} ` +
+        (ok ? '<b class="is-exp-ok">memenuhi kriteria</b>' : '<b class="is-exp-bad">tidak memenuhi kriteria</b>') +
+        `. Sehingga ${isPast ? '' : 'kemungkinan '}${item.month.name} dimulai tanggal <b>${idDateLong(startIso)}</b>. ` +
+        'Rincian pemenuhan kriteria Neo MABIMS bisa dilihat di grafik di bawah.';
+    }
+
+    // cards
+    const q = `month=${item.month.number}&year=${item.month.year}`;
+    const mapImg = $<HTMLImageElement>('[data-map-img]');
+    const vizImg = $<HTMLImageElement>('[data-viz-img]');
+    if (mapImg) {
+      mapImg.src = `${API}/api/v1/hilal/map?${q}&bare=true`;
+      mapImg.alt = `Peta wilayah visibilitas hilal ${item.month.name} ${item.month.year} H`;
+    }
+    if (vizImg) {
+      vizImg.src = `${API}/api/v1/hilal/viz?${q}&bare=true`;
+      vizImg.alt = `Grafik langit visibilitas hilal ${item.month.name} ${item.month.year} H`;
+    }
+    const dateShort = idDateShort(ev.gregorian_date);
+    for (const el of document.querySelectorAll('[data-map-date],[data-viz-date]')) el.textContent = dateShort;
+    const mapDl = $<HTMLAnchorElement>('[data-map-dl]');
+    const vizDl = $<HTMLAnchorElement>('[data-viz-dl]');
+    if (mapDl) mapDl.href = `${API}/api/v1/hilal/map?${q}&download=true`;
+    if (vizDl) vizDl.href = `${API}/api/v1/hilal/viz?${q}&download=true`;
+
+    // facts
+    const facts = $('[data-hilal-facts]');
+    if (facts) facts.innerHTML = hilalFactsHtml(item);
+  }
+
+  function renderHilalHeader() {
+    const nameEl = $<HTMLElement>('[data-hmonth]');
+    const yearEl = $<HTMLElement>('[data-hyear]');
+    if (nameEl) nameEl.textContent = HIJRI_MONTHS[hilalState.month - 1];
+    if (yearEl) yearEl.textContent = `${hilalState.year} H`;
+    const prev = $('[data-hprev]') as HTMLButtonElement | null;
+    const next = $('[data-hnext]') as HTMLButtonElement | null;
+    if (prev) prev.disabled = hilalState.month === 1;
+    if (next) next.disabled = hilalState.month === 12;
+  }
+
+  async function loadHilal() {
+    renderHilalHeader();
+    try {
+      const item = await api('/api/v1/hilal/info', {
+        month: String(hilalState.month), year: String(hilalState.year),
+      });
+      renderHilalSection(item);
+    } catch {
+      // keep SSR content on failure
+    }
+  }
+
+  $('[data-hprev]')?.addEventListener('click', () => {
+    if (hilalState.month > 1) { hilalState.month -= 1; loadHilal(); }
+  });
+  $('[data-hnext]')?.addEventListener('click', () => {
+    if (hilalState.month < 12) { hilalState.month += 1; loadHilal(); }
+  });
+
+  // hijri nav initial refresh comes from boot below
 </script>
 
 <dialog class="kh-lightbox" data-lightbox>
