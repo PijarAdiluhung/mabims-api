@@ -1,0 +1,1544 @@
+---
+import LandingLayout from '../components/LandingLayout.astro';
+
+const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'https://api.mabims.dev';
+
+const HIJRI_MONTHS = [
+  'Muharram', 'Safar', 'Rabiul Awal', 'Rabiul Akhir',
+  'Jumadil Awal', 'Jumadil Akhir', 'Rajab', "Sya'ban",
+  'Ramadhan', 'Syawal', "Dzulqa'dah", 'Dzulhijjah',
+];
+const WEEKDAYS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+const WEEKDAYS_FULL_NAME = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+const WEEKDAYS_FULL = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+const GREG_MONTHS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+  'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+];
+const EVENT_NAMES: Record<string, string> = {
+  awal_ramadan: 'Awal Ramadan',
+  idul_fitri: 'Idul Fitri',
+  idul_adha: 'Idul Adha',
+  '1_muharram': 'Tahun Baru Islam',
+  maulid_nabi: "Maulid Nabi Muhammad ﷺ",
+};
+
+type DayItem = { gregorian: string; hijri: string; source: string };
+type EventItem = { event: string; name: string; hijri: string; gregorian: string };
+type Today = { day: number; month: number; month_name: string; year: number };
+
+/* ── SSR fetch (build-time snapshot; client refresh keeps it current) ── */
+let todayOut: Today | null = null;
+let todayGregLine: { hijri: string; greg: string } | null = null;
+try {
+  const res = await fetch(`${apiBase}/api/v1/today`, { headers: { accept: 'application/json' } });
+  if (res.ok) {
+    const body = await res.json();
+    todayOut = body.output;
+    const d = new Date(`${body.input.date}T00:00:00`);
+    const weekday = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d);
+    const greg = new Intl.DateTimeFormat('id-ID', {
+      day: 'numeric', month: 'long', year: 'numeric',
+    }).format(d);
+    const gParts = { weekday, greg };
+    todayGregLine = {
+      hijriNumber: `${weekday}, ${todayOut.day} ${todayOut.month_name} ${todayOut.year} H · ${greg}`,
+      hijri: `${todayOut.day} ${todayOut.month_name} ${todayOut.year} H`,
+      greg: greg,
+    };
+  }
+} catch {}
+
+const events: EventItem[] = [];
+if (todayOut) {
+  try {
+    const res = await fetch(`${apiBase}/api/v1/events?year=${todayOut.year}&calendar=hijri`);
+    if (res.ok) events.push(...(await res.json()).events ?? []);
+  } catch {}
+}
+
+const currentMonth = todayOut ? todayOut.month : 1;
+const currentYear = todayOut ? todayOut.year : 1447;
+
+/* Initial month grid, server-rendered so the HTML is crawlable */
+const initialDays: DayItem[] = [];
+if (todayOut) {
+  try {
+    const res = await fetch(`${apiBase}/api/v1/month?year=${currentYear}&month=${currentMonth}&calendar=hijri`);
+    if (res.ok) initialDays.push(...(await res.json()).items ?? []);
+  } catch {}
+}
+
+const todayHijri = todayOut
+  ? `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(todayOut.day).padStart(2, '0')}`
+  : '';
+const initialSource = initialDays[0]?.source ?? 'mabims';
+const sourceLabel = initialSource === 'mabims' ? 'Data publik Kemenag' : 'Perhitungan Neo MABIMS';
+
+/* Hilal bare cards for the current month's deciding evening */
+const hilalQuery = todayOut
+  ? `month=${currentMonth}&year=${currentYear}`
+  : 'month=1&year=1447';
+
+const title = `Kalender Hijriah ${currentYear} H — Kalender MABIMS Indonesia`;
+const description =
+  `Kalender Hijriah ${currentYear} H lengkap berdasarkan kriteria MABIMS Kementerian Agama RI. ` +
+  `Tanggal Hijriah hari ini, konversi Masehi–Hijriah, hari penting Islam, dan visibilitas hilal. Gratis & open-source.`;
+
+const faqs = [
+  {
+    q: 'Apa itu Kalender MABIMS?',
+    a: 'Kalender MABIMS adalah kalender Hijriah yang awal bulannya ditentukan dengan kriteria Neo MABIMS dari Kementerian Agama Republik Indonesia: tinggi bulan minimal 3 derajat dan elongasi minimal 6,4 derajat saat matahari terbenam, diuji di 25 titik pengamatan pesisir Indonesia.',
+  },
+  {
+    q: 'Apakah kalender ini sama dengan kalender Kemenag?',
+    a: `Ya. Untuk rentang tahun yang tercakup tabel resmi, data diambil langsung dari kalender publik Kementerian Agama RI. Di luar rentang tersebut, tanggal dihitung dengan kriteria Neo MABIMS dan ditandai sebagai perhitungan.`,
+  },
+  {
+    q: 'Bagaimana cara mengonversi tanggal Masehi ke Hijriah?',
+    a: 'Gunakan kolom konversi di halaman ini, atau panggil endpoint API gratis https://api.mabims.dev/api/v1/convert?date=YYYY-MM-DD&calendar=gregorian.',
+  },
+  {
+    q: 'Apakah data ini bisa dipakai di aplikasi saya?',
+    a: 'Bisa. Semua data di halaman ini tersedia melalui API publik gratis tanpa autentikasi di mabims.dev, atau melalui paket npm offline mabims-hijri.',
+  },
+];
+
+const monthName = HIJRI_MONTHS[currentMonth - 1];
+const weekdayIndex = (iso: string) => (new Date(`${iso}T00:00:00`).getDay() + 6) % 7;
+const eventsByHijri = new Map(events.map((e) => [e.hijri, e.name]));
+
+/* Build initial grid cells (shared logic with client via data attrs) */
+let gridHTML = '';
+{
+  const days = initialDays;
+  const leading = days.length ? weekdayIndex(days[0].gregorian) : 0;
+  for (let i = 0; i < leading; i++) gridHTML += '<div class="kc is-empty"></div>';
+  for (const item of days) {
+    const hijriDay = Number(item.hijri.slice(8, 10));
+    const [, gm, gd] = item.gregorian.split('-').map(Number);
+    const isFri = weekdayIndex(item.gregorian) === 4;
+    const isToday = item.hijri === todayHijri;
+    const ev = eventsByHijri.get(item.hijri);
+    const isWeekend = weekdayIndex(item.gregorian) >= 5;
+    gridHTML += `<div class="kc${isFri ? ' is-fri' : ''}${isWeekend ? ' is-weekend' : ''}${isToday ? ' is-today' : ''}${ev ? ' has-event' : ''}" data-hijri="${item.hijri}" data-greg="${item.gregorian}">` +
+      `<span class="kc-day">${hijriDay}</span><span class="kc-greg">${gd} ${GREG_MONTHS[gm - 1]}</span>` +
+      (ev ? '<span class="kc-ev"></span>' : '') +
+      `</div>`;
+  }
+  const filled = leading + days.length;
+  const total = Math.ceil(filled / 7) * 7;
+  for (let i = filled; i < total; i++) gridHTML += '<div class="kc is-empty"></div>';
+}
+const HIJRI_MONTHS_SHORT = [
+  'Muh', 'Saf', 'Rb. I', 'Rb. II', 'Jm. I', 'Jm. II', 'Raj', 'Syb',
+  'Ram', 'Syw', 'Dq', 'Dh',
+];
+const initialMonthEvents = initialDays
+  .map((d) => {
+    const name = eventsByHijri.get(d.hijri);
+    if (!name) return null;
+    const label = `${Number(d.hijri.slice(8, 10))} ${HIJRI_MONTHS[Number(d.hijri.slice(5, 7)) - 1]} · ${name}`;
+    return label;
+  })
+  .filter((v): v is string => Boolean(v));
+---
+
+<LandingLayout
+  title={title}
+  description={description}
+  lang="id"
+  canonical="https://mabims.dev/kalender-hijriah/"
+  altId="https://mabims.dev/kalender-hijriah/"
+  altEn="https://mabims.dev/en/hijri-calendar/"
+>
+  <Fragment slot="head">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Kalender Hijriah MABIMS",
+        "url": "https://mabims.dev/kalender-hijriah/",
+        "inLanguage": "id",
+        "isPartOf": { "@type": "WebSite", "name": "mabims.dev", "url": "https://mabims.dev" },
+        "about": "Kalender Hijriah Indonesia berdasarkan kriteria Neo MABIMS Kementerian Agama RI."
+      }
+    </script>
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faqs.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    })} />
+  </Fragment>
+
+  {/* ── Hero ── */}
+  <section class="kh-hero" id="kalender">
+    <div class="kh-stars" aria-hidden="true">
+      <span class="star" style="top:12%;left:8%;opacity:.6"></span>
+      <span class="star" style="top:25%;left:72%;opacity:.5"></span>
+      <span class="star" style="top:68%;left:88%;opacity:.55"></span>
+      <span class="star" style="top:45%;left:18%;opacity:.45"></span>
+      <span class="star" style="top:80%;left:55%;opacity:.5"></span>
+      <span class="star" style="top:15%;left:45%;opacity:.6"></span>
+      <span class="star" style="top:55%;left:92%;opacity:.45"></span>
+      <span class="star" style="top:72%;left:30%;opacity:.55"></span>
+    </div>
+    <div class="kh-hero-inner">
+      <h1 class="kh-title">Kalender Hijriah <span class="kh-accent">MABIMS</span></h1>
+      <p class="kh-today" data-today>
+        <span class="kh-today-line" data-today-hijri>
+          {todayOut && todayGregLine ? `${todayGregLine.hijriNumber} ` : '…'}
+        </span>
+      </p>
+      <p class="kh-criteria">Berdasarkan kalender Kemenag · kriteria Neo MABIMS</p>
+    </div>
+  </section>
+
+  {/* ── Month grid ── */}
+  <section class="kh-cal">
+    <div class="kh-cal-head">
+      <div class="kh-cal-nav">
+        <button type="button" class="kh-nav-btn" data-prev aria-label="Bulan sebelumnya">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <h2 class="kh-month-title">
+          <span data-month-name>{monthName}</span>
+          <span class="kh-month-year" data-month-year>{currentYear} H</span>
+        </h2>
+        <button type="button" class="kh-nav-btn" data-next aria-label="Bulan berikutnya">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+      <div class="kh-cal-tools">
+        <div class="kh-toggle" role="group" aria-label="Tampilan tanggal">
+          <button type="button" class="kh-toggle-btn is-active" data-mode="hijri">Hijriah</button>
+          <button type="button" class="kh-toggle-btn" data-mode="gregorian">Masehi</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="kh-card">
+      <div class="kh-week">
+        {WEEKDAYS.map((d, i) => (
+    <span class:list={['kh-dow', { 'is-fri': i === 4 }]}>
+      <span class="kh-dow-short">{d}</span>
+      <span class="kh-dow-full">{WEEKDAYS_FULL_NAME[i]}</span>
+    </span>
+  ))}
+      </div>
+      <div class="kh-grid" data-grid set:html={gridHTML} />
+      <div class="kh-events" data-events hidden={initialMonthEvents.length === 0}>
+        {initialMonthEvents.map((e) => <span class="kh-ev-badge">{e}</span>)}
+      </div>
+    </div>
+
+    <p class="kh-status" data-status hidden></p>
+  </section>
+
+  {/* ── Hilal cards ── */}
+  <section class="kh-hilal" id="hilal">
+    <div class="kh-section-head">
+      <h2>Kenapa bulan ini <span class="accent">dimulai saat itu?</span></h2>
+      <p>
+        Awal bulan Hijriah ditentukan malam hari ke-29. Jika bulan sabit memenuhi kriteria
+        Neo MABIMS — tinggi minimal 3° dan elongasi minimal 6,4° saat matahari terbenam di
+        salah satu dari 25 titik pengamatan pesisir Indonesia — bulan berusia 29 hari.
+        Berikut kondisi langit untuk penentuan awal <strong data-hilal-month>{monthName}</strong>.
+      </p>
+    </div>
+    <div class="kh-hilal-grid">
+      <figure class="kh-hilal-figure">
+        <button type="button" class="kh-zoom" data-zoom="viz" aria-label="Perbesar grafik langit hilal">
+          <img
+            data-viz-img
+            src={`${apiBase}/api/v1/hilal/viz?${hilalQuery}&bare=true`}
+            alt={`Grafik langit visibilitas hilal ${monthName} ${currentYear} H`}
+            loading="lazy"
+          />
+        </button>
+        <figcaption>
+          <span class="kh-graphic-title">Grafik langit</span>
+          <a class="kh-download" href={`${apiBase}/api/v1/hilal/viz?${hilalQuery}&download=true`} download="hilal-viz.png">Unduh PNG</a>
+        </figcaption>
+      </figure>
+      <figure class="kh-hilal-figure">
+        <button type="button" class="kh-zoom" data-zoom="map" aria-label="Perbesar peta visibilitas hilal">
+          <img
+            data-map-img
+            src={`${apiBase}/api/v1/hilal/map?${hilalQuery}&bare=true`}
+            alt={`Peta wilayah visibilitas hilal ${monthName} ${currentYear} H`}
+            loading="lazy"
+          />
+        </button>
+        <figcaption>
+          <span class="kh-graphic-title">Peta Indonesia</span>
+          <a class="kh-download" href={`${apiBase}/api/v1/hilal/map?${hilalQuery}&download=true`} download="hilal-map.png">Unduh PNG</a>
+        </figcaption>
+      </figure>
+    </div>
+    <p class="kh-hilal-note">
+      Ingin melihat riwayat penentuan sejak 1444 H? Kunjungi halaman <a href="/hilal/">Hilal</a>.
+    </p>
+  </section>
+
+  {/* ── Tanggal penting ── */}
+  <section class="kh-events-section" id="tanggal-penting">
+    <div class="kh-section-head">
+      <h2>Tanggal penting <span class="accent">{currentYear} H</span></h2>
+      <p>Hari-hari istimewa dalam tahun Hijriah {currentYear}, berdasarkan kalender MABIMS.</p>
+    </div>
+    <div class="kh-events-list" data-events-list>
+      {events.length === 0 && <p class="kh-loading">Memuat tanggal penting…</p>}
+      {events.map((e) => {
+        const g = new Date(`${e.gregorian}T00:00:00`);
+        return (
+          <article class="kh-event-row">
+            <div class="kh-event-date">
+              <span class="kh-event-day">{g.getDate()}</span>
+              <span class="kh-event-month">{GREG_MONTHS[g.getMonth()]} {g.getFullYear()}</span>
+            </div>
+            <div class="kh-event-body">
+              <span class="kh-event-name">{EVENT_NAMES[e.event] ?? e.name}</span>
+              <span class="kh-event-hijri">{e.hijri}</span>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  </section>
+
+  {/* ── MABIMS blurb ── */}
+  <section class="kh-about" id="tentang">
+    <div class="kh-section-head">
+      <h2>Tentang <span class="accent">kriteria MABIMS</span></h2>
+    </div>
+    <div class="kh-about-grid">
+      <div class="kh-about-text">
+        <p>
+          <strong>MABIMS</strong> (Majelis Keputusan Bersama) adalah standar hisab awal bulan
+          Hijriah dari <strong>Kementerian Agama Republik Indonesia</strong>. Kriteria terbaru,
+          <em>Neo MABIMS</em>, mensyaratkan tinggi bulan sabit minimal <strong>3°</strong> dan
+          elongasi minimal <strong>6,4°</strong> saat matahari terbenam — diuji di 25 titik
+          pengamatan pesisir dari Aceh sampai Rote.
+        </p>
+        <p>
+          Halaman ini menyajikan kalender tersebut secara gratis dan terbuka. Semua data berasal
+          dari <a href="/">mabims.dev</a>, API kalender Hijriah open-source yang bisa kamu pakai
+          di aplikasi, website, atau perangkat apapun — tanpa API key.
+        </p>
+        <p class="kh-disclaimer">
+          MABIMS API adalah proyek independen dan tidak berafiliasi dengan Kementerian Agama RI.
+          Hasil perhitungan bersifat estimasi astronomis, bukan pengumuman resmi.
+        </p>
+      </div>
+      <div class="kh-about-facts">
+        <div class="kh-fact"><span class="kh-fact-label">Ketinggian bulan</span><span class="kh-fact-value">≥ 3,0°</span></div>
+        <div class="kh-fact"><span class="kh-fact-label">Elongasi</span><span class="kh-fact-value">≥ 6,4°</span></div>
+        <div class="kh-fact"><span class="kh-fact-label">Titik pengamatan</span><span class="kh-fact-value">25 pesisir</span></div>
+        <div class="kh-fact"><span class="kh-fact-label">Sumber data</span><span class="kh-fact-value">Kemenag RI</span></div>
+      </div>
+    </div>
+  </section>
+
+  {/* ── CTA ── */}
+  <section class="kh-cta">
+    <div class="kh-cta-card">
+      <h2>Pakai data ini di aplikasi kamu</h2>
+      <p>Satu endpoint, tanpa registrasi. Data kalender yang sama dengan halaman ini:</p>
+      <div class="kh-cta-code"><code>curl "https://api.mabims.dev/api/v1/today"</code></div>
+      <div class="kh-cta-actions">
+        <a href="/quickstart/" class="btn btn-primary">Quickstart</a>
+        <a href="https://api.mabims.dev/playground" class="btn btn-secondary" target="_blank" rel="noopener">Coba Playground</a>
+      </div>
+      <p class="kh-cta-hint">Lebih suka offline? <a href="/en/sdk/">Pakai paket npm mabims-hijri</a>.</p>
+    </div>
+  </section>
+
+  {/* ── FAQ ── */}
+  <section class="kh-faq" id="faq">
+    <div class="kh-section-head">
+      <h2>Pertanyaan yang <span class="accent">sering diajukan</span></h2>
+    </div>
+    {faqs.map((f) => (
+      <details class="kh-faq-item">
+        <summary>{f.q}</summary>
+        <p>{f.a}</p>
+      </details>
+    ))}
+  </section>
+</LandingLayout>
+
+<style is:global>
+  /* ── Hero ── */
+  .kh-hero {
+    position: relative;
+    padding: clamp(4rem, 10vw, 7rem) 0 clamp(2.5rem, 5vw, 4rem);
+    text-align: center;
+    overflow: hidden;
+  }
+  .kh-stars {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .kh-stars .star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+  }
+  .kh-hero-inner { position: relative; z-index: 1; }
+  .kh-title {
+    margin: 0;
+    font-size: clamp(2.4rem, 1.2rem + 5vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--sl-color-white);
+  }
+  .kh-title .kh-accent { color: var(--sl-color-accent); }
+  .kh-today {
+    margin: 1.1rem 0 0;
+  }
+  .kh-today-line {
+    display: block;
+    font-size: clamp(1.05rem, 0.6rem + 1.5vw, 1.4rem);
+    font-weight: 600;
+    color: var(--sl-color-white);
+  }
+  .kh-criteria {
+    margin: 0.35rem 0 0;
+    font-size: clamp(1.05rem, 0.6rem + 1.5vw, 1.4rem);
+    font-weight: 600;
+    color: var(--sl-color-gray-2);
+  }
+  @media (max-width: 47.9rem) {
+    .kh-criteria { display: none; }
+  }
+
+  /* ── Calendar ── */
+  .kh-cal { padding: clamp(2rem, 4vw, 3rem) 0; }
+  .kh-cal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  @media (max-width: 53.99rem) {
+    .kh-cal-head {
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.65rem;
+    }
+    .kh-cal-nav { order: 1; }
+    .kh-cal-tools { order: 2; width: 100%; display: flex; justify-content: center; }
+  }
+  .kh-cal-nav {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .kh-cal-nav .kh-nav-btn:first-of-type { justify-self: start; }
+  .kh-cal-nav .kh-nav-btn:last-of-type, .kh-cal-nav [data-next] { justify-self: end; }
+  .kh-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--sl-color-gray-2);
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .kh-nav-btn:hover:not(:disabled) {
+    border-color: rgba(254, 207, 70, 0.4);
+    color: var(--sl-color-accent);
+  }
+  .kh-nav-btn:disabled { opacity: 0.35; cursor: default; }
+  .kh-nav-btn svg { width: 18px; height: 18px; }
+  .kh-month-title {
+    margin: 0;
+    /* fixed at the width of "Jumadil Akhir" + year so the block never re-sizes */
+    min-width: 10.4em;
+    text-align: center;
+    font-size: clamp(1.3rem, 1rem + 1.5vw, 1.8rem);
+    font-weight: 700;
+    color: var(--sl-color-white);
+  }
+  .kh-month-year {
+    font-weight: 400;
+    font-size: 0.75em;
+    color: var(--sl-color-gray-3);
+    margin-left: 0.35rem;
+  }
+  .kh-toggle {
+    display: inline-flex;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .kh-toggle-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    color: var(--sl-color-gray-2);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .kh-toggle-btn.is-active {
+    background: var(--sl-color-accent);
+    color: #1a1a2e;
+  }
+  .kh-card {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .kh-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .kh-dow {
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--sl-color-gray-3);
+    white-space: nowrap;
+  }
+  .kh-dow-short { display: inline; }
+  .kh-dow-full { display: none; }
+  @media (min-width: 32rem) and (max-width: 53.99rem) {
+    .kh-dow { font-size: 0.86rem; }
+  }
+  @media (min-width: 54rem) {
+    .kh-dow { font-size: 1.05rem; }
+    .kh-dow-short { display: none; }
+    .kh-dow-full { display: inline; }
+  }
+  .kh-dow.is-fri { color: var(--sl-color-accent); }
+  .kh-grid {
+    --kh-dir: 0;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.3rem;
+    padding: 0.4rem 0.5rem 0.6rem;
+    min-height: calc(6 * 3.2rem + 6 * 0.3rem);
+  }
+  .kh-grid.kh-in {
+    animation: kh-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes kh-in {
+    from {
+      opacity: 0;
+      transform: translateY(calc(var(--kh-dir) * 1.5rem));
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .kh-grid.kh-in { animation: none; }
+  }
+  .kc {
+    position: relative;
+    min-height: 3.2rem;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    background: rgba(255, 255, 255, 0.025);
+    border-radius: 10px;
+    padding: 0.3rem 0.15rem;
+    text-align: center;
+  }
+  .kc.is-empty { background: transparent; }
+  .kc-day {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--sl-color-text);
+  }
+  .kc.is-fri .kc-day { color: var(--sl-color-accent); }
+  .kc-greg {
+    font-size: 0.62rem;
+    color: var(--sl-color-gray-3);
+    line-height: 1;
+  }
+  .kc-ev {
+    display: none;
+  }
+  @media (min-width: 32rem) and (max-width: 53.99rem) {
+    .kc {
+      gap: 0.2rem;
+      padding: 0.4rem 0.2rem;
+    }
+    .kc-day { font-size: 1.9rem; }
+    .kc-greg { font-size: 0.72rem; }
+  }
+  @media (min-width: 54rem) {
+    .kh-grid {
+      gap: 0.35rem;
+      padding: 0.5rem 0.75rem 0.75rem;
+      min-height: calc(6 * 6rem + 5 * 0.35rem);
+    }
+    .kc {
+      min-height: 6rem;
+      aspect-ratio: auto;
+      padding: 0.7rem 0.3rem;
+    }
+    .kh-skel {
+      min-height: 6rem;
+      aspect-ratio: auto;
+    }
+    .kh-skel::after { inset: 0.8rem; border-radius: 10px; }
+    .kc-day { font-size: 2.75rem; }
+    .kc-greg { font-size: 0.85rem; }
+  }
+  .kh-skel {
+    min-height: 3.2rem;
+    aspect-ratio: 1 / 1;
+  }
+  .kh-skel { position: relative; }
+  .kh-skel::after {
+    content: '';
+    position: absolute;
+    inset: 0.6rem;
+    border-radius: 8px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 30%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.04) 70%);
+    background-size: 200% 100%;
+    animation: kh-shimmer 1.4s ease-in-out infinite;
+  }
+  .kh-skel { position: relative; }
+  @keyframes kh-shimmer {
+    to { background-position: -200% 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .kh-skel::after { animation: none; }
+  }
+  .kc.has-event { background: rgba(254, 207, 70, 0.06); }
+  .kc.is-weekend { background: rgba(255, 255, 255, 0.012); }
+  .kc.has-event::after {
+    content: '';
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    width: 0.35rem;
+    height: 0.35rem;
+    border-radius: 50%;
+    background: var(--sl-color-accent);
+  }
+  .kc.is-today {
+    background: rgba(254, 207, 70, 0.1);
+    box-shadow: inset 0 0 0 1px rgba(254, 207, 70, 0.4);
+  }
+  .kc.is-today .kc-day {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    background: var(--sl-color-accent);
+    color: #1a1a2e;
+  }
+  @media (min-width: 32rem) {
+    .kc.is-today .kc-day { width: 2.7rem; height: 2.7rem; }
+  }
+  @media (min-width: 54rem) {
+    .kc.is-today .kc-day { width: 3.6rem; height: 3.6rem; }
+  }
+  .kh-events {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0.55rem 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.72rem;
+    color: var(--sl-color-gray-3);
+  }
+  .kh-ev-badge {
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(254, 207, 70, 0.14);
+    color: var(--sl-color-accent);
+    font-size: 1rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .kh-status {
+    margin: 0.75rem 0 0;
+    font-size: 0.85rem;
+    color: var(--sl-color-gray-2);
+  }
+
+  /* ── Hilal ── */
+  .kh-hilal { padding: clamp(3rem, 6vw, 5rem) 0; }
+  .kh-hilal-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  @media (min-width: 54rem) {
+    .kh-hilal-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+  }
+  .kh-hilal-figure {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin: 0;
+  }
+  .kh-zoom {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    background: #1f1235;
+    cursor: zoom-in;
+    line-height: 0;
+  }
+  .kh-zoom img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1440 / 1520;
+    object-fit: cover;
+  }
+  .kh-zoom:hover img { transform: scale(1.02); transition: transform 0.4s ease; }
+  .kh-hilal-figure figcaption {
+    display: flex;
+    align-items: baseline;
+    font-size: 0.85rem;
+    color: var(--sl-color-gray-3);
+  }
+  .kh-graphic-title { font-weight: 600; color: var(--sl-color-white); }
+  .kh-download {
+    margin-left: auto;
+    color: var(--sl-color-accent);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .kh-download:hover { text-decoration: underline; }
+  .kh-hilal-note {
+    margin: 1.5rem 0 0;
+    font-size: 0.9rem;
+    color: var(--sl-color-gray-2);
+  }
+  .kh-hilal-note a { color: var(--sl-color-accent); }
+
+  /* ── Section head (shared) ── */
+  .kh-section-head {
+    margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
+  }
+  .kh-section-head h2 {
+    margin: 0 0 0.6rem;
+    font-size: clamp(1.5rem, 1rem + 2.5vw, 2.25rem);
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--sl-color-white);
+  }
+  .kh-section-head .accent { color: var(--sl-color-accent); }
+  .kh-section-head p {
+    max-width: 52rem;
+    margin: 0;
+    font-size: clamp(0.95rem, 0.5rem + 1vw, 1.05rem);
+    line-height: 1.75;
+    color: var(--sl-color-gray-2);
+  }
+  .kh-section-head strong { color: var(--sl-color-white); }
+
+  /* ── Events ── */
+  .kh-events-section { padding: clamp(3rem, 6vw, 5rem) 0; }
+  .kh-events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .kh-event-row {
+    display: grid;
+    grid-template-columns: 5rem minmax(0, 1fr);
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 1.1rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+  }
+  .kh-event-date {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+  }
+  .kh-event-day {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--sl-color-accent);
+  }
+  .kh-event-month {
+    font-size: 0.72rem;
+    color: var(--sl-color-gray-3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .kh-event-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .kh-event-name {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--sl-color-white);
+  }
+  .kh-event-hijri {
+    font-size: 0.8rem;
+    color: var(--sl-color-gray-3);
+  }
+  .kh-loading { color: var(--sl-color-gray-3); }
+
+  /* ── About ── */
+  .kh-about { padding: clamp(3rem, 6vw, 5rem) 0; }
+  .kh-about-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  @media (min-width: 54rem) {
+    .kh-about-grid { grid-template-columns: 1.4fr 1fr; gap: 2.5rem; }
+  }
+  .kh-about-text p {
+    margin: 0 0 1rem;
+    font-size: clamp(0.95rem, 0.5rem + 1vw, 1.05rem);
+    line-height: 1.8;
+    color: var(--sl-color-gray-2);
+  }
+  .kh-about-text a { color: var(--sl-color-accent); }
+  .kh-about-text strong { color: var(--sl-color-white); }
+  .kh-disclaimer {
+    font-size: 0.8rem !important;
+    color: rgba(255, 255, 255, 0.42) !important;
+  }
+  .kh-about-facts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    align-content: start;
+  }
+  .kh-fact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.9rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+  }
+  .kh-fact-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sl-color-gray-3);
+  }
+  .kh-fact-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--sl-color-white);
+  }
+
+  /* ── CTA ── */
+  .kh-cta { padding: clamp(3rem, 6vw, 5rem) 0; }
+  .kh-cta-card {
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    padding: clamp(2.5rem, 5vw, 4rem) 2rem;
+    background: linear-gradient(135deg, rgba(254, 207, 70, 0.06) 0%, rgba(254, 207, 70, 0.02) 100%);
+    border: 1px solid rgba(254, 207, 70, 0.15);
+    border-radius: 20px;
+  }
+  .kh-cta-card h2 {
+    margin: 0 0 0.5rem;
+    font-size: clamp(1.5rem, 1rem + 2.5vw, 2.25rem);
+    font-weight: 700;
+    color: var(--sl-color-white);
+  }
+  .kh-cta-card > p {
+    margin: 0 0 1.25rem;
+    color: var(--sl-color-gray-2);
+  }
+  .kh-cta-code {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .kh-cta-code code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--sl-color-accent);
+  }
+  .kh-cta-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .kh-cta-card .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-decoration: none;
+  }
+  .kh-cta-card .btn-secondary {
+    color: var(--sl-color-gray-2);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+  }
+  .kh-cta-card .btn-secondary:hover {
+    color: var(--sl-color-white);
+    border-color: rgba(254, 207, 70, 0.4);
+  }
+  .kh-cta-hint {
+    margin: 1.25rem 0 0;
+    font-size: 0.85rem;
+    color: var(--sl-color-gray-3);
+  }
+  .kh-cta-hint a { color: var(--sl-color-accent); }
+
+  /* ── FAQ ── */
+  .kh-faq {
+    padding: clamp(3rem, 6vw, 5rem) 0 clamp(4rem, 8vw, 6rem);
+  }
+  .kh-faq-item {
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    margin-bottom: 0.5rem;
+    background: rgba(255, 255, 255, 0.015);
+  }
+  .kh-faq-item summary {
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    color: var(--sl-color-white);
+    cursor: pointer;
+  }
+  .kh-faq-item p {
+    margin: 0;
+    padding: 0 1.25rem 1rem;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--sl-color-gray-2);
+  }
+</style>
+
+<script>
+  const API = import.meta.env.PUBLIC_API_BASE ?? 'https://api.mabims.dev';
+
+  const HIJRI_MONTHS = [
+    'Muharram', 'Safar', 'Rabiul Awal', 'Rabiul Akhir',
+    'Jumadil Awal', 'Jumadil Akhir', 'Rajab', "Sya'ban",
+    'Ramadhan', 'Syawal', "Dzulqa'dah", 'Dzulhijjah',
+  ];
+  const GREG_MONTHS = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+    'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+  ];
+  const HIJRI_MONTHS_SHORT = [
+    'Muh', 'Saf', 'Rb. I', 'Rb. II', 'Jm. I', 'Jm. II', 'Raj', 'Syb',
+    'Ram', 'Syw', 'Dq', 'Dh',
+  ];
+  const GREG_MONTHS_LONG = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+  ];
+  const WEEKDAYS_FULL = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+  const EVENT_NAMES: Record<string, string> = {
+    awal_ramadan: 'Awal Ramadan',
+    idul_fitri: 'Idul Fitri',
+    idul_adha: 'Idul Adha',
+    '1_muharram': 'Tahun Baru Islam',
+    maulid_nabi: 'Maulid Nabi Muhammad ﷺ',
+  };
+
+  const $ = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel);
+
+  type DayItem = { gregorian: string; hijri: string; source: string };
+  type EventItem = { event: string; name: string; hijri: string; gregorian: string };
+  type Today = { day: number; month: number; month_name: string; year: number };
+
+  const NOW = new Date();
+  const state = {
+    hijriYear: 1447,
+    gregYear: new Date().getFullYear(),
+    month: 1, // month within the active mode
+    mode: 'hijri' as 'hijri' | 'gregorian',
+    events: new Map<string, string>(),
+    todayHijri: '',
+    todayGreg: '',
+    // hijri year the page opened on; hijri mode is pinned to it
+    currentHijriYear: 1447,
+    // Masehi bounds: gregorian months of the first & last day of the
+    // current hijri year (fetched at boot). null = no clamp yet.
+    gregCeil: null as { y: number; m: number } | null,
+    gregFloor: null as { y: number; m: number } | null,
+  };
+
+  // Recover state from the server-rendered grid
+  {
+    const yearText = $<HTMLElement>('[data-month-year]')?.textContent?.trim() ?? '';
+    state.hijriYear = Number(yearText.match(/\d{3,4}/)?.[0] ?? 1447);
+    const firstCell = document.querySelector<HTMLElement>('.kc[data-hijri]');
+    if (firstCell) {
+      state.month = Number(firstCell.dataset.hijri!.slice(5, 7));
+      state.gregYear = Number(firstCell.dataset.greg!.slice(0, 4));
+    }
+  }
+
+  const weekdayIndex = (iso: string) => (new Date(`${iso}T00:00:00`).getDay() + 6) % 7;
+
+  async function api(path: string, params?: Record<string, string>) {
+    const url = new URL(`${API}${path}`);
+    if (params) for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+    const res = await fetch(url, { headers: { accept: 'application/json' } });
+    if (!res.ok) throw new Error(String(res.status));
+    return res.json();
+  }
+
+  function fmtDateLong(iso: string) {
+    return new Intl.DateTimeFormat('id-ID', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    }).format(new Date(`${iso}T00:00:00`));
+  }
+
+  function renderGridHijri(days: DayItem[]) {
+    const grid = $('[data-grid]')!;
+    let html = '';
+    const leading = days.length ? weekdayIndex(days[0].gregorian) : 0;
+    for (let i = 0; i < leading; i++) html += '<div class="kc is-empty"></div>';
+    for (const item of days) {
+      const hijriDay = Number(item.hijri.slice(8, 10));
+      const [, gm, gd] = item.gregorian.split('-').map(Number);
+      const isFri = weekdayIndex(item.gregorian) === 4;
+      const isToday = item.hijri === state.todayHijri;
+      const ev = state.events.get(item.hijri);
+      const isWeekend = weekdayIndex(item.gregorian) >= 5;
+      const sub = `${gd} ${GREG_MONTHS[gm - 1]}`;
+      html += `<div class="kc${isFri ? ' is-fri' : ''}${isWeekend ? ' is-weekend' : ''}${isToday ? ' is-today' : ''}${ev ? ' has-event' : ''}" data-hijri="${item.hijri}" data-greg="${item.gregorian}">` +
+        `<span class="kc-day">${hijriDay}</span>` +
+        `<span class="kc-greg">${sub}</span>` +
+        (ev ? `<span class="kc-ev"></span>` : '') +
+        `</div>`;
+    }
+    const filled = leading + days.length;
+    const total = Math.ceil(filled / 7) * 7;
+    for (let i = filled; i < total; i++) html += '<div class="kc is-empty"></div>';
+    grid.innerHTML = html;
+    renderExtras(days);
+  }
+
+  function renderGridGregorian(cells: Array<{ day?: DayItem; gregDay?: number }>) {
+    const grid = $('[data-grid]')!;
+    let html = '';
+    for (const cell of cells) {
+      if (!cell.gregDay) { html += '<div class="kc is-empty"></div>'; continue; }
+      const item = cell.day;
+      const iso = `${state.gregYear}-${String(state.month).padStart(2, '0')}-${String(cell.gregDay).padStart(2, '0')}`;
+      const isFri = weekdayIndex(iso) === 4;
+      const isToday = item?.gregorian === state.todayGreg;
+      const ev = item ? state.events.get(item.hijri) : undefined;
+      const isWeekend = weekdayIndex(iso) >= 5;
+      const small = item
+        ? `${Number(item.hijri.slice(8, 10))} ${HIJRI_MONTHS_SHORT[Number(item.hijri.slice(5, 7)) - 1]}`
+        : '';
+      html += `<div class="kc${isFri ? ' is-fri' : ''}${isWeekend ? ' is-weekend' : ''}${isToday ? ' is-today' : ''}${ev ? ' has-event' : ''}"${item ? ` data-hijri="${item.hijri}" data-greg="${item.gregorian}"` : ''}>` +
+        `<span class="kc-day">${cell.gregDay}</span>` +
+        `<span class="kc-greg">${small}</span>` +
+        (ev ? `<span class="kc-ev"></span>` : '') +
+        `</div>`;
+    }
+    grid.innerHTML = html;
+    renderExtras(cells.filter((c) => c.day).map((c) => c.day!));
+  }
+
+  function renderExtras(days: DayItem[]) {
+    const monthEvents = [];
+    const seen = new Set<string>();
+    for (const d of days) {
+      const name = state.events.get(d.hijri);
+      if (!name || seen.has(d.hijri)) continue;
+      seen.add(d.hijri);
+      const label = `${Number(d.hijri.slice(8, 10))} ${HIJRI_MONTHS[Number(d.hijri.slice(5, 7)) - 1]} · ${name}`;
+      monthEvents.push(label);
+    }
+    const evEl = $('[data-events]');
+    if (evEl) {
+      evEl.hidden = monthEvents.length === 0;
+      evEl.innerHTML = monthEvents.map((e) => `<span class="kh-ev-badge">${e}</span>`).join('');
+    }
+  }
+
+  function renderHeader() {
+    const nameEl = $<HTMLElement>('[data-month-name]');
+    const yearEl = $<HTMLElement>('[data-month-year]');
+    if (nameEl) nameEl.textContent = state.mode === 'hijri' ? HIJRI_MONTHS[state.month - 1] : GREG_MONTHS_LONG[state.month - 1];
+    if (yearEl) yearEl.textContent = state.mode === 'hijri' ? `${state.hijriYear} H` : `${state.gregYear} M`;
+    const prev = $('[data-prev]') as HTMLButtonElement | null;
+    const next = $('[data-next]') as HTMLButtonElement | null;
+    if (prev) prev.disabled = state.mode === 'gregorian'
+      ? (state.gregFloor !== null &&
+          (state.gregYear < state.gregFloor.y || (state.gregYear === state.gregFloor.y && state.month === state.gregFloor.m)))
+      : state.month === 1;
+    if (next) next.disabled = state.mode === 'gregorian'
+      ? (state.gregCeil !== null &&
+          (state.gregYear > state.gregCeil.y || (state.gregYear === state.gregCeil.y && state.month >= state.gregCeil.m)))
+      : state.month === 12;
+  }
+
+  let loadToken = 0;
+
+  // Memory cache, populated wholesale from one /year call per hijri year:
+  //   monthCache: `hijri:YYYY-M` → DayItem[]
+  //   monthRange: `hijri:YYYY-M` → { start, end } greg bounds (for convert math)
+  //   convertCache: greg ISO → { y, m } (derived locally when possible)
+  const monthCache = new Map<string, DayItem[]>();
+  const monthRange = new Map<string, { start: string; end: string }>();
+  const convertCache = new Map<string, { year: number; month: number }>();
+  const yearCache = new Set<number>();
+  const cachedMonth = (y: number, m: number) => monthCache.get(`hijri:${y}-${m}`) ?? null;
+
+  async function getHijriYear(y: number): Promise<boolean> {
+    if (yearCache.has(y)) return true;
+    const body = await api('/api/v1/year', { year: String(y), calendar: 'hijri' });
+    const months = (body.months ?? {}) as Record<string, DayItem[]>;
+    for (let m = 1; m <= 12; m++) {
+      const items = months[String(m)] ?? months[m as unknown as number] ?? [];
+      if (!items.length) continue;
+      monthCache.set(`hijri:${y}-${m}`, items);
+      monthRange.set(`hijri:${y}-${m}`, { start: items[0].gregorian, end: items[items.length - 1].gregorian });
+    }
+    yearCache.add(y);
+    return true;
+  }
+
+  async function getHijriMonth(y: number, m: number): Promise<DayItem[]> {
+    const hit = cachedMonth(y, m);
+    if (hit) return hit;
+    await getHijriYear(y);
+    return cachedMonth(y, m) ?? [];
+  }
+
+  // resolve greg ISO → hijri {year, month}: local math when the year is
+  // cached, network convert otherwise
+  async function getConvertMonth(iso: string): Promise<{ year: number; month: number }> {
+    const hit = convertCache.get(iso);
+    if (hit) return hit;
+    for (const key of monthRange.keys()) {
+      const range = monthRange.get(key)!;
+      if (iso >= range.start && iso <= range.end) {
+        const out = { year: Number(key.slice(6, 10)), month: Number(key.slice(11)) };
+        convertCache.set(iso, out);
+        return out;
+      }
+    }
+    const body = await api('/api/v1/convert', { date: iso, calendar: 'gregorian' });
+    const out = { year: body.output.year, month: body.output.month };
+    convertCache.set(iso, out);
+    return out;
+  }
+
+  async function loadMonth(dir = 0) {
+    const token = ++loadToken;
+    renderHeader();
+    const grid = $('[data-grid]');
+    const status = $('[data-status]');
+    if (status) status.hidden = true;
+    if (grid) grid.style.setProperty('--kh-dir', String(dir));
+    const fresh = () => token === loadToken; // newest-load guard
+
+    // render with a one-shot keyframe animation (always visible, no races)
+    const animateIn = (fn: () => void) => {
+      if (!grid) { fn(); return; }
+      fn();
+      grid.classList.remove('kh-in'); // restart if mid-flight
+      void grid.getBoundingClientRect();
+      grid.classList.add('kh-in');
+      window.setTimeout(() => grid?.classList.remove('kh-in'), 560);
+    };
+
+    const startIso = (y: number, m: number) =>
+      `${y}-${String(m).padStart(2, '0')}-01`;
+    const fmtDMY = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+    // convert resolver that only uses warm data (no network)
+    const convertMonthSync = (iso: string): { year: number; month: number } | null => {
+      const hit = convertCache.get(iso);
+      if (hit) return hit;
+      for (const key of monthRange.keys()) {
+        const range = monthRange.get(key)!;
+        if (iso >= range.start && iso <= range.end) {
+          const out = { year: Number(key.slice(6, 10)), month: Number(key.slice(11)) };
+          convertCache.set(iso, out);
+          return out;
+        }
+      }
+      return null;
+    };
+
+    // ── warm path: everything resolved from memory, quick fade swap ──
+    const buildCells = (): Array<{ day?: DayItem; gregDay?: number }> | null => {
+      const start = new Date(state.gregYear, state.month - 1, 1);
+      const end = new Date(state.gregYear, state.month, 0);
+      const s = start ? convertMonthSync(fmtDMY(start)) : null;
+      const e = end ? convertMonthSync(fmtDMY(end)) : null;
+      if (!s || !e) return null;
+      const monthsToFetch: Array<{ y: number; m: number }> = [{ y: s.year, m: s.month }];
+      if (e.year !== s.year || e.month !== s.month) monthsToFetch.push({ y: e.year, m: e.month });
+      const all: DayItem[] = [];
+      for (const { y, m } of monthsToFetch) {
+        const bucket = cachedMonth(y, m);
+        if (!bucket) return null;
+        all.push(...bucket);
+      }
+      const inMonth = all.filter((d) =>
+        d.gregorian.startsWith(`${state.gregYear}-${String(state.month).padStart(2, '0')}`));
+      const byGreg = new Map(inMonth.map((d) => [d.gregorian, d]));
+      const cells: Array<{ day?: DayItem; gregDay?: number }> = [];
+      for (let i = 0; i < weekdayIndex(fmtDMY(start)); i++) cells.push({});
+      for (let d = 1; d <= end.getDate(); d++) {
+        const iso = fmtDMY(new Date(state.gregYear, state.month - 1, d));
+        cells.push({ day: byGreg.get(iso), gregDay: d });
+      }
+      return cells;
+    };
+
+    // hijri: fully cached → fade swap, done
+    if (grid && state.mode === 'hijri') {
+      const hit = cachedMonth(state.hijriYear, state.month);
+      if (hit) {
+        animateIn(() => renderGridHijri(hit));
+        return;
+      }
+    }
+    // gregorian: fully cached → fade swap, done
+    if (grid && state.mode === 'gregorian') {
+      const cells = buildCells();
+      if (cells) {
+        animateIn(() => renderGridGregorian(cells));
+        return;
+      }
+    }
+
+    if (grid) {
+      // fade out + stable-height skeleton (fixed 6 rows) while navigating
+      grid.classList.add('is-swapping');
+      grid.innerHTML = Array.from({ length: 42 }, () => '<div class="kc is-skel kh-skel"></div>').join('');
+    }
+    const reveal = () => requestAnimationFrame(() => grid?.classList.remove('is-swapping'));
+    try {
+      if (state.mode === 'hijri') {
+        const items = await getHijriMonth(state.hijriYear, state.month);
+        if (!fresh()) return;
+        renderGridHijri(items);
+        reveal();
+        prefetchNeighbors();
+      } else {
+        // gregorian mode: build a standard gregorian month whose cells pair
+        // each gregorian day with its hijri counterpart (big greg, small hijri)
+        const start = new Date(state.gregYear, state.month - 1, 1);
+        const end = new Date(state.gregYear, state.month, 0);
+        const fmt = fmtDMY;
+        const [startH, endH] = await Promise.all([
+          getConvertMonth(fmt(start)),
+          getConvertMonth(fmt(end)),
+        ]);
+        if (!fresh()) return;
+        const s = { year: startH.year, month: startH.month };
+        const e = { year: endH.year, month: endH.month };
+        const monthsToFetch: Array<{ y: number; m: number }> = [{ y: s.year, m: s.month }];
+        if (e.year !== s.year || e.month !== s.month) monthsToFetch.push({ y: e.year, m: e.month });
+        // overlapping hijri years are pulled whole (one /year request each)
+        // and cached per month, so repeat navigation is instant
+        const needed = monthsToFetch.some(({ y, m }) => !cachedMonth(y, m));
+        if (needed) {
+          await Promise.all(monthsToFetch.map(({ y }) => getHijriYear(y)));
+          if (!fresh()) return;
+        }
+        const all: DayItem[] = monthsToFetch.flatMap(({ y, m }) => cachedMonth(y, m) ?? []);
+        if (!fresh()) return;
+        const inMonth = all.filter((d) =>
+          d.gregorian.startsWith(`${state.gregYear}-${String(state.month).padStart(2, '0')}`));
+        const byGreg = new Map(inMonth.map((d) => [d.gregorian, d]));
+        const leading = weekdayIndex(fmt(start));
+        const daysInMonth = end.getDate();
+        const cells: Array<{ day?: DayItem; gregDay?: number }> = [];
+        for (let i = 0; i < leading; i++) cells.push({});
+        for (let d = 1; d <= daysInMonth; d++) {
+          const iso = fmt(new Date(state.gregYear, state.month - 1, d));
+          cells.push({ day: byGreg.get(iso), gregDay: d });
+        }
+        renderGridGregorian(cells);
+        reveal();
+      }
+    } catch {
+      // only surface failures for the newest load; stale loads are superseded
+      if (!fresh()) return;
+      reveal();
+      const status = $('[data-status]');
+      if (status) {
+        status.hidden = false;
+        status.textContent = 'Gagal memuat kalender — coba muat ulang halaman.';
+      }
+    }
+  }
+
+  $('[data-prev]')?.addEventListener('click', () => {
+    if (state.month > 1) {
+      state.month -= 1;
+    } else if (state.mode === 'gregorian' && state.gregFloor !== null && state.gregYear > state.gregFloor.y) {
+      // wrap across the gregorian year boundary (jan → dec of prev year)
+      state.gregYear -= 1;
+      state.month = 12;
+    } else {
+      return;
+    }
+    loadMonth(-1);
+  });
+  $('[data-next]')?.addEventListener('click', () => {
+    const atCeil = state.mode === 'gregorian' && state.gregCeil !== null &&
+      (state.gregYear > state.gregCeil.y || (state.gregYear === state.gregCeil.y && state.month >= state.gregCeil.m));
+    if (state.month < 12) {
+      state.month += 1;
+    } else if (state.mode === 'gregorian' && !atCeil) {
+      state.gregYear += 1;
+      state.month = 1;
+    } else {
+      return;
+    }
+    loadMonth(1);
+  });
+  for (const btn of document.querySelectorAll<HTMLButtonElement>('.kh-toggle-btn')) {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.mode === state.mode) return;
+      state.mode = btn.dataset.mode as 'hijri' | 'gregorian';
+      // carry the current view across modes via the visible grid's dates
+      if (state.mode === 'gregorian') {
+        const firstCell = document.querySelector<HTMLElement>('.kc[data-greg]');
+        const laterCell = document.querySelector<HTMLElement>('.kc[data-greg]:nth-last-child(8)') ?? firstCell;
+        const anchorIso = laterCell?.dataset.greg ?? firstCell?.dataset.greg;
+        if (anchorIso) {
+          parseIso(anchorIso);
+          // clamp into the hijri year's gregorian window (floor…ceil)
+          if (state.gregFloor) {
+            const f = state.gregFloor;
+            if (state.gregYear < f.y || (state.gregYear === f.y && state.month < f.m)) { state.gregYear = f.y; state.month = f.m; }
+          }
+          if (state.gregCeil) {
+            const c = state.gregCeil;
+            if (state.gregYear > c.y || (state.gregYear === c.y && state.month > c.m)) { state.gregYear = c.y; state.month = c.m; }
+          }
+        }
+      } else if (state.mode === 'hijri') {
+        const firstHijri = document.querySelector<HTMLElement>('.kc[data-hijri]');
+        const laterHijri = document.querySelector<HTMLElement>('.kc[data-hijri]:nth-last-child(8)') ?? firstHijri;
+        const anchorIso = laterHijri?.dataset.hijri ?? firstHijri?.dataset.hijri ?? state.todayHijri;
+        // hijri mode is pinned to the year the page opened on — an anchor
+        // past the year boundary (Dzulhijjah → Muharram 1449 in June 2027)
+        // maps back into Dzulhijjah of the current year, never 1449
+        state.hijriYear = state.currentHijriYear;
+        const anchorYear = Number(anchorIso.slice(0, 4));
+        if (anchorYear > state.currentHijriYear) {
+          state.month = 12; // Muharram of the next year → Dzulhijjah
+        } else if (anchorYear < state.currentHijriYear) {
+          state.month = 1; // back below the year start
+        } else {
+          state.month = Number(anchorIso.slice(5, 7));
+        }
+      }
+      for (const b of document.querySelectorAll('.kh-toggle-btn')) b.classList.toggle('is-active', b === btn);
+      loadMonth(0);
+    });
+  }
+
+  // silently warm the cache for the adjacent hijri months while idle —
+  // makes the next prev/next click render instantly (both modes benefit:
+  // masehi reuses the same hijri month data)
+  function prefetchNeighbors() {
+    const jobs: Array<{ y: number; m: number }> = [];
+    if (state.mode === 'hijri') {
+      if (state.month > 1) jobs.push({ y: state.hijriYear, m: state.month - 1 });
+      if (state.month < 12) jobs.push({ y: state.hijriYear, m: state.month + 1 });
+    }
+    for (const { y, m } of jobs) {
+      if (!cachedMonth(y, m)) void getHijriMonth(y, m).catch(() => {});
+    }
+  }
+
+  /* ── Boot: today refresh + events + today highlight ── */
+  (async function boot() {
+    try {
+      const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      let today: any;
+      try {
+        today = await api('/api/v1/today', browserTz ? { tz: browserTz } : undefined);
+      } catch {
+        today = await api('/api/v1/today');
+      }
+      const o = today.output as Today;
+      state.todayHijri = `${o.year}-${String(o.month).padStart(2, '0')}-${String(o.day).padStart(2, '0')}`;
+      state.todayGreg = today.input.date;
+      state.currentHijriYear = o.year;
+
+      const hijriEl = $('[data-today-hijri]');
+      const gD = new Date(`${today.input.date}T00:00:00`);
+      const gWeekday = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(gD);
+      const gDate = new Intl.DateTimeFormat('id-ID', {
+        day: 'numeric', month: 'long', year: 'numeric',
+      }).format(gD);
+      if (hijriEl) hijriEl.textContent = `${gWeekday}, ${o.day} ${o.month_name} ${o.year} H · ${gDate}`;
+
+      // If the build snapshot drifted (e.g. yesterday's deploy), resync the grid
+      const buildToday = state.hijriYear === o.year && state.month === o.month;
+      if (!buildToday) {
+        state.hijriYear = o.year;
+        state.month = o.month;
+      }
+
+      const evBody = await api('/api/v1/events', { year: String(o.year), calendar: 'hijri' });
+      state.events = new Map(
+        ((evBody.events ?? []) as EventItem[]).map((e) => [e.hijri, EVENT_NAMES[e.event] ?? e.name])
+      );
+
+      // Masehi clamp bounds: the gregorian months containing the first day
+      // (Muharram) and last day (Dzulhijjah) of the current hijri year
+      try {
+        const [mu, dh] = await Promise.all([
+          api('/api/v1/month', { year: String(o.year), month: '1', calendar: 'hijri' }),
+          api('/api/v1/month', { year: String(o.year), month: '12', calendar: 'hijri' }),
+        ]);
+        const first = (mu.items ?? [])[0];
+        const last = (dh.items ?? []).at(-1);
+        if (first) state.gregFloor = { y: Number(first.gregorian.slice(0, 4)), m: Number(first.gregorian.slice(5, 7)) };
+        if (last) state.gregCeil = { y: Number(last.gregorian.slice(0, 4)), m: Number(last.gregorian.slice(5, 7)) };
+        renderHeader();
+      } catch {}
+
+      // Render events list section (fresh, in case SSR failed)
+      const list = $('[data-events-list]');
+      if (list && evBody.events?.length) {
+        list.innerHTML = (evBody.events as EventItem[]).map((e) => {
+          const g = new Date(`${e.gregorian}T00:00:00`);
+          const day = g.getDate();
+          const mon = `${GREG_MONTHS[g.getMonth()]} ${g.getFullYear()}`;
+          return `<article class="kh-event-row"><div class="kh-event-date"><span class="kh-event-day">${day}</span>` +
+            `<span class="kh-event-month">${mon}</span></div><div class="kh-event-body">` +
+            `<span class="kh-event-name">${EVENT_NAMES[e.event] ?? e.name}</span>` +
+            `<span class="kh-event-hijri">${e.hijri}</span></div></article>`;
+        }).join('');
+      }
+
+      await loadMonth();
+    } catch {
+      // keep SSR content
+    }
+  })();
+
+  function parseIso(iso: string) {
+    // set gregorian mode state from an ISO gregorian date
+    state.gregYear = Number(iso.slice(0, 4));
+    state.month = Number(iso.slice(5, 7));
+  }
+
+  // expose for the toggle wiring above (same script scope hoisting)
+  void parseIso;
+</script>
+
+<dialog class="kh-lightbox" data-lightbox>
+  <button type="button" class="kh-lightbox-close" data-lightbox-close aria-label="Tutup">×</button>
+  <img data-lightbox-img src="" alt="" />
+</dialog>
+<style>
+  .kh-lightbox {
+    width: min(96vw, 900px);
+    max-width: none;
+    padding: 0;
+    border: none;
+    background: transparent;
+    overflow: visible;
+  }
+  .kh-lightbox::backdrop {
+    background: rgba(10, 10, 14, 0.86);
+    backdrop-filter: blur(4px);
+  }
+  .kh-lightbox img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 82vh;
+    object-fit: contain;
+    border-radius: 12px;
+    background: #1f1235;
+  }
+  .kh-lightbox-close {
+    position: absolute;
+    top: -2.6rem;
+    right: 0;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+</style>
+<script>
+  const lightbox = document.querySelector<HTMLDialogElement>('[data-lightbox]');
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+    const zoom = target.closest('[data-zoom]');
+    if (zoom && lightbox) {
+      const img = zoom.querySelector('img');
+      const lightboxImg = lightbox.querySelector<HTMLImageElement>('[data-lightbox-img]');
+      if (img && lightboxImg) {
+        lightboxImg.src = img.src;
+        lightboxImg.alt = img.alt;
+        lightbox.showModal();
+      }
+      return;
+    }
+    if (target.closest('[data-lightbox-close]')) lightbox?.close();
+  });
+  lightbox?.addEventListener('click', (event) => {
+    if (event.target === lightbox) lightbox.close();
+  });
+</script>
