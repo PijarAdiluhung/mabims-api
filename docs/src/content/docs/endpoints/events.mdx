@@ -1,6 +1,6 @@
 ---
 title: GET /events
-description: "Tanggal [hari penting Islam](https://en.wikipedia.org/wiki/Islamic_holidays) (1 Muharam, Maulid Nabi, awal Ramadan, Idulfitri, dan Iduladha) berdasarkan tabel MABIMS serta hasil perhitungan di luar cakupan tabel."
+description: "Tanggal [hari penting Islam](https://en.wikipedia.org/wiki/Islamic_holidays) (1 Muharam, Maulid Nabi, awal Ramadan, Idulfitri, dan Iduladha, plus hari-hari penting lain seperti Asyura dan Arafah) berdasarkan tabel MABIMS serta hasil perhitungan di luar cakupan tabel."
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
@@ -9,13 +9,15 @@ import TestButton from '../../../components/TestButton.astro';
 
 Mengembalikan tanggal **hari penting Islam** dalam satu tahun.
 
+Secara bawaan, endpoint ini mengembalikan 5 hari besar nasional: 1 Muharam, Maulid Nabi, Awal Ramadan, Idul Fitri, Idul Adha. Tambahkan parameter `include` untuk membuka set tambahan: Isra Mi'raj, Nuzulul Quran, Arafah, Tasu'a, Asyura, Tasyrik, serta rangkaian puasa Ayyamul Bidh. Anda bisa memilih slug satu per satu, atau semuanya.
+
 Untuk tanggal yang tersedia di tabel MABIMS, API menggunakan data publik dari Kementerian Agama. Data ini sama dengan yang digunakan oleh endpoint `/convert`.
 
 Untuk tanggal di luar tabel, API menghitung tanggal berdasarkan kriteria Neo MABIMS ([lihat kriterianya](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia)). Perhitungan ini memakai ketinggian hilal minimal 3° dan elongasi minimal 6,4° saat matahari terbenam di lokasi pengamatan pesisir di Indonesia.
 
 Dengan begitu, Anda dapat memperoleh perkiraan tanggal hari penting Islam untuk tahun-tahun mendatang.
 
-<ApiRequest path="/api/v1/events" args="?year={Y}&calendar={gregorian|hijri}&retro={true|false}">
+<ApiRequest path="/api/v1/events" args="?year={Y}&calendar={gregorian|hijri}&include={extra|ayyamul_bidh|all|slug,...}&retro={true|false}">
   <TestButton path="/api/v1/events" />
 </ApiRequest>
 
@@ -25,6 +27,7 @@ Dengan begitu, Anda dapat memperoleh perkiraan tanggal hari penting Islam untuk 
 |---|---|---|---|
 | `year` | integer | ya | Tahun pada kalender yang dipilih (`1446` untuk Hijriah atau `2025` untuk Masehi) |
 | `calendar` | string | tidak (bawaan `hijri`) | Pilih `gregorian` atau `hijri` |
+| `include` | CSV | tidak | Isi `extra` untuk mendapatkan semua hari tambahan selain Ayyamul Bidh. Jika ingin memilih (tidak semua), gunakan koma untuk memisahkan: `ayyamul_bidh`, `isra_miraj`, `nuzulul_quran`, `arafah`, `tasua`, `asyura`, `tasyrik`, atau `all`. 5 hari besar bawaan selalu disertakan |
 | `retro` | `true` / `false` | tidak (bawaan `false`) | Mengaktifkan tanggal hasil perhitungan untuk tahun sebelum tabel tersedia, sampai 1 Januari 1945. Data ini diberi tanda `mabims-retro`. [Lihat cakupan data](/data-coverage/) |
 
 ## Contoh
@@ -74,13 +77,39 @@ Item diurutkan berdasarkan tanggal Masehi.
 
 ## Hari yang tersedia
 
-| `event` | Nama | Bulan Hijriah | Tanggal |
-|---|---|---|---|
-| `1_muharram` | Tahun Baru Islam | 1 (Muharam) | 1 |
-| `maulid_nabi` | Maulid Nabi Muhammad | 3 (Rabiulawal) | 12 |
-| `awal_ramadan` | Awal Ramadan | 9 (Ramadan) | 1 |
-| `idul_fitri` | Idulfitri | 10 (Syawal) | 1 |
-| `idul_adha` | Idul Adha | 12 (Zulhijah) | 10 |
+| `event` | Nama | Bulan Hijriah | Tanggal | Set |
+|---|---|---|---|---|
+| `1_muharram` | Tahun Baru Islam | 1 (Muharam) | 1 | bawaan |
+| `maulid_nabi` | Maulid Nabi Muhammad | 3 (Rabiulawal) | 12 | bawaan |
+| `awal_ramadan` | Awal Ramadan | 9 (Ramadan) | 1 | bawaan |
+| `idul_fitri` | Idulfitri | 10 (Syawal) | 1 | bawaan |
+| `idul_adha` | Idul Adha | 12 (Zulhijah) | 10 | bawaan |
+| `isra_miraj` | Isra Mi'raj | 7 (Rajab) | 27 | `extra` |
+| `nuzulul_quran` | Nuzulul Quran | 9 (Ramadan) | 17 | `extra` |
+| `arafah` | Puasa Arafah | 12 (Zulhijah) | 9 | `extra` |
+| `tasua` | Puasa Tasu'a | 1 (Muharam) | 9 | `extra` |
+| `asyura` | Puasa Asyura | 1 (Muharam) | 10 | `extra` |
+| `tasyrik` | Hari Tasyrik | 12 (Zulhijah) | 11–13 | `extra` |
+| `ayyamul_bidh` | Puasa Ayyamul Bidh | semua bulan 1–12 | 13–15 | `ayyamul_bidh` |
+
+### Contoh kombinasi `include`
+
+```bash
+# 5 hari besar saja (bawaan)
+curl "https://api.mabims.dev/api/v1/events?year=2025&calendar=gregorian"
+
+# + hari tambahan: Isra Mi'raj, Nuzulul Quran, Arafah, Tasu'a, Asyura, Tasyrik
+curl "https://api.mabims.dev/api/v1/events?year=2025&calendar=gregorian&include=extra"
+
+# 5 hari besar + Ayyamul Bidh (13-15 semua bulan Hijriah)
+curl "https://api.mabims.dev/api/v1/events?year=2025&calendar=gregorian&include=ayyamul_bidh"
+
+# + pilih satu-satu
+curl "https://api.mabims.dev/api/v1/events?year=2025&calendar=gregorian&include=asyura,arafah"
+
+# semuanya
+curl "https://api.mabims.dev/api/v1/events?year=2025&calendar=gregorian&include=all"
+```
 
 ## Catatan
 
@@ -89,6 +118,8 @@ Item diurutkan berdasarkan tanggal Masehi.
 - Jika API memakai hasil perhitungan, penjelasannya dicantumkan dalam `warnings[]`.
 - Saat memakai `calendar=gregorian`, API mencari tahun Hijriah yang beririsan dengan tahun Masehi yang diminta, lalu mengembalikan setiap hari penting yang termasuk di dalamnya.
 - Seperti `/convert`, hasil yang berasal dari tabel disimpan di CDN dan tidak berubah.
+- Event multi-hari (`tasyrik`, `ayyamul_bidh`) punya field `date_range` tambahan yang berisi `hijri_start`, `hijri_end`, `gregorian_start`, `gregorian_end`. Event satu hari punya `date_range: null`.
+- `include` yang Anda kirim digema kembali di `input.include` (atau `null` bila tidak diisi) supaya klien bisa memverifikasi set yang aktif.
 
 ## Kesalahan
 
@@ -104,6 +135,7 @@ Item diurutkan berdasarkan tanggal Masehi.
 | `code` | HTTP | Penyebab |
 |---|---|---|
 | `invalid_calendar` | 400 | Nilai `calendar` bukan `gregorian` atau `hijri` |
+| `invalid_include` | 400 | Nilai `include` bukan `extra`, `ayyamul_bidh`, `all`, atau slug yang valid |
 | `invalid_year` | 400 | Tahun di luar batas yang didukung |
 | `invalid_retro` | 400 | Parameter `retro` bukan nilai boolean (menerima `true`/`false`, `1`/`0`) |
 

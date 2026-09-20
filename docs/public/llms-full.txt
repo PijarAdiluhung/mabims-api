@@ -224,8 +224,11 @@ GET /api/v1/events?year={year}&calendar={hijri|gregorian}
 |---|---|---|---|
 | `year` | Yes | — | Year (Hijri or Gregorian) |
 | `calendar` | No | `hijri` | Calendar type |
+| `include` | No | — | Comma-separated: `extra` (tier-2 observances), `ayyamul_bidh`, `all`, or individual slugs. Base 5 always included |
 
 ### Events Returned
+
+Base 5 (default, always included):
 
 | `event` slug | Name | Hijri Date |
 |---|---|---|
@@ -234,6 +237,19 @@ GET /api/v1/events?year={year}&calendar={hijri|gregorian}
 | `awal_ramadan` | Start of Ramadan | 1 Ramadan |
 | `idul_fitri` | Eid al-Fitr | 1 Shawwal |
 | `idul_adha` | Eid al-Adha | 10 Dhul Hijjah |
+
+`include=extra` → tier-2 observances (not national holidays):
+
+| `event` slug | Name | Hijri Date |
+|---|---|---|
+| `isra_miraj` | Isra Mi'raj | 27 Rajab |
+| `nuzulul_quran` | Nuzulul Quran | 17 Ramadan |
+| `arafah` | Arafah fasting (Wukuf) | 9 Dhul Hijjah |
+| `tasua` | Tasu'a fasting | 9 Muharram |
+| `asyura` | Ashura fasting | 10 Muharram |
+| `tasyrik` | Days of Tashriq | 11-13 Dhul Hijjah |
+
+`include=ayyamul_bidh` → one ranged event per Hijri month (13-15, via the `date_range` field). `include=all` → everything. Invalid include values are rejected with 400 `invalid_include`.
 
 ### Example
 
@@ -378,6 +394,7 @@ GET /healthz
 | 400 | `invalid_timezone` | Unknown timezone string |
 | 400 | `missing_parameter` | Required query param not provided |
 | 400 | `invalid_step` | `step` param is not `day` |
+| 400 | `invalid_include` | `/events` `include` param has unknown values |
 | 400 | `invalid_range` | `start` is after `end` |
 | 400 | `invalid_month` | `month` is not between 1 and 12 |
 | 400 | `invalid_year` | `year` is out of supported bounds |

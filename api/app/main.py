@@ -39,7 +39,7 @@ from .divergences import (
     load_divergences,
     table_version,
 )
-from .events import find_events
+from .events import find_events, parse_include
 from .fallback import MemoryFallbackStore
 from .hilal import history as _history
 from .hilal import imagepack as _imagepack
@@ -62,6 +62,7 @@ from .schemas import (
     ConvertResponse,
     Coverage,
     DecidingSite,
+    EventDateRange,
     EventItem,
     EventsInput,
     EventsResponse,
@@ -156,6 +157,7 @@ ERROR_MESSAGES = {
     "invalid_next": "'next' must be 'true' or 'false'.",
     "invalid_bare": "'bare' must be 'true' or 'false'.",
     "invalid_download": "'download' must be 'true' or 'false'.",
+    "invalid_include": "'include' must be 'extra', 'ayyamul_bidh', 'all' or event slugs.",
     "invalid_step": "Only step='day' is supported.",
     "invalid_range": "'start' must be on or before 'end'.",
     "invalid_month": "'month' must be between 1 and 12.",
@@ -1121,27 +1123,58 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         request: Request,
         year: str | None = Query(default=None, description=t("query.events_year")),
         calendar: str = Query(default="hijri", description=t("query.calendar")),
+        include: str | None = Query(default=None, description=t("query.events_include")),
         retro: str | None = Query(default=None, description=RETRO_QUERY_DESC),
     ):
         year_int = _parse_int(year, "year")
         cal = _validate_calendar(calendar)
         is_retro = _parse_bool(retro, "retro")
+        try:
+            include_tokens = parse_include(include)
+        except ValueError as exc:
+            raise ApiError(
+                "invalid_include",
+                f"'{exc.args[0]}' is not a valid 'include' value.",
+            ) from exc
         if not 1000 <= year_int <= 3000:
             raise ApiError("invalid_year", "'year' is out of supported bounds.")
-        items = [
-            EventItem(
-                event=definition.slug,
-                name=definition.name,
-                gregorian=g_iso,
-                hijri=h_iso,
-                source=service.lookup(h_iso, "hijri").source,
+        items: list[EventItem] = []
+        for definition, g_iso, h_iso in find_events(
+            service, year_int, cal, retro=is_retro, include=include_tokens
+        ):
+            h_end_iso = (
+                None if definition.day_end is None else f"{h_iso[:7]}-{definition.day_end:02d}"
             )
-            for definition, g_iso, h_iso in find_events(service, year_int, cal, retro=is_retro)
-        ]
+            g_end_iso = (
+                service.lookup(h_end_iso, "hijri").value if h_end_iso else None
+            )
+            items.append(
+                EventItem(
+                    event=definition.slug,
+                    name=definition.name,
+                    gregorian=g_iso,
+                    hijri=h_iso,
+                    source=service.lookup(h_iso, "hijri").source,
+                    date_range=(
+                        None
+                        if h_end_iso is None or g_end_iso is None
+                        else EventDateRange(
+                            hijri_start=h_iso,
+                            hijri_end=h_end_iso,
+                            gregorian_start=g_iso,
+                            gregorian_end=g_end_iso,
+                        )
+                    ),
+                )
+            )
         _relabel_retro(items, is_retro)
         aggregate_source, warnings = _aggregate(items)
         payload = EventsResponse(
-            input=EventsInput(year=year_int, calendar=cal),
+            input=EventsInput(
+                year=year_int,
+                calendar=cal,
+                include=sorted(include_tokens) or None,
+            ),
             count=len(items),
             events=items,
             warnings=warnings,

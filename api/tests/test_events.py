@@ -101,3 +101,82 @@ def test_events_missing_year(client):
     r = client.get("/api/v1/events")
     assert r.status_code == 400
     assert r.json()["error"]["code"] == "missing_parameter"
+
+
+def test_events_include_extra(client, real_data):
+    r = client.get("/api/v1/events?year=1446&calendar=hijri&include=extra")
+    assert r.status_code == 200
+    body = r.json()
+    slugs = {e["event"] for e in body["events"]}
+    assert slugs == {
+        "1_muharram",
+        "maulid_nabi",
+        "awal_ramadan",
+        "idul_fitri",
+        "idul_adha",
+        "isra_miraj",
+        "nuzulul_quran",
+        "arafah",
+        "tasua",
+        "asyura",
+        "tasyrik",
+    }
+
+
+def test_events_include_invalid(client):
+    r = client.get("/api/v1/events?year=1446&calendar=hijri&include=bogus")
+    assert r.status_code == 400
+    assert r.json()["error"]["code"] == "invalid_include"
+
+
+def test_events_include_cherry_pick_dedup(client):
+    r = client.get("/api/v1/events?year=1446&calendar=hijri&include=extra,asyura")
+    assert r.status_code == 200
+    slugs = [e["event"] for e in r.json()["events"]]
+    assert slugs.count("asyura") == 1
+
+
+def test_events_include_echo(client):
+    r = client.get("/api/v1/events?year=1446&calendar=hijri&include=asyura")
+    assert r.status_code == 200
+    assert set(r.json()["input"]["include"]) == {"asyura"}
+    r2 = client.get("/api/v1/events?year=1446&calendar=hijri")
+    assert r2.json()["input"]["include"] is None
+
+
+def test_events_tasyrik_date_range(client, real_data):
+    r = client.get("/api/v1/events?year=1446&calendar=hijri&include=extra")
+    assert r.status_code == 200
+    tasyrik = next(e for e in r.json()["events"] if e["event"] == "tasyrik")
+    assert tasyrik["hijri"] == "1446-12-11"
+    dr = tasyrik["date_range"]
+    assert dr["hijri_start"] == "1446-12-11"
+    assert dr["hijri_end"] == "1446-12-13"
+    h2g = real_data["hijri_to_gregorian"]
+    assert dr["gregorian_start"] == h2g["1446-12-11"]
+    assert dr["gregorian_end"] == h2g["1446-12-13"]
+    single = next(e for e in r.json()["events"] if e["event"] == "arafah")
+    assert single["date_range"] is None
+
+
+def test_events_ayyamul_bidh(client, real_data):
+    r = client.get("/api/v1/events?year=1446&calendar=hijri&include=ayyamul_bidh")
+    assert r.status_code == 200
+    body = r.json()
+    bidh = [e for e in body["events"] if e["event"] == "ayyamul_bidh"]
+    assert len(bidh) == 12
+    months = sorted(e["hijri"][5:7] for e in bidh)
+    assert months == [f"{m:02d}" for m in range(1, 13)]
+    sample = bidh[0]
+    assert sample["date_range"]["hijri_end"] == f"{sample['hijri'][:7]}-15"
+    imp = client.get("/api/v1/events?year=1446&calendar=hijri")
+    assert all(e["event"] != "ayyamul_bidh" for e in imp.json()["events"])
+
+
+def test_events_ayyamul_bidh_gregorian(client, real_data):
+    r = client.get("/api/v1/events?year=2025&calendar=gregorian&include=ayyamul_bidh")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["count"] > 0
+    for e in body["events"]:
+        assert e["gregorian"].startswith("2025")

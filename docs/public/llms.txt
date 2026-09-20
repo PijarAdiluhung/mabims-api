@@ -39,7 +39,9 @@ All days in a year (12 months).
 
 ### Islamic Events
 GET /api/v1/events?year=2026&calendar=gregorian
-Returns: Awal Ramadan, Idul Fitri, Idul Adha, 1 Muharram, Maulid Nabi.
+Base events: Awal Ramadan, Idul Fitri, Idul Adha, 1 Muharram, Maulid Nabi.
+Add include=extra (Isra Mi'raj, Nuzulul Quran, Arafah, Tasu'a, Asyura, Tasyrik),
+include=ayyamul_bidh (13-15 every Hijri month), individual slugs, or include=all.
 
 ### Hilal Visibility
 GET /api/v1/hilal/info?month=9&year=1447

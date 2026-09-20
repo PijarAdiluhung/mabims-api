@@ -56,17 +56,32 @@ class RangeInput(BaseModel):
     calendar: str
 
 
+class EventDateRange(BaseModel):
+    hijri_start: str
+    hijri_end: str
+    gregorian_start: str
+    gregorian_end: str
+
+
 class EventItem(BaseModel):
     event: str
     name: str
     hijri: str
     gregorian: str
     source: Source
+    date_range: EventDateRange | None = Field(
+        default=None,
+        description=t("schema.event_date_range"),
+    )
 
 
 class EventsInput(BaseModel):
     year: int
     calendar: str
+    include: list[str] | None = Field(
+        default=None,
+        description=t("schema.events_input.include"),
+    )
 
 
 class EventsResponse(BaseModel):

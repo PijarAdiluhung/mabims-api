@@ -210,12 +210,21 @@ _STRINGS: dict[str, dict[str, str]] = {
     },
     "events.description": {
         "en": (
-            "Returns Islamic observance dates for a year: 1 Muharram, "
-            "Maulid Nabi, Awal Ramadan, Idul Fitri, Idul Adha."
+            "Returns Islamic observance dates for a year. Base events (1 Muharram, "
+            "Maulid Nabi, Awal Ramadan, Idul Fitri, Idul Adha) are always included; "
+            "add `include=extra` for tier-2 observances (Isra Mi'raj, Nuzulul Quran, "
+            "Arafah, Tasu'a, Asyura, Tasyrik), `include=ayyamul_bidh` for the white "
+            "days (13-15 of every Hijri month), individual slugs to cherry-pick, "
+            "or `all` for everything."
         ),
         "id": (
-            "Mengembalikan tanggal hari besar Islam untuk satu tahun: "
-            "1 Muharram, Maulid Nabi, Awal Ramadan, Idul Fitri, Idul Adha."
+            "Mengembalikan tanggal hari penting Islam untuk satu tahun. Event dasar "
+            "(1 Muharram, Maulid Nabi, Awal Ramadan, Idul Fitri, Idul Adha) selalu "
+            "tersedia; tambahkan `include=extra` untuk peringatan tingkat dua "
+            "(Isra Mi'raj, Nuzulul Quran, Arafah, Tasu'a, Asyura, Tasyrik), "
+            "`include=ayyamul_bidh` untuk puasa hari putih (13-15 setiap bulan "
+            "Hijriah), slug individual untuk memilih satu per satu, atau `all` "
+            "untuk semuanya."
         ),
     },
     "month.summary": {
@@ -419,6 +428,20 @@ _STRINGS: dict[str, dict[str, str]] = {
         "en": "Year (e.g. 2026)",
         "id": "Tahun kalender sesuai `calendar` (Hijriah: 1446, Masehi: 2025)",
     },
+    "query.events_include": {
+        "en": (
+            "Optional extras, comma-separated: `extra` (tier-2 observances), "
+            "`ayyamul_bidh`, individual slugs (isra_miraj, nuzulul_quran, arafah, "
+            "tasua, asyura, tasyrik), or `all`. Base events are always included; "
+            "invalid values are rejected with 400 `invalid_include`."
+        ),
+        "id": (
+            "Tambahan opsional, dipisah koma: `extra` (peringatan tingkat dua), "
+            "`ayyamul_bidh`, slug individual (isra_miraj, nuzulul_quran, arafah, "
+            "tasua, asyura, tasyrik), atau `all`. Event dasar selalu disertakan; "
+            "nilai tidak dikenal ditolak dengan 400 `invalid_include`."
+        ),
+    },
     "query.hijri_year": {
         "en": "Year (e.g. 1447)",
         "id": "Tahun Hijriah atau Masehi (mis. 1447)",
@@ -467,6 +490,24 @@ _STRINGS: dict[str, dict[str, str]] = {
         "id": (
             "Tanggal Hijriah yang berlaku setelah magrib malam ini. "
             "Hanya ada saat `next=true`."
+        ),
+    },
+    "schema.event_date_range": {
+        "en": (
+            "Inclusive span of a multi-day event (day..day_end in Hijri). "
+            "null for single-day events."
+        ),
+        "id": (
+            "Rentang event multi-hari (day..day_end dalam Hijriah). "
+            "null untuk event satu hari."
+        ),
+    },
+    "schema.events_input.include": {
+        "en": (
+            "echo of the include query parameter; null when unset (base events only)"
+        ),
+        "id": (
+            "gema dari query `include`; null saat tidak diisi (event dasar saja)"
         ),
     },
     "schema.hilal_image_range": {

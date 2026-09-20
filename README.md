@@ -71,7 +71,7 @@ The `source` field indicates where the data came from:
 | `GET /api/v1/range?start=&end=&calendar=` | Bulk conversion (≤45 days). `calendar` must be `hijri` or `gregorian`. Beyond table coverage, hijri ranges are served from the computed tier. | 240/min |
 | `GET /api/v1/month?year=&month=&calendar=` | All days in a month. `calendar` must be `hijri` or `gregorian`. Hijri months beyond the table are served from the computed tier. | 240/min |
 | `GET /api/v1/year?year=&calendar=` | All days in a year (12 months). `calendar` must be `hijri` or `gregorian`. | 240/min |
-| `GET /api/v1/events?year=&calendar=` | Islamic observances. | 240/min |
+| `GET /api/v1/events?year=&calendar=&include=` | Islamic observances. Base 5 events by default; `include=extra` adds tier-2 observances (Isra Mi'raj, Nuzulul Quran, Arafah, Tasu'a, Asyura, Tasyrik), `include=ayyamul_bidh` adds the white days (13–15 every Hijri month), or cherry-pick slugs / `all`. | 240/min |
 | `GET /api/v1/hilal/info?month=&year=` | Hilal visibility data for the evening deciding a month start (topocentric altitude + geocentric elongation at the deciding site). | 60/hour |
 | `GET /api/v1/hilal/viz?month=&year=` | Hilal sky chart PNG (720×1280) with the criteria table — scene, values and times at the deciding site. Add `bare=true` for the panel-less high-resolution (1440×1520) web card, or `download=true` to send it as an attachment. | 30/hour |
 | `GET /api/v1/hilal/map?month=&year=` | Hilal visibility map PNG (720×1280): the archipelago visible region, 95 display points and the all-indonesia min–max gauges. Add `bare=true` for the panel-less high-resolution (1440×1520) web card, or `download=true` to send it as an attachment. Available for Hijri 1444–1475 (pre-rendered for 1444–1450 via the CDN image pack, cached renders beyond); outside that range the endpoint refuses. | 30/hour |
@@ -98,11 +98,14 @@ The hilal visibility criteria follow Neo MABIMS: **moon altitude ≥ 3.0°** (to
 | `next` | `true`, `false` | Default `false`. On `/today`, also returns the Hijri date that begins after this evening's maghrib (the next civil day's mapping) as `next`, with its own `source`. The API does not compute sunset — the client gates the flip on its own maghrib time. Same boolean acceptance as `retro`. |
 | `month` | 1–12 | Hijri or Gregorian month. |
 | `bare`, `download` | `true`, `false` | Default `false`. Hilal PNG endpoints only. Boolean flags accept `true`/`false` (case-insensitive) or `1`/`0`; anything else is rejected with 400 `invalid_bare` / `invalid_download`. `download` adds `Content-Disposition: attachment`. |
+| `include` | CSV | `/events` only. Comma separated `extra`, `ayyamul_bidh`, `all`, or individual slugs (`isra_miraj`, `nuzulul_quran`, `arafah`, `tasua`, `asyura`, `tasyrik`). Invalid values → 400 `invalid_include`. |
 
 Integer parameters (`year`, `month`) must be plain digits. Malformed integers
 return 400 `invalid_year` / `invalid_month` (never FastAPI's 422 shape).
 
 ## Events
+
+Default (`no include`) — the base 5, unchanged from v1:
 
 | `event` slug | Name | Hijri date |
 |---|---|---|
@@ -111,6 +114,23 @@ return 400 `invalid_year` / `invalid_month` (never FastAPI's 422 shape).
 | `awal_ramadan` | Start of Ramadan | 1 Ramadan |
 | `idul_fitri` | Eid al-Fitr | 1 Shawwal |
 | `idul_adha` | Eid al-Adha | 10 Dhul Hijjah |
+
+`include=extra` → tier-2 observances (not national holidays):
+
+| `event` slug | Name | Hijri date |
+|---|---|---|
+| `isra_miraj` | Isra Mi'raj | 27 Rajab |
+| `nuzulul_quran` | Nuzulul Quran | 17 Ramadan |
+| `arafah` | Arafah fasting (Wukuf) | 9 Dhul Hijjah |
+| `tasua` | Tasu'a fasting | 9 Muharram |
+| `asyura` | Ashura fasting | 10 Muharram |
+| `tasyrik` | Days of Tashriq | 11–13 Dhul Hijjah |
+
+`include=ayyamul_bidh` → one ranged event per Hijri month (`date_range` field with the
+13–15 span), 12 events per Hijri year. `include=all` → everything. Individual slugs
+from tier 2 may also be cherry-picked, comma separated; `input.include` echoes what
+was requested. Multi-day events (`tasyrik`, `ayyamul_bidh`) carry a `date_range` field;
+single-day events have `date_range: null`.
 
 ## Error responses
 
@@ -136,6 +156,7 @@ All errors follow a consistent JSON shape:
 | 400 | `invalid_next` | `next` param is not a boolean |
 | 400 | `invalid_bare` | `bare` param is not a boolean |
 | 400 | `invalid_download` | `download` param is not a boolean |
+| 400 | `invalid_include` | `/events` `include` param has unknown values |
 | 400 | `invalid_range` | `start` is after `end` |
 | 400 | `invalid_month` | `month` is not an integer or is not between 1 and 12 |
 | 400 | `invalid_year` | `year` is not an integer or is out of supported bounds |

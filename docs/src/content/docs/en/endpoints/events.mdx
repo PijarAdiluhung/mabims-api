@@ -1,6 +1,6 @@
 ---
 title: GET /events
-description: "[Islamic observance](https://en.wikipedia.org/wiki/Islamic_holidays) dates (1 Muharram, Maulid, Ramadan start, Eid al-Fitr, Eid al-Fadha) from the MABIMS table, extended with computed dates beyond table coverage."
+description: "[Islamic observance](https://en.wikipedia.org/wiki/Islamic_holidays) dates (Islamic New Year, Maulid, Ramadan start, Eid al-Fitr, Eid al-Adha, plus dates like Ashura and Arafah) from the MABIMS table, extended with computed dates beyond table coverage."
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
@@ -14,7 +14,13 @@ table, dates come straight from the public Kemenag table — the same one that p
 observation points across Indonesia), giving you observance dates
 years into the future.
 
-<ApiRequest path="/api/v1/events" args="?year={Y}&calendar={gregorian|hijri}&retro={true|false}">
+By default the endpoint returns the **5 base events** (Islamic New Year, Maulid, Ramadan start,
+Eid al-Fitr, Eid al-Adha) — so existing clients get exactly the responses they got before.
+Add the `include` parameter to unlock the tier-2 observances (Isra' and Mi'raj, Nuzulul Quran,
+Arafah, Tasu'a, Ashura, Tasyrik), the Ayyamul Bidh fasting days, individually cherry-picked
+slugs, or everything at once.
+
+<ApiRequest path="/api/v1/events" args="?year={Y}&calendar={gregorian|hijri}&include={extra|ayyamul_bidh|all|slug,...}&retro={true|false}">
   <TestButton path="/api/v1/events" />
 </ApiRequest>
 
@@ -24,7 +30,27 @@ years into the future.
 |---|---|---|---|
 | `year` | integer | yes | Year in the requested `calendar` (Hijri: `1446`, Gregorian: `2025`) |
 | `calendar` | string | no (default `hijri`) | `gregorian` or `hijri` |
+| `include` | CSV | no | Comma-separated: `extra` (all of tier 2), `ayyamul_bidh`, individual slugs (`isra_miraj`, `nuzulul_quran`, `arafah`, `tasua`, `asyura`, `tasyrik`), or `all`. The 5 base events are always included and cannot be removed |
 | `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro`. [See data coverage for the reason why](/en/data-coverage/) |
+
+### `include` combinations
+
+```bash
+# base 5 only (default)
+curl "https://api.mabims.dev/api/v1/events?year=2025&calendar=gregorian"
+
+# + tier-2 observances (Isra' and Mi'raj, Nuzulul Quran, Arafah, Tasu'a, Ashura, Tasyrik)
+curl "https://api.mabims.dev/api/v1/events?year=2025&calendar=gregorian&include=extra"
+
+# base 5 + Ayyamul Bidh (13-15 of every Hijri month)
+curl "https://api.mabims.dev/api/v1/events?year=2025&calendar=gregorian&include=ayyamul_bidh"
+
+# cherry-pick
+curl "https://api.mabims.dev/api/v1/events?year=2025&calendar=gregorian&include=asyura,arafah"
+
+# everything
+curl "https://api.mabims.dev/api/v1/events?year=2025&calendar=gregorian&include=all"
+```
 
 ## Example
 
@@ -73,13 +99,20 @@ Items are sorted by Gregorian date.
 
 ## Available events
 
-| `event` | Name | Hijri month | Day |
-|---|---|---|---|
-| `1_muharram` | Islamic New Year | 1 (Muharram) | 1 |
-| `maulid_nabi` | Prophet's Birthday | 3 (Rabi' al-awwal) | 12 |
-| `awal_ramadan` | First day of Ramadan | 9 (Ramadan) | 1 |
-| `idul_fitri` | Eid al-Fitr | 10 (Shawwal) | 1 |
-| `idul_adha` | Eid al-Adha | 12 (Dhu al-Hijjah) | 10 |
+| `event` | Name | Hijri month | Day | Set |
+|---|---|---|---|---|
+| `1_muharram` | Islamic New Year | 1 (Muharram) | 1 | default |
+| `maulid_nabi` | Prophet's Birthday | 3 (Rabi' al-awwal) | 12 | default |
+| `awal_ramadan` | First day of Ramadan | 9 (Ramadan) | 1 | default |
+| `idul_fitri` | Eid al-Fitr | 10 (Shawwal) | 1 | default |
+| `idul_adha` | Eid al-Adha | 12 (Dhu al-Hijjah) | 10 | default |
+| `isra_miraj` | Isra' and Mi'raj | 7 (Rajab) | 27 | `extra` |
+| `nuzulul_quran` | Nuzulul Quran | 9 (Ramadan) | 17 | `extra` |
+| `arafah` | Arafah fasting | 12 (Dhu al-Hijjah) | 9 | `extra` |
+| `tasua` | Tasu'a fasting | 1 (Muharram) | 9 | `extra` |
+| `asyura` | Ashura fasting | 1 (Muharram) | 10 | `extra` |
+| `tasyrik` | Days of Tashriq | 12 (Dhu al-Hijjah) | 11–13 | `extra` |
+| `ayyamul_bidh` | Ayyamul Bidh fasting | every month 1–12 | 13–15 | `ayyamul_bidh` |
 
 ## Notes
 
@@ -90,6 +123,11 @@ Items are sorted by Gregorian date.
 - For `calendar=gregorian`, the endpoint estimates which hijri years overlap the requested
   gregorian year and resolves each event across those years.
 - Like `/convert`, responses within table coverage are cached immutably at the CDN.
+- Multi-day events (`tasyrik`, `ayyamul_bidh`) carry an extra `date_range` field with
+  `hijri_start`, `hijri_end`, `gregorian_start`, `gregorian_end`. Single-day events
+  have `date_range: null`.
+- The `include` value you send is echoed back in `input.include` (or `null` when unset)
+  so clients can verify which set is active.
 
 ## Errors
 
@@ -105,6 +143,7 @@ Items are sorted by Gregorian date.
 | `code` | HTTP | Cause |
 |---|---|---|
 | `invalid_calendar` | 400 | Calendar is not `gregorian` or `hijri` |
+| `invalid_include` | 400 | `include` value is not `extra`, `ayyamul_bidh`, `all`, or a valid slug |
 | `invalid_year` | 400 | Year out of supported bounds |
 | `invalid_retro` | 400 | `retro` param is not a boolean value (accepts `true`/`false`, `1`/`0`) |
 
