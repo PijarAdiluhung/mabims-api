@@ -195,7 +195,7 @@ const hilalDateShort = hilalItem
   : '';
 
 const masehiYear = Number(todayGregIso.slice(0, 4)) || 2026;
-const title = `Kalender Hijriah ${currentYear} H & ${masehiYear} — Data Hilal, Kriteria MABIMS | mabims.dev`;
+const title = `Kalender Hijriah MABIMS ${currentYear} (${masehiYear}) • Kriteria Kemenag Neo MABIMS`;
 const description =
   `Kalender Hijriah ${currentYear} H (${masehiYear}) berdasarkan kriteria MABIMS Kementerian Agama RI. ` +
   `Tanggal Hijriah hari ini, awal tiap bulan, hari penting Islam, dan data visibilitas hilal. Gratis & open-source.`;
@@ -520,7 +520,7 @@ const initialMonthEvents: string[] = [];
     <div class="kh-about-grid">
       <div class="kh-about-text">
         <p>
-          <strong>MABIMS</strong> (Menteri Agama Brunei, Indonesia, Malaysia, dan Singapura)
+          <strong>Kriteria MABIMS</strong> (Menteri Agama Brunei, Indonesia, Malaysia, dan Singapura)
           adalah standar penentuan awal bulan Hijriah yang digunakan oleh <strong>Kementerian Agama Republik Indonesia</strong>.
           Kriteria terbaru, <em>Neo MABIMS</em>, mensyaratkan tinggi bulan sabit minimal <strong>3°</strong> dan
           elongasi minimal <strong>6,4°</strong> saat matahari terbenam, dievaluasi di seluruh Indonesia.
@@ -538,7 +538,7 @@ const initialMonthEvents: string[] = [];
       <div class="kh-about-facts">
         <div class="kh-fact"><span class="kh-fact-label">Ketinggian bulan</span><span class="kh-fact-value">≥ 3,0°</span></div>
         <div class="kh-fact"><span class="kh-fact-label">Elongasi</span><span class="kh-fact-value">≥ 6,4°</span></div>
-        <div class="kh-fact"><span class="kh-fact-label">Titik pengamatan</span><span class="kh-fact-value">25 pesisir</span></div>
+        <div class="kh-fact"><span class="kh-fact-label">Titik pengamatan</span><span class="kh-fact-value">Indonesia</span></div>
         <div class="kh-fact"><span class="kh-fact-label">Sumber data</span><span class="kh-fact-value">Kemenag RI</span></div>
       </div>
     </div>
@@ -1338,6 +1338,15 @@ const initialMonthEvents: string[] = [];
   .kh-faq {
     padding: clamp(3rem, 6vw, 5rem) 0;
   }
+  @media (min-width: 54rem) {
+    .kh-faq .kh-section-head,
+    .kh-faq-item {
+      max-width: 54rem;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+  .kh-faq .kh-section-head { margin-bottom: clamp(1.5rem, 3vw, 2rem); }
   .kh-faq-item {
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 14px;
@@ -1849,6 +1858,15 @@ const initialMonthEvents: string[] = [];
   }
 
   /* ── Boot: today refresh + events + today highlight ── */
+  // ?calendar=masehi|hijri deep-links the toggle (add ?calendar=masehi to
+  // share a Gregorian view; values 'gregorian'/'masehi' both accepted)
+  const wanted = (new URLSearchParams(location.search).get('calendar') ?? '').toLowerCase();
+  if (['masehi', 'gregorian'].includes(wanted)) {
+    state.mode = 'gregorian';
+    for (const b of document.querySelectorAll('.kh-toggle-btn')) {
+      b.classList.toggle('is-active', b.dataset.mode === 'gregorian');
+    }
+  }
   (async function boot() {
     try {
       const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -1874,11 +1892,13 @@ const initialMonthEvents: string[] = [];
         `<span class="kh-today-greg"> · ${gDate}</span>`;
 
       // If the build snapshot drifted (e.g. yesterday's deploy), resync the grid
-      const buildToday = state.hijriYear === o.year && state.month === o.month;
+      // (masehi deep-link: month is the current gregorian month, not the snapshot's)
+      const buildToday = state.mode === 'hijri' && state.hijriYear === o.year && state.month === o.month;
       if (!buildToday) {
         state.hijriYear = o.year;
         state.month = o.month;
       }
+      if (state.mode === 'gregorian') parseIso(today.input.date);
 
       const evBody = await api('/api/v1/events', { year: String(o.year), calendar: 'hijri', include: 'all' });
       state.eventsList = (evBody.events ?? []) as EventItem[];
