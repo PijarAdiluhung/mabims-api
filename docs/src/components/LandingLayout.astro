@@ -94,17 +94,7 @@ const links = {
         <div class="nav-links">
           <a href={links.quickstart}>{labels.quickstart}</a>
           <a href={links.coba} target="_blank" rel="noopener">{labels.coba}</a>
-          <div class="nav-dropdown">
-            <button class="nav-dropdown-trigger">
-              {labels.try}
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-            <div class="nav-dropdown-menu">
-              <a href={links.converter}>Konverter</a>
-              <a href={links.kalender}>Kalender</a>
-              <a href={links.hilalDemo}>Grafik</a>
-            </div>
-          </div>
+          <a href={`${base}/kalender-hijriah/`}>Kalender</a>
           {links.hilalPage && <a href={links.hilalPage}>Hilal</a>}
           <a href={links.blog}>{labels.blog}</a>
           <a href="https://github.com/PijarAdiluhung/mabims-api" target="_blank" rel="noopener" class="nav-github">
@@ -121,10 +111,7 @@ const links = {
     <div class="mobile-menu" id="mobile-menu">
       <a href={links.quickstart}>{labels.quickstart}</a>
       <a href={links.coba} target="_blank" rel="noopener">{labels.coba}</a>
-      <span class="mobile-menu-label">{labels.try}</span>
-      <a href={links.converter} class="mobile-menu-sub">Konverter</a>
-      <a href={links.kalender} class="mobile-menu-sub">Kalender</a>
-      <a href={links.hilalDemo} class="mobile-menu-sub">Grafik</a>
+      <a href={`${base}/kalender-hijriah/`}>Kalender</a>
       {links.hilalPage && <a href={links.hilalPage}>Hilal</a>}
       <a href={links.blog}>{labels.blog}</a>
       <a href="https://github.com/PijarAdiluhung/mabims-api" target="_blank" rel="noopener">{labels.github}</a>

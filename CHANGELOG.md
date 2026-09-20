@@ -2,6 +2,22 @@
 
 History of changes to the MABIMS API and documentation.
 
+## 1.9.0 — 2026-09-20
+
+### Added
+
+- **`include` parameter on `GET /api/v1/events`** — the 5 base events are returned by default (unchanged responses), and optional extras can now be requested: `include=extra` adds the tier-2 observances (Isra Mi'raj 27 Rajab, Nuzulul Quran 17 Ramadan, Arafah 9 Dhul Hijjah, Tasu'a 9 Muharram, Asyura 10 Muharram, Hari Tasyrik 11–13 Dhul Hijjah), `include=ayyamul_bidh` adds the white days (13–15 of every Hijri month, one ranged event per month, 12 per year), individual slugs can be cherry-picked, and `include=all` returns everything.
+- **`date_range` field on event items** — multi-day events (`tasyrik`, `ayyamul_bidh`) carry `hijri_start`, `hijri_end`, `gregorian_start`, `gregorian_end`; single-day events have `date_range: null`. Optional field, non-breaking.
+- **`input.include` echo** — the response echoes the requested include set (sorted, `null` when unset) so clients can verify what ran.
+- **400 `invalid_include`** — unknown include tokens (e.g. `include=ayahsura`) are rejected with a message naming the invalid value.
+
+### Notes
+
+- For clients: existing calls keep returning `count: 5` with the same envelope; only opt-in requests change shape. All new dates are fixed Hijri mappings, so within the curated table they are `source: mabims`; beyond it they follow the computed/retro tiers like the base events.
+- The npm SDK `mabims-hijri@1.4.0` supports `events(year, calendar, { include })` with the same tokens, computing extras offline from the bundled table.
+
+---
+
 ## 1.8.2 — 2026-09-19
 
 ### Added
