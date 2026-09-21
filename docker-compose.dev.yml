@@ -11,3 +11,7 @@ services:
     build:
       args:
         PUBLIC_API_BASE: "http://localhost:8000"
+
+  docs-ssr:
+    environment:
+      INTERNAL_API_BASE: "http://api:8000"

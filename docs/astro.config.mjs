@@ -1,11 +1,13 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import nodeAdapter from '@astrojs/node';
 import starlight from '@astrojs/starlight';
 import starlightBlog from 'starlight-blog';
 import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
   site: 'https://mabims.dev',
+  adapter: nodeAdapter({ mode: 'standalone' }),
   redirects: {
     '/playground': '/demo/converter',
     '/playground/converter': '/demo/converter',

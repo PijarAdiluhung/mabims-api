@@ -2,7 +2,13 @@
 import LandingLayout from '../components/LandingLayout.astro';
 import Cta from '../components/landing/Cta.astro';
 
-const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'https://api.mabims.dev';
+export const prerender = false;
+
+/* Server render hits the API over the compose network; the browser script
+   keeps using the public base below. */
+const apiBase = import.meta.env.INTERNAL_API_BASE
+  ?? (typeof process !== 'undefined' ? process.env.INTERNAL_API_BASE : undefined)
+  ?? 'http://localhost:8000';
 
 const HIJRI_MONTHS = [
   'Muharram', 'Safar', 'Rabiul Awal', 'Rabiul Akhir',
@@ -56,6 +62,18 @@ try {
     };
   }
 } catch {}
+
+/* Cache till midnight Jakarta like the API's /today: Bunny caches per edge up
+   to a day, origin renders at most once per region per day. */
+if (todayGregIso) {
+  const jkt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+  }).formatToParts(new Date());
+  const get = (t: string) => Number(jkt.find((p) => p.type === t)?.value ?? 0);
+  const secsOfDay = get('hour') * 3600 + get('minute') * 60 + get('second');
+  const ttl = 86400 - secsOfDay;
+  Astro.response.headers.set('Cache-Control', `public, max-age=0, s-maxage=${ttl}`);
+}
 
 const events: EventItem[] = [];
 if (todayOut) {
@@ -1955,7 +1973,7 @@ const initialMonthEvents: string[] = [];
     }
   })();
 
-  void loadHilal;
+  void loadHilal();
 
   function parseIso(iso: string) {
     // set gregorian mode state from an ISO gregorian date

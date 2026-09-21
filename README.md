@@ -264,7 +264,7 @@ The full OpenAPI 3.1 spec is available at `https://api.mabims.dev/openapi.json` 
 | Layer | Tech |
 |---|---|
 | API | [FastAPI](https://fastapi.tiangolo.com/) + [Pydantic v2](https://docs.pydantic.dev/), [slowapi](https://github.com/laurentS/slowapi) rate limit |
-| Docs | [Astro](https://astro.build/) + [Starlight](https://starlight.astro.build/) with demo pages, embedded Scalar API client, blog, and FAQ |
+| Docs | [Astro](https://astro.build/) + [Starlight](https://starlight.astro.build/) with demo pages, embedded Scalar API client, blog, and FAQ — statically prerendered plus an SSR container (`docs-ssr`) that server-renders [/kalender-hijriah](https://mabims.dev/kalender-hijriah/) against the API at request time |
 | Data | Precomputed MABIMS tables (`api/data/`) |
 | Rendering | [Skyfield](https://rhodesmill.org/skyfield/) + [Matplotlib](https://matplotlib.org/) + [Pillow](https://python-pillow.org/) + [Shapely](https://shapely.readthedocs.io/) |
 | Hosting | Docker Compose on VPS via Dokploy, Bunny CDN in front |
@@ -288,7 +288,8 @@ The docs at [mabims.dev](https://mabims.dev) include:
 .github/        CI/CD workflows
 api/             FastAPI app, calendar data, tests (pytest)
 docs/            Astro/Starlight documentation site
-docker-compose.yml        production services (internal-only ports)
+                 (static + SSR for /kalender-hijriah via the @astrojs/node adapter)
+docker-compose.yml        api, docs (nginx static), docs-ssr (node SSR) — internal-only ports
 docker-compose.dev.yml    local override publishing ports 8000/8080
 LICENSE                   MIT license
 mabims-assets/            image pack build artifacts

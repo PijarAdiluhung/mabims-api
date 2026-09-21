@@ -16,12 +16,29 @@ services:
   docs:
     build:
       context: ./docs
+      target: static
       args:
         PUBLIC_API_BASE: ${PUBLIC_API_BASE:-https://api.mabims.dev}
     image: mabims-docs:latest
     restart: unless-stopped
     expose:
       - "80"
+
+  # Server-rendered Astro pages (prerender = false) behind nginx.
+  docs-ssr:
+    build:
+      context: ./docs
+      target: ssr
+      args:
+        PUBLIC_API_BASE: ${PUBLIC_API_BASE:-https://api.mabims.dev}
+    image: mabims-docs-ssr:latest
+    restart: unless-stopped
+    environment:
+      INTERNAL_API_BASE: ${INTERNAL_API_BASE:-http://api:8000}
+    expose:
+      - "4321"
+    depends_on:
+      - api
 
 volumes:
   fallback_data:
