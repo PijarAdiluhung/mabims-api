@@ -60,7 +60,7 @@ Converts one date in the direction implied by `calendar`.
 }
 ```
 
-**400** â€” invalid date format or unknown calendar
+**400** — invalid date format or unknown calendar
 
 ```json
 {
@@ -81,7 +81,7 @@ Converts one date in the direction implied by `calendar`.
 
 Boolean flags accept `true`/`false` (case-insensitive) and `1`/`0`; absent = false.
 
-**404** â€” `date_not_found`: no pair exists for that date
+**404** — `date_not_found`: no pair exists for that date
 
 ```json
 {
@@ -154,16 +154,16 @@ Converts every day in an inclusive range.
 }
 ```
 
-Each item carries its own `source` â€” ranges crossing the table boundary can mix
+Each item carries its own `source` — ranges crossing the table boundary can mix
 authoritative and computed data.
 
-For `calendar=hijri`, ranges can extend past the public table coverage â€” Hijri
+For `calendar=hijri`, ranges can extend past the public table coverage — Hijri
 months beyond the table are served from the Neo MABIMS computed tier (up to
 2100). `start`/`end` still cap at 45 days.
 
 ### Caching
 
-Responses are immutable per input and sent with `Cache-Control: max-age=86400` â€” safe to cache
+Responses are immutable per input and sent with `Cache-Control: max-age=86400` — safe to cache
 at any layer for a full day.
 
 Every response also carries an ETag. Send `If-None-Match: <etag>` and the server answers 304 Not Modified (empty body) when the data has not changed, with the same `Cache-Control` and ETag headers.

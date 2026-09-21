@@ -1,4 +1,4 @@
-﻿---
+—﻿---
 title: GET /month, /months & /year
 description: Monthly and yearly calendar grids, and Hijri month names.
 ---
@@ -20,7 +20,7 @@ Convenience wrapper that resolves a whole month grid.
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `year` | int | yes | Hijri or Gregorian year |
-| `month` | int | yes | Month 1Ã¢â‚¬â€œ12 |
+| `month` | int | yes | Month 1–12 |
 | `calendar` | string | no (default `hijri`) | Calendar of the `year` input |
 | `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro`. [See data coverage for the reason why](/en/data-coverage/) |
 
@@ -36,7 +36,7 @@ Convenience wrapper that resolves a whole month grid.
     ```js
     const res = await fetch("https://api.mabims.dev/api/v1/month?year=1447&month=1&calendar=hijri");
     const data = await res.json();
-    data.items.forEach(i => console.log(i.gregorian, "Ã¢â€ â€™", i.hijri));
+    data.items.forEach(i => console.log(i.gregorian, "â†’", i.hijri));
     ```
   </TabItem>
   <TabItem label="PHP">
@@ -44,20 +44,20 @@ Convenience wrapper that resolves a whole month grid.
     $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/month?year=1447&month=1&calendar=hijri');
     $data = json_decode($response->getBody(), true);
     foreach ($data['items'] as $item) {
-        echo $item['gregorian'] . ' Ã¢â€ â€™ ' . $item['hijri'] . PHP_EOL;
+        echo $item['gregorian'] . ' â†’ ' . $item['hijri'] . PHP_EOL;
     }
     ```
   </TabItem>
 </Tabs>
 
 For `calendar=hijri` the response contains every Gregorian date onto which that Hijri month
-maps Ã¢â‚¬" exactly what a Hijri month-view needs (29Ã¢â‚¬â€œ30 items). Hijri months beyond the public
+maps — exactly what a Hijri month-view needs (29–30 items). Hijri months beyond the public
 table (e.g. next year) are still resolved from the Neo MABIMS computed tier while within
 the supported range. Same item shape as `/range`.
 
 ## GET /months
 
-Returns the 12 Hijri month names with their numbers. Static, no parameters, cacheable â€” use this to populate dropdowns or labels in your UI.
+Returns the 12 Hijri month names with their numbers. Static, no parameters, cacheable — use this to populate dropdowns or labels in your UI.
 
 <ApiRequest path="/api/v1/months">
   <TestButton path="/api/v1/months" />
@@ -184,7 +184,7 @@ For `calendar=hijri`, months beyond the public table are still served from the N
 
 | `code` | HTTP | Cause |
 |---|---|---|
-| `invalid_month` | 400 | Month is not 1Ã¢â‚¬â€œ12 |
+| `invalid_month` | 400 | Month is not 1–12 |
 | `invalid_year` | 400 | Year out of supported bounds |
 | `invalid_calendar` | 400 | `calendar` param is not `hijri` or `gregorian` |
 | `out_of_coverage` | 400 | Month outside table coverage |
