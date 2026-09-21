@@ -877,6 +877,37 @@ const initialMonthEvents: string[] = [];
   .kc-ev {
     display: none;
   }
+  @media (max-width: 47.9rem) {
+    /* fixed rectangular cells: no aspect-ratio forced height, no reserved
+       6-row space, and the greg line clamps instead of overlapping */
+    .kh-week { padding: 0.5rem 0.35rem; }
+    .kh-grid {
+      min-height: 0;
+      gap: 0.2rem;
+      padding: 0.4rem 0.35rem 0.5rem;
+    }
+    .kc {
+      aspect-ratio: auto;
+      min-height: 3rem;
+      gap: 0.1rem;
+      padding: 0.35rem 0.1rem;
+    }
+    .kh-skel { min-height: 3rem; aspect-ratio: auto; }
+    .kc-day { font-size: 0.95rem; }
+    .kc-greg {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.55rem;
+      letter-spacing: -0.02em;
+    }
+    .kc.is-today .kc-day { width: 1.5rem; height: 1.5rem; }
+  }
+  @media (max-width: 22.49rem) {
+    /* very small phones (S22-class): day + event dot only */
+    .kc-greg { display: none; }
+  }
   @media (min-width: 32rem) and (max-width: 53.99rem) {
     .kc {
       gap: 0.2rem;
@@ -1062,6 +1093,38 @@ const initialMonthEvents: string[] = [];
     display: grid;
     grid-template-columns: 1fr;
     gap: 1.5rem;
+  }
+  /* loading state while cycling months */
+  .kh-hilal-figure .kh-zoom img { transition: opacity 0.25s ease; }
+  .kh-hilal-figure.is-loading .kh-zoom img {
+    opacity: 0.25;
+    filter: saturate(0.5);
+  }
+  .kh-hilal-figure.is-loading .kh-zoom { pointer-events: none; }
+  .kh-hilal-figure.is-loading .kh-zoom-hint { opacity: 0; }
+  .kh-hilal-figure.is-loading .kh-zoom::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2.2rem;
+    height: 2.2rem;
+    margin: -1.1rem 0 0 -1.1rem;
+    border-radius: 50%;
+    border: 3px solid rgba(254, 207, 70, 0.25);
+    border-top-color: var(--sl-color-accent);
+    animation: kh-spin 0.8s linear infinite;
+  }
+  .kh-facts { transition: opacity 0.2s ease; }
+  .kh-facts.is-loading {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  @keyframes kh-spin {
+    to { transform: rotate(360deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .kh-hilal-figure.is-loading .kh-zoom::after { animation: none; }
   }
   @media (min-width: 54rem) {
     .kh-hilal-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
@@ -2117,15 +2180,53 @@ const initialMonthEvents: string[] = [];
     if (next) next.disabled = hilalState.month === 12;
   }
 
+  function setHilalLoading(on: boolean) {
+    for (const fig of document.querySelectorAll('.kh-hilal-figure')) {
+      fig.classList.toggle('is-loading', on);
+    }
+    const facts = $('[data-hilal-facts]');
+    if (facts) facts.classList.toggle('is-loading', on);
+    for (const btn of document.querySelectorAll<HTMLButtonElement>('[data-hprev],[data-hnext]')) {
+      btn.disabled = on;
+    }
+  }
+
+  function hilalImgsReady(): Promise<void> {
+    const imgs = [...document.querySelectorAll<HTMLImageElement>('.kh-hilal-figure .kh-zoom img')];
+    return Promise.all(
+      imgs.map((img) =>
+        img.complete
+          ? Promise.resolve()
+          : new Promise<void>((res) => {
+              img.onload = () => res();
+              img.onerror = () => res();
+              setTimeout(res, 15000);
+            }),
+      ),
+    ).then(() => undefined);
+  }
+
+  let hilalToken = 0;
+
   async function loadHilal() {
     renderHilalHeader();
+    setHilalLoading(true);
+    const token = ++hilalToken;
     try {
       const item = await api('/api/v1/hilal/info', {
         month: String(hilalState.month), year: String(hilalState.year),
       });
+      if (token !== hilalToken) return;
       renderHilalSection(item);
+      // hold the loading overlay until the new PNGs are actually on screen
+      await hilalImgsReady();
     } catch {
       // keep SSR content on failure
+    } finally {
+      if (token === hilalToken) {
+        setHilalLoading(false);
+        renderHilalHeader();
+      }
     }
   }
 
