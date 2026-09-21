@@ -103,8 +103,8 @@ Jika kriteria terpenuhi, respons melaporkan **titik penentu** melalui `deciding_
 
 Kolom `visible` bernilai `true` jika kriteria terpenuhi di **setidaknya satu titik pengamatan**:
 
-- **Ketinggian Bulan ≥ 3,0°** — dihitung secara *toposentris*, yaitu berdasarkan posisi hilal relatif terhadap pengamat, dan sudah dikoreksi dengan refraksi atmosfer menggunakan formula Bennett;
-- **Elongasi ≥ 6,4°** — dihitung secara *geosentris* sesuai konvensi hisab Indonesia, yaitu jarak sudut antara Bulan dan Matahari.
+- **Ketinggian Bulan ≥ 3,0°**: dihitung secara *toposentris*, yaitu berdasarkan posisi hilal relatif terhadap pengamat, dan sudah dikoreksi dengan refraksi atmosfer menggunakan formula Bennett;
+- **Elongasi ≥ 6,4°**: dihitung secara *geosentris* sesuai konvensi hisab Indonesia, yaitu jarak sudut antara Bulan dan Matahari.
 
 (Lihat [penjelasan resmi dari MUI](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia) dan [pengumuman pemerintah di Setkab](https://setkab.go.id/pemerintah-tetapkan-1-ramadan-1445h-jatuh-pada-selasa-12-maret-2024) tentang kriteria ini.)
 
@@ -132,10 +132,10 @@ sabit, dengan sisi terang menghadap Matahari. Gambar juga memuat label status (`
 Adegan langit, angka kriteria, dan waktu di dalam grafik semuanya merujuk pada titik penentu yang
 sama. Untuk parameter yang sama, output yang dihasilkan selalu konsisten.
 
-<img src="/viz.png" alt="Contoh grafik visibilitas hilal — 29 Syawal 1447 H, ditentukan di Sabang" style="width: 100%; max-width: 480px;" />
+<img src="/viz.png" alt="Contoh grafik visibilitas hilal, 29 Syawal 1447 H, ditentukan di Sabang" style="width: 100%; max-width: 480px;" />
 
 :::tip[Lihat langsung]
-Coba grafik hilal untuk bulan apa saja di [demo interaktif](/demo/hilal) — pilih bulan dan tahun, langsung lihat hasilnya.
+Coba grafik hilal untuk bulan apa saja di [demo interaktif](/demo/hilal): pilih bulan dan tahun, langsung lihat hasilnya.
 :::
 
 ## Peta (`/hilal/map`)
@@ -149,7 +149,7 @@ Tabel pada kartu memakai angka titik penentu yang **sama dengan `/hilal/viz`**, 
 `TITIK MEMENUHI` dan `TITIK TIDAK MEMENUHI` dari 95 titik. Dengan begitu kedua kartu selalu
 menyebut titik pengamat yang sama. Rate limit: 30 permintaan per jam per IP.
 
-<img src="/map.png" alt="Contoh peta wilayah visibilitas hilal — 29 Syawal 1447 H" style="width: 100%; max-width: 480px;" />
+<img src="/map.png" alt="Contoh peta wilayah visibilitas hilal, 29 Syawal 1447 H" style="width: 100%; max-width: 480px;" />
 
 ## Riwayat (`/hilal/history`)
 
@@ -183,9 +183,9 @@ kriteria, daftar titik, atau ephemeris berubah, atau setelah tabel Kemenag diper
 
 ## Penyimpanan di cache
 
-- `Cache-Control: public, max-age=86400, s-maxage=86400` — hasilnya selalu sama untuk parameter yang sama dan disimpan di CDN. CDN membuat satu gambar per lokasi edge setiap hari.
+- `Cache-Control: public, max-age=86400, s-maxage=86400`: hasilnya selalu sama untuk parameter yang sama dan disimpan di CDN. CDN membuat satu gambar per lokasi edge setiap hari.
 - Proses pembuatan gambar menggunakan CPU. Gunakan parameter seperlunya dan patuhi batas permintaan.
-- **Batas gambar: Hijriah 1444–1475** — kartu PNG hanya tersedia dalam rentang itu (lihat `hilal_image_range` di `/meta`). Di luar rentang tersebut, endpoint mengembalikan `out_of_coverage`. Cakupan data tanggal tetap tercantum di `coverage.forward_ceil`.
+- **Batas gambar: Hijriah 1444–1475**: kartu PNG hanya tersedia dalam rentang itu (lihat `hilal_image_range` di `/meta`). Di luar rentang tersebut, endpoint mengembalikan `out_of_coverage`. Cakupan data tanggal tetap tercantum di `coverage.forward_ceil`.
 
 Setiap respons juga menyertakan ETag. Kirim `If-None-Match: <etag>` dan server menjawab 304 Not Modified (tanpa body) bila data belum berubah, dengan `Cache-Control` dan ETag yang sama.
 

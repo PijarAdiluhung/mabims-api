@@ -1,6 +1,6 @@
 ---
 title: Kebijakan Privasi
-description: Bagaimana API MABIMS menangani data Anda — tidak ada tracking, tidak ada cookie.
+description: Bagaimana API MABIMS menangani data Anda, tidak ada tracking, tidak ada cookie.
 ---
 
 ## Tanpa Pelacakan
@@ -25,7 +25,7 @@ Batas rate diterapkan berdasarkan alamat IP (240 permintaan/menit). IP hanya dig
 
 ## CDN
 
-Bunny CDN digunakan untuk caching. Node edge CDN dapat memproses alamat IP Anda sesuai dengan [kebijakan privasi Bunny CDN](https://bunny.net/privacy-policy/). Cache bersifat publik — semua klien menerima respons yang sama untuk parameter yang sama.
+Bunny CDN digunakan untuk caching. Node edge CDN dapat memproses alamat IP Anda sesuai dengan [kebijakan privasi Bunny CDN](https://bunny.net/privacy-policy/). Cache bersifat publik, semua klien menerima respons yang sama untuk parameter yang sama.
 
 ## Tidak Ada Penyimpanan Data
 

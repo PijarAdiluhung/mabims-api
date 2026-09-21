@@ -213,7 +213,7 @@ console.log(tasyrik?.date_range);
 
 ## `hilal.info(month, year)`
 
-Data visibilitas hilal (bulan) untuk menentukan awal bulan Hijri. Menggunakan kriteria MABIMS yang dievaluasi di titik-titik pengamatan pesisir di seluruh Indonesia — data langsung dari endpoint `/hilal/info` API.
+Data visibilitas hilal (bulan) untuk menentukan awal bulan Hijri. Menggunakan kriteria MABIMS yang dievaluasi di titik-titik pengamatan pesisir di seluruh Indonesia, data langsung dari endpoint `/hilal/info` API.
 
 ```typescript
 import { hilal } from 'mabims-hijri';
@@ -241,7 +241,7 @@ console.log(info.evening.deciding_site?.name); // titik pengamatan penentu
 | `evening.moonset` | Waktu moonset lokal |
 | `evening.moon_alt_deg` | Ketinggian bulan saat sunset di titik penentu (derajat) |
 | `evening.elongation_deg` | Elongasi bulan-matahari (derajat) |
-| `evening.deciding_site` | Titik pengamatan yang digambarkan — `{ name, lat, lon, elev_m, tz }`: titik penentu bila terlihat, atau titik dengan margin terbaik bila tidak terpenuhi di manapun |
+| `evening.deciding_site` | Titik pengamatan yang digambarkan: `{ name, lat, lon, elev_m, tz }`, titik penentu bila terlihat, atau titik dengan margin terbaik bila tidak terpenuhi di manapun |
 | `evening.sites_checked` | Jumlah titik pengamatan yang dievaluasi |
 | `evening.illumination_pct` | Persentase iluminasi bulan |
 | `evening.age_hours` | Usia bulan dalam jam |

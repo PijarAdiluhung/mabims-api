@@ -1,9 +1,9 @@
 ---
 title: Sidang Isbat Corrections
-description: When a Sidang Isbat session decrees a month start that differs from the published Kemenag calendar — how the API surfaces it.
+description: When a Sidang Isbat session decrees a month start that differs from the published Kemenag calendar, how the API surfaces it.
 ---
 
-The published Kemenag calendar is produced from Neo MABIMS calculations, and for years its results have always been confirmed at the Sidang Isbat. In principle, though, the month start is **decided on the night of the Sidang Isbat** (the rukyat on day 29), not on the printed calendar. If that decision differs from the published one, the API follows the **official decision** — and says so, loudly.
+The published Kemenag calendar is produced from Neo MABIMS calculations, and for years its results have always been confirmed at the Sidang Isbat. In principle, though, the month start is **decided on the night of the Sidang Isbat** (the rukyat on day 29), not on the printed calendar. If that decision differs from the published one, the API follows the **official decision** and says so, loudly.
 
 ## Why a difference can happen
 
@@ -24,7 +24,7 @@ Every response touching the corrected month (or the month before it) carries a w
 }
 ```
 
-`source` remains `mabims` — the same data, just corrected.
+`source` remains `mabims`, the same data, just corrected.
 
 `/meta` exposes the correction history, two slim fields per correction:
 
@@ -39,7 +39,7 @@ Every response touching the corrected month (or the month before it) carries a w
 
 ## What does NOT change
 
-- The Neo MABIMS criteria results (`mabims-computed`, hilal cards) remain astronomically correct — the Isbat correction only reports the official decision in warnings, it does not alter the astronomy.
+- The Neo MABIMS criteria results (`mabims-computed`, hilal cards) remain astronomically correct; the Isbat correction only reports the official decision in warnings, it does not alter the astronomy.
 - Response shapes, error codes and endpoints are unchanged. Fields and warnings are additive.
 
 ## Client integration recipe
@@ -51,6 +51,6 @@ Every response touching the corrected month (or the month before it) carries a w
 
 ## History
 
-> So far **no correction has ever been applied** — `divergences[]` is empty and `table_version` is `"none"`. This page will be updated if a Sidang Isbat ever corrects the published calendar.
+> So far **no correction has ever been applied**, `divergences[]` is empty and `table_version` is `"none"`. This page will be updated if a Sidang Isbat ever corrects the published calendar.
 
 Implementation details live in `SIDANG-ISBAT-FLIP.md` in the repository.

@@ -51,13 +51,13 @@ Convenience wrapper that resolves a whole month grid.
 </Tabs>
 
 For `calendar=hijri` the response contains every Gregorian date onto which that Hijri month
-maps — exactly what a Hijri month-view needs (29–30 items). Hijri months beyond the public
+maps, exactly what a Hijri month-view needs (29–30 items). Hijri months beyond the public
 table (e.g. next year) are still resolved from the Neo MABIMS computed tier while within
 the supported range. Same item shape as `/range`.
 
 ## GET /months
 
-Returns the 12 Hijri month names with their numbers. Static, no parameters, cacheable — use this to populate dropdowns or labels in your UI.
+Returns the 12 Hijri month names with their numbers. Static, no parameters, cacheable; use this to populate dropdowns or labels in your UI.
 
 <ApiRequest path="/api/v1/months">
   <TestButton path="/api/v1/months" />

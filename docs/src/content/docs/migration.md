@@ -1,6 +1,6 @@
 ---
 title: Migration dari Aladhan
-description: Pindah dari Aladhan API / Umm al-Qura ke MABIMS — satu kode, tanggal lebih akurat untuk Indonesia.
+description: Pindah dari Aladhan API / Umm al-Qura ke MABIMS, satu kode, tanggal lebih akurat untuk Indonesia.
 ---
 
 Panduan ini untuk developer yang sudah menggunakan [Aladhan API](https://aladhan.com) (atau API berbasis Umm al-Qura lainnya) dan ingin beralih ke MABIMS.
@@ -55,7 +55,7 @@ const data = await res.json();
 
 ### Hari ini
 
-**Aladhan:** Tidak ada endpoint `/today` yang terpisah — harus hit `/gToH` dengan tanggal hari ini.
+**Aladhan:** Tidak ada endpoint `/today` yang terpisah; harus hit `/gToH` dengan tanggal hari ini.
 
 **MABIMS:**
 
@@ -122,7 +122,7 @@ const data = await res.json();
 
 1. **Ganti base URL** dari `api.aladhan.com/v1` ke `api.mabims.dev/api/v1`
 2. **Ubah format tanggal** dari `DD-MM-YYYY` ke `YYYY-MM-DD`
-3. **Sesuaikan parsing response** — MABIMS menggunakan `output` bukan `data.hijri`
+3. **Sesuaikan parsing response**: MABIMS menggunakan `output` bukan `data.hijri`
 4. **Gunakan `/today`** alih-alih hit `/gToH` manual setiap hari
-5. **Periksa `source`** — MABIMS menandai apakah data dari tabel publik (`mabims`) atau komputasi (`mabims-computed`)
-6. **Bandingkan visual** — buka [kalender Hijriah MABIMS](/kalender-hijriah/) untuk mengecek hasil konversi terhadap tampilan kalender bulanan sebelum dan sesudah migrasi
+5. **Periksa `source`**: MABIMS menandai apakah data dari tabel publik (`mabims`) atau komputasi (`mabims-computed`)
+6. **Bandingkan visual**: buka [kalender Hijriah MABIMS](/kalender-hijriah/) untuk mengecek hasil konversi terhadap tampilan kalender bulanan sebelum dan sesudah migrasi

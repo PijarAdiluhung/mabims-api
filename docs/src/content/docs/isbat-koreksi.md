@@ -1,6 +1,6 @@
 ---
 title: Sidang Isbat & Koreksi
-description: Ketika hasil Sidang Isbat beda dengan kalender terbit Kemenag — begini cara API menyampaikannya.
+description: Ketika hasil Sidang Isbat beda dengan kalender terbit Kemenag, begini cara API menyampaikannya.
 ---
 
 Kalender terbit Kemenag dihitung lewat kriteria Neo MABIMS, dan selama bertahun-tahun hasilnya selalu sama dengan keputusan Sidang Isbat. Tapi ingat: putusan awal bulan sebenarnya terjadi **malam Sidang Isbat** (rukyat hari ke-29), bukan murni hasil perhitungan. Kalau malam itu keputusannya beda dengan kalender terbit, API mengikuti **keputusan resmi**, dan akan menyampaikannya dengan jelas, agar tidak ada data yang salah.
@@ -24,7 +24,7 @@ Semua respons yang menyentuh bulan terkoreksi (atau bulan tepat sebelumnya) memb
 }
 ```
 
-`source` tetap `mabims` — datanya sama, hanya dikoreksi.
+`source` tetap `mabims`, datanya sama, hanya dikoreksi.
 
 `/meta` menyimpan riwayatnya, ringkas dua field:
 

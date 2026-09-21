@@ -1,17 +1,17 @@
 ---
 title: GET /hilal
-description: Hilal visibility — criteria data and sky chart for the evening that decides a Hijri month start.
+description: "Hilal visibility: criteria data and sky chart for the evening that decides a Hijri month start."
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Three endpoints for **[hilal visibility](https://en.wikipedia.org/wiki/Moon_sighting)**: the deciding evening is always the **29th** of the
-current month — the night people actually go looking for the crescent. If the criteria are
+current month, the night people actually go looking for the crescent. If the criteria are
 not fulfilled at any observation point, the month completes 30 days and the start shifts a
 day. Month boundaries come from the
 **data publik yang dikeluarkan resmi oleh [Kementerian Agama RI](https://kemenag.go.id)** (publicly available official MABIMS tables) (not Umm al-Qura), and the astronomy uses a **multi-site model**: the
 criteria are evaluated at **coastal observation points across Indonesia** (currently 25
-sites, from Sabang to Rote — see [`api/data/hilal_sites.json`](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json)).
+sites, from Sabang to Rote (see [`api/data/hilal_sites.json`](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json)).
 
 ```
 GET /api/v1/hilal/info?month={month}&year={year}   → JSON
@@ -31,7 +31,7 @@ the archipelago-wide visibility map. All are public but tightly rate limited
 | `year` | int | yes | Target Hijri year |
 | `retro` | `true` / `false` | no (default `false`) | Unlocks computed retro dates below the curated table (down to 1945-01-01), tagged `mabims-retro`. [See data coverage for the reason why](/en/data-coverage/) |
 
-Model: **"seen anywhere in Indonesia"** — the same Neo MABIMS criteria as the computed
+Model: **"seen anywhere in Indonesia"**: the same Neo MABIMS criteria as the computed
 table, evaluated at each point's own local sunset. When the criteria are met, the response
 reports the **deciding site** via `deciding_site`.
 
@@ -97,19 +97,19 @@ reports the **deciding site** via `deciding_site`.
 
 `visible` is `true` when the criteria are met at **at least one observation point**:
 
-- **Moon altitude ≥ 3.0°** — *topocentric* (the hilal's position relative to the observer),
+- **Moon altitude ≥ 3.0°**: *topocentric* (the hilal's position relative to the observer),
   with atmospheric refraction applied (Bennett formula);
-- **Elongation ≥ 6.4°** — *geocentric* (the Indonesian hisab convention), the moon–sun
+- **Elongation ≥ 6.4°**: *geocentric* (the Indonesian hisab convention), the moon–sun
   angular separation;
 
 (See the [official MUI explainer](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia) and the [government announcement via Setkab](https://setkab.go.id/pemerintah-tetapkan-1-ramadan-1445h-jatuh-pada-selasa-12-maret-2024) for the source of these criteria.)
 
 both evaluated at that site's **local sunset** on day 29. The further west a point sits, the
-higher the hilal stands at its sunset — so comfortable months are usually decided on the
+higher the hilal stands at its sunset, so comfortable months are usually decided on the
 western coast (Aceh), while months with a southerly lunar declination can be decided along
 the southern arc (Java → Lesser Sunda). `deciding_site` is always present: when the
 criteria are met nowhere, the reported site is the best-margin one (closest to
-fulfilment) — all altitude, elongation and time values refer to that site.
+fulfilment), all altitude, elongation and time values refer to that site.
 
 Sunset/moonset times, azimuths, illumination and lunar age are computed **topocentrically at
 the deciding site** (not Sabang), and times are displayed in the site's own timezone
@@ -119,14 +119,14 @@ the deciding site** (not Sabang), and times are displayed in the site's own time
 
 A 720×1280 vertical PNG: sunset sky with the crescent (bright limb facing the sun), a
 verdict pill (`MEMENUHI KRITERIA` / `TIDAK MEMENUHI` / `MENDEKATI BATAS` / `DI BAWAH HORIZON`) and a
-`PARAMETER · MABIMS MIN · STATUS` criteria table plus a **TITIK PENGAMAT** row — the sky scene,
+`PARAMETER · MABIMS MIN · STATUS` criteria table plus a **TITIK PENGAMAT** row, the sky scene,
 criteria values and times all refer to the same deciding site. Output is deterministic per
 parameter.
 
-<img src="/viz.png" alt="Sample hilal visibility chart — 29 Syawal 1447 H, decided at Sabang" style="width: 100%; max-width: 480px;" />
+<img src="/viz.png" alt="Sample hilal visibility chart, 29 Syawal 1447 H, decided at Sabang" style="width: 100%; max-width: 480px;" />
 
 :::tip[See it live]
-Try the hilal chart for any month in the [interactive demo](/en/demo/hilal) — pick a month and year, see the result instantly.
+Try the hilal chart for any month in the [interactive demo](/en/demo/hilal): pick a month and year, see the result instantly.
 :::
 
 ## Map (`/hilal/map`)
@@ -137,17 +137,17 @@ points** (green = meets the criteria, gray = does not). The deciding point from 
 is marked with a yellow ring.
 
 The card's table uses the **same deciding point as `/hilal/viz`**, plus the `TITIK MEMENUHI` /
-`TITIK TIDAK MEMENUHI` counts from the 95 points — so both cards always name the same observer.
+`TITIK TIDAK MEMENUHI` counts from the 95 points, so both cards always name the same observer.
 Rate limit: 30/hour per IP.
 
-<img src="/map.png" alt="Sample hilal visibility map — 29 Syawal 1447 H" style="width: 100%; max-width: 480px;" />
+<img src="/map.png" alt="Sample hilal visibility map, 29 Syawal 1447 H" style="width: 100%; max-width: 480px;" />
 
 ## Caching
 
-- `Cache-Control: public, max-age=86400, s-maxage=86400` — deterministic per parameter,
+- `Cache-Control: public, max-age=86400, s-maxage=86400`: deterministic per parameter,
   publicly CDN-cached (CDN gets one render per edge location per day).
 - Rendering is CPU work: request only what you need and respect the rate limits.
-- **Render cap: Hijri 1444–1475** — PNG cards are only served in that range (see
+- **Render cap: Hijri 1444–1475**: PNG cards are only served in that range (see
   `hilal_image_range` on `/meta`); outside it the endpoint refuses with `out_of_coverage`.
   The date-conversion data cap remains `coverage.forward_ceil`.
 

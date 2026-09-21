@@ -1,6 +1,6 @@
 ---
 title: Disclaimer
-description: Penafian resmi — bukan produk Kemenag, bukan otoritas agama.
+description: Penafian resmi, bukan produk Kemenag, bukan otoritas agama.
 ---
 
 ## Bukan Produk Resmi

@@ -43,7 +43,7 @@ Bukan. API ini independen, dibangun menggunakan data tabel publik Kemenag RI seb
 <details>
 <summary>Bagaimana kalau hasil Sidang Isbat beda dengan kalender terbit Kemenag?</summary>
 
-API mengikuti keputusan Sidang Isbat. Respons yang menyentuh bulan yang dikoreksi (dan bulan sebelumnya) membawa warning berawalan <code>kemenag_override:</code>. Sementara <code>/meta</code> menyimpan riwayatnya di <code>divergences[]</code> beserta <code>table_version</code> yang berubah setiap kali ada koreksi — bandingkan dengan nilai tersimpan Anda untuk tahu kapan harus menarik ulang data. Selama belum pernah ada koreksi, field-field ini kosong dan tidak mengubah perilaku API. Detail: <a href="/isbat-koreksi">Sidang Isbat &amp; Koreksi</a>.
+API mengikuti keputusan Sidang Isbat. Respons yang menyentuh bulan yang dikoreksi (dan bulan sebelumnya) membawa warning berawalan <code>kemenag_override:</code>. Sementara <code>/meta</code> menyimpan riwayatnya di <code>divergences[]</code> beserta <code>table_version</code> yang berubah setiap kali ada koreksi, bandingkan dengan nilai tersimpan Anda untuk tahu kapan harus menarik ulang data. Selama belum pernah ada koreksi, field-field ini kosong dan tidak mengubah perilaku API. Detail: <a href="/isbat-koreksi">Sidang Isbat &amp; Koreksi</a>.
 
 </details>
 
@@ -68,8 +68,8 @@ Bisa. CORS bersifat terbuka, jadi bisa dipanggil langsung dari browser di domain
 <details>
 <summary>Apa bedanya <code>source: "mabims"</code> dan <code>source: "mabims-computed"</code>?</summary>
 
-- **`mabims`** — tanggal diambil langsung dari kalender publik Kemenag.
-- **`mabims-computed`** — dihitung otomatis dengan kriteria Neo MABIMS karena tanggal berada di luar cakupan tabel publik.
+- **`mabims**: tanggal diambil langsung dari kalender publik Kemenag.
+- **`mabims-computed**: dihitung otomatis dengan kriteria Neo MABIMS karena tanggal berada di luar cakupan tabel publik.
 
 </details>
 
@@ -97,7 +97,7 @@ Pakai endpoint `GET /convert?date=YYYY-MM-DD&calendar=gregorian` atau `calendar=
 <details>
 <summary>Bagaimana cara mengecek visibilitas hilal untuk bulan tertentu?</summary>
 
-Gunakan endpoint `/hilal/info` untuk data kriteria, atau `/hilal/viz` untuk grafik visibilitas hilal (720×1280 PNG) yang menampilkan posisi bulan, arah sabit, verdict MEMENUHI KRITERIA/TIDAK MEMENUHI, dan titik pengamatan penentu — kriteria dievaluasi di titik-titik pesisir di seluruh Indonesia, dan respons melaporkan `deciding_site` saat kriteria terpenuhi.
+Gunakan endpoint `/hilal/info` untuk data kriteria, atau `/hilal/viz` untuk grafik visibilitas hilal (720×1280 PNG) yang menampilkan posisi bulan, arah sabit, verdict MEMENUHI KRITERIA/TIDAK MEMENUHI, dan titik pengamatan penentu; kriteria dievaluasi di titik-titik pesisir di seluruh Indonesia, dan respons melaporkan `deciding_site` saat kriteria terpenuhi.
 
 </details>
 
@@ -122,7 +122,7 @@ Untuk konversi tanggal tertentu, pakai `GET /convert?date=YYYY-MM-DD&calendar=gr
 <details>
 <summary>Bahasa pemrograman apa yang didukung?</summary>
 
-Karena MABIMS.dev adalah REST API standar, bisa dipakai dari bahasa pemrograman apapun — JavaScript, PHP, Python, Dart, Swift, Kotlin, atau bahkan cURL langsung dari terminal. Tidak perlu library khusus, cukup panggil endpoint-nya.
+Karena MABIMS.dev adalah REST API standar, bisa dipakai dari bahasa pemrograman apapun: JavaScript, PHP, Python, Dart, Swift, Kotlin, atau bahkan cURL langsung dari terminal. Tidak perlu library khusus, cukup panggil endpoint-nya.
 
 </details>
 

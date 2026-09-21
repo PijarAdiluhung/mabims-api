@@ -8,19 +8,19 @@ description: Frequently asked questions about the MABIMS Calendar API.
 <details>
 <summary>What is MABIMS?</summary>
 
-MABIMS is the rukyah criterion (Ministers of Religious Affairs of Brunei, Indonesia, Malaysia, Singapore) used by Indonesia's [Ministry of Religious Affairs (Kemenag RI)](https://kemenag.go.id) to determine the start of the Hijriah month — specifically the beginning of Ramadan, Shawwal, and Dhul Hijjah. The Neo MABIMS criterion requires the hilal to be visible at least 3° with an elongation of at least 6.4° at sunset. (See the official explainer from [MUI](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia).)
+MABIMS is the rukyah criterion (Ministers of Religious Affairs of Brunei, Indonesia, Malaysia, Singapore) used by Indonesia's [Ministry of Religious Affairs (Kemenag RI)](https://kemenag.go.id) to determine the start of the Hijriah month, specifically the beginning of Ramadan, Shawwal, and Dhul Hijjah. The Neo MABIMS criterion requires the hilal to be visible at least 3° with an elongation of at least 6.4° at sunset. (See the official explainer from [MUI](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia).)
 
 </details>
 
 <details>
 <summary>Why is the Hijriah date in my app different from the Indonesian government announcement?</summary>
 
-Most Hijriah calendar APIs and apps use the [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) (Saudi Arabia) criterion as the default. Because the rukyah method and observation location differ, the result can be ±1 day off from Kemenag's official decision — especially for the start of fasting, Eid al-Fitr, and Eid al-Adha.
+Most Hijriah calendar APIs and apps use the [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) (Saudi Arabia) criterion as the default. Because the rukyah method and observation location differ, the result can be ±1 day off from Kemenag's official decision, especially for the start of fasting, Eid al-Fitr, and Eid al-Adha.
 
 </details>
 
 <details>
-<summary>MABIMS vs Umm al-Qura — which is more accurate for Indonesia?</summary>
+<summary>MABIMS vs Umm al-Qura: which is more accurate for Indonesia?</summary>
 
 For use in Indonesia, MABIMS is more accurate because it follows Kemenag RI's official decision through the [isbat session](https://en.wikipedia.org/wiki/Moon_sighting), not Saudi authority. [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) is designed for Saudi Arabia's needs and does not represent Indonesia's rukyah/hisab results.
 
@@ -36,7 +36,7 @@ No. This API is independent, built by PIXO Studio using publicly available Kemen
 <details>
 <summary>What if a Sidang Isbat decision differs from the published Kemenag calendar?</summary>
 
-The API follows the official Sidang Isbat decision. Any response touching the corrected month (and the month before it) carries a warning prefixed <code>kemenag_override:</code>, and <code>/meta</code> exposes the history in <code>divergences[]</code> plus a <code>table_version</code> that changes with every correction — compare it with your stored value to know when to re-fetch. As long as no correction has ever been applied, these fields are empty and nothing about the API's behaviour changes. Details: <a href="/en/isbat-koreksi">Sidang Isbat Corrections</a>.
+The API follows the official Sidang Isbat decision. Any response touching the corrected month (and the month before it) carries a warning prefixed <code>kemenag_override:</code>, and <code>/meta</code> exposes the history in <code>divergences[]</code> plus a <code>table_version</code> that changes with every correction, compare it with your stored value to know when to re-fetch. As long as no correction has ever been applied, these fields are empty and nothing about the API's behaviour changes. Details: <a href="/en/isbat-koreksi">Sidang Isbat Corrections</a>.
 
 </details>
 
@@ -45,7 +45,7 @@ The API follows the official Sidang Isbat decision. Any response touching the co
 <details>
 <summary>What is mabims.dev?</summary>
 
-mabims.dev is a free open-source API for the Indonesian Hijri calendar. It provides today's Hijri date, date conversion, monthly and yearly calendars, hilal visibility data, and Islamic event dates — all based on official MABIMS data from Indonesia's Ministry of Religious Affairs (Kemenag RI). See the [About](/en/about) page for details, or browse the [MABIMS Hijri calendar](/kalender-hijriah/) directly.
+mabims.dev is a free open-source API for the Indonesian Hijri calendar. It provides today's Hijri date, date conversion, monthly and yearly calendars, hilal visibility data, and Islamic event dates, all based on official MABIMS data from Indonesia's Ministry of Religious Affairs (Kemenag RI). See the [About](/en/about) page for details, or browse the [MABIMS Hijri calendar](/kalender-hijriah/) directly.
 
 </details>
 
@@ -68,15 +68,15 @@ Yes. CORS is open, so it can be called directly from the browser on any domain. 
 <details>
 <summary>What's the difference between <code>source: "mabims"</code> and <code>source: "mabims-computed"</code>?</summary>
 
-- **`mabims`** — date taken directly from Kemenag's publicly available table.
-- **`mabims-computed`** — automatically calculated using Neo MABIMS criteria because the date falls outside the table's coverage (before 2023 or after 2026).
+- **`mabims**: date taken directly from Kemenag's publicly available table.
+- **`mabims-computed**: automatically calculated using Neo MABIMS criteria because the date falls outside the table's coverage (before 2023 or after 2026).
 
 </details>
 
 <details>
 <summary>How far ahead does the data go?</summary>
 
-Official table data is available for 2023–2026. Outside that range, the API calculates automatically (fallback) using Neo MABIMS criteria up to 2100 — the response will tag `source: "mabims-computed"` instead of `"mabims"`. Dates below the table additionally require `retro=true` and are tagged `mabims-retro`.
+Official table data is available for 2023–2026. Outside that range, the API calculates automatically (fallback) using Neo MABIMS criteria up to 2100, the response will tag `source: "mabims-computed"` instead of `"mabims"`. Dates below the table additionally require `retro=true` and are tagged `mabims-retro`.
 
 </details>
 
@@ -97,7 +97,7 @@ Use `GET /convert?date=YYYY-MM-DD&calendar=gregorian` or `calendar=hijri` depend
 <details>
 <summary>How do I check hilal visibility for a given month?</summary>
 
-Use the `/hilal/info` endpoint for criterion data, or `/hilal/viz` for a hilal visibility chart (720×1280 PNG) showing moon position, crescent direction, the VISIBLE/NOT VISIBLE verdict, and the deciding observation point — the criteria are evaluated at coastal sites across Indonesia, and the response reports `deciding_site` when they are met.
+Use the `/hilal/info` endpoint for criterion data, or `/hilal/viz` for a hilal visibility chart (720×1280 PNG) showing moon position, crescent direction, the VISIBLE/NOT VISIBLE verdict, and the deciding observation point; the criteria are evaluated at coastal sites across Indonesia, and the response reports `deciding_site` when they are met.
 
 </details>
 
@@ -122,7 +122,7 @@ For converting a specific date, use `GET /convert?date=YYYY-MM-DD&calendar=grego
 <details>
 <summary>What programming languages are supported?</summary>
 
-Since MABIMS.dev is a standard REST API, it works with any programming language — JavaScript, PHP, Python, Dart, Swift, Kotlin, or even cURL directly from the terminal. No special libraries needed, just call the endpoint.
+Since MABIMS.dev is a standard REST API, it works with any programming language: JavaScript, PHP, Python, Dart, Swift, Kotlin, or even cURL directly from the terminal. No special libraries needed, just call the endpoint.
 
 </details>
 

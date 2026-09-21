@@ -1,6 +1,6 @@
 ---
 title: Disclaimer
-description: Official disclaimer — not a Kemenag product, not a religious authority.
+description: Official disclaimer, not a Kemenag product, not a religious authority.
 ---
 
 ## Not an Official Product

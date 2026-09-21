@@ -1,6 +1,6 @@
 ---
 title: Privacy Policy
-description: How the MABIMS API handles your data — no tracking, no cookies.
+description: How the MABIMS API handles your data, no tracking, no cookies.
 ---
 
 ## No Tracking
@@ -25,7 +25,7 @@ Rate limits are applied per IP address (240 requests/minute). IPs are used only 
 
 ## CDN
 
-Bunny CDN is used for caching. CDN edge nodes may process your IP address per [Bunny CDN's privacy policy](https://bunny.net/privacy-policy/). Caches are public — all clients receive the same response for the same parameters.
+Bunny CDN is used for caching. CDN edge nodes may process your IP address per [Bunny CDN's privacy policy](https://bunny.net/privacy-policy/). Caches are public, all clients receive the same response for the same parameters.
 
 ## No Data Storage
 

@@ -1,6 +1,6 @@
 ---
 title: Ketentuan Penggunaan
-description: Ketentuan penggunaan API MABIMS — hak akses, tanggung jawab, dan batasan.
+description: Ketentuan penggunaan API MABIMS, hak akses, tanggung jawab, dan batasan.
 ---
 
 ## Penerimaan

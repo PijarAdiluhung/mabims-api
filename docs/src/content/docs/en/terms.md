@@ -1,6 +1,6 @@
 ---
 title: Terms of Use
-description: Terms of use for the MABIMS API — access rights, responsibilities, and limitations.
+description: Terms of use for the MABIMS API, access rights, responsibilities, and limitations.
 ---
 
 ## Acceptance

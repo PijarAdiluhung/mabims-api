@@ -5,11 +5,11 @@ description: Where MABIMS data comes from and its licensing status.
 
 ## Primary Source
 
-Calendar data is sourced from **data published publicly by the [Ministry of Religious Affairs of the Republic of Indonesia](https://kemenag.go.id)** (Kemenag RI) — the MABIMS calendar tables issued annually.
+Calendar data is sourced from **data published publicly by the [Ministry of Religious Affairs of the Republic of Indonesia](https://kemenag.go.id)** (Kemenag RI), the MABIMS calendar tables issued annually.
 
 | Property | Value |
 |---|---|
-| **Source** | Ministry of Religious Affairs of the Republic of Indonesia — Hijri Calendar |
+| **Source** | Ministry of Religious Affairs of the Republic of Indonesia, Hijri Calendar |
 | **Original format** | PDF |
 | **Table coverage** | 2023-01-23 → 2026-12-31 |
 
@@ -21,7 +21,7 @@ Beyond table coverage, the API computes dates using **[Neo MABIMS](https://mui.o
 |---|---|
 | Moon altitude (topocentric, refraction-corrected) | ≥ 3.0° |
 | Elongation (geocentric) | ≥ 6.4° |
-| Observation points | 25 coastal sites across Indonesia — fulfilled at **any single point** → 29-day month ([site list](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json)) |
+| Observation points | 25 coastal sites across Indonesia, fulfilled at **any single point** → 29-day month ([site list](https://github.com/PijarAdiluhung/mabims-api/blob/main/api/data/hilal_sites.json)) |
 | Reference time | At each site's local sunset (day 29) |
 
 ## Map data
@@ -36,7 +36,7 @@ The map card (`/hilal/map`) uses the following geographic data:
 
 ## Retro (below the curated table)
 
-Dates before 2023-01-23 were never produced under the Neo MABIMS criteria (introduced in 2022). Passing `retro=true` unlocks computed dates below the curated table down to 1945-01-01, tagged `source: "mabims-retro"` with a warning that these are a retrospective projection — not official data.
+Dates before 2023-01-23 were never produced under the Neo MABIMS criteria (introduced in 2022). Passing `retro=true` unlocks computed dates below the curated table down to 1945-01-01, tagged `source: "mabims-retro"` with a warning that these are a retrospective projection, not official data.
 
 ## Licensing
 

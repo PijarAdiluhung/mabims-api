@@ -1,6 +1,6 @@
 ---
 title: Migration from Aladhan
-description: Switch from Aladhan API / Umm al-Qura to MABIMS — same code, better dates for Indonesia.
+description: Switch from Aladhan API / Umm al-Qura to MABIMS, same code, better dates for Indonesia.
 ---
 
 This guide is for developers already using the [Aladhan API](https://aladhan.com) (or other
@@ -56,7 +56,7 @@ const data = await res.json();
 
 ### Today
 
-**Aladhan:** No separate `/today` endpoint — you must call `/gToH` with today's date manually.
+**Aladhan:** No separate `/today` endpoint; you must call `/gToH` with today's date manually.
 
 **MABIMS:**
 
@@ -123,7 +123,7 @@ const data = await res.json();
 
 1. **Change base URL** from `api.aladhan.com/v1` to `api.mabims.dev/api/v1`
 2. **Switch date format** from `DD-MM-YYYY` to `YYYY-MM-DD`
-3. **Update response parsing** — MABIMS uses `output` instead of `data.hijri`
+3. **Update response parsing**: MABIMS uses `output` instead of `data.hijri`
 4. **Use `/today`** instead of calling `/gToH` manually every day
-5. **Check `source`** — MABIMS marks whether data is from the public table (`mabims`) or computed (`mabims-computed`)
-6. **Verify visually** — open the [MABIMS Hijri calendar](/kalender-hijriah/) to sanity-check converted dates against a monthly calendar view before and after the migration
+5. **Check `source`**: MABIMS marks whether data is from the public table (`mabims`) or computed (`mabims-computed`)
+6. **Verify visually**: open the [MABIMS Hijri calendar](/kalender-hijriah/) to sanity-check converted dates against a monthly calendar view before and after the migration
