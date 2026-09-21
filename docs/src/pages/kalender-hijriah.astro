@@ -4,11 +4,21 @@ import Cta from '../components/landing/Cta.astro';
 
 export const prerender = false;
 
-/* Server render hits the API over the compose network; the browser script
-   keeps using the public base below. */
+/* Server render hits the API over the compose network (apiBase); anything
+   printed into the markup that browsers fetch directly uses the public base
+   (publicApiBase) so crawlers and no-JS visitors get working URLs. */
 const apiBase = import.meta.env.INTERNAL_API_BASE
   ?? (typeof process !== 'undefined' ? process.env.INTERNAL_API_BASE : undefined)
   ?? 'http://localhost:8000';
+const publicApiBase = import.meta.env.PUBLIC_API_BASE ?? 'https://api.mabims.dev';
+
+/* Core content must never render as an empty shell: a failure here throws and
+   the request fails (never cached with placeholders until midnight). */
+async function fetchCoreJson(path: string) {
+  const res = await fetch(`${apiBase}${path}`, { headers: { accept: 'application/json' } });
+  if (!res.ok) throw new Error(`SSR fetch failed: ${path} → ${res.status}`);
+  return res.json();
+}
 
 const HIJRI_MONTHS = [
   'Muharram', 'Safar', 'Rabiul Awal', 'Rabiul Akhir',
@@ -38,34 +48,28 @@ type EventItem = {
 };
 type Today = { day: number; month: number; month_name: string; year: number; weekday?: string };
 
-/* ── SSR fetch (build-time snapshot; client refresh keeps it current) ── */
-let todayOut: Today | null = null;
+/* ── SSR fetch (fresh per request; client script stays the tz/maghrib layer) ── */
+const todayBody = await fetchCoreJson('/api/v1/today');
+const todayOut: Today = todayBody.output;
+const todayGregIso: string = todayBody.input.date;
 let todayGregLine: { hijriNumber: string; weekday: string; hijriLabel: string; greg: string } | null = null;
-let todayGregIso = '';
-try {
-  const res = await fetch(`${apiBase}/api/v1/today`, { headers: { accept: 'application/json' } });
-  if (res.ok) {
-    const body = await res.json();
-    todayOut = body.output;
-    todayGregIso = body.input.date;
-    const d = new Date(`${body.input.date}T00:00:00`);
-    const weekday = todayOut.weekday ?? ahad(new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d));
-    const greg = new Intl.DateTimeFormat('id-ID', {
-      day: 'numeric', month: 'long', year: 'numeric',
-    }).format(d);
-    const gParts = { weekday, greg };
-    todayGregLine = {
-      hijriNumber: `${weekday}, ${todayOut.day} ${todayOut.month_name} ${todayOut.year} H · ${greg}`,
-      weekday,
-      hijriLabel: `${todayOut.day} ${todayOut.month_name} ${todayOut.year} H`,
-      greg: greg,
-    };
-  }
-} catch {}
+{
+  const d = new Date(`${todayGregIso}T00:00:00`);
+  const weekday = todayOut.weekday ?? ahad(new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d));
+  const greg = new Intl.DateTimeFormat('id-ID', {
+    day: 'numeric', month: 'long', year: 'numeric',
+  }).format(d);
+  todayGregLine = {
+    hijriNumber: `${weekday}, ${todayOut.day} ${todayOut.month_name} ${todayOut.year} H · ${greg}`,
+    weekday,
+    hijriLabel: `${todayOut.day} ${todayOut.month_name} ${todayOut.year} H`,
+    greg: greg,
+  };
+}
 
 /* Cache till midnight Jakarta like the API's /today: Bunny caches per edge up
    to a day, origin renders at most once per region per day. */
-if (todayGregIso) {
+{
   const jkt = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
   }).formatToParts(new Date());
@@ -76,28 +80,20 @@ if (todayGregIso) {
 }
 
 const events: EventItem[] = [];
-if (todayOut) {
-  try {
-    const res = await fetch(`${apiBase}/api/v1/events?year=${todayOut.year}&calendar=hijri&include=all`);
-    if (res.ok) events.push(...(await res.json()).events ?? []);
-  } catch {}
+{
+  const body = await fetchCoreJson(`/api/v1/events?year=${todayOut.year}&calendar=hijri&include=all`);
+  events.push(...(body.events ?? []));
 }
 
-const currentMonth = todayOut ? todayOut.month : 1;
-const currentYear = todayOut ? todayOut.year : 1447;
+const currentMonth = todayOut.month;
+const currentYear = todayOut.year;
 
 /* Initial month grid, server-rendered so the HTML is crawlable */
-const initialDays: DayItem[] = [];
-if (todayOut) {
-  try {
-    const res = await fetch(`${apiBase}/api/v1/month?year=${currentYear}&month=${currentMonth}&calendar=hijri`);
-    if (res.ok) initialDays.push(...(await res.json()).items ?? []);
-  } catch {}
-}
+const initialDays: DayItem[] = (await fetchCoreJson(
+  `/api/v1/month?year=${currentYear}&month=${currentMonth}&calendar=hijri`,
+)).items ?? [];
 
-const todayHijri = todayOut
-  ? `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(todayOut.day).padStart(2, '0')}`
-  : '';
+const todayHijri = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(todayOut.day).padStart(2, '0')}`;
 const initialSource = initialDays[0]?.source ?? 'mabims';
 const sourceLabel = initialSource === 'mabims' ? 'Data publik Kemenag' : 'Perhitungan Neo MABIMS';
 
@@ -106,10 +102,8 @@ const dateId = (iso: string) =>
   new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
     .format(new Date(`${iso}T00:00:00`));
 const yearRows: { name: string; start: string; end: string; days: number }[] = [];
-try {
-  const res = await fetch(`${apiBase}/api/v1/year?year=${currentYear}&calendar=hijri`);
-  if (res.ok) {
-    const months = ((await res.json()).months ?? {}) as Record<string, DayItem[]>;
+{
+  const months = ((await fetchCoreJson(`/api/v1/year?year=${currentYear}&calendar=hijri`)).months ?? {}) as Record<string, DayItem[]>;
     for (let m = 1; m <= 12; m++) {
       const items = months[String(m)] ?? [];
       if (!items.length) continue;
@@ -120,8 +114,7 @@ try {
         days: items.length,
       });
     }
-  }
-} catch {}
+}
 
 /* Hilal featured: the month whose start the next sighting evening decides */
 type HilalEvening = {
@@ -146,8 +139,8 @@ type HilalInfo = {
   warnings: string[];
 };
 
-let hilalTarget = { month: Math.min(currentMonth + 1, 12), year: currentYear };
-if (todayOut) {
+let hilalTarget = { month: currentMonth, year: currentYear };
+{
   const add = todayOut.day <= 29 ? 1 : 2;
   let m = todayOut.month + add;
   let y = currentYear;
@@ -155,6 +148,8 @@ if (todayOut) {
   hilalTarget = { month: m, year: y };
 }
 
+/* Hilal is a non-critical feature section: on failure the placeholder stays and
+   the client script (loadHilal) refills it, so never fail the page over it. */
 let hilalItem: HilalInfo | null = null;
 try {
   const res = await fetch(`${apiBase}/api/v1/hilal/info?month=${hilalTarget.month}&year=${hilalTarget.year}`);
@@ -461,7 +456,7 @@ const initialMonthEvents: string[] = [];
         <button type="button" class="kh-zoom" data-zoom="map" aria-label="Perbesar peta wilayah visibilitas hilal">
           <img
             data-map-img
-            src={`${apiBase}/api/v1/hilal/map?${hilalQuery}&bare=true`}
+            src={`${publicApiBase}/api/v1/hilal/map?${hilalQuery}&bare=true`}
             alt={`Peta wilayah visibilitas hilal ${hilalTarget.month}/${hilalTarget.year}`}
             width="1440"
             height="1520"
@@ -473,7 +468,7 @@ const initialMonthEvents: string[] = [];
         <figcaption>
           <span class="kh-graphic-title">Peta wilayah</span>
           <span class="kh-graphic-date" data-map-date>{hilalDateShort}</span>
-          <a class="kh-download" data-map-dl href={`${apiBase}/api/v1/hilal/map?${hilalQuery}&download=true`} download="hilal-map.png">Unduh kartu</a>
+          <a class="kh-download" data-map-dl href={`${publicApiBase}/api/v1/hilal/map?${hilalQuery}&download=true`} download="hilal-map.png">Unduh kartu</a>
         </figcaption>
       </figure>
 
@@ -481,7 +476,7 @@ const initialMonthEvents: string[] = [];
         <button type="button" class="kh-zoom" data-zoom="viz" aria-label="Perbesar grafik langit visibilitas hilal">
           <img
             data-viz-img
-            src={`${apiBase}/api/v1/hilal/viz?${hilalQuery}&bare=true`}
+            src={`${publicApiBase}/api/v1/hilal/viz?${hilalQuery}&bare=true`}
             alt={`Grafik langit visibilitas hilal ${hilalTarget.month}/${hilalTarget.year}`}
             width="1440"
             height="1520"
@@ -493,7 +488,7 @@ const initialMonthEvents: string[] = [];
         <figcaption>
           <span class="kh-graphic-title">Grafik langit</span>
           <span class="kh-graphic-date" data-viz-date>{hilalDateShort}</span>
-          <a class="kh-download" data-viz-dl href={`${apiBase}/api/v1/hilal/viz?${hilalQuery}&download=true`} download="hilal-viz.png">Unduh kartu</a>
+          <a class="kh-download" data-viz-dl href={`${publicApiBase}/api/v1/hilal/viz?${hilalQuery}&download=true`} download="hilal-viz.png">Unduh kartu</a>
         </figcaption>
       </figure>
     </div>
