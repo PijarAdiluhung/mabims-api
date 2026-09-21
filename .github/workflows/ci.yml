@@ -62,6 +62,26 @@ jobs:
       - name: Validate curated table vs Neo MABIMS criteria
         run: python scripts/validate_mabims.py
 
+  lockfile-linux:
+    # Docs images build on node:22-alpine, but lockfiles are regenerated on
+    # Windows dev machines. npm's platform-optional resolution can leave a
+    # linux-only subtree missing from a Windows-generated lock, which only
+    # surfaces as EUSAGE inside the container build. Recreate the Dockerfile's
+    # npm ci here so the drift fails in CI instead of at deploy time.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Validate docs lockfile against node:22-alpine resolution
+        run: >
+          docker run --rm -v "$GITHUB_WORKSPACE/docs:/app" -w /app
+          node:22-alpine sh -c "npm ci --no-fund --no-audit --dry-run"
+
   deploy-and-purge:
     runs-on: ubuntu-latest
     needs: ci

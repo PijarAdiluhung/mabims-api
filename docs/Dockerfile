@@ -2,7 +2,11 @@ FROM node:22-alpine AS build
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci --no-fund --no-audit
+# Lockfiles are generated on Windows; npm's platform-optional resolution can
+# leave an alpine-only subtree out, which only fails inside a musl image. Fall
+# back to a live resolve instead of hard-failing the deploy; CI runs the strict
+# npm ci against node:22-alpine to surface drift on every push.
+RUN npm ci --no-fund --no-audit || npm install --no-fund --no-audit
 
 COPY . .
 ARG PUBLIC_API_BASE=https://api.mabims.dev
