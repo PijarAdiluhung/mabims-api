@@ -1,4 +1,4 @@
-﻿---
+---
 title: GET /meta
 description: Table coverage, data version and fallback status.
 ---
@@ -23,14 +23,14 @@ GET /api/v1/meta
     ```js
     const res = await fetch("https://api.mabims.dev/api/v1/meta");
     const data = await res.json();
-    console.log("Coverage:", data.coverage.first, "â†’", data.coverage.last);
+    console.log("Coverage:", data.coverage.first, "→", data.coverage.last);
     ```
   </TabItem>
   <TabItem label="PHP">
     ```php
     $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/meta');
     $data = json_decode($response->getBody(), true);
-    echo 'Coverage: ' . $data['coverage']['first'] . ' â†’ ' . $data['coverage']['last'] . PHP_EOL;
+    echo 'Coverage: ' . $data['coverage']['first'] . ' → ' . $data['coverage']['last'] . PHP_EOL;
     ```
   </TabItem>
 </Tabs>

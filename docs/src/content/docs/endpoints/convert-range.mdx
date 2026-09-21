@@ -1,4 +1,4 @@
-﻿---
+---
 title: GET /convert & /range
 description: Mengubah satu tanggal atau beberapa tanggal sekaligus.
 ---
@@ -126,7 +126,7 @@ Mengubah setiap hari dalam rentang yang diminta.
     ```js
     const res = await fetch("https://api.mabims.dev/api/v1/range?start=2025-01-01&end=2025-01-03&calendar=gregorian");
     const data = await res.json();
-    data.items.forEach(i => console.log(i.gregorian, "â†’", i.hijri));
+    data.items.forEach(i => console.log(i.gregorian, "→", i.hijri));
     ```
   </TabItem>
   <TabItem label="PHP">
@@ -134,7 +134,7 @@ Mengubah setiap hari dalam rentang yang diminta.
     $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/range?start=2025-01-01&end=2025-01-03&calendar=gregorian');
     $data = json_decode($response->getBody(), true);
     foreach ($data['items'] as $item) {
-        echo $item['gregorian'] . ' â†’ ' . $item['hijri'] . PHP_EOL;
+        echo $item['gregorian'] . ' → ' . $item['hijri'] . PHP_EOL;
     }
     ```
   </TabItem>

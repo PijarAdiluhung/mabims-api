@@ -1,4 +1,4 @@
-﻿---
+---
 title: GET /month, /months & /year
 description: Kalender bulanan, tahunan, dan daftar nama bulan Hijriah.
 ---
@@ -36,7 +36,7 @@ Mengembalikan semua hari dalam satu bulan.
     ```js
     const res = await fetch("https://api.mabims.dev/api/v1/month?year=1447&month=1&calendar=hijri");
     const data = await res.json();
-    data.items.forEach(i => console.log(i.gregorian, "â†’", i.hijri));
+    data.items.forEach(i => console.log(i.gregorian, "→", i.hijri));
     ```
   </TabItem>
   <TabItem label="PHP">
@@ -44,7 +44,7 @@ Mengembalikan semua hari dalam satu bulan.
     $response = GuzzleHttp\request('GET', 'https://api.mabims.dev/api/v1/month?year=1447&month=1&calendar=hijri');
     $data = json_decode($response->getBody(), true);
     foreach ($data['items'] as $item) {
-        echo $item['gregorian'] . ' â†’ ' . $item['hijri'] . PHP_EOL;
+        echo $item['gregorian'] . ' → ' . $item['hijri'] . PHP_EOL;
     }
     ```
   </TabItem>
