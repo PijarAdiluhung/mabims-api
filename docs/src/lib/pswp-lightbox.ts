@@ -21,8 +21,6 @@ function ensure() {
       maxZoomLevel: 6,
       bgOpacity: 0.92,
       showHideAnimationType: 'fade',
-      // Only zoom in a little when opening on touch devices.
-      ...(isTouch ? { initialZoomLevel: () => 1.25 } : {}),
       // Mouse: clicking the dark area around the image closes.
       bgClickAction: 'close',
       // Touch: tapping outside the image closes; tapping the image toggles
