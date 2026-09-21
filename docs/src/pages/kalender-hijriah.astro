@@ -504,25 +504,57 @@ const initialMonthEvents: string[] = [];
     </div>
     <div class="kh-events-list" data-events-list>
       {events.length === 0 && <p class="kh-loading">Memuat tanggal penting…</p>}
-      {events.filter((e) => e.event !== 'ayyamul_bidh').map((e) => {
-        const g = new Date(`${e.gregorian}T00:00:00`);
-        return (
-          <article class="kh-event-row">
-            <div class="kh-event-date">
-              <span class="kh-event-day">{g.getDate()} {GREG_MONTHS[g.getMonth()]}</span>
-              <span class="kh-event-year">{g.getFullYear()}</span>
+      {(() => {
+        const filtered = events.filter((e) => e.event !== 'ayyamul_bidh');
+        const grouped = new Map<string, EventItem[]>();
+        for (const e of filtered) {
+          const key = e.hijri.slice(0, 7);
+          const arr = grouped.get(key) ?? [];
+          arr.push(e);
+          grouped.set(key, arr);
+        }
+        return Array.from(grouped.entries()).map(([ym, items]) => {
+          const [y, m] = ym.split('-').map(Number);
+          const monthName = HIJRI_MONTHS[(m - 1) % 12];
+          return (
+            <div class="kh-ev-group">
+              <h3 class="kh-ev-group-head">
+                <span class="kh-ev-group-name">{monthName}</span>
+                <span class="kh-ev-group-year">{y} H</span>
+              </h3>
+              <div class="kh-ev-group-items">
+                {items.map((e) => {
+                  const g = new Date(`${e.gregorian}T00:00:00`);
+                  const hijriDay = e.date_range
+                    ? `${Number(e.date_range.hijri_start.slice(8, 10))}–${Number(e.date_range.hijri_end.slice(8, 10))}`
+                    : String(Number(e.hijri.slice(8, 10)));
+                  let gregLabel: string;
+                  if (e.date_range?.gregorian_start && e.date_range?.gregorian_end) {
+                    const gs = new Date(`${e.date_range.gregorian_start}T00:00:00`);
+                    const ge = new Date(`${e.date_range.gregorian_end}T00:00:00`);
+                    if (gs.getMonth() === ge.getMonth() && gs.getFullYear() === ge.getFullYear()) {
+                      gregLabel = `${gs.getDate()}–${ge.getDate()} ${GREG_MONTHS[gs.getMonth()]} ${gs.getFullYear()}`;
+                    } else {
+                      gregLabel = `${gs.getDate()} ${GREG_MONTHS[gs.getMonth()]} – ${ge.getDate()} ${GREG_MONTHS[ge.getMonth()]} ${ge.getFullYear()}`;
+                    }
+                  } else {
+                    gregLabel = `${g.getDate()} ${GREG_MONTHS[g.getMonth()]} ${g.getFullYear()}`;
+                  }
+                  return (
+                    <article class="kh-ev-item">
+                      <span class="kh-ev-hijri-day">{hijriDay}</span>
+                      <div class="kh-ev-info">
+                        <span class="kh-ev-name">{EVENT_NAMES[e.event] ?? e.name}</span>
+                        <span class="kh-ev-greg">{gregLabel}</span>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
             </div>
-            <div class="kh-event-body">
-              <span class="kh-event-name">{EVENT_NAMES[e.event] ?? e.name}</span>
-              <span class="kh-event-hijri">
-                {e.date_range
-                  ? `${Number(e.date_range.hijri_start.slice(8, 10))}–${Number(e.date_range.hijri_end.slice(8, 10))} · ${e.hijri.slice(0, 7)}`
-                  : e.hijri}
-              </span>
-            </div>
-          </article>
-        );
-      })}
+          );
+        });
+      })()}
     </div>
   </section>
 
@@ -1293,72 +1325,91 @@ const initialMonthEvents: string[] = [];
 
   /* ── Events ── */
   .kh-events-section { padding: clamp(3rem, 6vw, 5rem) 0; }
+  .kh-section-head { text-align: center; }
+  .kh-section-head p {
+    max-width: 52rem;
+    margin: 0 auto;
+  }
   .kh-events-list {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
   }
-  .kh-event-row {
-    display: grid;
-    grid-template-columns: 5.5rem minmax(0, 1fr);
+  .kh-ev-group + .kh-ev-group {
+    margin-top: 1.5rem;
+  }
+  .kh-ev-group-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin: 0 0 0.5rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid rgba(255, 207, 70, 0.2);
+  }
+  .kh-ev-group-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--sl-color-accent);
+  }
+  .kh-ev-group-year {
+    font-size: 0.85rem;
+    color: var(--sl-color-gray-3);
+  }
+  .kh-ev-group-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .kh-ev-item {
+    display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 0.75rem 1rem;
+    gap: 0.85rem;
+    padding: 0.6rem 0.85rem;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 14px;
+    border-radius: 10px;
     transition: border-color 0.2s ease;
   }
-  .kh-event-row:hover {
+  .kh-ev-item:hover {
     border-color: rgba(255, 207, 70, 0.2);
   }
-  .kh-event-date {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.1;
-    width: 5.5rem;
+  .kh-ev-hijri-day {
     flex-shrink: 0;
-  }
-  .kh-event-day {
-    font-size: 1.5rem;
+    width: 4rem;
+    text-align: center;
+    font-size: 1.4rem;
     font-weight: 800;
     color: var(--sl-color-accent);
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
   }
-  .kh-event-month {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--sl-color-accent);
-    text-transform: uppercase;
-  }
-  .kh-event-year {
-    font-size: 0.75rem;
-    color: var(--sl-color-gray-3);
-    letter-spacing: 0.06em;
-  }
-  .kh-event-body {
+  .kh-ev-info {
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
+    gap: 0.1rem;
+    min-width: 0;
   }
-  .kh-event-name {
-    font-size: 1.1rem;
-    font-weight: 700;
+  .kh-ev-name {
+    font-size: 0.95rem;
+    font-weight: 600;
     color: var(--sl-color-white);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
-  .kh-event-hijri {
-    font-size: 0.8rem;
+  .kh-ev-greg {
+    font-size: 0.78rem;
     color: var(--sl-color-gray-3);
   }
   .kh-loading { color: var(--sl-color-gray-3); }
 
   @media (min-width: 54rem) {
     .kh-events-list {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.75rem;
+      display: block;
+      columns: 2;
+      column-gap: 1.5rem;
+    }
+    .kh-ev-group + .kh-ev-group {
+      margin-top: 1.5rem;
+    }
+    .kh-ev-group {
+      break-inside: avoid;
     }
   }
 
@@ -2012,16 +2063,43 @@ const initialMonthEvents: string[] = [];
       // Render events list section (fresh, in case SSR failed)
       const list = $('[data-events-list]');
       if (list && evBody.events?.length) {
-        list.innerHTML = (evBody.events as EventItem[]).filter((e) => e.event !== 'ayyamul_bidh').map((e) => {
-          const g = new Date(`${e.gregorian}T00:00:00`);
-          const day = g.getDate();
-          const mon = GREG_MONTHS[g.getMonth()];
-          return `<article class="kh-event-row"><div class="kh-event-date"><span class="kh-event-day">${day} ${mon}</span>` +
-            `<span class="kh-event-year">${g.getFullYear()}</span></div><div class="kh-event-body">` +
-            `<span class="kh-event-name">${EVENT_NAMES[e.event] ?? e.name}</span>` +
-            `<span class="kh-event-hijri">${e.date_range
-              ? `${Number(e.date_range.hijri_start.slice(8, 10))}–${Number(e.date_range.hijri_end.slice(8, 10))} · ${e.hijri.slice(0, 7)}`
-              : e.hijri}</span></div></article>`;
+        const filtered = (evBody.events as EventItem[]).filter((e) => e.event !== 'ayyamul_bidh');
+        const grouped = new Map<string, EventItem[]>();
+        for (const e of filtered) {
+          const key = e.hijri.slice(0, 7);
+          const arr = grouped.get(key) ?? [];
+          arr.push(e);
+          grouped.set(key, arr);
+        }
+        list.innerHTML = Array.from(grouped.entries()).map(([ym, items]) => {
+          const [y, m] = ym.split('-').map(Number);
+          const monthName = HIJRI_MONTHS[(m - 1) % 12];
+          return `<div class="kh-ev-group">` +
+            `<h3 class="kh-ev-group-head"><span class="kh-ev-group-name">${monthName}</span><span class="kh-ev-group-year">${y} H</span></h3>` +
+            `<div class="kh-ev-group-items">` +
+            items.map((e) => {
+              const g = new Date(`${e.gregorian}T00:00:00`);
+              const hijriDay = e.date_range
+                ? `${Number(e.date_range.hijri_start.slice(8, 10))}–${Number(e.date_range.hijri_end.slice(8, 10))}`
+                : String(Number(e.hijri.slice(8, 10)));
+              let gregLabel: string;
+              if (e.date_range?.gregorian_start && e.date_range?.gregorian_end) {
+                const gs = new Date(`${e.date_range.gregorian_start}T00:00:00`);
+                const ge = new Date(`${e.date_range.gregorian_end}T00:00:00`);
+                if (gs.getMonth() === ge.getMonth() && gs.getFullYear() === ge.getFullYear()) {
+                  gregLabel = `${gs.getDate()}–${ge.getDate()} ${GREG_MONTHS[gs.getMonth()]} ${gs.getFullYear()}`;
+                } else {
+                  gregLabel = `${gs.getDate()} ${GREG_MONTHS[gs.getMonth()]} – ${ge.getDate()} ${GREG_MONTHS[ge.getMonth()]} ${ge.getFullYear()}`;
+                }
+              } else {
+                gregLabel = `${g.getDate()} ${GREG_MONTHS[g.getMonth()]} ${g.getFullYear()}`;
+              }
+              return `<article class="kh-ev-item">` +
+                `<span class="kh-ev-hijri-day">${hijriDay}</span>` +
+                `<div class="kh-ev-info"><span class="kh-ev-name">${EVENT_NAMES[e.event] ?? e.name}</span>` +
+                `<span class="kh-ev-greg">${gregLabel}</span></div></article>`;
+            }).join('') +
+            `</div></div>`;
         }).join('');
       }
 
@@ -2030,8 +2108,6 @@ const initialMonthEvents: string[] = [];
       // keep SSR content
     }
   })();
-
-  void loadHilal();
 
   function parseIso(iso: string) {
     // set gregorian mode state from an ISO gregorian date
@@ -2236,6 +2312,8 @@ const initialMonthEvents: string[] = [];
   $('[data-hnext]')?.addEventListener('click', () => {
     if (hilalState.month < 12) { hilalState.month += 1; loadHilal(); }
   });
+
+  void loadHilal();
 
   // hijri nav initial refresh comes from boot below
 </script>
