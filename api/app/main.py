@@ -1689,11 +1689,65 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             "from": "1446-01",
             "to": "1446-12",
         }
-        for op in (op for path in schema["paths"].values() for op in path.values()):
-            for param in op.get("parameters", []):
-                example = param_examples.get(param.get("name"))
-                if example is not None:
-                    param["example"] = example
+        # Per-endpoint overrides: /month, /year, /events default to hijri
+        # calendar, so their year example must be a Hijri year.
+        _hijri_year_endpoints = {
+            "/api/v1/month", "/api/v1/year", "/api/v1/events",
+        }
+        _hilal_paths = {
+            "/api/v1/hilal/info", "/api/v1/hilal/viz", "/api/v1/hilal/map",
+        }
+        for path, path_obj in schema["paths"].items():
+            for op in path_obj.values():
+                for param in op.get("parameters", []):
+                    pname = param.get("name")
+                    example = param_examples.get(pname)
+                    if example is None:
+                        continue
+                    # /month, /year, /events → calendar defaults to hijri,
+                    # year example must be a Hijri year.
+                    if path in _hijri_year_endpoints:
+                        if pname == "calendar":
+                            param["example"] = "hijri"
+                        elif pname == "year":
+                            param["example"] = "1447"
+                        else:
+                            param["example"] = example
+                    # Hilal endpoints only accept Hijri month/year.
+                    elif path in _hilal_paths:
+                        if pname == "month":
+                            param["example"] = "3"
+                        elif pname == "year":
+                            param["example"] = "1447"
+                        elif pname == "calendar":
+                            param["example"] = "hijri"
+                        else:
+                            param["example"] = example
+                    else:
+                        param["example"] = example
+
+        # Hilal endpoints require month & year at runtime (_parse_int
+        # raises missing_parameter), but the function signature marks
+        # them optional so FastAPI doesn't return 422.  Patch the
+        # generated OpenAPI spec to reflect the real requirement.
+        for path in _hilal_paths:
+            op = schema["paths"].get(path, {}).get("get")
+            if not op:
+                continue
+            required_names = set()
+            for p in op.get("parameters", []):
+                pname = p.get("name")
+                ref = p.get("$ref", "")
+                if pname in ("month", "year"):
+                    required_names.add(pname)
+                elif ref:
+                    ref_name = ref.split("/")[-1]
+                    comp = schema.get("components", {}).get("parameters", {}).get(ref_name, {})
+                    if comp.get("name") in ("month", "year"):
+                        required_names.add(comp["name"])
+            if required_names:
+                existing = op.get("required", [])
+                op["required"] = sorted(set(existing) | required_names)
 
         schemas = schema.setdefault("components", {}).setdefault("schemas", {})
         if "ErrorBody" not in schemas:
