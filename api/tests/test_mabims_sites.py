@@ -27,6 +27,6 @@ def test_golden_1446_08_tightest_month():
     r = sighting_on_day29(date(2025, 1, 31))
     assert r.month_length == 29
     assert r.deciding_site is not None
-    assert r.deciding_site.site == "Lhoknga / Tgk. Chiek Kuta Karang"
+    assert r.deciding_site.site == "Lhoknga, Aceh"
     assert 0.0 < r.deciding_site.margin_deg < 0.02
     assert r.deciding_site.elong_deg == pytest.approx(6.4055, abs=0.01)

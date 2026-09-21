@@ -313,7 +313,7 @@ curl "https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447"
     "illumination_pct": 1.44,
     "age_hours": 23.9,
     "deciding_site": {
-      "name": "Sabang / Weh Island",
+      "name": "Sabang, Aceh",
       "lat": 5.8897,
       "lon": 95.3164,
       "elev_m": 16.0,
