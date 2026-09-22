@@ -138,7 +138,7 @@ const months = [
             : '');
       } catch {
         statusEl.className = 'pg-status pg-warn';
-        statusEl.textContent = 'API unreachable from here — it may not be deployed yet.';
+        statusEl.textContent = 'API unreachable from here; it may not be deployed yet.';
       }
     }
 
@@ -222,8 +222,8 @@ const months = [
 
         const visible = ev.visible;
         verdictEl.textContent = visible
-          ? `🌙 VISIBLE — evening of 1 ${body.month.name} ${body.month.year} AH`
-          : `⛔ NOT VISIBLE — 1 ${body.month.name} ${body.month.year} AH likely shifts a day`;
+          ? `🌙 VISIBLE: evening of 1 ${body.month.name} ${body.month.year} AH`
+          : `⛔ NOT VISIBLE: 1 ${body.month.name} ${body.month.year} AH likely shifts a day`;
         verdictEl.className = `hilal-verdict ${visible ? 'is-ok' : 'is-bad'}`;
 
         rawEl.textContent = JSON.stringify(body, null, 2);

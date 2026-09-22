@@ -123,7 +123,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? "http://localhost:8000";
             : "");
       } catch {
         statusEl.textContent =
-          "API tidak dapat diakses dari sini — mungkin belum di-deploy.";
+          "API tidak dapat diakses dari sini; mungkin belum di-deploy.";
       }
     }
 

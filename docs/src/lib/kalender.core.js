@@ -20,8 +20,8 @@ const STATUS_OK_EN =
 const STATUS_OK_EN_PLAIN =
   "Official MABIMS calendar data from Kemenag currently covers: {cov}";
 const STATUS_WARN_ID =
-  "API tidak dapat diakses dari sini — mungkin belum di-deploy.";
-const STATUS_WARN_EN = "API unreachable from here — it may not be deployed yet.";
+  "API tidak dapat diakses dari sini; mungkin belum di-deploy.";
+const STATUS_WARN_EN = "API unreachable from here; it may not be deployed yet.";
 
 const TEMPLATES = {
   id: { ok: STATUS_OK_ID, okPlain: STATUS_OK_ID_PLAIN, warn: STATUS_WARN_ID },

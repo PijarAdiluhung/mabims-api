@@ -158,7 +158,7 @@ const months = [
       } catch {
         statusEl.className = "pg-status pg-warn";
         statusEl.textContent =
-          "API tidak dapat diakses dari sini — mungkin belum di-deploy.";
+          "API tidak dapat diakses dari sini; mungkin belum di-deploy.";
       }
     }
 
@@ -241,8 +241,8 @@ const months = [
 
         const visible = ev.visible;
         verdictEl.textContent = visible
-          ? `🌙 TERLIHAT — malam 1 ${body.month.name} ${body.month.year} H`
-          : `⛔ TIDAK TERLIHAT — 1 ${body.month.name} ${body.month.year} H kemungkinan mundur`;
+          ? `🌙 TERLIHAT: malam 1 ${body.month.name} ${body.month.year} H`
+          : `⛔ TIDAK TERLIHAT: 1 ${body.month.name} ${body.month.year} H kemungkinan mundur`;
         verdictEl.className = `hilal-verdict ${visible ? "is-ok" : "is-bad"}`;
 
         rawEl.textContent = JSON.stringify(body, null, 2);

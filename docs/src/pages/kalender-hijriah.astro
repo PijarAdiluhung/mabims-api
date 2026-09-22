@@ -574,7 +574,7 @@ const initialMonthEvents: string[] = [];
         <p>
           Halaman ini menyajikan kalender tersebut secara gratis dan terbuka. Semua data berasal
           dari <a href="/">mabims.dev</a>, API kalender Hijriah open-source yang bisa kamu pakai
-          di aplikasi, website, atau perangkat apapun — tanpa API key.
+          di aplikasi, website, atau perangkat apapun. Tanpa API key.
         </p>
         <p class="kh-disclaimer">
           MABIMS API adalah proyek independen dan tidak berafiliasi dengan Kementerian Agama RI.
@@ -1896,7 +1896,7 @@ const initialMonthEvents: string[] = [];
       const status = $('[data-status]');
       if (status) {
         status.hidden = false;
-        status.textContent = 'Gagal memuat kalender — coba muat ulang halaman.';
+        status.textContent = 'Gagal memuat kalender; coba muat ulang halaman.';
       }
     }
   }
@@ -1932,7 +1932,7 @@ const initialMonthEvents: string[] = [];
       state.mode = btn.dataset.mode as 'hijri' | 'gregorian';
       // carry the current view across modes via the visible grid's dates
       if (state.mode === 'gregorian') {
-        // anchor on the middle real cell of the visible grid — a hijri
+        // anchor on the middle real cell of the visible grid; a hijri
         // month can straddle two gregorian months, and the majority month
         // lives in the middle, not the trailing week
         const cells = [...document.querySelectorAll<HTMLElement>('.kc[data-greg]')];
@@ -1954,7 +1954,7 @@ const initialMonthEvents: string[] = [];
         const cells = [...document.querySelectorAll<HTMLElement>('.kc[data-hijri]')];
         const anchorIso = cells[Math.floor(cells.length / 2)]?.dataset.hijri
           ?? cells[0]?.dataset.hijri ?? state.todayHijri;
-        // hijri mode is pinned to the year the page opened on — an anchor
+        // hijri mode is pinned to the year the page opened on; an anchor
         // past the year boundary (Dzulhijjah → Muharram 1449 in June 2027)
         // maps back into Dzulhijjah of the current year, never 1449
         state.hijriYear = state.currentHijriYear;
@@ -1972,7 +1972,7 @@ const initialMonthEvents: string[] = [];
     });
   }
 
-  // silently warm the cache for the adjacent hijri months while idle —
+  // silently warm the cache for the adjacent hijri months while idle;
   // makes the next prev/next click render instantly (both modes benefit:
   // masehi reuses the same hijri month data)
   function prefetchNeighbors() {

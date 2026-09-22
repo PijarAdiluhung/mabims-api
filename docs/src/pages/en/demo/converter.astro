@@ -102,7 +102,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'http://localhost:8000';
             : '');
       } catch {
         statusEl.className = 'pg-status pg-warn';
-        statusEl.textContent = 'API unreachable from here — it may not be deployed yet.';
+        statusEl.textContent = 'API unreachable from here; it may not be deployed yet.';
       }
     }
 
