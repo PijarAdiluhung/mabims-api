@@ -244,3 +244,72 @@ def test_resolve_invalid_month(service):
 def test_resolve_out_of_coverage(service):
     with pytest.raises(MonthNotResolvable):
         resolve_sighting_evening(service, 1517, 9)
+
+
+# ── Hilal info: retro flag ────────────────────────────────────────────────
+
+
+@pytest.fixture(scope="module")
+def computed_client():
+    settings = Settings(
+        allowed_origins=["*"],
+        rate_limit="10000/minute",
+        enable_fallback=True,
+        enable_computed=True,
+    )
+    return TestClient(create_app(settings=settings))
+
+
+def test_hilal_info_retro_true(computed_client):
+    r = computed_client.get("/api/v1/hilal/info?month=9&year=1447&retro=true")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["input"]["month"] == 9
+    assert body["input"]["year"] == 1447
+
+
+def test_hilal_info_retro_false_same_as_default(computed_client):
+    r_default = computed_client.get("/api/v1/hilal/info?month=9&year=1447")
+    r_false = computed_client.get("/api/v1/hilal/info?month=9&year=1447&retro=false")
+    assert r_default.status_code == 200
+    assert r_false.status_code == 200
+    assert r_default.json()["evening"]["visible"] == r_false.json()["evening"]["visible"]
+
+
+# ── Hilal viz: HTTP integration ───────────────────────────────────────────
+
+
+def test_hilal_viz_returns_png(client):
+    r = client.get("/api/v1/hilal/viz?month=9&year=1447")
+    assert r.status_code == 200
+    assert r.headers["content-type"] == "image/png"
+    assert r.content[:4] == b"\x89PNG"
+
+
+def test_hilal_viz_bare_returns_hires(client):
+    r = client.get("/api/v1/hilal/viz?month=9&year=1447&bare=true")
+    assert r.status_code == 200
+    assert r.headers["content-type"] == "image/png"
+    assert r.content[:4] == b"\x89PNG"
+
+
+def test_hilal_viz_invalid_month(client):
+    r = client.get("/api/v1/hilal/viz?month=13&year=1447")
+    assert r.status_code == 400
+    assert r.json()["error"]["code"] == "out_of_coverage"
+
+
+# ── Hilal map: HTTP integration ───────────────────────────────────────────
+
+
+def test_hilal_map_returns_png(client):
+    r = client.get("/api/v1/hilal/map?month=9&year=1447")
+    assert r.status_code == 200
+    assert r.headers["content-type"] == "image/png"
+    assert r.content[:4] == b"\x89PNG"
+
+
+def test_hilal_map_invalid_month(client):
+    r = client.get("/api/v1/hilal/map?month=13&year=1447")
+    assert r.status_code == 400
+    assert r.json()["error"]["code"] == "out_of_coverage"
