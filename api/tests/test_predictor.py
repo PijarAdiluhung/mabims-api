@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import pytest
+from datetime import date
 
 from app.mabims_predictor import month_length, next_hijri_month, predict_month_starts
-from datetime import date
 
 
 def test_next_hijri_month_normal():
