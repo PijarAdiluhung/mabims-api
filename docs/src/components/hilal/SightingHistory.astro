@@ -1,4 +1,11 @@
 ---
+interface Props {
+  items: string[];
+  publicApiBase: string;
+  hasMore: boolean;
+}
+
+const { items, publicApiBase, hasMore } = Astro.props;
 ---
 
 <section class="hilal-history" id="riwayat">
@@ -10,11 +17,15 @@
   </header>
 
   <div class="hilal-history-list" data-history>
-    <p class="hilal-loading">Memuat riwayat…</p>
+    {items.length > 0 ? (
+      <Fragment set:html={items.join('')} />
+    ) : (
+      <p class="hilal-loading">Riwayat tidak tersedia.</p>
+    )}
   </div>
 
   <div class="hilal-history-more">
-    <button type="button" class="hilal-loadmore" data-more hidden>
+    <button type="button" class="hilal-loadmore" data-more hidden={!hasMore}>
       Tampilkan lebih banyak
     </button>
   </div>

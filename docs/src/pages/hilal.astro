@@ -4,31 +4,223 @@ import HilalHero from '../components/hilal/HilalHero.astro';
 import SightingFeatured from '../components/hilal/SightingFeatured.astro';
 import SightingHistory from '../components/hilal/SightingHistory.astro';
 
-const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'https://api.mabims.dev';
+export const prerender = false;
+
+/* Server render hits the API over the compose network (apiBase); anything
+   printed into the markup that browsers fetch directly uses the public base
+   (publicApiBase) so crawlers and no-JS visitors get working URLs. */
+const apiBase = import.meta.env.INTERNAL_API_BASE
+  ?? (typeof process !== 'undefined' ? process.env.INTERNAL_API_BASE : undefined)
+  ?? 'http://localhost:8000';
+const publicApiBase = import.meta.env.PUBLIC_API_BASE ?? 'https://api.mabims.dev';
+
+async function fetchCoreJson(path: string) {
+  const res = await fetch(`${apiBase}${path}`, { headers: { accept: 'application/json' } });
+  if (!res.ok) throw new Error(`SSR fetch failed: ${path} → ${res.status}`);
+  return res.json();
+}
 
 const ahad = (s: string) => s.replace('Minggu', 'Ahad');
+const numId = (v: number) => v.toFixed(1).replace('.', ',');
+const fmtAltId = (v: number) => `${v > 0 ? '+' : ''}${numId(v)}°`;
+const fmtPctId = (v: number) => `${v.toFixed(2).replace('.', ',')}%`;
+const idDateLong = (iso: string) => ahad(new Intl.DateTimeFormat('id-ID', {
+  weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+}).format(new Date(`${iso}T00:00:00`)));
+const idDateShort = (iso: string) => new Intl.DateTimeFormat('id-ID', {
+  day: 'numeric', month: 'short', year: 'numeric',
+}).format(new Date(`${iso}T00:00:00`));
 
-let fallback: { day: number; month_name: string; year: number; greg: string } | null = null;
+/* ── SSR fetches (fresh per request) ── */
+type Today = { day: number; month: number; month_name: string; year: number; weekday?: string };
+type HilalEvening = {
+  hijri_date: string; hijri_day: number; gregorian_date: string;
+  sunset: string; moonset: string; moon_alt_deg: number; moon_az_deg: number;
+  sun_alt_deg: number; elongation_deg: number; illumination_pct: number;
+  age_hours: number;
+  deciding_site: { name: string; lat: number; lon: number; elev_m: number; tz: string };
+  sites_checked: number; alt_ok: boolean; elong_ok: boolean; visible: boolean;
+};
+type HilalItem = {
+  month: { name: string; number: number; year: number; start: string };
+  previous_month: { name: string; number: number; year: number; length: number };
+  evening: HilalEvening;
+  source: string;
+  warnings: string[];
+};
+
+const todayBody = await fetchCoreJson('/api/v1/today');
+const todayOut: Today = todayBody.output;
+const todayGregIso: string = todayBody.input.date;
+
+/* Hero fallback */
+const gD = new Date(`${todayGregIso}T00:00:00`);
+const gWeekday = todayOut.weekday ?? ahad(new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(gD));
+const gDateLong = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(gD);
+const fallback = {
+  day: todayOut.day,
+  month_name: todayOut.month_name,
+  year: todayOut.year,
+  greg: `${gWeekday}, ${gDateLong} · ${todayBody.input.tz}`,
+};
+
+/* Compute next hilal target month */
+let hilalTarget = { month: todayOut.month, year: todayOut.year };
+{
+  const add = todayOut.day <= 29 ? 1 : 2;
+  let m = todayOut.month + add;
+  let y = todayOut.year;
+  while (m > 12) { m -= 12; y += 1; }
+  hilalTarget = { month: m, year: y };
+}
+
+/* Featured hilal info (non-critical: on failure the placeholder stays) */
+let featuredItem: HilalItem | null = null;
 try {
-  const res = await fetch(`${apiBase}/api/v1/today`);
-  if (res.ok) {
-    const body = await res.json();
-    const d = new Date(`${body.input.date}T00:00:00`);
-    const wd = body.output.weekday ?? ahad(new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d));
-    const rest = new Intl.DateTimeFormat('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    }).format(d);
-    const greg = `${wd}, ${rest}`;
-    fallback = {
-      day: body.output.day,
-      month_name: body.output.month_name,
-      year: body.output.year,
-      greg: `${greg} · ${body.input.tz}`,
-    };
-  }
+  const res = await fetch(`${apiBase}/api/v1/hilal/info?month=${hilalTarget.month}&year=${hilalTarget.year}`);
+  if (res.ok) featuredItem = await res.json();
 } catch {}
+
+/* Build featured explain HTML */
+const todayGregLine = `${gWeekday}, ${todayOut.day} ${todayOut.month_name} ${todayOut.year} H · ${gDateLong}`;
+
+let featuredExplainHtml = '';
+let featuredFactsHtml = '';
+let featuredQuery = `month=${hilalTarget.month}&year=${hilalTarget.year}`;
+let featuredDateShort = '';
+if (featuredItem) {
+  const ev = featuredItem.evening;
+  const ok = ev.visible;
+  const len = featuredItem.previous_month.length;
+  const addStep = len === 29 || (len !== 30 && ok) ? 1 : 2;
+  const startDt = new Date(`${ev.gregorian_date}T00:00:00`);
+  startDt.setDate(startDt.getDate() + addStep);
+  const startIso = `${startDt.getFullYear()}-${String(startDt.getMonth() + 1).padStart(2, '0')}-${String(startDt.getDate()).padStart(2, '0')}`;
+  const isPast = todayGregIso !== '' && ev.gregorian_date < todayGregIso;
+
+  featuredExplainHtml =
+    `Kapan <b class="exp-month">${featuredItem.month.name}</b> dimulai? ` +
+    `Berdasarkan kriteria Neo MABIMS, kondisi bulan pada tanggal ${ev.hijri_day} ` +
+    `${featuredItem.previous_month.name} ` +
+    (ok ? '<b class="is-exp-ok">memenuhi kriteria</b>' : '<b class="is-exp-bad">tidak memenuhi kriteria</b>') +
+    `. Sehingga ${isPast ? '' : 'kemungkinan '}${featuredItem.month.name} dimulai tanggal <b>${idDateLong(startIso)}</b>. ` +
+    'Rincian pemenuhan kriteria Neo MABIMS bisa dilihat di grafik di bawah, atau lihat periode bulannya di ' +
+    '<a href="/kalender-hijriah/" style="color:var(--sl-color-accent)">kalender Hijriah</a>.';
+
+  const verdictCls = ok && featuredItem.warnings?.some((w) => /threshold|ambang/i.test(w))
+    ? 'is-borderline' : ok ? 'is-ok' : 'is-bad';
+  const verdictLabel = ok && featuredItem.warnings?.some((w) => /threshold|ambang/i.test(w))
+    ? 'Mendekati batas' : ok ? 'Memenuhi kriteria' : 'Tidak memenuhi kriteria';
+  const chip = (okParam: boolean | null) =>
+    okParam == null ? '' : `<span class="fact-chip ${okParam ? 'is-ok' : 'is-bad'}">${okParam ? 'Lolos' : 'Gagal'}</span>`;
+  featuredFactsHtml =
+    `<div class="hilal-facts-head"><span class="verdict-badge ${verdictCls}">${verdictLabel}</span>` +
+    `<span class="facts-note">1 ${featuredItem.month.name} ${featuredItem.month.year} H · malam ${idDateLong(ev.gregorian_date)}</span></div>` +
+    '<div class="facts-grid">' +
+    `<div class="fact"><span class="fact-label">Tinggi bulan</span><span class="fact-value">${fmtAltId(ev.moon_alt_deg)}${chip(ev.alt_ok)}</span><span class="fact-min">min. 3,0°</span></div>` +
+    `<div class="fact"><span class="fact-label">Elongasi</span><span class="fact-value">${numId(ev.elongation_deg)}°${chip(ev.elong_ok)}</span><span class="fact-min">min. 6,4°</span></div>` +
+    `<div class="fact"><span class="fact-label">Iluminasi</span><span class="fact-value">${fmtPctId(ev.illumination_pct)}</span></div>` +
+    `<div class="fact"><span class="fact-label">Umur bulan</span><span class="fact-value">${numId(ev.age_hours)} jam</span></div>` +
+    `<div class="fact"><span class="fact-label">Matahari terbenam</span><span class="fact-value">${ev.sunset}</span></div>` +
+    `<div class="fact"><span class="fact-label">Bulan terbenam</span><span class="fact-value">${ev.moonset}</span></div>` +
+    `<div class="fact"><span class="fact-label">Titik pengamat</span><span class="fact-value">${ev.deciding_site.name}</span></div>` +
+    '</div>';
+  featuredQuery = `month=${featuredItem.month.number}&year=${featuredItem.month.year}`;
+  featuredDateShort = idDateShort(ev.gregorian_date);
+}
+
+/* History: full list, first page rendered server-side */
+type HistoryItem = HilalItem;
+const PAGE_SIZE = 12;
+let allHistory: HistoryItem[] = [];
+let historyItems: HistoryItem[] = [];
+let upcomingKey = '';
+{
+  const hist = await fetchCoreJson('/api/v1/hilal/history');
+  allHistory = (hist.months ?? []) as HistoryItem[];
+  upcomingKey = `${hilalTarget.year}-${String(hilalTarget.month).padStart(2, '0')}`;
+  historyItems = allHistory
+    .filter((it) => `${it.month.year}-${String(it.month.number).padStart(2, '0')}` < upcomingKey)
+    .sort((a, b) => {
+      const ka = `${a.month.year}-${String(a.month.number).padStart(2, '0')}`;
+      const kb = `${b.month.year}-${String(b.month.number).padStart(2, '0')}`;
+      return ka > kb ? -1 : ka < kb ? 1 : 0;
+    })
+    .slice(0, PAGE_SIZE);
+}
+
+/* Server-side row builder for history items */
+function historyRowHtml(item: HistoryItem): string {
+  const ev = item.evening;
+  const borderline = (item.warnings ?? []).some((w) => /threshold|ambang/i.test(w));
+  const visible = ev.visible;
+  const viCls = visible && borderline ? 'is-borderline' : visible ? 'is-ok' : 'is-bad';
+  const viLabel = visible && borderline ? 'Mendekati batas' : visible ? 'Terlihat' : 'Tidak terlihat';
+  const key = `${item.month.year}-${String(item.month.number).padStart(2, '0')}`;
+  const q = `month=${item.month.number}&year=${item.month.year}`;
+  return (
+    `<article class="history-item" data-key="${key}">` +
+    '<div class="history-row">' +
+    `<div class="history-id"><span class="history-name">${item.month.name}</span><span class="history-year">${item.month.year} H</span></div>` +
+    `<div class="history-eve"><span class="history-evedate">${idDateShort(ev.gregorian_date)}</span><span class="history-eyecap">malam ${ev.hijri_date}</span></div>` +
+    '<div class="history-mid">' +
+    `<span class="verdict-badge ${viCls}">${viLabel}</span>` +
+    `<span class="mini-chip ${ev.alt_ok ? 'is-ok' : 'is-bad'}">Alt ${fmtAltId(ev.moon_alt_deg)}</span>` +
+    `<span class="mini-chip ${ev.elong_ok ? 'is-ok' : 'is-bad'}">Elong ${numId(ev.elongation_deg)}°</span>` +
+    '</div>' +
+    '<div class="history-actions">' +
+    '<button type="button" data-info aria-expanded="false">Lihat detail</button>' +
+    '</div></div>' +
+    '<div class="history-panel" hidden>' +
+    '<div class="history-media">' +
+    `<figure><button type="button" class="history-zoom" data-zoom="map" aria-label="Perbesar peta ${item.month.name} ${item.month.year} H">` +
+    `<img alt="Peta wilayah visibilitas hilal ${item.month.name} ${item.month.year} H" data-map data-src="${publicApiBase}/api/v1/hilal/map?${q}&bare=true">` +
+    `</button><figcaption><a class="hilal-download" href="${publicApiBase}/api/v1/hilal/map?${q}&download=true" download="hilal-map-${key}.png">Unduh PNG</a></figcaption></figure>` +
+    `<figure><button type="button" class="history-zoom" data-zoom="viz" aria-label="Perbesar grafik ${item.month.name} ${item.month.year} H">` +
+    `<img alt="Grafik langit visibilitas hilal ${item.month.name} ${item.month.year} H" data-viz data-src="${publicApiBase}/api/v1/hilal/viz?${q}&bare=true">` +
+    `</button><figcaption><a class="hilal-download" href="${publicApiBase}/api/v1/hilal/viz?${q}&download=true" download="hilal-viz-${key}.png">Unduh PNG</a></figcaption></figure>` +
+    '</div>' +
+    `<div class="hilal-facts">${factsHtml(item)}</div>` +
+    '</div>' +
+    '</article>'
+  );
+}
+
+function factsHtml(item: HistoryItem): string {
+  const ev = item.evening;
+  const borderline = (item.warnings ?? []).some((w) => /threshold|ambang/i.test(w));
+  const viCls = ev.visible && borderline ? 'is-borderline' : ev.visible ? 'is-ok' : 'is-bad';
+  const viLabel = ev.visible && borderline ? 'Mendekati batas' : ev.visible ? 'Terlihat' : 'Tidak terlihat';
+  const chip = (ok: boolean | null) =>
+    ok == null ? '' : `<span class="fact-chip ${ok ? 'is-ok' : 'is-bad'}">${ok ? 'Lolos' : 'Gagal'}</span>`;
+  const fact = (label: string, value: string, min = '', ok: boolean | null = null) =>
+    `<div class="fact"><span class="fact-label">${label}</span><span class="fact-value">${value}${chip(ok)}</span>` +
+    (min ? `<span class="fact-min">${min}</span>` : '') + '</div>';
+  return (
+    `<div class="hilal-facts-head"><span class="verdict-badge ${viCls}">${viLabel}</span>` +
+    `<span class="facts-note">1 ${item.month.name} ${item.month.year} H · malam ${idDateLong(ev.gregorian_date)}</span></div>` +
+    '<div class="facts-grid">' +
+    fact('Tinggi bulan', fmtAltId(ev.moon_alt_deg), 'min. 3,0°', ev.alt_ok) +
+    fact('Elongasi', `${numId(ev.elongation_deg)}°`, 'min. 6,4°', ev.elong_ok) +
+    fact('Iluminasi', fmtPctId(ev.illumination_pct)) +
+    fact('Umur bulan', `${numId(ev.age_hours)} jam`) +
+    fact('Matahari terbenam', ev.sunset) +
+    fact('Bulan terbenam', ev.moonset) +
+    fact('Titik pengamat', ev.deciding_site.name) +
+    '</div>'
+  );
+}
+
+/* Cache till midnight Jakarta like the API's /today */
+{
+  const jkt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+  }).formatToParts(new Date());
+  const get = (t: string) => Number(jkt.find((p) => p.type === t)?.value ?? 0);
+  const secsOfDay = get('hour') * 3600 + get('minute') * 60 + get('second');
+  const ttl = 86400 - secsOfDay;
+  Astro.response.headers.set('Cache-Control', `public, max-age=0, s-maxage=${ttl}`);
+}
 
 const title = 'Hilal • Visibilitas & Riwayat Penentuan Awal Bulan Hijriah';
 const description =
@@ -51,8 +243,21 @@ const description =
   </Fragment>
 
   <HilalHero fallback={fallback} />
-  <SightingFeatured />
-  <SightingHistory />
+  <SightingFeatured
+    item={featuredItem}
+    publicApiBase={publicApiBase}
+    explainHtml={featuredExplainHtml}
+    factsHtml={featuredFactsHtml}
+    query={featuredQuery}
+    dateShort={featuredDateShort}
+    targetMonth={hilalTarget.month}
+    targetYear={hilalTarget.year}
+  />
+  <SightingHistory
+    items={historyItems.map(historyRowHtml)}
+    publicApiBase={publicApiBase}
+    hasMore={allHistory.length - (allHistory.filter((it) => `${it.month.year}-${String(it.month.number).padStart(2, '0')}` < upcomingKey).length) > PAGE_SIZE}
+  />
 </LandingLayout>
 
 <style is:global>
@@ -1090,7 +1295,6 @@ const description =
   const $$ = (sel: string, root: ParentNode = document) =>
     Array.from(root.querySelectorAll<HTMLElement>(sel));
 
-  type Site = { name: string; lat: number; lon: number; elev_m: number; tz: string };
   type Evening = {
     hijri_date: string;
     hijri_day: number;
@@ -1103,7 +1307,7 @@ const description =
     elongation_deg: number;
     illumination_pct: number;
     age_hours: number;
-    deciding_site: Site;
+    deciding_site: { name: string; tz: string };
     sites_checked: number;
     alt_ok: boolean;
     elong_ok: boolean;
@@ -1121,22 +1325,11 @@ const description =
   let upcoming: Item | null = null;
 
   const DAY_FMT = new Intl.DateTimeFormat('id-ID', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   });
   const SHORT_FMT = new Intl.DateTimeFormat('id-ID', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
+    day: 'numeric', month: 'short', year: 'numeric',
   });
-
-  const SOURCE_LABELS: Record<string, string> = {
-    mabims: 'Tabel resmi Kemenag',
-    'mabims-computed': 'Perhitungan Neo MABIMS',
-    'mabims-retro': 'Proyeksi retro',
-  };
 
   const ahad = (s: string) => s.replace('Minggu', 'Ahad');
   const fmtDate = (iso: string) => ahad(DAY_FMT.format(new Date(`${iso}T00:00:00`)));
@@ -1159,30 +1352,19 @@ const description =
     const add = current.day <= 29 ? 1 : 2;
     let month = current.month + add;
     let year = current.year;
-    while (month > 12) {
-      month -= 12;
-      year += 1;
-    }
+    while (month > 12) { month -= 12; year += 1; }
     return { month, year };
   }
 
   function minutesUntilSunset(ev: Evening): number {
-    // Sunset wall-clock time at the deciding site → minutes from now.
     const [hh, mm] = ev.sunset.split(':').map(Number);
     const [y, m, d] = ev.gregorian_date.split('-').map(Number);
     const wall = Date.UTC(y, m - 1, d) + hh * 3600e3 + mm * 60e3;
     const dtf = new Intl.DateTimeFormat('en-US', {
-      timeZone: ev.deciding_site.tz,
-      hour12: false,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
+      timeZone: ev.deciding_site.tz, hour12: false,
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
     });
-    // Convert wall-time in site tz to a UTC instant: measure the site's
-    // offset at our guess, then correct once (covers sub-day DST quirks).
     const round = (u: number) => {
       const p = dtf.formatToParts(new Date(u));
       const get = (t: string) => Number(p.find((x) => x.type === t)?.value ?? '0');
@@ -1227,15 +1409,9 @@ const description =
   }
 
   const PHASE_LABELS: Array<[number, string]> = [
-    [1.5, 'New Moon'],
-    [6, 'Waxing Crescent'],
-    [8.5, 'First Quarter'],
-    [13.5, 'Waxing Gibbous'],
-    [16.5, 'Full Moon'],
-    [21, 'Waning Gibbous'],
-    [23, 'Last Quarter'],
-    [29.4, 'Waning Crescent'],
-    [30.5, 'New Moon'],
+    [1.5, 'New Moon'], [6, 'Waxing Crescent'], [8.5, 'First Quarter'],
+    [13.5, 'Waxing Gibbous'], [16.5, 'Full Moon'], [21, 'Waning Gibbous'],
+    [23, 'Last Quarter'], [29.4, 'Waning Crescent'], [30.5, 'New Moon'],
   ];
   const moonPhaseLabel = (moonDay: number) =>
     PHASE_LABELS.find(([limit]) => moonDay <= limit)?.[1] ?? 'New Moon';
@@ -1255,9 +1431,6 @@ const description =
   }
 
   const MOON_R = 70;
-
-  // Correct moon phase: lit disc = half-circle outer arc + half-ellipse
-  // terminator (semi-minor axis r*|cos(2π·phase)|). phase: 0=new, 0.5=full.
   function moonLitPath(phase: number) {
     if (phase < 0.001) return '';
     const r = MOON_R;
@@ -1268,8 +1441,6 @@ const description =
     const minor = Math.abs(cosPhase) * r;
     const waxing = phase < 0.5;
     const outerSweep = waxing ? 1 : 0;
-    // Crescent: terminator hugs the lit rim; gibbous: bulges into the dark
-    // half. For waxing that needs sweep 1 when gibbous, for waning sweep 0.
     const innerSweep = (cosPhase < 0) === waxing ? 1 : 0;
     return (
       `M 0 ${-r}` +
@@ -1292,7 +1463,6 @@ const description =
     if (hilalEl) hilalEl.textContent = item.month.name;
     if (targetGreg) targetGreg.textContent = fmtDate(item.evening.gregorian_date);
     if (days <= 0) {
-      // Penentuan is tonight: count down to sunset at the deciding site.
       if (valueEl) valueEl.style.display = '';
       const minutes = minutesUntilSunset(item.evening);
       if (minutes <= 60) {
@@ -1303,23 +1473,17 @@ const description =
         if (unitEl) unitEl.textContent = 'Jam Lagi';
       }
     } else {
-      if (valueEl) {
-        valueEl.style.display = '';
-        valueEl.textContent = String(days);
-      }
+      if (valueEl) { valueEl.style.display = ''; valueEl.textContent = String(days); }
       if (unitEl) unitEl.textContent = 'Hari Lagi';
     }
 
     const moonDay = today.output.day;
-    const ev = item.evening;
     const phaseEl = $('[data-card-phase]');
     if (phaseEl) phaseEl.textContent = moonPhaseLabel(moonDay);
     const pct = Math.min(100, Math.max(0, (moonDay / 29) * 100));
     const arc = $('[data-moon-arc]') as HTMLElement | null;
     if (arc) arc.style.width = `${pct}%`;
 
-    // Symodic phase centered mid-day: day 1 → thin waxing sliver, day ~15 →
-    // full, day 29 → near-conjunction dark, day 30 → new moon.
     const phase = Math.min(0.999, Math.max(0.02, (moonDay - 0.5) / 29.53));
     const d = moonLitPath(phase);
     const lit = $('[data-moon-lit]');
@@ -1327,60 +1491,33 @@ const description =
     const litClip = $('[data-moon-litclip]');
     if (litClip) litClip.setAttribute('d', d);
 
-    const setGauge = (
-      valSel: string,
-      chipSel: string,
-      value: string,
-      ok: boolean | null
-    ) => {
+    const setGauge = (valSel: string, chipSel: string, value: string, ok: boolean | null) => {
       const valEl = $(valSel);
       if (valEl) valEl.textContent = value;
       const chip = $(chipSel);
       if (!chip) return;
-      if (ok == null) {
-        chip.hidden = true;
-        return;
-      }
+      if (ok == null) { chip.hidden = true; return; }
       chip.hidden = false;
       chip.className = `fact-chip ${ok ? 'is-ok' : 'is-bad'}`;
       chip.textContent = ok ? 'Lolos' : 'Gagal';
     };
-    setGauge('[data-gauge-alt]', '[data-gauge-alt-chip]', fmtAlt(ev.moon_alt_deg), ev.alt_ok);
-    setGauge('[data-gauge-elong]', '[data-gauge-elong-chip]', fmtElong(ev.elongation_deg), ev.elong_ok);
+    setGauge('[data-gauge-alt]', '[data-gauge-alt-chip]', fmtAlt(item.evening.moon_alt_deg), item.evening.alt_ok);
+    setGauge('[data-gauge-elong]', '[data-gauge-elong-chip]', fmtElong(item.evening.elongation_deg), item.evening.elong_ok);
 
     const siteEl = $('[data-count-site]');
-    if (siteEl) siteEl.textContent = `Titik penentuan: ${ev.deciding_site.name}`;
+    if (siteEl) siteEl.textContent = `Titik penentuan: ${item.evening.deciding_site.name}`;
   }
 
-  function wireImage(
-    zoom: HTMLElement,
-    img: HTMLImageElement,
-    etaEl: HTMLElement | null,
-    label: string,
-    etaStart: number
-  ) {
+  function wireImage(zoom: HTMLElement, img: HTMLImageElement, etaEl: HTMLElement | null, label: string, etaStart: number) {
     let timer: number | null = null;
     if (etaEl && etaStart > 0) {
       let remaining = etaStart;
-      const tick = () => {
-        etaEl.textContent =
-          remaining > 0 ? `${label}… ~${remaining}s` : `Menyelesaikan ${label.toLowerCase()}…`;
-      };
+      const tick = () => { etaEl.textContent = remaining > 0 ? `${label}… ~${remaining}s` : `Menyelesaikan ${label.toLowerCase()}…`; };
       tick();
-      timer = window.setInterval(() => {
-        remaining -= 1;
-        tick();
-        if (remaining <= -5 && timer !== null) window.clearInterval(timer);
-      }, 1000);
+      timer = window.setInterval(() => { remaining -= 1; tick(); if (remaining <= -5 && timer !== null) window.clearInterval(timer); }, 1000);
     }
-    img.addEventListener('load', () => {
-      if (timer !== null) window.clearInterval(timer);
-      zoom.classList.add('is-loaded');
-    });
-    img.addEventListener('error', () => {
-      if (timer !== null) window.clearInterval(timer);
-      if (etaEl) etaEl.textContent = 'Gagal memuat gambar; coba muat ulang.';
-    });
+    img.addEventListener('load', () => { if (timer !== null) window.clearInterval(timer); zoom.classList.add('is-loaded'); });
+    img.addEventListener('error', () => { if (timer !== null) window.clearInterval(timer); if (etaEl) etaEl.textContent = 'Gagal memuat gambar; coba muat ulang.'; });
   }
 
   function renderFeatured(item: Item) {
@@ -1487,9 +1624,7 @@ const description =
           ? scope.querySelector<HTMLImageElement>(isMap ? '[data-map]' : '[data-viz]')
           : $(isMap ? '[data-map-img]' : '[data-viz-img]')
       ) as HTMLImageElement | null;
-      if (img?.src) {
-        openLightbox(img.src, img.alt);
-      }
+      if (img?.src) openLightbox(img.src, img.alt);
       return;
     }
 
@@ -1539,12 +1674,13 @@ const description =
       state.history = hist.months
         .filter((it: Item) => keyOf(it) < targetKey)
         .sort((a: Item, b: Item) => (keyOf(a) < keyOf(b) ? 1 : -1));
-      renderHistory();
-    } catch (error) {
-      const list = $('[data-history]');
-      if (list) {
-        list.innerHTML = `<p class="hilal-note">Gagal memuat data hilal (${String(error)}). Coba muat ulang halaman.</p>`;
+      // Only re-render if SSR data differs (e.g. timezone drift)
+      if (state.history.length > 0 && !$('[data-key]')) {
+        renderHistory();
       }
+    } catch (error) {
+      // SSR content stays; only log the error
+      console.warn('Hilal client hydration failed:', error);
     }
   }
 

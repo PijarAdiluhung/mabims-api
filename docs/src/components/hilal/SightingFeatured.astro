@@ -1,10 +1,52 @@
 ---
+interface HilalEvening {
+  hijri_date: string;
+  hijri_day: number;
+  gregorian_date: string;
+  sunset: string;
+  moonset: string;
+  moon_alt_deg: number;
+  elongation_deg: number;
+  illumination_pct: number;
+  age_hours: number;
+  deciding_site: { name: string };
+  visible: boolean;
+  alt_ok: boolean | null;
+  elong_ok: boolean | null;
+}
+interface HilalItem {
+  month: { name: string; number: number; year: number; start: string };
+  previous_month: { name: string; number: number; year: number; length: number };
+  evening: HilalEvening;
+  source: string;
+  warnings: string[];
+}
+
+interface Props {
+  item: HilalItem | null;
+  publicApiBase: string;
+  explainHtml: string;
+  factsHtml: string;
+  query: string;
+  dateShort: string;
+  targetMonth: number;
+  targetYear: number;
+}
+
+const { item, publicApiBase, explainHtml, factsHtml, query, dateShort, targetMonth, targetYear } = Astro.props;
+
+const imgSrc = item ? `${publicApiBase}/api/v1/hilal/map?${query}&bare=true` : '';
+const vizSrc = item ? `${publicApiBase}/api/v1/hilal/viz?${query}&bare=true` : '';
+const mapDl = item ? `${publicApiBase}/api/v1/hilal/map?${query}&download=true` : '#';
+const vizDl = item ? `${publicApiBase}/api/v1/hilal/viz?${query}&download=true` : '#';
+const mapAlt = `Peta wilayah visibilitas hilal ${targetMonth}/${targetYear}`;
+const vizAlt = `Grafik langit visibilitas hilal ${targetMonth}/${targetYear}`;
 ---
 
 <section class="hilal-featured" id="berikutnya">
   <header class="hilal-section-head">
     <h2>Grafik <span class="accent">Visibilitas</span></h2>
-    <p class="hilal-explain" data-explain>Kapan bulan Hijriah berikutnya dimulai? Memuat…</p>
+    <p class="hilal-explain" data-explain set:html={explainHtml || 'Kapan bulan Hijriah berikutnya dimulai? Memuat…'} />
     <p class="hilal-disclaimer">Hanya estimasi, bukan pengumuman resmi.</p>
   </header>
 
@@ -17,7 +59,8 @@
         </div>
         <img
           data-map-img
-          alt="Peta wilayah visibilitas hilal"
+          src={imgSrc}
+          alt={mapAlt}
           width="1440"
           height="1520"
           loading="eager"
@@ -27,8 +70,8 @@
       </button>
       <figcaption>
         <span class="hilal-graphic-title">Peta wilayah</span>
-        <span class="hilal-graphic-date" data-map-date></span>
-        <a class="hilal-download" data-map-dl download>Unduh kartu</a>
+        <span class="hilal-graphic-date" data-map-date>{dateShort}</span>
+        <a class="hilal-download" data-map-dl href={mapDl} download="hilal-map.png">Unduh kartu</a>
       </figcaption>
     </figure>
 
@@ -40,7 +83,8 @@
         </div>
         <img
           data-viz-img
-          alt="Grafik langit visibilitas hilal"
+          src={vizSrc}
+          alt={vizAlt}
           width="1440"
           height="1520"
           loading="eager"
@@ -50,11 +94,11 @@
       </button>
       <figcaption>
         <span class="hilal-graphic-title">Grafik langit</span>
-        <span class="hilal-graphic-date" data-viz-date></span>
-        <a class="hilal-download" data-viz-dl download>Unduh kartu</a>
+        <span class="hilal-graphic-date" data-viz-date>{dateShort}</span>
+        <a class="hilal-download" data-viz-dl href={vizDl} download="hilal-viz.png">Unduh kartu</a>
       </figcaption>
     </figure>
   </div>
 
-  <div class="hilal-facts" data-featured-facts></div>
+  <div class="hilal-facts" data-featured-facts set:html={factsHtml} />
 </section>
