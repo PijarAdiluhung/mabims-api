@@ -135,6 +135,7 @@ export default defineConfig({
         { label: 'Sidang Isbat & Koreksi', link: '/isbat-koreksi', translations: { en: 'Sidang Isbat Corrections' } },
         { label: 'Migration dari Aladhan', link: '/migration', translations: { en: 'Migration from Aladhan' } },
         { label: 'FAQ - Pertanyaan', link: '/faq', translations: { en: 'FAQ' } },
+        { label: 'Apa itu MABIMS?', link: '/apa-itu-mabims', translations: { en: 'What is MABIMS?' } },
         { label: 'Changelog', link: '/changelog' },
         {
           label: 'Legal',

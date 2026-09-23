@@ -54,21 +54,25 @@ const months = [
 
   <div class="hilal-figures">
     <figure class="hilal-figure" id="map-figure" hidden>
-      <div class="hilal-skeleton" id="map-skeleton">
-        <div class="hilal-spinner" role="status" aria-label="Loading map"></div>
-        <p class="hilal-eta" id="map-eta">Rendering map…</p>
+      <div class="hilal-media">
+        <div class="hilal-skeleton" id="map-skeleton">
+          <div class="hilal-spinner" role="status" aria-label="Loading map"></div>
+          <p class="hilal-eta" id="map-eta">Rendering map…</p>
+        </div>
+        <img id="map" alt="Hilal visibility map" width="360" height="640" hidden />
       </div>
-      <img id="map" alt="Hilal visibility map" width="360" height="640" hidden />
       <figcaption>
         <span id="map-cap">Visibility region map</span>
         · <a id="map-dl" download>Download PNG</a>
       </figcaption>
     </figure>
     <figure class="hilal-figure" id="figure" hidden>
-      <div class="hilal-skeleton" id="skeleton">
-        <div class="hilal-spinner" role="status" aria-label="Loading"></div>
+      <div class="hilal-media">
+        <div class="hilal-skeleton" id="skeleton">
+          <div class="hilal-spinner" role="status" aria-label="Loading"></div>
+        </div>
+        <img id="chart" alt="Hilal visibility chart" width="360" height="640" hidden />
       </div>
-      <img id="chart" alt="Hilal visibility chart" width="360" height="640" hidden />
       <figcaption>
         <span id="figcap"></span>
         · <a id="chart-dl" download>Download PNG</a>
@@ -303,14 +307,25 @@ const months = [
     .hilal-figure {
       margin: 0;
     }
-    .hilal-skeleton {
+    .hilal-figure[hidden] {
+      display: none;
+    }
+    .hilal-media {
+      position: relative;
       aspect-ratio: 9 / 16;
+      overflow: hidden;
+      border-radius: 0.75rem;
+      border: 1px solid var(--sl-color-gray-5);
+      background: #1f1235;
+    }
+    .hilal-skeleton {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
       display: grid;
       place-items: center;
       align-content: center;
       gap: 0.75rem;
-      border-radius: 0.75rem;
-      border: 1px solid var(--sl-color-gray-5);
       background: linear-gradient(
         110deg,
         var(--sl-color-gray-6) 30%,
@@ -345,15 +360,14 @@ const months = [
       }
     }
     .hilal-skeleton[hidden],
-    .hilal-figure img[hidden] {
+    .hilal-media img[hidden] {
       display: none;
     }
-    .hilal-figure img {
+    .hilal-media img {
+      display: block;
       width: 100%;
-      height: auto;
-      border-radius: 0.75rem;
-      border: 1px solid var(--sl-color-gray-5);
-      background: #1f1235;
+      height: 100%;
+      object-fit: cover;
     }
     .hilal-figure figcaption {
       margin-top: 0.5rem;

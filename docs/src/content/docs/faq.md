@@ -8,7 +8,7 @@ description: Pertanyaan yang sering ditanyakan tentang API Kalender MABIMS.
 <details>
 <summary>Apa itu MABIMS?</summary>
 
-MABIMS singkatan dari Menteri-menteri Agama Brunei, Indonesia, Malaysia, Singapura. Istilah ini lebih sering dipakai dalam konteks kriteria rukyah yang digunakan [Kemenag RI](https://kemenag.go.id) untuk menentukan awal bulan Hijriah, khususnya awal Ramadhan, Syawal, dan Dzulhijjah. Kriteria Neo MABIMS mensyaratkan hilal terlihat minimal 3° dan elongasi minimal 6,4° saat matahari terbenam. (Lihat penjelasan resminya di [MUI](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia).)
+MABIMS singkatan dari Menteri-menteri Agama Brunei, Indonesia, Malaysia, Singapura. Istilah ini lebih sering dipakai dalam konteks kriteria rukyah yang digunakan [Kemenag RI](https://kemenag.go.id) untuk menentukan awal bulan Hijriah, khususnya awal Ramadhan, Syawal, dan Dzulhijjah. Kriteria Neo MABIMS mensyaratkan hilal terlihat minimal 3° dan elongasi minimal 6,4° saat matahari terbenam. Penjelasan lengkap: [Apa itu MABIMS?](/apa-itu-mabims/). Rujukan resmi: [MUI](https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia).
 
 </details>
 

@@ -5,7 +5,7 @@ description: API open-source gratis untuk kalender Hijriah Indonesia berdasarkan
 
 ## Apa itu MABIMS.dev?
 
-MABIMS.dev adalah API open-source unofficial gratis yang menyediakan ekosistem kalender Hijriah untuk Indonesia. API ini menggunakan data resmi MABIMS yang diterbitkan oleh [Kementerian Agama Republik Indonesia](https://kemenag.go.id), bukan [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) (standar Arab Saudi).
+MABIMS.dev adalah API open-source unofficial gratis yang menyediakan ekosistem kalender Hijriah untuk Indonesia. API ini menggunakan data resmi MABIMS yang diterbitkan oleh [Kementerian Agama Republik Indonesia](https://kemenag.go.id), bukan [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) (standar Arab Saudi). Kalau baru pertama dengar istilahnya, baca dulu [Apa itu MABIMS?](/apa-itu-mabims/) untuk penjelasan kriteria dan sejarahnya.
 
 ## Untuk Siapa?
 

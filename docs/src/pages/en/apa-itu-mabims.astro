@@ -1,0 +1,259 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { Steps } from '@astrojs/starlight/components';
+import type { MarkdownHeading } from 'astro';
+
+const headings: MarkdownHeading[] = [
+  { depth: 2, slug: 'what-is-the-mabims-criterion', text: 'What is the MABIMS criterion?' },
+  { depth: 2, slug: 'history', text: 'History: from 2-3-8 to Neo MABIMS' },
+  { depth: 2, slug: 'behind-the-scenes', text: 'Behind the scenes: how a Hijri month start is determined' },
+  { depth: 2, slug: 'why-is-sidang-isbat-still-needed', text: 'Why is Sidang Isbat still needed?' },
+  { depth: 2, slug: 'mabims-vs-umm-al-qura', text: 'MABIMS vs Umm al-Qura' },
+  { depth: 2, slug: 'mabims-criterion-vs-the-mabims-dev-api', text: 'MABIMS criterion vs the mabims.dev API' },
+  { depth: 2, slug: 'who-needs-a-hijri-calendar-api', text: 'Who needs a Hijri calendar API?' },
+  { depth: 2, slug: 'frequently-asked-questions', text: 'Frequently asked questions about MABIMS' },
+];
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'What is MABIMS?',
+    description: 'MABIMS stands for the Ministers of Religious Affairs of Brunei, Indonesia, Malaysia, and Singapore. Learn about the rukyah criterion, Neo MABIMS history, and how Hijri month starts are determined in Indonesia.',
+  }}
+  headings={headings}
+>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: 'What is MABIMS?',
+    description: 'MABIMS stands for the Ministers of Religious Affairs of Brunei, Indonesia, Malaysia, and Singapore. Rukyah criterion used by Indonesia\'s Kemenag to determine Hijri month starts.',
+    url: 'https://mabims.dev/en/apa-itu-mabims/',
+    datePublished: '2026-09-23',
+    dateModified: '2026-09-23',
+    inLanguage: 'en',
+    author: { '@type': 'Person', name: 'Pijar Adiluhung', url: 'https://pixostudio.id' },
+    publisher: {
+      '@type': 'Organization',
+      name: 'mabims.dev',
+      logo: { '@type': 'ImageObject', url: 'https://mabims.dev/mabims-long.png' },
+    },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://mabims.dev/en/apa-itu-mabims/' },
+  })} />
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Which countries use MABIMS?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'MABIMS is used by Brunei Darussalam, Indonesia, Malaysia, and Singapore. These four countries share the same crescent visibility criterion to align Hijri month starts across the region.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'When did the MABIMS criterion take effect?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Neo MABIMS was signed by joint letter ad referendum in 2021 and took effect in 2022. Before that, Indonesia used the 2-3-8 criterion dating back to 1992.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Who declares the start of the Hijri month in Indonesia?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'The government declares it through the Ministry of Religious Affairs (Kemenag), usually after the Sidang Isbat session. MABIMS criteria guide hisab and rukyah, but the final decision is taken on the observation night.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Can MABIMS calculations differ from Sidang Isbat?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes, though rarely. The published calendar is a prediction based on Neo MABIMS. If the night-29 observation differs, the Sidang Isbat decision is binding. Differences are usually at most 1 day.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What is the difference between MABIMS and mabims.dev?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'MABIMS is the official state criterion and calendar. mabims.dev is an unofficial open-source API serving Hijri calendar data from Kemenag public tables and MABIMS criteria. mabims.dev is not an official product of Kemenag or MABIMS.',
+        },
+      },
+    ],
+  })} />
+
+  <p>
+    <strong>MABIMS stands for the Ministers of Religious Affairs of Brunei, Indonesia, Malaysia, and Singapore</strong> (Menteri-menteri Agama Brunei, Indonesia, Malaysia, Singapura). The term refers to cooperation among these four countries, especially the rukyah (crescent sighting) criterion used by Indonesia's <a href="https://kemenag.go.id">Kemenag RI</a> to determine Hijri month starts: the beginning of Ramadan, Syawal, Dzul Hijjah, and other months.
+  </p>
+  <p>
+    In everyday use, MABIMS most often names the crescent visibility criterion. That criterion underpins Indonesia's official Hijri calendar and informs the <a href="/en/isbat-koreksi/">Sidang Isbat</a> deliberation.
+  </p>
+
+  <h2 id="what-is-the-mabims-criterion">What is the MABIMS criterion?</h2>
+  <p>
+    The MABIMS criterion is the minimum condition for the hilal (young crescent) to count as visible on the night that decides a month start. The version in force today is called <strong>Neo MABIMS</strong>:
+  </p>
+  <table>
+    <thead>
+      <tr><th>Parameter</th><th>Threshold</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Hilal altitude (topocentric)</td><td>≥ 3.0°</td></tr>
+      <tr><td>Sun–moon elongation (geocentric)</td><td>≥ 6.4°</td></tr>
+    </tbody>
+  </table>
+  <p>
+    Both conditions must hold together at local sunset on day 29. The numbers come from compiled global sighting data showing the crescent is still too thin to observe reliably at lower altitudes and elongations.
+  </p>
+  <p>
+    Official explanations are available from <a href="https://mui.or.id/baca/berita/mengenal-kriteria-hilal-mabims-standard-penentuan-awal-bulan-hijriyah-pemerintah-indonesia">MUI</a> and government announcements via <a href="https://setkab.go.id/pemerintah-tetapkan-1-ramadan-1445h-jatuh-pada-selasa-12-maret-2024">Setkab</a>.
+  </p>
+
+  <h2 id="history">History: from 2-3-8 to Neo MABIMS</h2>
+  <p>The criterion Indonesia uses did not appear overnight. In short:</p>
+  <Steps>
+    <ol>
+      <li><strong>1992:</strong> Indonesia used the <strong>2-3-8</strong> criterion (altitude ≥ 2°, elongation ≥ 3°, moon age ≥ 8 hours).</li>
+      <li><strong>2016:</strong> The MABIMS Rukyah and Islamic Calendar muzakarah in Malaysia reviewed the criterion.</li>
+      <li><strong>2017:</strong> The International Fiqh Falak Seminar in Jakarta produced the Jakarta Recommendation.</li>
+      <li><strong>2021:</strong> The new criterion was signed by joint letter ad referendum.</li>
+      <li><strong>2022:</strong> Neo MABIMS took effect; 2-3-8 was retired.</li>
+      <li><strong>2023:</strong> Kemenag began publishing calendar tables computed with Neo MABIMS.</li>
+    </ol>
+  </Steps>
+  <p>
+    The reason is straightforward: for a low hilal with small elongation, the crescent is not yet worth naked-eye observation. The old criterion was too permissive.
+  </p>
+
+  <h2 id="behind-the-scenes">Behind the scenes: how a Hijri month start is determined</h2>
+  <p>
+    A Hijri month start in Indonesia does not come from a single calculation. The flow looks roughly like this:
+  </p>
+  <Steps>
+    <ol>
+      <li>
+        <strong>Hisab.</strong> Moon and sun positions are computed astronomically, giving hilal altitude and elongation at local sunset on day 29.
+      </li>
+      <li>
+        <strong>MABIMS test.</strong> Those numbers are compared against the 3° and 6.4° thresholds. Pass at any observation site in Indonesia and the month is predicted at 29 days; otherwise it runs 30 days.
+      </li>
+      <li>
+        <strong>Kemenag calendar table.</strong> Results are published as the official calendar for the coming year (usually released in October). Governments, schools, and institutions reference this table for administration.
+      </li>
+      <li>
+        <strong>Rukyah.</strong> On the night of day 29, observers look at the hilal directly. Hisab data guides where and when to look; it does not replace observation.
+      </li>
+      <li>
+        <strong>Sidang Isbat and announcement.</strong> Observation results are read out, a decision is taken, and Kemenag announces the official date.
+      </li>
+    </ol>
+  </Steps>
+  <p>
+    In short: calculations ease administration and guide rukyah. The final decision still belongs to observation and the isbat session.
+  </p>
+
+  <h2 id="why-is-sidang-isbat-still-needed">Why is Sidang Isbat still needed?</h2>
+  <p>
+    The MABIMS criterion is a prediction based on <em>imkanur ru'yah</em>, the possibility that the hilal can be seen. A prediction is not a ruling. Night 29 can end with a clear hilal, cloud cover, or nothing visible at all. Therefore:
+  </p>
+  <ul>
+    <li>Calculations prepare calendars, schedules, and paperwork well before the day.</li>
+    <li>The rukyah result on night 29 remains binding.</li>
+    <li>Sidang Isbat is the formal forum to read results and set the date.</li>
+    <li>If the result differs from the published calendar, the isbat decision applies. Differences are usually at most 1 day.</li>
+  </ul>
+  <p>
+    Software that must follow such corrections can see how the <a href="/en/isbat-koreksi/">Sidang Isbat correction mechanism</a> works in the mabims.dev API.
+  </p>
+
+  <h2 id="mabims-vs-umm-al-qura">MABIMS vs Umm al-Qura</h2>
+  <p>
+    Many Hijri calendar APIs and libraries default to <a href="https://en.wikipedia.org/wiki/Umm_al-Qura_calendar">Umm al-Qura</a>, Saudi Arabia's official calendar. For Indonesia the difference matters:
+  </p>
+  <table>
+    <thead>
+      <tr><th></th><th>MABIMS</th><th>Umm al-Qura</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Authority</td><td>Brunei, Indonesia, Malaysia, Singapore</td><td>Saudi Arabia</td></tr>
+      <tr><td>Basis</td><td>Rukyah + hisab, verified via Sidang Isbat</td><td>Saudi astronomical table</td></tr>
+      <tr><td>Indonesia context</td><td>Matches Kemenag announcements</td><td>Can differ by ±1 day</td></tr>
+    </tbody>
+  </table>
+  <p>
+    A fuller comparison is in the <a href="/en/faq">FAQ</a>, including why dates on Google often differ from Indonesian government announcements.
+  </p>
+
+  <h2 id="mabims-criterion-vs-the-mabims-dev-api">MABIMS criterion vs the mabims.dev API</h2>
+  <p>
+    MABIMS is the state criterion and calendar. mabims.dev is an open-source project that serves that data over a REST API. The relationship is simple:
+  </p>
+  <ul>
+    <li><strong>Primary source:</strong> calendar tables published by Kemenag RI.</li>
+    <li><strong>Beyond table coverage:</strong> recomputed with Neo MABIMS (flagged as <code>source: mabims-computed</code>).</li>
+    <li><strong>Status:</strong> unofficial and independent, not affiliated with Kemenag or MABIMS.</li>
+    <li><strong>Cost:</strong> free, no API key.</li>
+  </ul>
+  <p>
+    mabims.dev does not replace official announcements. For religious legal certainty, always refer to Kemenag.
+  </p>
+
+  <h2 id="who-needs-a-hijri-calendar-api">Who needs a Hijri calendar API?</h2>
+  <p>People who most often need this data:</p>
+  <ul>
+    <li><strong>Web and mobile developers</strong> displaying Hijri dates in apps.</li>
+    <li><strong>Mosque and pesantren apps</strong> for fasting, Eid al-Fitr, and Eid al-Adha schedules.</li>
+    <li><strong>Islamic schools and campuses</strong> planning academic calendars across two dating systems.</li>
+    <li><strong>HR and payroll teams</strong> converting Gregorian dates to Hijri for documents.</li>
+    <li><strong>Media and publishers</strong> shipping content tied to Islamic dates.</li>
+  </ul>
+  <p>
+    If that sounds like you, start with the <a href="/en/quickstart">Quickstart</a>, try the <a href="/en/demo/converter/">date converter</a>, or open the <a href="/kalender-hijriah/">Hijri calendar</a> in your browser.
+  </p>
+
+  <h2 id="frequently-asked-questions">Frequently asked questions about MABIMS</h2>
+
+  <details>
+  <summary>Which countries use MABIMS?</summary>
+
+  Brunei Darussalam, Indonesia, Malaysia, and Singapore. These four countries share the same crescent visibility criterion so Hijri month starts stay aligned across the region.
+
+  </details>
+
+  <details>
+  <summary>When did the MABIMS criterion take effect?</summary>
+
+  Neo MABIMS was signed by joint letter in 2021 and took effect in 2022. Before that Indonesia used the 2-3-8 criterion dating back to 1992.
+
+  </details>
+
+  <details>
+  <summary>Who declares the start of the Hijri month in Indonesia?</summary>
+
+  The government, through the Ministry of Religious Affairs (Kemenag), usually after Sidang Isbat. MABIMS criteria guide hisab and rukyah; the official decision is taken on the observation night.
+
+  </details>
+
+  <details>
+  <summary>Can MABIMS calculations differ from Sidang Isbat?</summary>
+
+  Yes, though rarely. The published calendar is a prediction based on Neo MABIMS. If the night-29 observation differs, the isbat decision is binding. Differences are usually about 1 day at most.
+
+  </details>
+
+  <details>
+  <summary>What is the difference between MABIMS and mabims.dev?</summary>
+
+  MABIMS is the official state criterion and calendar. mabims.dev is an unofficial open-source API serving Hijri calendar data from Kemenag public tables and MABIMS criteria. mabims.dev is not an official product of Kemenag or MABIMS.
+
+  </details>
+
+  <p>
+    API docs: <a href="/en/quickstart">Quickstart</a> · <a href="/en/about">About</a> · <a href="/en/faq">FAQ</a>
+  </p>
+</StarlightPage>

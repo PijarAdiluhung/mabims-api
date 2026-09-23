@@ -82,7 +82,7 @@ Berikut kalender lengkap yang bisa kamu lihat langsung. Klik tombol download unt
 
 ## Kriteria MABIMS
 
-Penentuan awal bulan Hijriah (1 Ramadhan, 1 Syawal, 1 Dzulhijjah, dll.) didasarkan pada pengamatan hilal (rukyah) yang divalidasi dengan hisab. Negara-negara anggota MABIMS — Brunei Darussalam, Indonesia, Malaysia, dan Singapura — telah menyepakati kriteria visibilitas hilal sebagai berikut:
+Penentuan awal bulan Hijriah (1 Ramadhan, 1 Syawal, 1 Dzulhijjah, dll.) didasarkan pada pengamatan hilal (rukyah) yang divalidasi dengan hisab. Negara-negara anggota MABIMS (Brunei Darussalam, Indonesia, Malaysia, dan Singapura) telah menyepakati kriteria visibilitas hilal sebagai berikut. Penjelasan lengkap soal asal-usul dan sejarahnya ada di [Apa itu MABIMS?](/apa-itu-mabims/).
 
 | Kriteria | Ambang Batas |
 |---|---|

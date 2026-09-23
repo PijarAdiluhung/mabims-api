@@ -215,37 +215,64 @@ const description =
   `Tanggal Hijriah hari ini, awal tiap bulan, hari penting Islam, dan data visibilitas hilal. Gratis & open-source.`;
 
 const awalRamadan = events.find((e) => e.event === 'awal_ramadan') ?? null;
-const faqs = [
+
+/* Group events by hijri month for the "Tanggal penting" list (frontmatter so
+   the template never contains Map generics that confuse the Astro/TS parser). */
+const eventGroups: { ym: string; y: number; m: number; items: EventItem[] }[] = [];
+{
+  const grouped = new Map<string, EventItem[]>();
+  for (const e of events) {
+    if (e.event === 'ayyamul_bidh') continue;
+    const key = e.hijri.slice(0, 7);
+    const arr = grouped.get(key) ?? [];
+    arr.push(e);
+    grouped.set(key, arr);
+  }
+  for (const [ym, items] of grouped) {
+    const [y, m] = ym.split('-').map(Number);
+    eventGroups.push({ ym, y, m, items });
+  }
+}
+
+type Faq = { q: string; html: string; plain: string };
+
+const faqs: Faq[] = [
   {
     q: 'Apa itu Kalender MABIMS?',
-    a: 'Kalender MABIMS adalah kalender Hijriah yang awal bulannya ditentukan dengan kriteria Neo MABIMS dari Kementerian Agama Republik Indonesia: tinggi bulan minimal 3 derajat dan elongasi minimal 6,4 derajat saat matahari terbenam, diuji di 25 titik pengamatan pesisir Indonesia.',
+    html: 'Kalender MABIMS adalah kalender Hijriah yang awal bulannya ditentukan dengan kriteria Neo MABIMS dari Kementerian Agama Republik Indonesia: tinggi bulan minimal 3 derajat dan elongasi minimal 6,4 derajat saat matahari terbenam, dilihat di titik-titik pengamat di seluruh Indonesia.',
+    plain: 'Kalender MABIMS adalah kalender Hijriah yang awal bulannya ditentukan dengan kriteria Neo MABIMS dari Kementerian Agama Republik Indonesia: tinggi bulan minimal 3 derajat dan elongasi minimal 6,4 derajat saat matahari terbenam, dilihat di titik-titik pengamat di seluruh Indonesia.',
   },
   {
     q: 'Apakah kalender ini sama dengan kalender Kemenag?',
-    a: `Ya. Untuk rentang tahun yang tercakup tabel resmi, data diambil langsung dari kalender publik Kementerian Agama RI. Di luar rentang tersebut, tanggal dihitung dengan kriteria Neo MABIMS dan ditandai sebagai perhitungan.`,
+    html: `Kalender ini menggunakan kalender Kemenag sebagai sumber datanya. Untuk tahun-tahun yang belum termasuk cakupan kalender resmi, sistem penanggalannya dihitung menggunakan kriteria Neo MABIMS, dan ditandai dengan jelas.`,
+    plain: `Kalender ini menggunakan kalender Kemenag sebagai sumber datanya. Untuk tahun-tahun yang belum termasuk cakupan kalender resmi, sistem penanggalannya dihitung menggunakan kriteria Neo MABIMS, dan ditandai dengan jelas.`,
   },
   {
     q: 'Bagaimana cara mengonversi tanggal Masehi ke Hijriah?',
-    aPlain: 'Gunakan konverter di mabims.dev/demo/converter, atau panggil endpoint API gratis https://api.mabims.dev/api/v1/convert?date=YYYY-MM-DD&calendar=gregorian.',
-    aHtml: 'Gunakan <a href="/demo/converter/" style="color:var(--sl-color-accent)">konverter di halaman demo</a>, atau panggil endpoint API gratis <code>https://api.mabims.dev/api/v1/convert?date=YYYY-MM-DD&calendar=gregorian</code>.',
+    html: 'Gunakan <a href="/demo/converter/" style="color:var(--sl-color-accent)">konverter di halaman demo</a>, atau panggil endpoint API gratis <code>https://api.mabims.dev/api/v1/convert?date=YYYY-MM-DD&calendar=gregorian</code>.',
+    plain: 'Gunakan konverter di mabims.dev/demo/converter, atau panggil endpoint API gratis https://api.mabims.dev/api/v1/convert?date=YYYY-MM-DD&calendar=gregorian.',
   },
   {
     q: 'Apakah data ini bisa dipakai di aplikasi saya?',
-    a: 'Bisa. Semua data di halaman ini tersedia melalui API publik gratis tanpa autentikasi di mabims.dev, atau melalui paket npm offline mabims-hijri.',
+    html: 'Bisa. Semua data di halaman ini tersedia melalui API publik gratis tanpa autentikasi di mabims.dev, atau melalui paket npm offline mabims-hijri.',
+    plain: 'Bisa. Semua data di halaman ini tersedia melalui API publik gratis tanpa autentikasi di mabims.dev, atau melalui paket npm offline mabims-hijri.',
   },
   ...(awalRamadan
     ? [{
         q: `1 Ramadhan ${currentYear} H jatuh pada tanggal berapa?`,
-        a: `Berdasarkan kriteria Neo MABIMS (data publik Kemenag), 1 Ramadhan ${currentYear} H diperkirakan jatuh pada ${dateId(awalRamadan.gregorian)}. Awal bulan tetap dikonfirmasi lewat hasil rukyah dan sidang isbat Kementerian Agama.`,
+        html: `Berdasarkan kriteria Neo MABIMS (data publik Kemenag), 1 Ramadhan ${currentYear} H diperkirakan jatuh pada ${dateId(awalRamadan.gregorian)}. Awal bulan tetap dikonfirmasi lewat hasil rukyah dan sidang isbat Kementerian Agama.`,
+        plain: `Berdasarkan kriteria Neo MABIMS (data publik Kemenag), 1 Ramadhan ${currentYear} H diperkirakan jatuh pada ${dateId(awalRamadan.gregorian)}. Awal bulan tetap dikonfirmasi lewat hasil rukyah dan sidang isbat Kementerian Agama.`,
       }]
     : []),
   {
     q: 'Kapan tanggal Hijriah berganti menjadi hari berikutnya?',
-    a: 'Dalam penetapan Kemenag dan standar MABIMS, tanggal Hijriah berganti saat matahari terbenam (maghrib), bukan pukul 00.00 seperti kalender Masehi. Karena itu kegiatan malam setelah maghrib sudah dihitung sebagai tanggal Hijriah berikutnya.',
+    html: 'Dalam penetapan Kemenag dan standar MABIMS, tanggal Hijriah berganti saat matahari terbenam (maghrib), bukan pukul 00.00 seperti kalender Masehi. Karena itu kegiatan malam setelah maghrib sudah dihitung sebagai tanggal Hijriah berikutnya.',
+    plain: 'Dalam penetapan Kemenag dan standar MABIMS, tanggal Hijriah berganti saat matahari terbenam (maghrib), bukan pukul 00.00 seperti kalender Masehi. Karena itu kegiatan malam setelah maghrib sudah dihitung sebagai tanggal Hijriah berikutnya.',
   },
   {
     q: 'Mengapa kalender Hijriah di HP atau Google berbeda beberapa hari dengan MABIMS?',
-    a: "Sebagian besar aplikasi dan Google Calendar memakai kalender Umm al-Qura (standar Arab Saudi), sedangkan kalender MABIMS mengikuti rukyah dan keputusan Kementerian Agama RI. Metode dan lokasi pengamatannya berbeda, sehingga hasilnya bisa selisih ±1 hari, terutama pada awal Ramadhan, Syawal, dan Dzulhijjah.",
+    html: "Sebagian besar aplikasi dan Google Calendar memakai kalender Umm al-Qura (standar Arab Saudi), sedangkan kalender MABIMS mengikuti rukyah dan keputusan Kementerian Agama RI. Metode dan lokasi pengamatannya berbeda, sehingga hasilnya bisa selisih ±1 hari, terutama pada awal Ramadhan, Syawal, dan Dzulhijjah.",
+    plain: "Sebagian besar aplikasi dan Google Calendar memakai kalender Umm al-Qura (standar Arab Saudi), sedangkan kalender MABIMS mengikuti rukyah dan keputusan Kementerian Agama RI. Metode dan lokasi pengamatannya berbeda, sehingga hasilnya bisa selisih ±1 hari, terutama pada awal Ramadhan, Syawal, dan Dzulhijjah.",
   },
 ];
 
@@ -334,7 +361,7 @@ const initialMonthEvents: string[] = [];
       mainEntity: faqs.map((f) => ({
         '@type': 'Question',
         name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.aPlain ?? f.a },
+        acceptedAnswer: { '@type': 'Answer', text: f.plain },
       })),
     })} />
   </Fragment>
@@ -504,57 +531,46 @@ const initialMonthEvents: string[] = [];
     </div>
     <div class="kh-events-list" data-events-list>
       {events.length === 0 && <p class="kh-loading">Memuat tanggal penting…</p>}
-      {(() => {
-        const filtered = events.filter((e) => e.event !== 'ayyamul_bidh');
-        const grouped = new Map<string, EventItem[]>();
-        for (const e of filtered) {
-          const key = e.hijri.slice(0, 7);
-          const arr = grouped.get(key) ?? [];
-          arr.push(e);
-          grouped.set(key, arr);
-        }
-        return Array.from(grouped.entries()).map(([ym, items]) => {
-          const [y, m] = ym.split('-').map(Number);
-          const monthName = HIJRI_MONTHS[(m - 1) % 12];
-          return (
-            <div class="kh-ev-group">
-              <h3 class="kh-ev-group-head">
-                <span class="kh-ev-group-name">{monthName}</span>
-                <span class="kh-ev-group-year">{y} H</span>
-              </h3>
-              <div class="kh-ev-group-items">
-                {items.map((e) => {
-                  const g = new Date(`${e.gregorian}T00:00:00`);
-                  const hijriDay = e.date_range
-                    ? `${Number(e.date_range.hijri_start.slice(8, 10))}–${Number(e.date_range.hijri_end.slice(8, 10))}`
-                    : String(Number(e.hijri.slice(8, 10)));
-                  let gregLabel: string;
-                  if (e.date_range?.gregorian_start && e.date_range?.gregorian_end) {
-                    const gs = new Date(`${e.date_range.gregorian_start}T00:00:00`);
-                    const ge = new Date(`${e.date_range.gregorian_end}T00:00:00`);
-                    if (gs.getMonth() === ge.getMonth() && gs.getFullYear() === ge.getFullYear()) {
-                      gregLabel = `${gs.getDate()}–${ge.getDate()} ${GREG_MONTHS[gs.getMonth()]} ${gs.getFullYear()}`;
-                    } else {
-                      gregLabel = `${gs.getDate()} ${GREG_MONTHS[gs.getMonth()]} – ${ge.getDate()} ${GREG_MONTHS[ge.getMonth()]} ${ge.getFullYear()}`;
-                    }
+      {eventGroups.map((group) => {
+        const monthName = HIJRI_MONTHS[(group.m - 1) % 12];
+        return (
+          <div class="kh-ev-group">
+            <h3 class="kh-ev-group-head">
+              <span class="kh-ev-group-name">{monthName}</span>
+              <span class="kh-ev-group-year">{group.y} H</span>
+            </h3>
+            <div class="kh-ev-group-items">
+              {group.items.map((e) => {
+                const g = new Date(`${e.gregorian}T00:00:00`);
+                const hijriDay = e.date_range
+                  ? `${Number(e.date_range.hijri_start.slice(8, 10))}–${Number(e.date_range.hijri_end.slice(8, 10))}`
+                  : String(Number(e.hijri.slice(8, 10)));
+                let gregLabel: string;
+                if (e.date_range?.gregorian_start && e.date_range?.gregorian_end) {
+                  const gs = new Date(`${e.date_range.gregorian_start}T00:00:00`);
+                  const ge = new Date(`${e.date_range.gregorian_end}T00:00:00`);
+                  if (gs.getMonth() === ge.getMonth() && gs.getFullYear() === ge.getFullYear()) {
+                    gregLabel = `${gs.getDate()}–${ge.getDate()} ${GREG_MONTHS[gs.getMonth()]} ${gs.getFullYear()}`;
                   } else {
-                    gregLabel = `${g.getDate()} ${GREG_MONTHS[g.getMonth()]} ${g.getFullYear()}`;
+                    gregLabel = `${gs.getDate()} ${GREG_MONTHS[gs.getMonth()]} – ${ge.getDate()} ${GREG_MONTHS[ge.getMonth()]} ${ge.getFullYear()}`;
                   }
-                  return (
-                    <article class="kh-ev-item">
-                      <span class="kh-ev-hijri-day">{hijriDay}</span>
-                      <div class="kh-ev-info">
-                        <span class="kh-ev-name">{EVENT_NAMES[e.event] ?? e.name}</span>
-                        <span class="kh-ev-greg">{gregLabel}</span>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
+                } else {
+                  gregLabel = `${g.getDate()} ${GREG_MONTHS[g.getMonth()]} ${g.getFullYear()}`;
+                }
+                return (
+                  <article class="kh-ev-item">
+                    <span class="kh-ev-hijri-day">{hijriDay}</span>
+                    <div class="kh-ev-info">
+                      <span class="kh-ev-name">{EVENT_NAMES[e.event] ?? e.name}</span>
+                      <span class="kh-ev-greg">{gregLabel}</span>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
-          );
-        });
-      })()}
+          </div>
+        );
+      })}
     </div>
   </section>
 
@@ -595,12 +611,12 @@ const initialMonthEvents: string[] = [];
     <div class="kh-section-head">
       <h2>Pertanyaan yang <span class="accent">sering diajukan</span></h2>
     </div>
-    {faqs.map((f) => (
-      <details class="kh-faq-item">
-        <summary>{f.q}</summary>
-        <p set:html={'aHtml' in f ? f.aHtml : f.a} />
-      </details>
-    ))}
+      {faqs.map((f) => (
+        <details class="kh-faq-item">
+          <summary>{f.q}</summary>
+          <p set:html={f.html} />
+        </details>
+      ))}
   </section>
 
   {/* ── CTA (landing style) ── */}

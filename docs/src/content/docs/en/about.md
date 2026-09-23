@@ -5,7 +5,7 @@ description: Free open-source API for the Indonesian Hijri calendar based on off
 
 ## What is MABIMS.dev?
 
-MABIMS.dev is a free open-source API that provides an ecosystem for the Indonesian Hijri calendar. It uses official MABIMS data published by Indonesia's [Ministry of Religious Affairs (Kementerian Agama RI)](https://kemenag.go.id), not [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) (Saudi Arabia's standard).
+MABIMS.dev is a free open-source API that provides an ecosystem for the Indonesian Hijri calendar. It uses official MABIMS data published by Indonesia's [Ministry of Religious Affairs (Kementerian Agama RI)](https://kemenag.go.id), not [Umm al-Qura](https://en.wikipedia.org/wiki/Umm_al-Qura_calendar) (Saudi Arabia's standard). New to the term? Read [What is MABIMS?](/en/apa-itu-mabims/) for the criterion and its history.
 
 ## Who is it for?
 
