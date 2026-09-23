@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.main import create_app
 
 
-def _make_client(**settings_kwargs) -> TestClient:
-    defaults = dict(
+def _make_client(**settings_kwargs: Any) -> TestClient:
+    defaults: dict[str, Any] = dict(
         allowed_origins=["*"],
         rate_limit="10000/minute",
         enable_fallback=False,
