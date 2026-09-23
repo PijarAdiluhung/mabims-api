@@ -344,17 +344,15 @@ const initialMonthEvents: string[] = [];
   altId="https://mabims.dev/kalender-hijriah/"
 >
   <Fragment slot="head">
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "WebPage",
-        "name": "Kalender Hijriah MABIMS",
-        "url": "https://mabims.dev/kalender-hijriah/",
-        "inLanguage": "id",
-        "isPartOf": { "@type": "WebSite", "name": "mabims.dev", "url": "https://mabims.dev" },
-        "about": "Kalender Hijriah Indonesia berdasarkan kriteria Neo MABIMS Kementerian Agama RI."
-      }
-    </script>
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: 'Kalender Hijriah MABIMS',
+      url: 'https://mabims.dev/kalender-hijriah/',
+      inLanguage: 'id',
+      isPartOf: { '@type': 'WebSite', name: 'mabims.dev', url: 'https://mabims.dev' },
+      about: 'Kalender Hijriah Indonesia berdasarkan kriteria Neo MABIMS Kementerian Agama RI.',
+    })} />
     <script type="application/ld+json" set:html={JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'FAQPage',
