@@ -6,11 +6,11 @@
 
   <div class="hero-content">
     <h1 class="hero-title">
-      API Kalender <span class="accent">MABIMS</span> untuk Indonesia
+      API Kalender Hijriah <span class="accent">MABIMS</span> untuk Indonesia
     </h1>
     <p class="hero-tagline">
-      Integrasikan kalender Hijriah MABIMS ke web / aplikasi Anda.
-      Satu endpoint, tanpa autentikasi, data publik dari Kementerian Agama RI.
+      API kalender Hijriah berbasis data Kemenag RI. Integrasikan ke web / aplikasi Anda dengan gratis.
+      Kriteria MABIMS, satu endpoint, tanpa autentikasi.
     </p>
     <div class="hero-actions">
       <a href="/quickstart/" class="btn btn-primary">
@@ -393,18 +393,18 @@
 </style>
 
 <script>
-  const terminal = document.querySelector('[data-terminal]');
+  const terminal = document.querySelector<HTMLElement>('[data-terminal]');
 
-  if (terminal) {
-    const commandEl = terminal.querySelector('[data-command]');
-    const outputEl = terminal.querySelector('[data-output]');
-    const statusEl = terminal.querySelector('[data-status]');
-    const statusText = terminal.querySelector('[data-status-text]');
-    const copyBtn = terminal.querySelector('[data-copy]');
+  const commandEl = terminal?.querySelector<HTMLElement>('[data-command]') ?? null;
+  const outputEl = terminal?.querySelector<HTMLElement>('[data-output]') ?? null;
+  const statusEl = terminal?.querySelector<HTMLElement>('[data-status]') ?? null;
+  const statusText = terminal?.querySelector<HTMLElement>('[data-status-text]') ?? null;
+  const copyBtn = terminal?.querySelector<HTMLElement>('[data-copy]') ?? null;
 
+  if (terminal && commandEl && outputEl && statusEl && statusText && copyBtn) {
     const API_URL = 'https://api.mabims.dev/api/v1/today';
 
-    const COMMANDS = {
+    const COMMANDS: Record<'curl' | 'js' | 'php', string> = {
       curl: 'curl "https://api.mabims.dev/api/v1/today"',
       js: 'const res = await fetch("https://api.mabims.dev/api/v1/today");\nconst data = await res.json();',
       php: '$client = new \\GuzzleHttp\\Client();\n$res = $client->get("https://api.mabims.dev/api/v1/today");\nprint_r($res->getBody()->getContents());',
@@ -417,15 +417,15 @@
       warnings: [],
     };
 
-    let currentLang = 'curl';
+    let currentLang: keyof typeof COMMANDS = 'curl';
 
-    const escapeHtml = (s) =>
+    const escapeHtml = (s: string) =>
       s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-    function highlight(json) {
+    function highlight(json: string) {
       return escapeHtml(json).replace(
         /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(?:true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g,
-        (match) => {
+        (match: string) => {
           let cls = 'tok-num';
           if (match.startsWith('"')) cls = match.trimEnd().endsWith(':') ? 'tok-key' : 'tok-str';
           else if (/^(?:true|false|null)$/.test(match)) cls = 'tok-bool';
@@ -434,7 +434,7 @@
       );
     }
 
-    function renderJSON(data) {
+    function renderJSON(data: typeof SAMPLE) {
       const o = data.output;
       const compact = `{
   "input": {
@@ -452,16 +452,17 @@
 }`;
       const expanded = JSON.stringify(data, null, 2);
       const isMobile = window.matchMedia('(max-width: 40rem)').matches;
-      outputEl.innerHTML = highlight(isMobile ? expanded : compact);
+      outputEl!.innerHTML = highlight(isMobile ? expanded : compact);
     }
 
     commandEl.textContent = COMMANDS.curl;
     renderJSON(SAMPLE);
 
-    terminal.querySelectorAll('.terminal-tab').forEach((tab) => {
+    terminal.querySelectorAll<HTMLElement>('.terminal-tab').forEach((tab) => {
       tab.addEventListener('click', () => {
-        currentLang = tab.dataset.lang;
-        for (const t of terminal.querySelectorAll('.terminal-tab')) {
+        const lang = tab.dataset.lang;
+        if (lang === 'curl' || lang === 'js' || lang === 'php') currentLang = lang;
+        for (const t of terminal.querySelectorAll<HTMLElement>('.terminal-tab')) {
           const active = t === tab;
           t.classList.toggle('is-active', active);
           t.setAttribute('aria-selected', String(active));
@@ -490,14 +491,14 @@
         if (!res.ok) throw new Error(String(res.status));
         const data = await res.json();
         renderJSON(data);
-        statusEl.hidden = false;
-        statusEl.classList.add('is-live');
-        statusText.textContent = `200 OK · ${Math.max(1, Math.round(performance.now() - started))} ms`;
+        statusEl!.hidden = false;
+        statusEl!.classList.add('is-live');
+        statusText!.textContent = `200 OK · ${Math.max(1, Math.round(performance.now() - started))} ms`;
       } catch {
         clearTimeout(timeout);
-        statusEl.hidden = false;
-        statusEl.classList.remove('is-live');
-        statusText.textContent = 'sample';
+        statusEl!.hidden = false;
+        statusEl!.classList.remove('is-live');
+        statusText!.textContent = 'sample';
       }
     }
 

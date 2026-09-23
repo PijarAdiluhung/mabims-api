@@ -27,9 +27,9 @@ const specUrl = 'https://api.mabims.dev/openapi.json';
   import { createWorkspaceStore } from '@scalar/workspace-store/client';
   import '@scalar/api-client/style.css';
 
-  type ModalApp = Awaited<ReturnType<typeof getModal>>;
+  type ModalInstance = import('@scalar/api-client/modal').ApiClientModal;
 
-  let modal: ModalApp | null = null;
+  let modal: ModalInstance | null = null;
   let currentSpec = '';
   let sectionObserver: MutationObserver | null = null;
 
@@ -58,7 +58,7 @@ const specUrl = 'https://api.mabims.dev/openapi.json';
     sectionObserver.observe(root, { childList: true, subtree: true });
   }
 
-  async function getModal(specUrl: string) {
+  async function getModal(specUrl: string): Promise<ModalInstance> {
     if (modal && currentSpec === specUrl) return modal;
     const { createApiClientModal } = await import('@scalar/api-client/modal');
     const workspaceStore = createWorkspaceStore({

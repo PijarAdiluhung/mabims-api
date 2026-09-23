@@ -1992,7 +1992,7 @@ const initialMonthEvents: string[] = [];
   const wanted = (new URLSearchParams(location.search).get('calendar') ?? '').toLowerCase();
   if (['masehi', 'gregorian'].includes(wanted)) {
     state.mode = 'gregorian';
-    for (const b of document.querySelectorAll('.kh-toggle-btn')) {
+    for (const b of document.querySelectorAll<HTMLElement>('.kh-toggle-btn')) {
       b.classList.toggle('is-active', b.dataset.mode === 'gregorian');
     }
   }

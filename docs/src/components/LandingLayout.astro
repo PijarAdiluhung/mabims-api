@@ -425,8 +425,8 @@ const links = {
 
   toggle?.addEventListener('click', () => {
     toggle.classList.toggle('active');
-    menu.classList.toggle('active');
-    if (menu.classList.contains('active') && nav) {
+    menu?.classList.toggle('active');
+    if (menu?.classList.contains('active') && nav instanceof HTMLElement) {
       menu.style.top = nav.offsetHeight + 'px';
     }
   });

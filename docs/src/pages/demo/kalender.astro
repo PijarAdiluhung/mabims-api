@@ -79,21 +79,21 @@ const gregMonths = [
     const wallEl = document.getElementById("wall");
     const rawEl = document.getElementById("raw");
 
-    let todayHijri = null;
-    let currentYear = null;
+    let todayHijri: string | null = null;
+    let currentYear: number | null = null;
 
     async function load() {
       try {
         const today = await fetchToday(apiBase);
-        const year = today.output.year;
+        const year: number = today.output.year;
         todayHijri = today.output.date;
         if (currentYear !== year) {
           currentYear = year;
-          yearEl.textContent = year;
-          sourceEl.textContent = today.source === "mabims" ? "Data publik Kemenag" : "Neo MABIMS";
+          if (yearEl) yearEl.textContent = String(year);
+          if (sourceEl) sourceEl.textContent = today.source === "mabims" ? "Data publik Kemenag" : "Neo MABIMS";
           const yearBody = await fetchYear(apiBase, year);
           const events = await fetchHijriEvents(apiBase, year);
-          const monthsByKey = new Map();
+          const monthsByKey = new Map<number, unknown[]>();
           if (yearBody) {
             for (let m = 1; m <= 12; m++) {
               monthsByKey.set(m, yearBody.months[String(m)] ?? []);
@@ -102,16 +102,20 @@ const gregMonths = [
           buildWall(wallEl, year, monthsByKey, events, todayHijri, {
             weekdays: WEEKDAYS, gregMonths: GREG_MONTHS, hijriMonths: MONTH_NAMES,
           });
-          rawEl.textContent = JSON.stringify(
-            { year: yearBody, events },
-            null,
-            2
-          );
+          if (rawEl) {
+            rawEl.textContent = JSON.stringify(
+              { year: yearBody, events },
+              null,
+              2
+            );
+          }
         }
       } catch {
-        statusEl.className = "pg-status pg-warn";
-        statusEl.textContent =
-          "API tidak dapat diakses dari sini; mungkin belum di-deploy.";
+        if (statusEl) {
+          statusEl.className = "pg-status pg-warn";
+          statusEl.textContent =
+            "API tidak dapat diakses dari sini; mungkin belum di-deploy.";
+        }
       }
     }
 

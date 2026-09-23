@@ -9,8 +9,8 @@ import CompareTable from '../components/landing/CompareTable.astro';
 import Endpoints from '../components/landing/Endpoints.astro';
 import Cta from '../components/landing/Cta.astro';
 
-const title = 'MABIMS.dev • API Kalender Hijriah Open-Source untuk Indonesia';
-const description = 'API open-source gratis menampilkan tanggal Hijriah berdasarkan kriteria MABIMS Kementerian Agama RI. Tanpa API key, cocok untuk web dan aplikasi Indonesia.';
+const title = 'API Kalender Hijriah untuk Indonesia: Gratis & Open-Source | MABIMS.dev';
+const description = 'API kalender Hijriah gratis & open-source berdasarkan data Kemenag RI. Konversi tanggal, kalender bulanan/tahunan, dan hari besar Islam, tanpa API key.';
 ---
 
 <LandingLayout
@@ -67,6 +67,18 @@ const description = 'API open-source gratis menampilkan tanggal Hijriah berdasar
         "license": "https://opensource.org/licenses/MIT",
         "runtimePlatform": "FastAPI",
         "description": "Open-source Hijri-Gregorian date conversion API using Indonesia's official MABIMS criteria"
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebAPI",
+        "name": "MABIMS API",
+        "description": "API kalender Hijriah untuk Indonesia berdasarkan data Kemenag RI. Konversi tanggal Masehi-Hijriah, kalender bulanan/tahunan, hari besar Islam. Gratis tanpa API key.",
+        "url": "https://mabims.dev",
+        "documentation": "https://mabims.dev/quickstart",
+        "openAPISpec": "https://api.mabims.dev/openapi.json",
+        "provider": { "@type": "Organization", "name": "mabims.dev", "url": "https://mabims.dev" }
       }
     </script>
   </Fragment>

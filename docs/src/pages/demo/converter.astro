@@ -76,7 +76,7 @@ const apiBase = import.meta.env.PUBLIC_API_BASE ?? "http://localhost:8000";
 
       const calendar = new Calendar(el, {
         inputMode: true,
-        positionToInput: "bottom",
+        positionToInput: ["bottom", "center"],
         openOnFocus: true,
         selectionDatesMode: "single",
         selectedTheme: "dark",

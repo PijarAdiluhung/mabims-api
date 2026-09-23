@@ -15,7 +15,7 @@ let bootstrapped = false;
 function ensure() {
   if (!lightbox) {
     lightbox = new PhotoSwipeLightbox({
-      pswpModule: () => PhotoSwipe,
+      pswpModule: PhotoSwipe,
       wheelToZoom: true,
       zoom: true,
       maxZoomLevel: 6,
@@ -51,7 +51,7 @@ function ensure() {
             el.textContent = (pswp.currSlide?.data.alt as string) ?? '';
           };
           pswp.on('change', update);
-          pswp.on('load', update);
+          pswp.on('loadComplete', update);
         },
       });
     });
