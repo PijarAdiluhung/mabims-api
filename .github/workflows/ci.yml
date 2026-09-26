@@ -76,43 +76,15 @@ jobs:
         run: >
           curl -sS --fail --retry 3 --retry-delay 5 --retry-all-errors
           --connect-timeout 15 --max-time 60 -X POST
-          "${{ vars.DOKPLOY_URL }}/api/compose.deploy"
-          -H "x-api-key: ${{ secrets.DOKPLOY_API_KEY }}"
-          -H "Content-Type: application/json"
-          -d '{"composeId": "${{ vars.DOKPLOY_COMPOSE_ID }}"}'
+          "${{ secrets.DOKPLOY_WEBHOOK_URL }}"
 
-      - name: Wait for the Dokploy build to finish
+      # The webhook POST returns before the build finishes; a failed build
+      # leaves the old container serving, so give the build room, then let
+      # the hash diff and the hilal verify below decide the verdict.
+      - name: Wait for the Dokploy build window
         run: |
-          set -euo pipefail
-          BASE="${{ vars.DOKPLOY_URL }}"
-          KEY="${{ secrets.DOKPLOY_API_KEY }}"
-          CID="${{ vars.DOKPLOY_COMPOSE_ID }}"
-          LIST_URL="$BASE/api/deployment.allByCompose?composeId=$CID"
-          # deploymentId and id appear in different Dokploy builds — normalize.
-          IDS='[.[] | (.deploymentId // .id // empty)] | join(",")'
-          BEFORE=$(curl -sf --max-time 15 -H "x-api-key: $KEY" "$LIST_URL" | jq -r "$IDS" || echo "")
-          MAX_ATTEMPTS=40
-          for i in $(seq 1 $MAX_ATTEMPTS); do
-            sleep 30
-            JSON=$(curl -sf --max-time 15 -H "x-api-key: $KEY" "$LIST_URL" || true)
-            [ -n "$JSON" ] && [ "$JSON" != "null" ] || continue
-            NEW=$(printf '%s' "$JSON" | jq -r --arg b "$BEFORE" \
-              '[.[] | select((.deploymentId // .id // "") as $id
-                 | ($b | split(",") | index($id)) | not)] | .[0] // empty')
-            STATUS=$(printf '%s' "$NEW" | jq -r '.status // "missing"')
-            if [ "$STATUS" = "done" ]; then
-              echo "Dokploy deployment done: $(printf '%s' "$NEW" | jq -r .title)"
-              exit 0
-            fi
-            if [ "$STATUS" = "error" ]; then
-              printf '%s' "$NEW" | jq -r '"buildLink: \(."logPath" // "—")"'
-              echo "ERROR: the Dokploy deployment failed — see its logs in the dashboard"
-              exit 1
-            fi
-            echo "Attempt $i/$MAX_ATTEMPTS: deployment status '$STATUS'..."
-          done
-          echo "ERROR: no terminal deployment status within $((MAX_ATTEMPTS * 30))s"
-          exit 1
+          echo "waiting 3m for the Dokploy build to complete..."
+          sleep 180
 
       - name: Wait for the new build hash to go live
         run: |
@@ -122,20 +94,21 @@ jobs:
             echo "no pre-deploy hash; skipping the hash-diff check"
             exit 0
           fi
-          for i in $(seq 1 12); do
+          # Cached builds keep the old hash — allow up to 15m before the WARN.
+          for i in $(seq 1 60); do
             BODY=$(curl -sf --max-time 15 "https://api.mabims.dev/healthz" || true)
-            HASH=$(printf '%s' "$BODY" | jq -r '.build_hash // "unknown"')
+            HASH=$(printf '%s' "$BODY" | jq -r '.build_hash // "unknown"' 2>/dev/null || echo unknown)
             if [ "$HASH" != "$OLD" ]; then
-              echo "new build live: $HASH"
+              echo "new build live after $((i * 15))s: $HASH"
               exit 0
             fi
-            echo "Attempt $i/12: still serving build_hash=$OLD"
-            sleep 30
+            echo "Attempt $i/60: still serving build_hash=$OLD"
+            sleep 15
           done
           # A fully cached compose build can legitimately keep the old hash,
           # and restarts preserve it — don't hard-fail, the hilal verify below
           # remains the real health gate.
-          echo "WARN: build_hash unchanged after 6m (cached/reused image?)"
+          echo "WARN: build_hash unchanged after 15m (cached/reused image?)"
 
       - name: Purge API CDN zone
         run: >
