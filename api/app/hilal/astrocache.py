@@ -139,7 +139,10 @@ def _local_covers_sites(path: Path) -> bool:
 
 
 _refresh_lock = threading.Lock()
-_last_refresh_at = 0.0
+# None = never checked in this process. time.monotonic() is not epoch-based, so
+# a 0.0 sentinel would suppress the first check for hosts booted <6h ago (which
+# is exactly what a fresh CI runner / just-restarted server looks like).
+_last_refresh_at: float | None = None
 _fp_refetch_exhausted = False
 _size_refetch_exhausted = False
 
@@ -166,10 +169,10 @@ def _refresh_if_stale() -> None:
     if not path.is_file():
         return
     now = time.monotonic()
-    if now - _last_refresh_at < REFRESH_INTERVAL_S:
+    if _last_refresh_at is not None and now - _last_refresh_at < REFRESH_INTERVAL_S:
         return
     with _refresh_lock:
-        if now - _last_refresh_at < REFRESH_INTERVAL_S:
+        if _last_refresh_at is not None and now - _last_refresh_at < REFRESH_INTERVAL_S:
             return
         _last_refresh_at = now
     covers = _local_covers_sites(path)

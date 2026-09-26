@@ -16,7 +16,17 @@ COPY static ./static
 RUN pip install .
 
 COPY data /app/data
-RUN python -c "from skyfield.api import Loader; Loader('/app/data/ephemeris')('de440s.bsp')" \
+COPY scripts/verify_ephemeris.py /app/scripts/verify_ephemeris.py
+
+# Bake de440s.bsp, then prove it *computes*. A truncated kernel opens fine and
+# only explodes at request time (jplephem: "buffer is too small for requested
+# array"), so a build that does not verify here ships /hilal/* 503s. The first
+# pass never touches the network; a missing/bad kernel is deleted and fetched
+# once more, and a second failure fails the build instead of the deploy.
+RUN python /app/scripts/verify_ephemeris.py --no-download /app/data/ephemeris \
+      || { echo "de440s.bsp unusable, refetching"; \
+           rm -f /app/data/ephemeris/de440s.bsp; \
+           python /app/scripts/verify_ephemeris.py /app/data/ephemeris; } \
     && mkdir -p /data \
     && chown -R nobody:nogroup /data /app/data/ephemeris
 

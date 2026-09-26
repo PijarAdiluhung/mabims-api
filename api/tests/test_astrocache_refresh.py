@@ -17,7 +17,7 @@ STALE_FP_KIND = "sites25:deadbeef00:alt"  # a fingerprint we no longer query
 
 @pytest.fixture(autouse=True)
 def _fresh_refresh_state(monkeypatch):
-    monkeypatch.setattr(astrocache, "_last_refresh_at", 0.0)
+    monkeypatch.setattr(astrocache, "_last_refresh_at", None)
     monkeypatch.setattr(astrocache, "_fp_refetch_exhausted", False)
     monkeypatch.setattr(astrocache, "_size_refetch_exhausted", False)
     astrocache._read_conn.cache_clear()
@@ -180,6 +180,22 @@ def test_refresh_attempts_are_rate_limited(tmp_path, monkeypatch):
     astrocache._refresh_if_stale()
     astrocache._refresh_if_stale()
     assert len(sizes) == 1
+    assert downloads == [local]
+
+
+def test_first_check_runs_on_a_freshly_booted_host(tmp_path, monkeypatch):
+    """Regression: monotonic() < 6h must not throttle the very first check.
+
+    A fresh CI runner or a just-restarted server has a small monotonic clock,
+    so a 0.0 sentinel made the process skip the artifact check entirely and
+    keep serving a stale cache.
+    """
+    local, published = _point_at_stale_local(tmp_path, monkeypatch)
+    downloads = _install_published_copy(monkeypatch, local, published)
+    monkeypatch.setattr(astrocache, "_remote_size", lambda *a, **k: published.stat().st_size)
+    monkeypatch.setattr(astrocache.time, "monotonic", lambda: 120.0)
+
+    astrocache._refresh_if_stale()
     assert downloads == [local]
 
 
