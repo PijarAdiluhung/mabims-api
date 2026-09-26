@@ -69,8 +69,10 @@ jobs:
     steps:
       - name: Poll origin for new deploy
         run: |
-          MAX_ATTEMPTS=30
-          SLEEP=10
+          # A cold Dokploy restart (ephemeris + astro cache + imagepack
+          # downloads) can outlive a short window — 60 x 15s = 900s.
+          MAX_ATTEMPTS=60
+          SLEEP=15
           for i in $(seq 1 $MAX_ATTEMPTS); do
             BODY=$(curl -sf "https://api.mabims.dev/healthz" || true)
             HASH=$(echo "$BODY" | jq -r .build_hash)
@@ -86,13 +88,15 @@ jobs:
 
       - name: Purge API CDN zone
         run: >
-          curl -sS --fail --retry 5 --retry-delay 2 --retry-all-errors -X POST
+          curl -sS --fail --retry 5 --retry-delay 5 --retry-all-errors
+          --connect-timeout 15 --max-time 60 -X POST
           "https://api.bunny.net/pullzone/${{ secrets.BUNNY_API_ZONE_API }}/purgeCache"
           -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
 
       - name: Purge Docs CDN zone
         run: >
-          curl -sS --fail --retry 5 --retry-delay 2 --retry-all-errors -X POST
+          curl -sS --fail --retry 5 --retry-delay 5 --retry-all-errors
+          --connect-timeout 15 --max-time 60 -X POST
           "https://api.bunny.net/pullzone/${{ secrets.BUNNY_API_ZONE_DOCS }}/purgeCache"
           -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
 
@@ -102,7 +106,8 @@ jobs:
       # deploy on it. The cb= parameter busts the CDN so we reach origin.
       - name: Verify the live hilal endpoint
         run: |
-          MAX_ATTEMPTS=15
+          # Fresh boots also render/populate caches lazily — 30 x 15s = 450s.
+          MAX_ATTEMPTS=30
           for i in $(seq 1 $MAX_ATTEMPTS); do
             CB=$(date +%s)
             BODY=$(curl -sS -w '\n%{http_code}' \
@@ -113,7 +118,7 @@ jobs:
               exit 0
             fi
             echo "Attempt $i: HTTP $CODE $(echo "$BODY" | head -n1 | head -c 400)"
-            sleep 10
+            sleep 15
           done
           echo "ERROR: /api/v1/hilal/info is not healthy on the live deployment"
           exit 1
