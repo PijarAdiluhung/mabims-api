@@ -23,6 +23,43 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     timeout-minutes: 30
     steps:
+      - uses: actions/checkout@v6
+        with:
+          # Enough history to diff this push against its pre-push SHA on
+          # ordinary pushes; conservative fallbacks cover long gaps.
+          fetch-depth: 32
+
+      # build_hash only moves when api content moves — a docs-only push
+      # must skip the 15m hash-wait instead of riding it out. A push whose
+      # boundary SHA is unresolvable (long gap, first run) is treated
+      # conservatively as an api change: full wait.
+      - name: Resolve which trees this push touched
+        run: |
+          set -euo pipefail
+          BEFORE="${{ github.event.before }}"
+          if ! git rev-parse -q --verify "$BEFORE" >/dev/null 2>&1; then
+            BEFORE="HEAD~1"
+            if ! git rev-parse -q --verify "$BEFORE" >/dev/null 2>&1; then
+              echo "API_CHANGED=1" >> "$GITHUB_ENV"
+              echo "DOCS_CHANGED=1" >> "$GITHUB_ENV"
+              echo "push boundary unresolvable; assuming api+docs changed"
+              exit 0
+            fi
+          fi
+          TREES=$(git diff --name-only --diff-filter=d "$BEFORE" "${{ github.sha }}" \
+            | cut -d/ -f1 | sort -u)
+          echo "push touched trees: ${TREES:-(none)}"
+          if printf '%s' "$TREES" | grep -qE '^(api|docker-compose\.yml)$'; then
+            echo "API_CHANGED=1" >> "$GITHUB_ENV"
+          else
+            echo "API_CHANGED=0" >> "$GITHUB_ENV"
+          fi
+          if printf '%s' "$TREES" | grep -qE '^docs$'; then
+            echo "DOCS_CHANGED=1" >> "$GITHUB_ENV"
+          else
+            echo "DOCS_CHANGED=0" >> "$GITHUB_ENV"
+          fi
+
       - name: Record the current live build hash
         run: |
           set -euo pipefail
@@ -30,6 +67,7 @@ jobs:
           OLD=$(printf '%s' "$BODY" | jq -r '.build_hash // "unknown"' 2>/dev/null || echo unknown)
           echo "OLD_BUILD_HASH=$OLD" >> "$GITHUB_ENV"
           echo "pre-deploy build_hash=$OLD"
+          echo "api_changed=$API_CHANGED docs_changed=$DOCS_CHANGED"
 
       # Empty the edge first so nothing served by the monitor can come from
       # the old build's cache entries.
@@ -54,6 +92,10 @@ jobs:
       - name: Wait for the new build hash to go live
         run: |
           set -euo pipefail
+          if [ "$API_CHANGED" != "1" ]; then
+            echo "no api content in this push; the image (and build_hash) cannot move"
+            exit 0
+          fi
           OLD="$OLD_BUILD_HASH"
           if [ "$OLD" = "unknown" ] || [ "$OLD" = "null" ]; then
             echo "no pre-deploy hash; giving the deploy a 5m window before checks"
@@ -87,6 +129,7 @@ jobs:
           -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
 
       - name: Purge Docs CDN zone (post-deploy)
+        if: env.DOCS_CHANGED == '1'
         run: >
           curl -sS --fail --retry 5 --retry-delay 5 --retry-all-errors
           --connect-timeout 15 --max-time 60 -X POST

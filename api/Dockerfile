@@ -1,8 +1,9 @@
 # ── Test-gate stage ────────────────────────────────────────────────────────
-# Runs the CI gates ON BUILD: a red suite fails the build, and a failed build
-# fails Dokploy's compose deploy before `up` — the previous containers keep
-# serving. Moved out of GitHub Actions so the gate lives in the same pipeline
-# that deploys.
+# Runs the CI gates ON BUILD, and freezes the exact resolution it tested:
+# the runtime stage installs from that frozen set, so the artifact pytest
+# verified is the artifact that serves. A red suite fails the build, and a
+# failed build fails Dokploy's compose deploy before `up` — the previous
+# containers keep serving.
 FROM python:3.12-slim AS test
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -24,8 +25,24 @@ COPY scripts/.ephemeris-cache/de440s.bsp /app/data/ephemeris/de440s.bsp
 
 # PIP_NO_CACHE_DIR is deliberately unset here: a persistent pip cache makes
 # warm rebuilds skip re-downloads.
+#
+# Install 1 — non-editable prod deps, exactly the command the runtime used
+# to run. `pip freeze` captures that resolution; the app itself is stripped
+# from it (freeze of a plain `pip install .` emits `mabims-api @ file:///app`
+# — the runtime stage serves /app directly, not from a package install).
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install -e ".[dev]" && \
+    pip install . && \
+    pip freeze | sed -E '/^mabims-api[ =@]/d' > /req.lock
+
+# Install 2 — dev tools for the gates.
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install pytest ruff
+
+# Install 3 — re-enforce the frozen prod pins (pip may have upgraded shared
+# transitives when installing dev tools; the suite must run against the exact
+# set that will ship), then gate.
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r /req.lock && \
     pytest -q && \
     ruff check app tests scripts && \
     touch /gate-passed
@@ -38,25 +55,31 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 FROM python:3.12-slim
 
 COPY --from=test /gate-passed /tmp/gate-passed
+COPY --from=test /req.lock /tmp/req.lock
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     MPLCONFIGDIR=/tmp \
-    MABIMS_EPHEMERIS_DIR=/app/data/ephemeris
+    MABIMS_EPHEMERIS_DIR=/app/data/ephemeris \
+    PYTHONPATH=/app
 
 WORKDIR /app
 
 COPY pyproject.toml ./
 COPY app ./app
 COPY static ./static
-RUN pip install .
-
 COPY data /app/data
 # The kernel is tracked in git (31 MB). Bake it from the checkout instead of
 # fetching from JPL, which re-ran (and hung) on every push that touched app/.
 COPY scripts/.ephemeris-cache/de440s.bsp /app/data/ephemeris/de440s.bsp
 COPY scripts/verify_ephemeris.py /app/scripts/verify_ephemeris.py
+
+# Install the FROZEN set the test stage verified — no fresh resolution here:
+# "tested artifact == shipped artifact" is the whole point. No dev tools
+# enter the image.
+RUN --mount=type=cache,target=/root/.cache/pip \
+    PIP_NO_CACHE_DIR=0 pip install -r /tmp/req.lock
 
 # Prove the baked kernel *computes* before the image can exist. A truncated
 # de440s.bsp opens fine and only explodes at request time (jplephem: "buffer
@@ -89,4 +112,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
   CMD python -c "import sys,urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2).status==200 else 1)"
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*", "--timeout-keep-alive", "65"]
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*", "--timeout-keep-alive", "65"]
