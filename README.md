@@ -268,7 +268,7 @@ The full OpenAPI 3.1 spec is available at `https://api.mabims.dev/openapi.json` 
 | Data | Precomputed MABIMS tables (`api/data/`) |
 | Rendering | [Skyfield](https://rhodesmill.org/skyfield/) + [Matplotlib](https://matplotlib.org/) + [Pillow](https://python-pillow.org/) + [Shapely](https://shapely.readthedocs.io/) |
 | Hosting | Docker Compose on VPS via Dokploy, Bunny CDN in front |
-| CI | GitHub Actions — pytest, ruff, mypy, table-vs-criteria validation, deploy health-check + CDN purge |
+| CI | **Deploy gates run inside the Docker build** (`api/Dockerfile` test stage): pytest + ruff + the ephemeris compute probe — a red suite fails the build before `docker compose up`, so broken code never replaces a live build. GitHub Actions keeps a **post-deploy monitor only**: after every push it waits for the new `build_hash` (content-derived), purges both CDN zones, then verifies `/hilal/info` + core endpoints against the live origin. |
 
 ## Documentation site
 
@@ -309,7 +309,7 @@ cd api; .venv\Scripts\uvicorn app.main:app --reload --port 8000
 cd docs; npm run dev
 ```
 
-Tests, lint and type checks (same gates as CI):
+Tests, lint and type checks (the same gates the deploy build runs):
 
 ```powershell
 cd api

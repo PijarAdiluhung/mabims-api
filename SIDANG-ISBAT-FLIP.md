@@ -61,7 +61,7 @@ cd api
 .venv\Scripts\python -m scripts.apply_flip --hijri 1447-10 --new-start 2026-03-22 `
     --reason "hilal tidak terlihat" --yes
 
-# 3. The CI gates locally
+# 3. Local gates before pushing (pytest + ruff are deploy gates; mypy too)
 .venv\Scripts\pytest -q
 .venv\Scripts\ruff check .
 .venv\Scripts\mypy
@@ -72,10 +72,11 @@ git commit -m "flip: 1 Syawal 1447 -> 2026-03-22 (sidang isbat)"
 git push
 ```
 
-CI then: validates (the flipped boundary reports `OVERRIDDEN`) → pytest /
-ruff / mypy → deploys → **purges both CDN zones** (baked into
-`ci.yml` `deploy-and-purge`), so propagation is minutes, not the 24h
-endpoint TTL.
+The push deploys by itself: the Dokploy image build runs the gates (the
+flipped boundary reports `OVERRIDDEN`) → pytest / ruff → pipeline marks ❌
+and the old build keeps serving when anything fails. After it goes live,
+the GitHub `Prod monitor` workflow **purges both CDN zones** and verifies
+the live endpoints, so propagation is minutes, not the 24h endpoint TTL.
 
 ## After-deploy verification (spot check)
 
