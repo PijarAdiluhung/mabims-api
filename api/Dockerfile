@@ -16,12 +16,15 @@ COPY static ./static
 RUN pip install .
 
 COPY data /app/data
+# The kernel is tracked in git (31 MB). Bake it from the checkout instead of
+# fetching from JPL, which re-ran (and hung) on every push that touched app/.
+COPY scripts/.ephemeris-cache/de440s.bsp /app/data/ephemeris/de440s.bsp
 COPY scripts/verify_ephemeris.py /app/scripts/verify_ephemeris.py
 
-# Bake de440s.bsp, then prove it *computes*. A truncated kernel opens fine and
-# only explodes at request time (jplephem: "buffer is too small for requested
-# array"), so a build that does not verify here ships /hilal/* 503s. The first
-# pass never touches the network; a missing/bad kernel is deleted and fetched
+# Prove the baked kernel *computes* before the image can exist. A truncated
+# de440s.bsp opens fine and only explodes at request time (jplephem: "buffer
+# is too small for requested array"), which prod served as /hilal/* 503s.
+# The first pass never touches the network; a bad kernel is deleted and fetched
 # once more, and a second failure fails the build instead of the deploy.
 RUN python /app/scripts/verify_ephemeris.py --no-download /app/data/ephemeris \
       || { echo "de440s.bsp unusable, refetching"; \

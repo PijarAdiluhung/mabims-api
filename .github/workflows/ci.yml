@@ -29,22 +29,13 @@ jobs:
           cache: pip
           cache-dependency-path: api/pyproject.toml
 
-      - name: Restore JPL ephemeris (de440s.bsp)
-        id: ephemeris-cache
-        uses: actions/cache@v5
-        with:
-          path: api/.ephem
-          key: ${{ runner.os }}-de440s.bsp-v1
-
-      - name: Download JPL ephemeris on cache miss
-        if: steps.ephemeris-cache.outputs.cache-hit != 'true'
+      # de440s.bsp is tracked in git (api/scripts/.ephemeris-cache/), so stage
+      # it directly: no JPL download to hang, no cache to miss.
+      - name: Stage JPL ephemeris from the tracked copy
         run: |
           set -euo pipefail
           mkdir -p .ephem
-          curl --fail --location --retry 5 --retry-all-errors \
-            --connect-timeout 15 --max-time 300 \
-            https://ssd.jpl.nasa.gov/ftp/eph/planets/bsp/de440s.bsp \
-            --output .ephem/de440s.bsp
+          cp scripts/.ephemeris-cache/de440s.bsp .ephem/de440s.bsp
           test -s .ephem/de440s.bsp
 
       - name: Install package + dev tools
