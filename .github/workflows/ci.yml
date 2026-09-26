@@ -1,12 +1,12 @@
 name: Prod monitor
 
-# The test gates (pytest + ruff + ephemeris probe) run INSIDE the Dokploy
+# The deploy gates (pytest + ruff + ephemeris probe) run INSIDE the Dokploy
 # image build — see api/Dockerfile (test stage). A red suite fails the build
 # and the deploy never starts. This workflow is the second line of defense:
-# it OBSERVES the api that actually went live after a push and turns silent
-# production breakage (volume-born corrupt caches, boot-time download
-# failures) into a red run within minutes. It cannot deploy, recover or
-# revert anything.
+# it waits for the pushed build to actually go live (build_hash diff — the
+# file hash is now content-derived, so it changes exactly when new code
+# ships), purges the CDN so the edge re-populates from the new build, then
+# verifies the live endpoints. It cannot deploy, recover or revert anything.
 
 on:
   push:
@@ -23,6 +23,76 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     timeout-minutes: 30
     steps:
+      - name: Record the current live build hash
+        run: |
+          set -euo pipefail
+          BODY=$(curl -sf --max-time 15 "https://api.mabims.dev/healthz" || true)
+          OLD=$(printf '%s' "$BODY" | jq -r '.build_hash // "unknown"' 2>/dev/null || echo unknown)
+          echo "OLD_BUILD_HASH=$OLD" >> "$GITHUB_ENV"
+          echo "pre-deploy build_hash=$OLD"
+
+      # Empty the edge first so nothing served by the monitor can come from
+      # the old build's cache entries.
+      - name: Purge API CDN zone (pre-checks)
+        run: >
+          curl -sS --fail --retry 5 --retry-delay 5 --retry-all-errors
+          --connect-timeout 15 --max-time 60 -X POST
+          "https://api.bunny.net/pullzone/${{ secrets.BUNNY_API_ZONE_API }}/purgeCache"
+          -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
+
+      - name: Purge Docs CDN zone (pre-checks)
+        run: >
+          curl -sS --fail --retry 5 --retry-delay 5 --retry-all-errors
+          --connect-timeout 15 --max-time 60 -X POST
+          "https://api.bunny.net/pullzone/${{ secrets.BUNNY_API_ZONE_DOCS }}/purgeCache"
+          -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
+
+      # Wait until the container that came from THIS push is actually serving.
+      # The green-before-build-finished failure mode: the checks below are
+      # honest only against the new origin. /healthz is no-store, so this
+      # always reaches origin.
+      - name: Wait for the new build hash to go live
+        run: |
+          set -euo pipefail
+          OLD="$OLD_BUILD_HASH"
+          if [ "$OLD" = "unknown" ] || [ "$OLD" = "null" ]; then
+            echo "no pre-deploy hash; giving the deploy a 5m window before checks"
+            sleep 300
+            exit 0
+          fi
+          echo "40s grace for the build to start..."
+          sleep 40
+          # Cold builds with downloads get the full 15m; content-derived hash
+          # means unchanged api content legitimately keeps the old hash.
+          for i in $(seq 1 60); do
+            BODY=$(curl -sf --max-time 15 "https://api.mabims.dev/healthz" || true)
+            HASH=$(printf '%s' "$BODY" | jq -r '.build_hash // "unknown"' 2>/dev/null || echo unknown)
+            if [ "$HASH" != "$OLD" ]; then
+              echo "new build live after $((40 + i * 15))s: $HASH"
+              exit 0
+            fi
+            echo "Attempt $i/60: still serving build_hash=$OLD"
+            sleep 15
+          done
+          # No api-content change => cached image => no new hash to wait for.
+          echo "WARN: build_hash unchanged after 15m (api content unchanged?); proceeding to checks"
+
+      # The edge needs one more purge AFTER the new build goes live, so real
+      # clients re-populate from the new container instead of stale entries.
+      - name: Purge API CDN zone (post-deploy)
+        run: >
+          curl -sS --fail --retry 5 --retry-delay 5 --retry-all-errors
+          --connect-timeout 15 --max-time 60 -X POST
+          "https://api.bunny.net/pullzone/${{ secrets.BUNNY_API_ZONE_API }}/purgeCache"
+          -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
+
+      - name: Purge Docs CDN zone (post-deploy)
+        run: >
+          curl -sS --fail --retry 5 --retry-delay 5 --retry-all-errors
+          --connect-timeout 15 --max-time 60 -X POST
+          "https://api.bunny.net/pullzone/${{ secrets.BUNNY_API_ZONE_DOCS }}/purgeCache"
+          -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
+
       # The /hilal pipeline (ephemeris + astro cache + site model) is the part
       # that has failed in production while everything else stayed green, so
       # it is the sentinel: month=9&year=1447 is a curated-table month whose
@@ -68,20 +138,3 @@ jobs:
               fi
             done
           done
-
-      # Push-time purge parity with the old deploy-and-purge job: /meta and
-      # /today carry short TTLs, but /convert+-family are immutable for a day
-      # — fresh deploys with changed data must not wait that out at the edge.
-      - name: Purge API CDN zone
-        run: >
-          curl -sS --fail --retry 5 --retry-delay 5 --retry-all-errors
-          --connect-timeout 15 --max-time 60 -X POST
-          "https://api.bunny.net/pullzone/${{ secrets.BUNNY_API_ZONE_API }}/purgeCache"
-          -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
-
-      - name: Purge Docs CDN zone
-        run: >
-          curl -sS --fail --retry 5 --retry-delay 5 --retry-all-errors
-          --connect-timeout 15 --max-time 60 -X POST
-          "https://api.bunny.net/pullzone/${{ secrets.BUNNY_API_ZONE_DOCS }}/purgeCache"
-          -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"

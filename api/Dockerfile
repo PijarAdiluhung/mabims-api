@@ -45,8 +45,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     MPLCONFIGDIR=/tmp \
     MABIMS_EPHEMERIS_DIR=/app/data/ephemeris
 
-RUN python -c "import secrets; open('/build_hash','w').write(secrets.token_hex(8))"
-
 WORKDIR /app
 
 COPY pyproject.toml ./
@@ -71,6 +69,18 @@ RUN python /app/scripts/verify_ephemeris.py --no-download /app/data/ephemeris \
            python /app/scripts/verify_ephemeris.py /app/data/ephemeris; } \
     && mkdir -p /data \
     && chown -R nobody:nogroup /data /app/data/ephemeris
+
+# build_hash is content-derived — sorted sha256 over app/, static/, data/,
+# pyproject.toml and the verify script — replacing the old random token that
+# survived cache rebuilds unchanged and made the prod monitor's hash-diff
+# useless. Changed api content => new hash => an honest "new build is live"
+# signal for the monitor in .github/workflows/ci.yml.
+RUN find /app/pyproject.toml /app/app /app/static /app/data \
+      /app/scripts/verify_ephemeris.py -type f -print0 \
+    | sort -z \
+    | xargs -0 sha256sum \
+    | sha256sum \
+    | cut -d' ' -f1 > /build_hash
 
 USER nobody
 
