@@ -53,68 +53,29 @@ jobs:
       - name: Validate curated table vs Neo MABIMS criteria
         run: python scripts/validate_mabims.py
 
-  # The ONLY deployer. CI must pass (plain needs: gate) — a red commit is a
-  # non-deploy, never a broken deploy already shipped by Dokploy in parallel.
-  deploy:
+  deploy-and-purge:
     runs-on: ubuntu-latest
     needs: ci
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    # Worst case: 20m build watch + 6m hash poll + purges + 7.5m hilal verify.
-    timeout-minutes: 45
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
-      # Dokploy compose deploys can fail while the old container keeps
-      # serving — so watch the deployment record itself, not just healthz.
-      - name: Record the current live build hash
+      - name: Poll origin for new deploy
         run: |
-          set -euo pipefail
-          BODY=$(curl -sf --max-time 15 "https://api.mabims.dev/healthz" || true)
-          OLD=$(printf '%s' "$BODY" | jq -r '.build_hash // "unknown"' 2>/dev/null || echo unknown)
-          echo "OLD_BUILD_HASH=$OLD" >> "$GITHUB_ENV"
-          echo "pre-deploy build_hash=$OLD"
-
-      # Dokploy's webhook endpoint mimics a git-provider webhook: it needs the
-      # GitHub event header, a ref matching the configured branch, and a
-      # commits[] array (absent commits crash the watch-paths matcher → 400).
-      - name: Trigger the Dokploy deploy
-        run: >
-          curl -sS --fail --retry 3 --retry-delay 5 --retry-all-errors
-          --connect-timeout 15 --max-time 60 -X POST
-          "${{ secrets.DOKPLOY_WEBHOOK_URL }}"
-          -H "Content-Type: application/json"
-          -H "X-GitHub-Event: push"
-          -d '{"ref":"refs/heads/main","repository":{"full_name":"PijarAdiluhung/mabims-api"},"commits":[{"modified":[".github/workflows/ci.yml"]}]}'
-
-      # The webhook POST returns before the build finishes; a failed build
-      # leaves the old container serving, so give the build room, then let
-      # the hash diff and the hilal verify below decide the verdict.
-      - name: Wait for the Dokploy build window
-        run: |
-          echo "waiting 3m for the Dokploy build to complete..."
-          sleep 180
-
-      - name: Wait for the new build hash to go live
-        run: |
-          set -euo pipefail
-          OLD="$OLD_BUILD_HASH"
-          if [ "$OLD" = "unknown" ] || [ "$OLD" = "null" ]; then
-            echo "no pre-deploy hash; skipping the hash-diff check"
-            exit 0
-          fi
-          # Cached builds keep the old hash — allow up to 15m before the WARN.
-          for i in $(seq 1 60); do
-            BODY=$(curl -sf --max-time 15 "https://api.mabims.dev/healthz" || true)
-            HASH=$(printf '%s' "$BODY" | jq -r '.build_hash // "unknown"' 2>/dev/null || echo unknown)
-            if [ "$HASH" != "$OLD" ]; then
-              echo "new build live after $((i * 15))s: $HASH"
+          # A cold Dokploy restart (ephemeris + astro cache + imagepack
+          # downloads) can outlive a short window — 60 x 15s = 900s.
+          MAX_ATTEMPTS=60
+          SLEEP=15
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            BODY=$(curl -sf "https://api.mabims.dev/healthz" || true)
+            HASH=$(echo "$BODY" | jq -r .build_hash)
+            if [ -n "$HASH" ] && [ "$HASH" != "null" ] && [ "$HASH" != "unknown" ]; then
+              echo "Deploy confirmed: build_hash=$HASH"
               exit 0
             fi
-            echo "Attempt $i/60: still serving build_hash=$OLD"
-            sleep 15
+            echo "Attempt $i/$MAX_ATTEMPTS: build_hash='$HASH', waiting..."
+            sleep $SLEEP
           done
-          # A fully cached compose build can legitimately keep the old hash,
-          # and restarts preserve it — don't hard-fail, the hilal verify below
-          # remains the real health gate.
-          echo "WARN: build_hash unchanged after 15m (cached/reused image?)"
+          echo "ERROR: Deploy did not go live within $((MAX_ATTEMPTS * SLEEP))s"
+          exit 1
 
       - name: Purge API CDN zone
         run: >
