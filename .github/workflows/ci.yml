@@ -68,3 +68,20 @@ jobs:
               fi
             done
           done
+
+      # Push-time purge parity with the old deploy-and-purge job: /meta and
+      # /today carry short TTLs, but /convert+-family are immutable for a day
+      # — fresh deploys with changed data must not wait that out at the edge.
+      - name: Purge API CDN zone
+        run: >
+          curl -sS --fail --retry 5 --retry-delay 5 --retry-all-errors
+          --connect-timeout 15 --max-time 60 -X POST
+          "https://api.bunny.net/pullzone/${{ secrets.BUNNY_API_ZONE_API }}/purgeCache"
+          -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
+
+      - name: Purge Docs CDN zone
+        run: >
+          curl -sS --fail --retry 5 --retry-delay 5 --retry-all-errors
+          --connect-timeout 15 --max-time 60 -X POST
+          "https://api.bunny.net/pullzone/${{ secrets.BUNNY_API_ZONE_DOCS }}/purgeCache"
+          -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"

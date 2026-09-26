@@ -27,10 +27,17 @@ COPY scripts/.ephemeris-cache/de440s.bsp /app/data/ephemeris/de440s.bsp
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install -e ".[dev]" && \
     pytest -q && \
-    ruff check app tests scripts
+    ruff check app tests scripts && \
+    touch /gate-passed
 
 # ── Runtime stage ──────────────────────────────────────────────────────────
+# BuildKit only builds stages the final image references — dropping this COPY
+# would skip the gate silently (prod shipped exactly that, build done in 11s,
+# pytest never ran). Copying the 0-byte marker makes the runtime stage
+# require the test stage to have completed green.
 FROM python:3.12-slim
+
+COPY --from=test /gate-passed /tmp/gate-passed
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
