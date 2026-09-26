@@ -1,3 +1,35 @@
+# ── Test-gate stage ────────────────────────────────────────────────────────
+# Runs the CI gates ON BUILD: a red suite fails the build, and a failed build
+# fails Dokploy's compose deploy before `up` — the previous containers keep
+# serving. Moved out of GitHub Actions so the gate lives in the same pipeline
+# that deploys.
+FROM python:3.12-slim AS test
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    MPLCONFIGDIR=/tmp \
+    MABIMS_EPHEMERIS_DIR=/app/data/ephemeris
+
+WORKDIR /app
+
+COPY pyproject.toml ./
+COPY app ./app
+COPY tests ./tests
+COPY static ./static
+COPY scripts ./scripts
+COPY data /app/data
+# The kernel is tracked in git (31 MB); the astronomy tests and the verify
+# probe load it from the MABIMS_EPHEMERIS_DIR path.
+COPY scripts/.ephemeris-cache/de440s.bsp /app/data/ephemeris/de440s.bsp
+
+# PIP_NO_CACHE_DIR is deliberately unset here: a persistent pip cache makes
+# warm rebuilds skip re-downloads.
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -e ".[dev]" && \
+    pytest -q && \
+    ruff check app tests scripts
+
+# ── Runtime stage ──────────────────────────────────────────────────────────
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \

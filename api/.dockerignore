@@ -3,5 +3,5 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
-tests/
 .env
+.ephem/
