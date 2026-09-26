@@ -285,13 +285,19 @@ _SITE_KINDS = ("alt", "elong", "moon_az", "sun_alt", "sun_az", "sunset_jd")
 
 
 def _sites_fingerprint() -> str:
-    """Identity of the site set — sqlite keys carry it so a changed site list
-    can never be served stale cached rows (sunset windows, verdicts).
+    """Identity of the site geometry the cached rows were computed from.
+
+    Hashes coordinates + elevation in list order (the cached arrays are
+    position-indexed, so order is part of the identity). Display names are
+    deliberately excluded: a rename is cosmetic and must not invalidate the
+    primed rows (hashing names silently killed every cached row on a pure
+    rename, forcing all requests onto the live-compute path). Ephemeris swaps
+    are covered by ``astrocache.EPHEM_TAG``.
     Deliberately NOT lru_cached: a monkeypatched/load-reloaded site list must
     be honored immediately. Cheap by construction (25 sites -> one sha256)."""
     fp = hashlib.sha256()
     for s in load_sites():
-        fp.update(f"{s.name}|{s.lat_deg}|{s.lon_deg}|{s.elev_m}".encode())
+        fp.update(f"{s.lat_deg}|{s.lon_deg}|{s.elev_m}".encode())
     return fp.hexdigest()[:10]
 
 

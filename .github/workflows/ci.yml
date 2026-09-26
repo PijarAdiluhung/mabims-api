@@ -95,3 +95,25 @@ jobs:
           curl -sS --fail --retry 5 --retry-delay 2 --retry-all-errors -X POST
           "https://api.bunny.net/pullzone/${{ secrets.BUNNY_API_ZONE_DOCS }}/purgeCache"
           -H "AccessKey: ${{ secrets.BUNNY_API_KEY }}"
+
+      # /healthz only proves the container booted. The hilal pipeline
+      # (ephemeris + astro cache + site model) is the part that has failed
+      # in production while everything else stayed green, so gate the
+      # deploy on it. The cb= parameter busts the CDN so we reach origin.
+      - name: Verify the live hilal endpoint
+        run: |
+          MAX_ATTEMPTS=15
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            CB=$(date +%s)
+            BODY=$(curl -sS -w '\n%{http_code}' \
+              "https://api.mabims.dev/api/v1/hilal/info?month=9&year=1447&cb=$CB" || true)
+            CODE=$(echo "$BODY" | tail -n1)
+            if [ "$CODE" = "200" ]; then
+              echo "hilal/info healthy: $(echo "$BODY" | head -n1 | head -c 200)"
+              exit 0
+            fi
+            echo "Attempt $i: HTTP $CODE $(echo "$BODY" | head -n1 | head -c 400)"
+            sleep 10
+          done
+          echo "ERROR: /api/v1/hilal/info is not healthy on the live deployment"
+          exit 1

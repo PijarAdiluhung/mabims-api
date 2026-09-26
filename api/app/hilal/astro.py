@@ -9,12 +9,9 @@ agree with the month-length tables.
 
 from __future__ import annotations
 
-import os
-import tempfile
 import threading
 from datetime import date, datetime, time, timedelta
 from functools import lru_cache
-from pathlib import Path
 from zoneinfo import ZoneInfo
 
 
@@ -22,12 +19,11 @@ class _Ephemeris:
     def __init__(self) -> None:
         from skyfield.api import Loader, wgs84
 
-        directory = os.environ.get("MABIMS_EPHEMERIS_DIR")
-        path = Path(directory) if directory else Path(tempfile.gettempdir()) / "mabims-ephemeris"
-        path.mkdir(parents=True, exist_ok=True)
-        loader = Loader(str(path))
+        from app.ephemeris import ephemeris_dir, load_spk
+
+        loader = Loader(str(ephemeris_dir()))
         self.ts = loader.timescale(builtin=True)
-        self.eph = loader("de440s.bsp")
+        self.eph = load_spk(loader)
         self._wgs84 = wgs84
 
     def topos(self, lat: float, lon: float):

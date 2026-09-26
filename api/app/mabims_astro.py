@@ -1,13 +1,10 @@
 from __future__ import annotations
 
 import math
-import os
-import tempfile
 import threading
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time, timedelta, timezone
 from functools import lru_cache
-from pathlib import Path
 
 SABANG_LAT_DEG = 5.0 + 53.0 / 60.0
 SABANG_LON_DEG = 95.0 + 19.0 / 60.0
@@ -53,12 +50,11 @@ class _Ephemeris:
         from skyfield import almanac
         from skyfield.api import Loader, wgs84
 
-        directory = os.environ.get("MABIMS_EPHEMERIS_DIR")
-        path = Path(directory) if directory else Path(tempfile.gettempdir()) / "mabims-ephemeris"
-        path.mkdir(parents=True, exist_ok=True)
-        loader = Loader(str(path))
+        from app.ephemeris import ephemeris_dir, load_spk
+
+        loader = Loader(str(ephemeris_dir()))
         self.ts = loader.timescale(builtin=True)
-        self.eph = loader("de440s.bsp")
+        self.eph = load_spk(loader)
         self._almanac = almanac
         self._earth = self.eph["earth"]
         self._moon = self.eph["moon"]

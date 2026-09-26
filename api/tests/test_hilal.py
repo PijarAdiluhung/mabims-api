@@ -276,6 +276,64 @@ def test_hilal_info_retro_false_same_as_default(computed_client):
     assert r_default.json()["evening"]["visible"] == r_false.json()["evening"]["visible"]
 
 
+# ── Hilal info: warm astro-cache branch ───────────────────────────────────
+#
+# CI never ships api/data/hilal_astro.sqlite (gitignored), so the cache-hit
+# branch that production takes is otherwise untested: only a cache miss is
+# ever exercised.
+
+
+def test_hilal_info_served_from_astro_cache(tmp_path, monkeypatch):
+    import numpy as np
+
+    from app.hilal import astrocache
+    from app.hilal.astro import _eph
+    from app.mabims_sites import sites25_kinds
+
+    monkeypatch.setenv("MABIMS_ASTROCACHE", str(tmp_path / "astro.sqlite"))
+    astrocache._read_conn.cache_clear()
+    astrocache._write_conn_cache.clear()
+
+    evening = date(2026, 2, 17)  # day 29 of Sya'ban 1447, resolved by /hilal/info
+    sunset_jd = float(_eph().ts.utc(2026, 2, 17, 11, 40).tt)
+    n = 25
+    cached = (
+        np.full(n, 5.0),          # topocentric altitude: passes the 3.0 deg floor
+        np.full(n, 9.0),          # elongation: passes the 6.4 deg floor
+        np.full(n, 270.0),        # moon azimuth
+        np.full(n, -0.83),        # sun altitude at sunset
+        np.full(n, 270.0),        # sun azimuth
+        np.full(n, sunset_jd),    # sunset, TT julian date
+    )
+    for kind, arr in zip(sites25_kinds(), cached, strict=True):
+        astrocache.store(evening, kind, arr)
+
+    def _no_live_compute(*_args, **_kwargs):
+        raise AssertionError("astro cache hit must not fall back to a live skyfield pass")
+
+    monkeypatch.setattr("app.mabims_sites._evaluate_batch", _no_live_compute)
+
+    settings = Settings(
+        allowed_origins=["*"],
+        rate_limit="10000/minute",
+        enable_fallback=False,
+        enable_computed=False,
+    )
+    r = TestClient(create_app(settings=settings)).get("/api/v1/hilal/info?month=9&year=1447")
+    assert r.status_code == 200, r.text
+
+    body = r.json()
+    assert body["evening"]["visible"] is True
+    assert body["evening"]["alt_ok"] is True
+    assert body["evening"]["elong_ok"] is True
+    assert body["evening"]["sites_checked"] == 25
+    assert body["evening"]["sunset"] == "18:40"
+    # site names come from the live site list, never from the cached blobs
+    from app.mabims_sites import load_sites
+
+    assert body["evening"]["deciding_site"]["name"] in {s.name for s in load_sites()}
+
+
 # ── Hilal viz: HTTP integration ───────────────────────────────────────────
 
 

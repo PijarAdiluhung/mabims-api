@@ -3,6 +3,7 @@
 import calendar as pycalendar
 import hashlib
 import json
+import logging
 import math
 import re
 import threading
@@ -101,6 +102,8 @@ from .timeutil import (
     resolve_tz,
     tz_label,
 )
+
+log = logging.getLogger("mabims.api")
 
 COMPUTED_WARNING = (
     "Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria "
@@ -659,6 +662,7 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         except ApiError:
             raise
         except Exception as exc:
+            log.exception("date computation failed for %s (%s)", date_iso, calendar)
             raise ApiError(
                 "computation_unavailable",
                 f"Could not compute the date {date_iso}: {exc.__class__.__name__}",
@@ -1368,6 +1372,12 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         try:
             sighting = observe_sighting_evening(res.evening_date)
         except Exception as exc:
+            log.exception(
+                "hilal computation failed for %04d-%02d (evening %s)",
+                year,
+                month,
+                res.evening_date.isoformat(),
+            )
             raise ApiError(
                 "computation_unavailable",
                 f"Could not compute hilal data: {exc.__class__.__name__}",
@@ -1534,6 +1544,12 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
         try:
             png = _render_viz_png(res, sighting, ms_site, alt_ok, elong_ok, bare=is_bare)
         except Exception as exc:
+            log.exception(
+                "hilal viz render failed for %04d-%02d (evening %s)",
+                res.target_year,
+                res.target_month,
+                res.evening_date.isoformat(),
+            )
             raise ApiError(
                 "render_failed",
                 f"Could not render chart: {exc.__class__.__name__}",
@@ -1594,6 +1610,12 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
                     is_bare,
                 )
         except Exception as exc:
+            log.exception(
+                "hilal map render failed for %04d-%02d (evening %s)",
+                res.target_year,
+                res.target_month,
+                res.evening_date.isoformat(),
+            )
             raise ApiError(
                 "render_failed",
                 f"Could not render map: {exc.__class__.__name__}",
