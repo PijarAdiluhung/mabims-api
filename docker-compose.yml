@@ -8,6 +8,9 @@ services:
       RATE_LIMIT: ${RATE_LIMIT:-240/minute}
       MABIMS_FALLBACK_DIR: /data
       MABIMS_ASTROCACHE: /data/hilal_astro.sqlite
+      # Re-fetch the published sqlite when the local copy is stale (site
+      # fingerprint changed, size differs) — no volume reset per update.
+      MABIMS_ASTROCACHE_REFRESH: "1"
     volumes:
       - fallback_data:/data
     expose:
