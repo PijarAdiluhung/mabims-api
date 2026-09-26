@@ -268,7 +268,7 @@ The full OpenAPI 3.1 spec is available at `https://api.mabims.dev/openapi.json` 
 | Data | Precomputed MABIMS tables (`api/data/`) |
 | Rendering | [Skyfield](https://rhodesmill.org/skyfield/) + [Matplotlib](https://matplotlib.org/) + [Pillow](https://python-pillow.org/) + [Shapely](https://shapely.readthedocs.io/) |
 | Hosting | Docker Compose on VPS via Dokploy, Bunny CDN in front |
-| CI | GitHub Actions — pytest, ruff, mypy, table-vs-criteria validation, deploy health-check + CDN purge |
+| CI | GitHub Actions — pytest, ruff, mypy, table-vs-criteria validation, then a **CI-gated Dokploy deploy**: only a green run triggers the deploy via the Dokploy API, watches the build result (failed builds never flip traffic-tick hash), verifies the live hilal endpoint and purges the CDN. Dokploy never deploys on push by itself. |
 
 ## Documentation site
 
