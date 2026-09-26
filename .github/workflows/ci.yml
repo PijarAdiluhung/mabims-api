@@ -72,11 +72,16 @@ jobs:
           echo "OLD_BUILD_HASH=$OLD" >> "$GITHUB_ENV"
           echo "pre-deploy build_hash=$OLD"
 
+      # Dokploy's webhook endpoint mimics a git-provider webhook: it needs the
+      # GitHub event header and a ref matching the configured branch, else 400.
       - name: Trigger the Dokploy deploy
         run: >
           curl -sS --fail --retry 3 --retry-delay 5 --retry-all-errors
           --connect-timeout 15 --max-time 60 -X POST
           "${{ secrets.DOKPLOY_WEBHOOK_URL }}"
+          -H "Content-Type: application/json"
+          -H "X-GitHub-Event: push"
+          -d '{"ref":"refs/heads/main","repository":{"full_name":"PijarAdiluhung/mabims-api"}}'
 
       # The webhook POST returns before the build finishes; a failed build
       # leaves the old container serving, so give the build room, then let
