@@ -1,79 +1,130 @@
+"""Rebuild ``data/calendar_data.json`` from the curated month starts.
+
+The hand-edited source of truth is ``data/month_starts.json``:
+
+    {
+      "coverage_end": "2027-12-31",
+      "months": {
+        "1448-07": "2026-12-10",
+        "1448-08": "2027-01-09",
+        ...
+      }
+    }
+
+One line per Hijri month: key = Hijri ``YYYY-MM``, value = Gregorian date of
+day 1. Rows with a blank day (``"2027-01-__"``) are ignored, so future months
+can sit in the file as placeholders that only need the day filled in. To add
+a new published year, fill its rows and set ``coverage_end`` to that year's
+last Gregorian day, then run:
+
+    cd api
+    python -m scripts.build_calendar_data
+
+A Sidang Isbat flip edits one row via ``scripts/apply_flip.py`` (which writes
+this file back), not by hand.
+"""
 from __future__ import annotations
 
 import json
 import os
+import re
 import sys
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
-DATA_PATH = Path(__file__).resolve().parents[1] / "data" / "calendar_data.json"
-LAST_GREGORIAN_DAY = (2026, 12, 31)
+DATA_DIR = Path(__file__).resolve().parents[1] / "data"
+DATA_PATH = DATA_DIR / "calendar_data.json"
+MONTH_STARTS_PATH = DATA_DIR / "month_starts.json"
 
-MONTH_STARTS = {
-    "2023-01-23": (1444, 7),
-    "2023-02-22": (1444, 8),
-    "2023-03-23": (1444, 9),
-    "2023-04-22": (1444, 10),
-    "2023-05-21": (1444, 11),
-    "2023-06-20": (1444, 12),
-    "2023-07-19": (1445, 1),
-    "2023-08-18": (1445, 2),
-    "2023-09-17": (1445, 3),
-    "2023-10-16": (1445, 4),
-    "2023-11-15": (1445, 5),
-    "2023-12-14": (1445, 6),
-    "2024-01-13": (1445, 7),
-    "2024-02-11": (1445, 8),
-    "2024-03-12": (1445, 9),
-    "2024-04-10": (1445, 10),
-    "2024-05-10": (1445, 11),
-    "2024-06-08": (1445, 12),
-    "2024-07-07": (1446, 1),
-    "2024-08-06": (1446, 2),
-    "2024-09-05": (1446, 3),
-    "2024-10-04": (1446, 4),
-    "2024-11-03": (1446, 5),
-    "2024-12-03": (1446, 6),
-    "2025-01-01": (1446, 7),
-    "2025-01-31": (1446, 8),
-    "2025-03-01": (1446, 9),
-    "2025-03-31": (1446, 10),
-    "2025-04-29": (1446, 11),
-    "2025-05-28": (1446, 12),
-    "2025-06-27": (1447, 1),
-    "2025-07-26": (1447, 2),
-    "2025-08-25": (1447, 3),
-    "2025-09-23": (1447, 4),
-    "2025-10-23": (1447, 5),
-    "2025-11-22": (1447, 6),
-    "2025-12-21": (1447, 7),
-    "2026-01-20": (1447, 8),
-    "2026-02-19": (1447, 9),
-    "2026-03-21": (1447, 10),
-    "2026-04-19": (1447, 11),
-    "2026-05-18": (1447, 12),
-    "2026-06-16": (1448, 1),
-    "2026-07-16": (1448, 2),
-    "2026-08-14": (1448, 3),
-    "2026-09-13": (1448, 4),
-    "2026-10-12": (1448, 5),
-    "2026-11-11": (1448, 6),
-    "2026-12-10": (1448, 7),
-}
+_HIJRI_KEY = re.compile(r"^(\d{4})-(\d{2})$")
+_PENDING_VALUE = re.compile(r"^\d{4}-\d{2}-(?:__)?$")
+
+
+def load_month_starts(
+    path: Path = MONTH_STARTS_PATH,
+) -> tuple[dict[str, tuple[int, int]], list[str], tuple[int, int, int]]:
+    """Read the hand-edited JSON into ``(anchors, pending, coverage_end)``.
+
+    ``anchors`` maps Gregorian ISO start -> (hijri year, month). ``pending``
+    lists keys left blank (ignored until filled). Raises ``ValueError`` with
+    a file-and-line-friendly message for malformed input.
+    """
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    coverage_raw = raw.get("coverage_end")
+    if not coverage_raw:
+        raise ValueError(f"{path.name}: missing 'coverage_end'")
+    try:
+        coverage = date.fromisoformat(str(coverage_raw))
+    except ValueError as exc:
+        raise ValueError(f"{path.name}: invalid coverage_end {coverage_raw!r}") from exc
+
+    months_raw = raw.get("months")
+    if not isinstance(months_raw, dict) or not months_raw:
+        raise ValueError(f"{path.name}: 'months' must be a non-empty object")
+
+    anchors: dict[str, tuple[int, int]] = {}
+    pending: list[str] = []
+    seen_months: set[tuple[int, int]] = set()
+    for label, value in months_raw.items():
+        match = _HIJRI_KEY.match(str(label))
+        if not match:
+            raise ValueError(f"{path.name}: bad Hijri key {label!r} (want YYYY-MM)")
+        hijri = (int(match.group(1)), int(match.group(2)))
+        if not 1 <= hijri[1] <= 12:
+            raise ValueError(f"{path.name}: bad Hijri month in {label!r}")
+        if hijri in seen_months:
+            raise ValueError(f"{path.name}: duplicate month {label}")
+        seen_months.add(hijri)
+
+        if value in (None, "") or _PENDING_VALUE.match(str(value)):
+            pending.append(label)
+            continue
+        try:
+            start = date.fromisoformat(str(value))
+        except ValueError as exc:
+            raise ValueError(f"{path.name}: {label}: invalid date {value!r}") from exc
+        key = start.isoformat()
+        if key in anchors:
+            other = f"{anchors[key][0]:04d}-{anchors[key][1]:02d}"
+            raise ValueError(f"{path.name}: {label} and {other} share start {key}")
+        anchors[key] = hijri
+
+    if not anchors:
+        raise ValueError(f"{path.name}: no filled month starts")
+    anchors = dict(sorted(anchors.items()))
+
+    last_label = f"{max(anchors.values())[0]:04d}-{max(anchors.values())[1]:02d}"
+    for label in pending:
+        if label < last_label:
+            raise ValueError(
+                f"{path.name}: blank row {label} sits between filled months — "
+                "fill it or remove it"
+            )
+
+    return anchors, sorted(pending), (coverage.year, coverage.month, coverage.day)
+
+
+MONTH_STARTS, PENDING_MONTHS, LAST_GREGORIAN_DAY = load_month_starts()
 
 
 def build() -> tuple[dict[str, str], dict[str, str]]:
     g2h: dict[str, str] = {}
     h2g: dict[str, str] = {}
+    coverage_end = datetime(*LAST_GREGORIAN_DAY)
     dates = sorted(MONTH_STARTS)
     for i, start_iso in enumerate(dates):
         start = datetime.strptime(start_iso, "%Y-%m-%d")
+        if start > coverage_end:
+            break
         hy, hm = MONTH_STARTS[start_iso]
         hd = 1
         if i + 1 < len(dates):
-            end = datetime.strptime(dates[i + 1], "%Y-%m-%d") - timedelta(days=1)
+            end = min(
+                datetime.strptime(dates[i + 1], "%Y-%m-%d") - timedelta(days=1),
+                coverage_end,
+            )
         else:
-            end = datetime(*LAST_GREGORIAN_DAY)
+            end = coverage_end
         while start <= end:
             g = start.strftime("%Y-%m-%d")
             h = f"{hy:04d}-{hm:02d}-{hd:02d}"
@@ -101,12 +152,55 @@ def validate(g2h: dict[str, str], h2g: dict[str, str]) -> None:
         gap = (starts[i + 1][0] - starts[i][0]).days
         assert gap in (29, 30), f"month {starts[i][1]} length {gap} invalid"
 
+        hy, hm = starts[i][1]
+        expected = (hy + 1, 1) if hm == 12 else (hy, hm + 1)
+        assert starts[i + 1][1] == expected, (
+            f"{starts[i][1]} is followed by {starts[i + 1][1]}, expected {expected}"
+        )
+
+    assert starts[-1][0] <= datetime(*LAST_GREGORIAN_DAY), (
+        f"last filled month {starts[-1][1]} starts {starts[-1][0]:%Y-%m-%d}, after "
+        f"coverage_end {datetime(*LAST_GREGORIAN_DAY):%Y-%m-%d} — bump coverage_end "
+        "to cover the new year"
+    )
+
+    tail = (datetime(*LAST_GREGORIAN_DAY) - starts[-1][0]).days
+    assert 0 <= tail <= 30, (
+        f"coverage_end {datetime(*LAST_GREGORIAN_DAY):%Y-%m-%d} is {tail} days after "
+        f"the last filled month ({starts[-1][1]} at {starts[-1][0]:%Y-%m-%d}); "
+        f"fill the blank rows ({', '.join(PENDING_MONTHS)}) or move coverage_end back"
+    )
+
     for g, h in g2h.items():
         assert h2g.get(h) == g, f"hijri_to_gregorian mismatch for {g}->{h}"
     assert len(g2h) == len(h2g), "maps are not the same size"
 
 
+def save_month_starts(
+    month_starts: dict[str, tuple[int, int]], path: Path = MONTH_STARTS_PATH
+) -> None:
+    """Write ``month_starts`` back to the hand-edited JSON, preserving blank
+    placeholder rows and the ``_readme`` / ``coverage_end`` fields."""
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    previous = raw.get("months", {})
+    months: dict[str, str] = {}
+    for start_iso, (hy, hm) in sorted(month_starts.items()):
+        months[f"{hy:04d}-{hm:02d}"] = start_iso
+    for label, value in previous.items():
+        months.setdefault(label, value)
+    raw["months"] = months
+    tmp = path.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(raw, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    tmp.replace(path)
+
+
 def main() -> int:
+    if PENDING_MONTHS:
+        print(
+            f"note: {len(PENDING_MONTHS)} blank month start(s) ignored: "
+            + ", ".join(PENDING_MONTHS)
+        )
+
     g2h, h2g = build()
     validate(g2h, h2g)
 

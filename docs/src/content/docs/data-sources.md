@@ -11,7 +11,7 @@ Data kalender bersumber dari **data publik yang dikeluarkan resmi oleh [Kementer
 |---|---|
 | **Sumber** | Kementerian Agama RI, Kalender Hijriah |
 | **Format asli** | PDF |
-| **Cakupan tabel** | 2023-01-23 → 2026-12-31 |
+| **Cakupan tabel** | 2023-01-23 → 2027-12-31 |
 
 ## Tier Komputasi
 

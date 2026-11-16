@@ -6,6 +6,8 @@ from pathlib import Path
 
 import pytest
 
+from scripts.build_calendar_data import MONTH_STARTS
+
 API_DIR = Path(__file__).resolve().parent.parent
 DATA_PATH = API_DIR / "data" / "calendar_data.json"
 SITES_PATH = API_DIR / "data" / "hilal_sites.json"
@@ -39,6 +41,17 @@ def test_curated_reverse_mapping_is_consistent(real_data):
         if g2h.get(g) != h:
             failures.append(f"H→G: {h} → {g}, but G→H: {g} → {g2h.get(g)}")
     assert not failures, "Inconsistent mappings:\n" + "\n".join(failures[:20])
+
+
+def test_month_starts_json_matches_curated_table(real_data):
+    starts = {g: f"{hy:04d}-{hm:02d}" for g, (hy, hm) in MONTH_STARTS.items()}
+    curated = {
+        g: h[:7] for g, h in real_data["gregorian_to_hijri"].items() if h.endswith("-01")
+    }
+    assert starts == curated, (
+        "data/month_starts.json is out of sync with data/calendar_data.json — "
+        "run: python -m scripts.build_calendar_data"
+    )
 
 
 def test_all_hijri_months_are_29_or_30_days(real_data):

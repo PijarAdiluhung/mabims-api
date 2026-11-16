@@ -189,11 +189,12 @@ def test_events_ayyamul_bidh(client, real_data):
 
 
 def test_events_resolve_computed_days_in_boundary_month(computed_client):
-    """Regression: hijri 1448-07 is nominally inside curated coverage, but its
-    late days (23+) fall in 2027, i.e. the computed tier. An event on such a
-    day (isra_miraj 27 Rajab) must still resolve - the endpoint used to use a
-    table-only lookup that skipped month computation for covered months."""
-    r = computed_client.get("/api/v1/events?year=1448&calendar=hijri&include=all")
+    """Regression: hijri 1449-08 is nominally inside curated coverage, but only
+    its first three days (2027-12-29..31) are curated; the rest fall in 2028,
+    i.e. the computed tier. An event on such a day (ayyamul_bidh 13 Sha'ban)
+    must still resolve - the endpoint used to use a table-only lookup that
+    skipped month computation for covered months."""
+    r = computed_client.get("/api/v1/events?year=1449&calendar=hijri&include=all")
     assert r.status_code == 200
     body = r.json()
     slugs = {e["event"] for e in body["events"]}
@@ -201,9 +202,10 @@ def test_events_resolve_computed_days_in_boundary_month(computed_client):
         "1_muharram", "maulid_nabi", "awal_ramadan", "idul_fitri", "idul_adha",
         "isra_miraj", "nuzulul_quran", "arafah", "tasua", "asyura", "tasyrik",
     } <= slugs
-    isra = next(e for e in body["events"] if e["event"] == "isra_miraj")
-    assert isra["hijri"] == "1448-07-27"
-    assert isra["gregorian"].startswith("2027-")
+    bidh = next(e for e in body["events"] if e["hijri"] == "1449-08-13")
+    assert bidh["event"] == "ayyamul_bidh"
+    assert bidh["gregorian"] == "2028-01-10"
+    assert bidh["source"] == "mabims-computed"
 
 
 def test_events_ayyamul_bidh_gregorian(client, real_data):

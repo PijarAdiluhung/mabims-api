@@ -3,8 +3,8 @@
 Only the POLICY constants below are hand-edited. Data-derived bounds are
 resolved from the data files per app instance, so extending the curated
 table (e.g. when the 2027 Kemenag calendar ships) is a data change, not a
-code hunt: append the month starts to ``scripts/build_calendar_data.py``,
-rebuild, and every consumer derives the rest.
+code hunt: fill the month starts in ``data/month_starts.json``, rebuild, and
+every consumer derives the rest.
 """
 from __future__ import annotations
 

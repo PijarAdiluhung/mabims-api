@@ -14,7 +14,7 @@ reported by the API. No runtime code changes, no schema changes.
 
 | Piece | Path | Role |
 |---|---|---|
-| Anchor source | `api/scripts/build_calendar_data.py` (`MONTH_STARTS`) | One line per Hijri month: `"2026-02-19": (1447, 9)`. The single point of edit. |
+| Anchor source | `api/data/month_starts.json` (`months`) | One line per Hijri month: `"1447-09": "2026-02-19"`. The single point of edit. |
 | Curated table | `api/data/calendar_data.json` | Generated from the anchors. Never hand-edited. |
 | Flip history | `api/data/divergences.json` | Append-only registry of every override (published vs official, reason, timestamp). Written by the script, read by the app + CI. |
 | Flip script | `api/scripts/apply_flip.py` | Edits one anchor (no cascade), regenerates + validates the table, appends history, prints spot-check URLs. |
@@ -67,7 +67,7 @@ cd api
 .venv\Scripts\mypy
 
 # 4. Commit exactly three files
-git add scripts/build_calendar_data.py data/calendar_data.json data/divergences.json
+git add data/month_starts.json data/calendar_data.json data/divergences.json
 git commit -m "flip: 1 Syawal 1447 -> 2026-03-22 (sidang isbat)"
 git push
 ```
@@ -122,7 +122,8 @@ the full story.
 ## Full revised calendar (rare)
 
 If Kemenag publishes a wholesale revised calendar (multiple months move):
-edit `MONTH_STARTS` wholesale, then:
+edit the `months` object in `api/data/month_starts.json` wholesale (and bump
+`coverage_end` if a new Gregorian year is included), then:
 
 ```powershell
 $env:MABIMS_ALLOW_FLIP="1"; .venv\Scripts\python scripts\build_calendar_data.py

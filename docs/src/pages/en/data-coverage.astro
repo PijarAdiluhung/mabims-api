@@ -4,7 +4,7 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 const apiBase = import.meta.env.PUBLIC_API_BASE ?? 'https://api.mabims.dev';
 
 let first = '2023-01-23';
-let last = '2026-12-31';
+let last = '2027-12-31';
 try {
   const res = await fetch(`${apiBase}/api/v1/meta`);
   if (res.ok) {

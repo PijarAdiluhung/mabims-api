@@ -11,7 +11,7 @@ Calendar data is sourced from **data published publicly by the [Ministry of Reli
 |---|---|
 | **Source** | Ministry of Religious Affairs of the Republic of Indonesia, Hijri Calendar |
 | **Original format** | PDF |
-| **Table coverage** | 2023-01-23 → 2026-12-31 |
+| **Table coverage** | 2023-01-23 → 2027-12-31 |
 
 ## Computed Tier
 

@@ -1963,10 +1963,8 @@
 "elong_ok":false,
 "visible":false
 },
-"source":"mabims-computed",
-"warnings":[
-"Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (moon altitude >= 3 deg and elongation >= 6.4 deg at local sunset, seen anywhere across the coastal observation sites of Indonesia)."
-]
+"source":"mabims",
+"warnings":[]
 },
 "1448-09":{
 "month":{
@@ -2005,10 +2003,8 @@
 "elong_ok":false,
 "visible":false
 },
-"source":"mabims-computed",
-"warnings":[
-"Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (moon altitude >= 3 deg and elongation >= 6.4 deg at local sunset, seen anywhere across the coastal observation sites of Indonesia)."
-]
+"source":"mabims",
+"warnings":[]
 },
 "1448-10":{
 "month":{
@@ -2047,10 +2043,8 @@
 "elong_ok":false,
 "visible":false
 },
-"source":"mabims-computed",
-"warnings":[
-"Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (moon altitude >= 3 deg and elongation >= 6.4 deg at local sunset, seen anywhere across the coastal observation sites of Indonesia)."
-]
+"source":"mabims",
+"warnings":[]
 },
 "1448-11":{
 "month":{
@@ -2089,11 +2083,8 @@
 "elong_ok":true,
 "visible":true
 },
-"source":"mabims-computed",
-"warnings":[
-"Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (moon altitude >= 3 deg and elongation >= 6.4 deg at local sunset, seen anywhere across the coastal observation sites of Indonesia).",
-"Hijri month 1448-10 is close to the Neo MABIMS visibility threshold; the officially announced date may shift by one day."
-]
+"source":"mabims",
+"warnings":[]
 },
 "1448-12":{
 "month":{
@@ -2132,10 +2123,8 @@
 "elong_ok":false,
 "visible":false
 },
-"source":"mabims-computed",
-"warnings":[
-"Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (moon altitude >= 3 deg and elongation >= 6.4 deg at local sunset, seen anywhere across the coastal observation sites of Indonesia)."
-]
+"source":"mabims",
+"warnings":[]
 },
 "1449-01":{
 "month":{
@@ -2174,10 +2163,8 @@
 "elong_ok":true,
 "visible":true
 },
-"source":"mabims-computed",
-"warnings":[
-"Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (moon altitude >= 3 deg and elongation >= 6.4 deg at local sunset, seen anywhere across the coastal observation sites of Indonesia)."
-]
+"source":"mabims",
+"warnings":[]
 },
 "1449-02":{
 "month":{
@@ -2216,10 +2203,8 @@
 "elong_ok":false,
 "visible":false
 },
-"source":"mabims-computed",
-"warnings":[
-"Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (moon altitude >= 3 deg and elongation >= 6.4 deg at local sunset, seen anywhere across the coastal observation sites of Indonesia)."
-]
+"source":"mabims",
+"warnings":[]
 },
 "1449-03":{
 "month":{
@@ -2258,10 +2243,8 @@
 "elong_ok":true,
 "visible":true
 },
-"source":"mabims-computed",
-"warnings":[
-"Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (moon altitude >= 3 deg and elongation >= 6.4 deg at local sunset, seen anywhere across the coastal observation sites of Indonesia)."
-]
+"source":"mabims",
+"warnings":[]
 },
 "1449-04":{
 "month":{
@@ -2300,10 +2283,8 @@
 "elong_ok":true,
 "visible":true
 },
-"source":"mabims-computed",
-"warnings":[
-"Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (moon altitude >= 3 deg and elongation >= 6.4 deg at local sunset, seen anywhere across the coastal observation sites of Indonesia)."
-]
+"source":"mabims",
+"warnings":[]
 },
 "1449-05":{
 "month":{
@@ -2342,10 +2323,8 @@
 "elong_ok":true,
 "visible":false
 },
-"source":"mabims-computed",
-"warnings":[
-"Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (moon altitude >= 3 deg and elongation >= 6.4 deg at local sunset, seen anywhere across the coastal observation sites of Indonesia)."
-]
+"source":"mabims",
+"warnings":[]
 },
 "1449-06":{
 "month":{
@@ -2384,10 +2363,8 @@
 "elong_ok":true,
 "visible":true
 },
-"source":"mabims-computed",
-"warnings":[
-"Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (moon altitude >= 3 deg and elongation >= 6.4 deg at local sunset, seen anywhere across the coastal observation sites of Indonesia)."
-]
+"source":"mabims",
+"warnings":[]
 },
 "1449-07":{
 "month":{
@@ -2426,10 +2403,8 @@
 "elong_ok":false,
 "visible":false
 },
-"source":"mabims-computed",
-"warnings":[
-"Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (moon altitude >= 3 deg and elongation >= 6.4 deg at local sunset, seen anywhere across the coastal observation sites of Indonesia)."
-]
+"source":"mabims",
+"warnings":[]
 },
 "1449-08":{
 "month":{
@@ -2468,10 +2443,8 @@
 "elong_ok":true,
 "visible":true
 },
-"source":"mabims-computed",
-"warnings":[
-"Date is outside the curated MABIMS table; computed with the Neo MABIMS criteria (moon altitude >= 3 deg and elongation >= 6.4 deg at local sunset, seen anywhere across the coastal observation sites of Indonesia)."
-]
+"source":"mabims",
+"warnings":[]
 },
 "1449-09":{
 "month":{

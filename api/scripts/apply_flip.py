@@ -2,8 +2,8 @@
 
 A flip = Kemenag's rukyat session decreed ONE month start (F) that differs
 from the published calendar. One isbat night, one anchor line: the flip
-edits only F's ``MONTH_STARTS`` anchor; every other anchor stays exactly as
-published. The ±1 is absorbed by the two adjacent months (F−1 lengthens or
+edits only F's row in ``data/month_starts.json``; every other anchor stays
+exactly as published. The ±1 is absorbed by the two adjacent months (F−1 lengthens or
 shortens 29↔30 — that is the isbat decision — and F's own length adjusts
 the other way), which the table validator enforces. Later month starts
 remain the published predictions until their own isbat nights decreed
@@ -12,9 +12,10 @@ them; if ever, each is its own flip entry.
 The script:
   1. edits the anchor (validated: 29/30-day gaps, contiguity, no collisions)
   2. verifies the regenerated day-map diff touches only months F−1 and F
-  3. regenerates ``api/data/calendar_data.json``
-  4. appends an entry to ``api/data/divergences.json`` (append-only history)
-  5. prints spot-check URLs; the CI deploy step purges the CDN zones
+  3. writes the anchor back to ``api/data/month_starts.json``
+  4. regenerates ``api/data/calendar_data.json``
+  5. appends an entry to ``api/data/divergences.json`` (append-only history)
+  6. prints spot-check URLs; the CI deploy step purges the CDN zones
 
 ``--dry-run`` plans and prints without writing; ``--yes`` skips the
 interactive confirmation.
@@ -224,6 +225,7 @@ def main(argv: list[str] | None = None) -> int:
     tmp = CAL_PATH.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     tmp.replace(CAL_PATH)
+    bcd.save_month_starts(planned)
 
     raw = json.loads(DIV_PATH.read_text(encoding="utf-8")) if DIV_PATH.exists() else {"divergences": []}
     entries = raw.get("divergences", []) if isinstance(raw, dict) else raw
@@ -241,13 +243,14 @@ def main(argv: list[str] | None = None) -> int:
     dtmp.replace(DIV_PATH)
 
     print(f"wrote {CAL_PATH.name} ({len(g2h)} entries)")
+    print(f"updated {bcd.MONTH_STARTS_PATH.name}")
     print(f"appended divergence entry -> {DIV_PATH.name}")
     print("\ncache: CI purges the CDN zones on push to main. Spot-check URLs after deploy:")
     for u in affected_urls(args.base_url, changed_g, changed_h):
         print(f"  {u}")
     print("\nnext steps:")
     print("  1. cd api && .venv\\Scripts\\pytest && .venv\\Scripts\\ruff check .")
-    print("  2. commit build_calendar_data.py + data/calendar_data.json + data/divergences.json")
+    print("  2. commit data/month_starts.json + data/calendar_data.json + data/divergences.json")
     print("  3. push -> CI validates, deploys and purges the CDN")
     print("  4. publish the mabims-hijri SDK release (bundled table refresh)")
     return 0

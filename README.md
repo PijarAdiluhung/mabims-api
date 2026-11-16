@@ -325,8 +325,10 @@ Shipped on a VPS via Dokploy (compose service) with Bunny CDN pull zones running
 
 ## Data & coverage
 
-`api/data/calendar_data.json` is the authoritative MABIMS table (currently **Hijri 1444-07 → 1448-07**,
-gregorian 2023-01-23 → 2026-12-31). Beyond it, `api/data/computed_seed.json` carries the same multi-site
+`api/data/calendar_data.json` is the authoritative MABIMS table (currently **Hijri 1444-07 → 1449-08**,
+gregorian 2023-01-23 → 2027-12-31). Its hand-edited source is
+`api/data/month_starts.json` (one Gregorian start date per Hijri month); rebuild with
+`python -m scripts.build_calendar_data` from `api/`. Beyond it, `api/data/computed_seed.json` carries the same multi-site
 Neo MABIMS criteria across the full supported window — **1945-01-01 → 2100-01-01** (JPL de440s),
 precomputed and shipped, so no lazy computation happens at request time. Both computed tiers flag
 **genuine borderline months** via warnings: only months whose day-29 sighting evening *passed* with

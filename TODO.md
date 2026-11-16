@@ -12,11 +12,11 @@
 - [x] Smoke checklist incl. cache-hit verification (second request must not reach origin)
 - [x] Uptime monitor on `/healthz` + alert (Instatus)
 
-## Data — curated table ends 2026-12-31
-- [ ] 2027 MABIMS table: Kemenag usually publishes the new-year table mid-October or later (sometimes later still) — watch for the announcement, then run the yearly ingest and extend `api/data/`. Until then the API serves the computed tier past the table edge, so nothing breaks — coverage just reports `mabims-computed` instead of `mabims` for dates past 2026-12-31
+## Data — curated table ends 2027-12-31
+- [x] 2027 MABIMS table ingested — months 1448-08 → 1449-08 added to `api/data/month_starts.json`; coverage now 2023-01-23 → 2027-12-31 (13/13 matched the Neo MABIMS computed starts, no divergence)
 - [x] `/events` endpoint — Islamic observance dates (Ramadan start, Eid al-Fitr/Adha, 1 Muharram, Maulid) from the curated table, extended with computed dates beyond table coverage using Neo MABIMS criteria
-- [ ] Decide long-term data format for yearly tables (versioned files + `/meta.data_version` bump) — do this before the 2027 ingest, since the ingest script's shape depends on it
-- [ ] When the table nears exhaustion with no 2027 update published, surface it via `/meta` so consumers aren't surprised by the `mabims` → `mabims-computed` shift
+- [x] Long-term data format for yearly tables — `api/data/month_starts.json` is the hand-edited source (one line per Hijri month), generated into `calendar_data.json`; `/meta.data_version` already hashes the table
+- [ ] When the table nears exhaustion with no 2028 update published, surface it via `/meta` so consumers aren't surprised by the `mabims` → `mabims-computed` shift
 
 ## Computed tier (precomputed_table)
 - [x] Computed-seed regeneration on demand → `.github/workflows/regen-computed-table.yml` (`workflow_dispatch`): rebuilds `computed_seed.json`, verifies curated overlap byte-for-byte, opens a PR with the diff. Seed is static through Hijri 1473, so no yearly cron needed; rerun manually after criteria/ephemeris changes
