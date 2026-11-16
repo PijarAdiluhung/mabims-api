@@ -68,19 +68,6 @@ Tanggal 1 Januari 2028 sudah berada di luar tabel. API tetap menjawab, tetapi `s
 | 29 Desember 2027 | 1 Sya'ban 1449 | `mabims` |
 | 1 Januari 2028 | 4 Sya'ban 1449 | `mabims-computed` |
 
-## Cara memperbarui tabel
-
-Sejak pembaruan ini, `api/data/month_starts.json` menjadi acuan tunggal untuk tabel resmi. Isinya satu baris untuk setiap bulan Hijriah dalam bentuk `"YYYY-MM": "YYYY-MM-DD"`. Untuk menambah tahun baru, isi tanggal awal bulan, lalu sesuaikan `coverage_end`.
-
-Setelah itu, jalankan:
-
-```bash
-cd api
-python -m scripts.build_calendar_data
-```
-
-Skrip ini menyusun ulang `calendar_data.json`, memeriksa panjang bulan, dan memberi tahu bila masih ada baris yang belum diisi. `apply_flip.py` juga menulis hasil koreksi Sidang Isbat kembali ke berkas yang sama, jadi tidak ada lagi dua sumber yang bisa berbeda.
-
 ## Catatan untuk bulan terakhir
 
 Bulan 1449-08 baru tercatat tiga hari, yaitu 29 sampai 31 Desember 2027. Panjang bulan itu belum bisa diverifikasi karena awal bulan berikutnya, 1449-09, baru masuk tabel bersama data 2028. Sampai saat itu, hari-hari setelah 31 Desember 2027 tetap dilayani dari perhitungan.

@@ -68,19 +68,6 @@ curl "https://api.mabims.dev/api/v1/convert?date=2027-01-09&calendar=gregorian"
 | 29 December 2027 | 1 Sha'ban 1449 | `mabims` |
 | 1 January 2028 | 4 Sha'ban 1449 | `mabims-computed` |
 
-## How to update the table
-
-With this update, `api/data/month_starts.json` is the single reference for the official calendar. It holds one line per Hijri month in the form `"YYYY-MM": "YYYY-MM-DD"`. To add a new year, fill in the month starts and adjust `coverage_end`.
-
-Then run:
-
-```bash
-cd api
-python -m scripts.build_calendar_data
-```
-
-The script rebuilds `calendar_data.json`, checks month lengths, and tells you if any row is still blank. `apply_flip.py` also writes Sidang Isbat corrections back to the same file, so there are no longer two sources that can drift apart.
-
 ## A note on the final month
 
 Month 1449-08 currently has only three days in the table, namely 29 to 31 December 2027. Its length cannot be verified yet because the next month start, 1449-09, only arrives with the 2028 data. Until then, dates after 31 December 2027 are still served from computation.
