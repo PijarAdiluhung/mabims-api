@@ -2,6 +2,39 @@
 
 History of changes to the MABIMS API and documentation.
 
+## 1.11.0 — 2026-11-16
+
+### Added
+
+- **2027 MABIMS table** — the curated Kemenag RI table now runs from 2023-01-23 through 2027-12-31 (Hijri 1444-07 through 1449-08). Thirteen month starts (1448-08 to 1449-08) were added, extending daily coverage from 1,439 to 1,804 entries.
+- **`hilal_index.json` refresh** — the 13 newly curated months are now served as `mabims` in `/hilal/history` instead of `mabims-computed`, with their outside-table warnings cleared.
+
+### Notes
+
+- All 13 added starts matched the Neo MABIMS computation exactly, and the multi-site validator passed all 61 month boundaries with no borderline months.
+- `/meta.coverage.last` now reports `2027-12-31`. Dates after it still use the `mabims-computed` tier.
+
+---
+
+## 1.10.0 — 2026-09-21
+
+### Added
+
+- **`weekday` field on all dates:** `/today`, `/today/{date}`, `/convert` (including `next`), `/range`, `/month`, and `/year` now carry the Indonesian weekday name for the same civil day: `"weekday": "Ahad"`, `"Selasa"`, ..., `"Sabtu"`. Sunday is written **Ahad** (the Kemenag convention), not "Minggu". The name is derived from the Gregorian date of the same physical day, so Hijri and Gregorian views of one date always agree.
+- **OpenAPI description** for the new field via `schema.weekday` (bilingual).
+
+### Fixed
+
+- **Computed events in the last partially-covered Hijri month:** `/events` with `include=extra` now correctly returns events like Isra Mi'raj for Hijri months where the curated table is not yet complete (e.g. 1448-07). Previously, computed events could silently disappear at the table boundary.
+- **Ayyamul bidh in Dhul Hijjah:** the white-days window in Dhul Hijjah now shifts to 14–16 (instead of 13–15) because the 13th is a Tashriq day and belongs to a separate event.
+
+### Notes
+
+- Additive change (semver minor, non-breaking): the new field is always present on `output`/items; no field is removed or retyped. Clients that don't care about weekday names can ignore it.
+- Documented samples on the endpoint pages, landing page, and README were updated alongside; the documentation site now uses `output.weekday` straight from the API with a local fallback for old snapshots.
+
+---
+
 ## 1.9.0 — 2026-09-20
 
 ### Added

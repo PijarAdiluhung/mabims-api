@@ -3,6 +3,20 @@ title: Changelog
 description: History of changes to the MABIMS API and documentation.
 ---
 
+## 1.11.0 — 2026-11-16
+
+### Added
+
+- **2027 MABIMS table:** the curated Kemenag RI table now covers 2023-01-23 through 2027-12-31 (Hijri 1444-07 through 1449-08). Thirteen month starts were added, raising daily coverage from 1,439 to 1,804 entries.
+- **`hilal_index.json` refresh:** the 13 newly curated months are now served as `mabims` in `/hilal/history` instead of `mabims-computed`, with their outside-table warnings cleared.
+
+### Notes
+
+- All 13 added starts matched the Neo MABIMS computation exactly, and the multi-site validator passed all 61 month boundaries with no borderline months.
+- `/meta.coverage.last` now reports `2027-12-31`. Dates after it still use the `mabims-computed` tier.
+
+---
+
 ## 1.10.0 — 2026-09-21
 
 ### Added

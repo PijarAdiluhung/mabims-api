@@ -3,6 +3,20 @@ title: Changelog
 description: Riwayat perubahan API dan dokumentasi MABIMS.
 ---
 
+## 1.11.0 — 2026-11-16
+
+### Ditambahkan
+
+- **Tabel MABIMS 2027:** tabel kurasi Kemenag RI kini mencakup 2023-01-23 sampai 2027-12-31 (Hijri 1444-07 sampai 1449-08). Tiga belas awal bulan ditambahkan, sehingga cakupan harian naik dari 1.439 menjadi 1.804 entri.
+- **Pembaruan `hilal_index.json`:** 13 bulan yang baru masuk tabel kini dilayani sebagai `mabims` di `/hilal/history`, bukan `mabims-computed`, dan peringatan di luar tabelnya sudah dihapus.
+
+### Catatan
+
+- Seluruh 13 awal bulan baru cocok persis dengan hitungan Neo MABIMS, dan validator multi-site meloloskan 61 batas bulan tanpa bulan borderline.
+- `/meta.coverage.last` kini bernilai `2027-12-31`. Tanggal setelahnya tetap memakai tier `mabims-computed`.
+
+---
+
 ## 1.10.0 — 2026-09-21
 
 ### Added
