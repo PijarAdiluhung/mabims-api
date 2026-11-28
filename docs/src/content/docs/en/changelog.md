@@ -3,6 +3,20 @@ title: Changelog
 description: History of changes to the MABIMS API and documentation.
 ---
 
+## 1.12.0 — 2026-11-28
+
+### Added
+
+- **`GET /robots.txt`:** the API host now serves a plain-text robots file that answers `User-agent: *` with `Disallow: /api/`, cached for a day. Crawlers (Applebot, Baiduspider, bingbot, YandexBot, OAI-SearchBot) had been requesting a file that did not exist and getting 404s, 24 to 37 times a day. The `/playground` stays crawlable, the JSON endpoints do not.
+- **`GET /` redirect:** the bare host now returns a `302` to `/playground` instead of a 404, so anyone pasting the domain lands on the interactive docs. Both new routes also answer `HEAD`.
+
+### Notes
+
+- Neither route appears in the OpenAPI schema, and both are rate-limit exempt like `/docs` and `/favicon.ico`.
+- The `/api/v1` surface is unchanged.
+
+---
+
 ## 1.11.0 — 2026-11-16
 
 ### Added

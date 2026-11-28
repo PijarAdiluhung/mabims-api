@@ -3,6 +3,20 @@ title: Changelog
 description: Riwayat perubahan API dan dokumentasi MABIMS.
 ---
 
+## 1.12.0 — 2026-11-28
+
+### Ditambahkan
+
+- **`GET /robots.txt`:** host API kini menyajikan berkas robots dalam teks biasa yang menjawab `User-agent: *` dengan `Disallow: /api/`, di-cache sehari. Crawler (Applebot, Baiduspider, bingbot, YandexBot, OAI-SearchBot) sebelumnya meminta berkas yang tidak ada dan mendapat 404, 24 sampai 37 kali sehari. Halaman `/playground` tetap bisa dirayapi, endpoint JSON tidak.
+- **Redirect `GET /`:** host tanpa path kini menjawab `302` ke `/playground`, bukan 404, jadi orang yang menempelkan domain langsung mendarat di dokumentasi interaktif. Kedua rute baru juga melayani `HEAD`.
+
+### Catatan
+
+- Keduanya tidak muncul di skema OpenAPI dan bebas dari rate limit seperti `/docs` dan `/favicon.ico`.
+- Permukaan `/api/v1` tidak berubah.
+
+---
+
 ## 1.11.0 — 2026-11-16
 
 ### Ditambahkan
