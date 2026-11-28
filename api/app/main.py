@@ -17,7 +17,7 @@ from zoneinfo import ZoneInfo
 from fastapi import FastAPI, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.openapi.docs import get_swagger_ui_html
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse, PlainTextResponse, RedirectResponse, Response
 from scalar_fastapi import AgentScalarConfig, Theme, get_scalar_api_reference
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
@@ -796,6 +796,29 @@ def create_app(settings: Settings | None = None, computed_provider=None) -> Fast
             content=icon.read_bytes(),
             media_type="image/x-icon",
             headers={"Cache-Control": "public, max-age=86400, s-maxage=86400"},
+        )
+
+    @app.api_route("/robots.txt", include_in_schema=False, methods=["GET", "HEAD"])
+    @limiter.exempt
+    def robots() -> PlainTextResponse:
+        # Keep crawlers out of the JSON endpoints but let them reach the
+        # playground, which is the only page on this host worth discovering.
+        # Before this route existed they were asking for a robots.txt that did
+        # not exist and getting a 404 several dozen times a day.
+        return PlainTextResponse(
+            "User-agent: *\nDisallow: /api/\n",
+            headers={"Cache-Control": "public, max-age=86400, s-maxage=86400"},
+        )
+
+    @app.api_route("/", include_in_schema=False, methods=["GET", "HEAD"])
+    @limiter.exempt
+    def root() -> RedirectResponse:
+        # A bare host used to 404, which is all a human pasting the domain needed
+        # to conclude the service was down. Send them to the interactive docs.
+        return RedirectResponse(
+            "/playground",
+            status_code=302,
+            headers={"Cache-Control": "public, max-age=3600"},
         )
 
     @app.get("/docs", include_in_schema=False)
